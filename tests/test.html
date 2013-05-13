@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>state.js test 1</title>
+		<script src="../src/state.js"></script>
+		<script>
+			// create the state machine
+			var player = new Region( "player" );
+		
+			// create some states
+			var initial = new PseudoState( PseudoStateKind.Initial, player );
+			var operational = new State( "operational", player );
+			var finalState = new FinalState( "final", player );
+			var stopped = new State( "stopped", operational );
+			var active = new State( "active", operational );		
+			var running = new State( "running", active);
+			var paused = new State( "paused", active);	
+		
+			// add some behaviour
+			active.Entry.push( function() { document.getElementById("head").innerHTML = "Head: engaged"; } );
+			active.Exit.push( function() { document.getElementById("head").innerHTML = "Head: disengaged"; } );
+			running.Entry.push( function() { document.getElementById("motor").innerHTML = "Motor: running"; } );
+			running.Exit.push( function() { document.getElementById("motor").innerHTML = "Motor: stopped"; } );
+
+			operational.Entry.push( function() { document.getElementById("head").innerHTML = "Head: disengaged"; } );
+			operational.Entry.push( function() { document.getElementById("motor").innerHTML = "Motor: stopped"; } );
+			
+			// create the transitions
+			initial.Completions.push( new Transition( initial, stopped ) );
+			stopped.Transitions.push( new Transition( stopped, running, function( s ) { return ( s == "play" ); } ) );
+			active.Transitions.push( new Transition( active, stopped, function( s ) { return s == "stop"; } ) );
+			running.Transitions.push( new Transition( running, paused, function( s ) { return s == "pause"; } ) );
+			paused.Transitions.push( new Transition( paused, running, function( s ) { return s == "play"; } ) );
+			operational.Transitions.push( new Transition( operational, finalState, function( s ) { return s == "off"; } ) );
+		</script>
+	</head>
+	<body onload="player.Initialise()">
+		<button type="button" onclick="player.Process( 'play' )">Play</button>
+		<button type="button" onclick="player.Process( 'pause' )">Pause</button>
+		<button type="button" onclick="player.Process( 'stop' )">Stop</button>
+		<p id="head">Head: </p>
+		<p id="motor">Motor: </p>
+	</body>
+</html>
