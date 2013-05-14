@@ -1,4 +1,19 @@
-/* returns the only element of an array that satisfies a specified condition; throws an exception if zero or more than one such elements exist */
+// Copyright © 2013 Steelbreeze Limited.
+//
+// state.js is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published
+// by the Free Software Foundation, either version 3 of the License,
+// or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+// returns the only element of an array that satisfies a specified condition; throws an exception if zero or more than one such elements exist
 Array.prototype.single = function( predicate )
 {
 	var results = predicate ? this.filter( predicate ) : this;
@@ -11,7 +26,7 @@ Array.prototype.single = function( predicate )
 	throw new Error( "Cannot return zero or more than one elements" );	
 };
 
-/* returns the only element of an array that satisfies a specified condition; throws an exception if more than one such elements exist */
+// returns the only element of an array that satisfies a specified condition; throws an exception if more than one such elements exist
 Array.prototype.singleOrDefault = function( predicate )
 {
 	var results = predicate ? this.filter( predicate ) : this;
