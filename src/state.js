@@ -136,8 +136,8 @@ function State( name, parent )
 	this.Entry = [];
 	this.Exit = [];
 	this.Regions = [];
-	this.Completions = []; // TODO: have these auto populated in transition ctor
-	this.Transitions = []; // TODO: have these auto populated in transition ctor
+	this.Completions = [];
+	this.Transitions = [];
 }
 
 State.prototype = 
@@ -168,7 +168,7 @@ State.prototype =
 		
 		if( processed == true )
 		{
-			transition[ 0 ].Traverse( false ); // TODO: pass in message, not history
+			transition[ 0 ].Traverse( message );
 		}
 		else
 		{
@@ -279,36 +279,51 @@ FinalState.prototype =
 	}
 }
 
-function Transition( source, target, guard ) // TODO: distinguish completion and transition
+function Completion( source, target, guard )
 {
-	this.Source = source;
-	this.Target = target;
+	this.Guard = guard ? guard : function() { return true; };
+	this.Path = Path( source, target );
+	this.Effect = [];
+	
+	source.Completions.push( this );
+}
+
+Completion.prototype =
+{
+	Traverse: function( deepHistory )
+	{
+		this.Path.Exit.forEach( function( action ) { action(); } );
+		
+		this.Effect.forEach( function( action ) { action(); } );
+		
+		this.Path.Enter.forEach( function( action ) { action(); } );
+		
+		this.Path.Complete( deepHistory );
+	}
+}
+
+function Transition( source, target, guard )
+{
+	console.assert( source instanceof State, "Source of a transition must be a State" );
 	
 	this.Guard = guard ? guard : function( message ) { return true; };
+	this.Path = Path( source, target );
 	this.Effect = [];
+	
+	source.Transitions.push( this );
 }
 
 Transition.prototype =
 {
-	Traverse: function( deepHistory ) // TODO: move logic into ctor as per state.cs
-	{		
-		var sourceAncestors = Ancestors( this.Source );
-		var targetAncestors = Ancestors( this.Target );
+	Traverse: function( message )
+	{
+		this.Path.Exit.forEach( function( action ) { action(); } );
 		
-		for( var i = 0; sourceAncestors[ i ] == targetAncestors[ i ]; i++ );
-				
-		if( this.Source instanceof PseudoState )
-			if( sourceAncestors[ i ] != this.Source )
-				this.Source.OnExit();
+		this.Effect.forEach( function( action ) { action( message ); } );
 		
-		sourceAncestors[ i ].OnExit();
-
-		this.Effect.forEach( function( action ) { action(); } ); // TODO: pass message if message based transition
-
-		for( ; i < targetAncestors.length; i++ )
-			targetAncestors[ i ].BeginEnter();
-	
-		this.Target.EndEnter();
+		this.Path.Enter.forEach( function( action ) { action(); } );
+		
+		this.Path.Complete( false );
 	}
 }
 
@@ -318,4 +333,27 @@ function Ancestors( node )
 		return Ancestors( node.Parent ).concat( node );
 	else
 		return [ node ];
+}
+
+function Path( source, target )
+{
+	var path = { Exit: [], Enter: [] };
+	var sourceAncestors = Ancestors( source );
+	var targetAncestors = Ancestors( target );
+	
+	for( var i = 0; sourceAncestors[ i ] == targetAncestors[ i ]; i++ );
+	
+	if( source instanceof PseudoState )
+		if( sourceAncestors[ i ] != source )
+			path.Exit.push( function() { source.OnExit(); } );
+	
+	var sourceAncestor = sourceAncestors[ i ];
+	path.Exit.push( function() { sourceAncestor.OnExit(); } );
+		
+	for( ; i < targetAncestors.length; i++ )
+		( function( t ) { path.Enter.push( function() { t.BeginEnter(); } ); } )( targetAncestors[ i ] );
+			
+	path.Complete = function() { target.EndEnter(); };
+
+	return path;
 }
