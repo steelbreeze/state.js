@@ -1,33 +1,40 @@
+/* returns the only element of an array that satisfies a specified condition; throws an exception if zero or more than one such elements exist */
 Array.prototype.single = function( predicate )
 {
 	var results = predicate ? this.filter( predicate ) : this;
 	
-	if( results.length != 1 )
+	if( results.length === 1 )
 	{
-		throw new Error( "Cannot return more than one item" );
+		return results[ 0 ];
 	}
 	
-	return results[ 0 ];
+	throw new Error( "Cannot return zero or more than one elements" );	
 };
 
+/* returns the only element of an array that satisfies a specified condition; throws an exception if more than one such elements exist */
 Array.prototype.singleOrDefault = function( predicate )
 {
 	var results = predicate ? this.filter( predicate ) : this;
 	
-	if( results.length > 1 )
-	{
-		throw new Error( "Cannot return more than one item" );
-	}
-	
-	if( results.length == 1 )
+	if( results.length === 1 )
 	{
 		return results[ 0 ];
 	}
+	else if( results.length === 0 )
+	{
+		return;
+	}
+
+	throw new Error( "Cannot return more than one elements" );
 };
 
-PseudoStateKind = // TODO: other kinds
+var PseudoStateKind = // TODO: other kinds
 {
-	Initial : { Name: "initial", IsInitial: true, IsHistory: false, GetCompletion: function( completions ) { return completions.single(); } }
+	DeepHistory : { Name: "deepHistory", IsInitial: true, IsHistory: true, GetCompletion: function( completions ) { return completions.single(); } },
+	EntryPoint : { Name: "entryPoint", IsInitial: true, IsHistory: false, GetCompletion: function( completions ) { return completions.single(); } },
+	ExitPoint : { Name: "exitPoint", IsInitial: false, IsHistory: false, GetCompletion: function( completions ) { return completions.single( function( c ) { return c.Guard(); } ); } },
+	Initial : { Name: "initial", IsInitial: true, IsHistory: false, GetCompletion: function( completions ) { return completions.single(); } },
+	ShallowHistory : { Name: "shallowHistory", IsInitial: true, IsHistory: true, GetCompletion: function( completions ) { return completions.single(); } }
 };
 
 function Region( name, parent )
@@ -411,7 +418,7 @@ function Path( source, target )
 	var targetAncestors = Ancestors( target );
 	var i = 0;
 	
-	while( sourceAncestors[ i ] == targetAncestors[ i ] )
+	while( sourceAncestors[ i ] === targetAncestors[ i ] )
 	{
 		i++;
 	}

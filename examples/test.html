@@ -31,7 +31,7 @@
 			new Transition( operational, finalState, function( s ) { return s == "off"; } );
 
 			// add some transition behaviour
-			initialise.Effect.push( DisengageHead, StopMotor );
+			initialise.Effect.push( StopMotor, DisengageHead );
 			
 			function EngageHead()
 			{
@@ -53,12 +53,23 @@
 				document.getElementById("motor").innerHTML = "Motor: stopped";
 			}
 			
+			// a little more behavior to adjust the graphic
+			stopped.Entry.push( function() { document.getElementById( "diagram" ).src = "controller_stopped.png"; } );
+			running.Entry.push( function() { document.getElementById( "diagram" ).src = "controller_running.png"; } );
+			paused.Entry.push( function() { document.getElementById( "diagram" ).src = "controller_paused.png"; } );
+			operational.Exit.push( function() { document.getElementById( "diagram" ).src = "controller_final.png"; } );
+			
 		</script>
 	</head>
 	<body onload="player.Initialise()">
-		<button type="button" id="play" onclick="player.Process( 'play' )">Play</button>
-		<button type="button" id="pause" onclick="player.Process( 'pause' )">Pause</button>
-		<button type="button" id="stop" onclick="player.Process( 'stop' )">Stop</button>
+		<h1>state.cs cassette controller example</h1>
+		<p>This example implements a simple controller for a cassette player according to the model below:</p>
+		<p><img id="diagram" src="controller_stopped.png" /></p>
+		<p>Press the buttons below to send events to the controller (check brower log for trace output):</p>
+		<button type="button" onclick="player.Process( 'play' )">Play</button>
+		<button type="button" onclick="player.Process( 'pause' )">Pause</button>
+		<button type="button" onclick="player.Process( 'stop' )">Stop</button>
+		<button type="button" onclick="player.Process( 'off' )">Off</button>
 		<p id="head">Head: </p>
 		<p id="motor">Motor: </p>
 	</body>
