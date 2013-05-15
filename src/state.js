@@ -27,7 +27,7 @@ Array.prototype.single = function( predicate )
 };
 
 // returns the only element of an array that satisfies a specified condition; throws an exception if more than one such elements exist
-Array.prototype.singleOrDefault = function( predicate )
+Array.prototype.singleOrUndefined = function( predicate )
 {
 	var results = predicate ? this.filter( predicate ) : this;
 	
@@ -35,23 +35,38 @@ Array.prototype.singleOrDefault = function( predicate )
 	{
 		return results[ 0 ];
 	}
-	else if( results.length === 0 )
+	else if( results.length > 1 )
 	{
-		return;
+		throw new Error( "Cannot return more than one elements" );
 	}
-
-	throw new Error( "Cannot return more than one elements" );
 };
 
-var PseudoStateKind = // TODO: other kinds
+// returns the a random element of an array that satisfies a specified condition; throws an exception if more than one such elements exist
+Array.prototype.randomOrUndefined = function( predicate )
 {
-	DeepHistory : { Name: "deepHistory", IsInitial: true, IsHistory: true, GetCompletion: function( completions ) { return completions.single(); } },
-	EntryPoint : { Name: "entryPoint", IsInitial: true, IsHistory: false, GetCompletion: function( completions ) { return completions.single(); } },
-	ExitPoint : { Name: "exitPoint", IsInitial: false, IsHistory: false, GetCompletion: function( completions ) { return completions.single( function( c ) { return c.Guard(); } ); } },
-	Initial : { Name: "initial", IsInitial: true, IsHistory: false, GetCompletion: function( completions ) { return completions.single(); } },
-	ShallowHistory : { Name: "shallowHistory", IsInitial: true, IsHistory: true, GetCompletion: function( completions ) { return completions.single(); } }
+	var results = predicate ? this.filter( predicate ) : this;
+	
+	if( results.length !== 0 )
+	{
+		return results[ ( results.length - 1 ) * Math.random() ];
+	}
 };
 
+// else guard for use in choice and junction pseudo states
+var Else = function() { return false; };
+
+var PseudoStateKind =
+{
+	Choice: { Name: "junction", IsInitial: false, IsHistory: false, GetCompletion: function( completions ) { var result = completions.randomOrUndefined( function( c ) { return c.Guard(); } ); if( !result ) { result = completions.single( function ( c ) { return c === Else; } ); } return result; } },
+	DeepHistory: { Name: "deepHistory", IsInitial: true, IsHistory: true, GetCompletion: function( completions ) { return completions.single(); } },
+	EntryPoint: { Name: "entryPoint", IsInitial: true, IsHistory: false, GetCompletion: function( completions ) { return completions.single(); } },
+	ExitPoint: { Name: "exitPoint", IsInitial: false, IsHistory: false, GetCompletion: function( completions ) { return completions.single( function( c ) { return c.Guard(); } ); } },
+	Initial: { Name: "initial", IsInitial: true, IsHistory: false, GetCompletion: function( completions ) { return completions.single(); } },
+	Junction: { Name: "junction", IsInitial: false, IsHistory: false, GetCompletion: function( completions ) { var result = completions.singleOrUndefined( function( c ) { return c.Guard(); } ); if( !result ) { result = completions.single( function ( c ) { return c === Else; } ); } return result; } },
+	ShallowHistory: { Name: "shallowHistory", IsInitial: true, IsHistory: true, GetCompletion: function( completions ) { return completions.single(); } }
+};
+
+// region constructor
 function Region( name, parent )
 {
 	if( parent )
@@ -69,11 +84,13 @@ function Region( name, parent )
 
 Region.prototype =
 {
+	// true if a region is 'complete' (the current state is a final state)
 	IsComplete : function()
 	{
-		return this.Current instanceof FinalState;
+		return this.Current && this.Current instanceof FinalState;
 	},
-	
+
+	// initialises a region for use or subsiquent reuse
 	Initialise : function( deepHistory )
 	{
 		if( !deepHistory )
@@ -85,7 +102,7 @@ Region.prototype =
 		
 		var vertex = ( ( deepHistory || this.Initial.Kind.IsHistory ) && this.Current ) ? this.Current : this.Initial;
 
-		vertex.Initialise( deepHistory ); // TODO: add || Initial.Kind == DeepHistory
+		vertex.Initialise( deepHistory || this.Kind === PseudoStateKind.DeepHistory );
 	},
 
 	Process : function( message )
@@ -130,23 +147,27 @@ function PseudoState( kind, parent )
 	{
 		parent = parent.DefaultRegion();
 	}
-
+	
 	// validate parameters
+//	console.assert( kind in PseudoStateKind, "kind must be a PseudoStateKind" ) // TODO: get something like this working
 	console.assert( parent instanceof Region, "parent must be a Region" );
-	// TODO: assert if kind is defined in PseudoStateKind
 
 	this.Kind = kind;
 	this.Parent = parent;
 	this.Completions = [];
 
+	// set the parent region's initial pseudo state value
 	if( kind.IsInitial === true )
 	{		
 		if( parent.Initial )
+		{
 			throw new Error( "Regions can have at most 1 initial pseudo state" );
-	
+		}
+		
 		parent.Initial = this;
 	}
 	
+	// add the pseudo state to its parent
 	parent.Vertices.push( this );
 }
 
@@ -230,7 +251,7 @@ State.prototype =
 	
 	Process : function( message )
 	{
-		var transition = this.Transitions.singleOrDefault( function( t ) { return t.Guard( message ); } );
+		var transition = this.Transitions.singleOrUndefined( function( t ) { return t.Guard( message ); } );
 		var processed = transition ? true : false;
 					
 		if( processed === true )
@@ -245,10 +266,7 @@ State.prototype =
 				{
 					if( this.Regions[ i ].IsActive === true )
 					{
-						if( this.Regions[ i ].Process( message ) === true )
-						{
-							processed = true;
-						}
+						processed |= this.Regions[ i ].Process( message );
 					}
 				}
 			}
@@ -295,7 +313,7 @@ State.prototype =
 		{
 			if( this.IsSimple() || this.Regions.every( function( region ) { return region.IsComplete(); } ) )
 			{
-				var completion = this.Completions.singleOrDefault( function( c ) { return c.Guard(); } );
+				var completion = this.Completions.singleOrUndefined( function( c ) { return c.Guard(); } );
 				
 				if( completion )
 				{
@@ -414,6 +432,40 @@ Transition.prototype =
 	}
 };
 
+// the path to take between vertices
+function Path( source, target )
+{
+	var path = { Exit: [], Enter: [] };
+
+	// get the ancestors of the source and target vertices
+	var sourceAncestors = Ancestors( source );
+	var targetAncestors = Ancestors( target );
+
+	// iterate over all common ancestors
+	for( var i = 0; sourceAncestors[ i ] === targetAncestors[ i ]; i++ );
+	
+	// special case for leaving pseudo states where source and target vertices are in different regions
+	if( source instanceof PseudoState && ( sourceAncestors[ i ] != source ) )
+	{
+		path.Exit.push( function() { source.OnExit(); } );
+	}
+
+	// leave the source ancestry (exit cascades)
+	( function( s ) { path.Exit.push( function() { s.OnExit(); } ); } )( sourceAncestors[ i ] );
+	
+	// enter the target ancestry (beginEnter does not cascade)
+	for( ; i < targetAncestors.length; i++ )
+	{
+		( function( t ) { path.Enter.push( function() { t.BeginEnter(); } ); } )( targetAncestors[ i ] );
+	}
+		
+	// complete entry (endEnter cascades to any child regions)
+	path.Complete = function() { target.EndEnter(); };
+
+	return path;
+}
+
+// returns the ancstors of a node
 function Ancestors( node )
 {
 	if( node.Parent )
@@ -424,33 +476,4 @@ function Ancestors( node )
 	{
 		return [ node ];
 	}
-}
-
-function Path( source, target )
-{
-	var path = { Exit: [], Enter: [] };
-	var sourceAncestors = Ancestors( source );
-	var targetAncestors = Ancestors( target );
-	var i = 0;
-	
-	while( sourceAncestors[ i ] === targetAncestors[ i ] )
-	{
-		i++;
-	}
-	
-	if( source instanceof PseudoState && ( sourceAncestors[ i ] != source ) )
-	{
-		path.Exit.push( function() { source.OnExit(); } );
-	}
-	
-	( function( s ) { path.Exit.push( function() { s.OnExit(); } ); } )( sourceAncestors[ i ] );
-		
-	while( i < targetAncestors.length )
-	{
-		( function( t ) { path.Enter.push( function() { t.BeginEnter(); } ); } )( targetAncestors[ i++ ] );
-	}
-			
-	path.Complete = function() { target.EndEnter(); };
-
-	return path;
 }
