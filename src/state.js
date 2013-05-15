@@ -107,7 +107,10 @@ Region.prototype =
 
 	Process : function( message )
 	{
-		this.Current.Process( message );
+		if( this.Current )
+		{
+			this.Current.Process( message );
+		}
 	},
 
 	OnExit : function()
