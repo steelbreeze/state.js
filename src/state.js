@@ -35,7 +35,8 @@ Array.prototype.singleOrUndefined = function( predicate )
 	{
 		return results[ 0 ];
 	}
-	else if( results.length > 1 )
+	
+	if( results.length > 1 )
 	{
 		throw new Error( "Cannot return more than one elements" );
 	}
@@ -182,14 +183,12 @@ PseudoState.prototype =
 		this.EndEnter( false );
 	},
 	
-	OnExit : function()
+	OnExit: function()
 	{
 		console.log( "Leave: " + this );
-			
-		this.IsActive = false;
 	},
 
-	BeginEnter : function()
+	BeginEnter: function()
 	{
 		console.log( "Enter: " + this );
 	},
