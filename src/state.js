@@ -80,6 +80,7 @@ function Region( name, parent )
 	this.Name = name;
 	this.Parent = parent;
 	this.IsActive = false;
+	this.Current = null;
 	this.Vertices = [];
 }
 
@@ -88,7 +89,7 @@ Region.prototype =
 	// true if a region is 'complete' (the current state is a final state)
 	IsComplete : function()
 	{
-		return this.Current && this.Current instanceof FinalState;
+		return this.Current instanceof FinalState;
 	},
 
 	// initialises a region for use or subsiquent reuse
@@ -101,22 +102,29 @@ Region.prototype =
 		
 		this.BeginEnter();
 		
-		var vertex = ( ( deepHistory || this.Initial.Kind.IsHistory ) && this.Current ) ? this.Current : this.Initial;
+		var vertex = ( ( deepHistory || this.Initial.Kind.IsHistory ) && ( this.Current !== null ) ) ? this.Current : this.Initial;
 
 		vertex.Initialise( deepHistory || this.Kind === PseudoStateKind.DeepHistory );
 	},
 
 	Process : function( message )
 	{
-		if( this.Current )
+		if( this.Current !== null )
 		{
 			this.Current.Process( message );
 		}
 	},
 
+	Reset : function()
+	{
+		this.Vertices.forEach( function( vertex ) { vertex.Reset(); } );
+		this.IsActive = false;
+		this.Current = null; // TODO: remove the property rather than set null (or init to null)
+	},
+	
 	OnExit : function()
 	{
-		if( this.Current && this.Current.IsActive === true )
+		if( this.Current !== null && this.Current.IsActive === true )
 		{
 			this.Current.OnExit();
 		}
@@ -181,6 +189,10 @@ PseudoState.prototype =
 	{
 		this.BeginEnter();
 		this.EndEnter( false );
+	},
+	
+	Reset : function()
+	{
 	},
 	
 	OnExit: function()
@@ -277,6 +289,13 @@ State.prototype =
 		return processed;
 	},
 
+	Reset : function()
+	{
+		this.Regions.forEach( function( region ) { region.Reset(); } );
+		
+		this.IsActive = false;
+	},
+	
 	OnExit : function()
 	{
 		this.Regions.forEach( function( region ) { if( region.IsActive ) { region.OnExit(); } } );
@@ -357,6 +376,11 @@ FinalState.prototype =
 	
 	Process : function( message )
 	{		
+	},
+
+	Reset : function()
+	{		
+		this.IsActive = false;
 	},
 
 	BeginEnter : function()
