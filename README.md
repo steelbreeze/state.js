@@ -1,6 +1,6 @@
 # Welcome to state.js
 
-Please take the current source and ignore any labels until v1.0.0 appears.
+The current stable release is 1.0.0.
 
 ## Introduction
 State.js is a JavaScript implementation of a state machine library that largely follows UML 2 state machine semantics.
