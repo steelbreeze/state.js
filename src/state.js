@@ -429,7 +429,8 @@ Completion.prototype =
 		
 		this.Path.Enter.forEach( function( action ) { action(); } );
 		
-		this.Path.Complete( deepHistory );
+		if( this.Path.Complete )
+			this.Path.Complete( deepHistory );
 	}
 };
 
@@ -454,7 +455,8 @@ Transition.prototype =
 		
 		this.Path.Enter.forEach( function( action ) { action(); } );
 		
-		this.Path.Complete( false );
+		if( this.Path.Complete )
+			this.Path.Complete( false );
 	}
 };
 
@@ -463,31 +465,34 @@ function Path( source, target )
 {
 	var path = { Exit: [], Enter: [] };
 
-	// get the ancestors of the source and target vertices
-	var sourceAncestors = Ancestors( source );
-	var targetAncestors = Ancestors( target );
-
-	// iterate over all common ancestors
-	for( var i = 0; sourceAncestors[ i ] === targetAncestors[ i ]; i++ );
-	
-	// special case for leaving pseudo states where source and target vertices are in different regions
-	if( source instanceof PseudoState && ( sourceAncestors[ i ] != source ) )
+	if( target !== null )
 	{
-		path.Exit.push( function() { source.OnExit(); } );
-	}
+		// get the ancestors of the source and target vertices
+		var sourceAncestors = Ancestors( source );
+		var targetAncestors = Ancestors( target );
 
-	// leave the source ancestry (exit cascades)
-	( function( s ) { path.Exit.push( function() { s.OnExit(); } ); } )( sourceAncestors[ i ] );
+		// iterate over all common ancestors
+		for( var i = 0; sourceAncestors[ i ] === targetAncestors[ i ]; i++ );
 	
-	// enter the target ancestry (beginEnter does not cascade)
-	for( ; i < targetAncestors.length; i++ )
-	{
-		( function( t ) { path.Enter.push( function() { t.BeginEnter(); } ); } )( targetAncestors[ i ] );
-	}
+		// special case for leaving pseudo states where source and target vertices are in different regions
+		if( source instanceof PseudoState && ( sourceAncestors[ i ] != source ) )
+		{
+			path.Exit.push( function() { source.OnExit(); } );
+		}
+
+		// leave the source ancestry (exit cascades)
+		( function( s ) { path.Exit.push( function() { s.OnExit(); } ); } )( sourceAncestors[ i ] );
+	
+		// enter the target ancestry (beginEnter does not cascade)
+		for( ; i < targetAncestors.length; i++ )
+		{
+			( function( t ) { path.Enter.push( function() { t.BeginEnter(); } ); } )( targetAncestors[ i ] );
+		}
 		
-	// complete entry (endEnter cascades to any child regions)
-	path.Complete = function() { target.EndEnter(); };
-
+		// complete entry (endEnter cascades to any child regions)
+		path.Complete = function() { target.EndEnter(); };
+	}
+	
 	return path;
 }
 
@@ -502,4 +507,17 @@ function Ancestors( node )
 	{
 		return [ node ];
 	}
+}
+
+// exports for node.js
+if( typeof exports != 'undefined' )
+{
+	exports.Completion = Completion;
+	exports.Else = Else;
+	exports.FinalState = FinalState;
+	exports.Region = Region;
+	exports.PseudoState = PseudoState;
+	exports.State = State;
+	exports.PseudoStateKind = PseudoStateKind;
+	exports.Transition = Transition;
 }
