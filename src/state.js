@@ -104,7 +104,7 @@ Region.prototype =
 		
 		var vertex = ( ( deepHistory || this.Initial.Kind.IsHistory ) && ( this.Current !== null ) ) ? this.Current : this.Initial;
 
-		vertex.Initialise( deepHistory || this.Kind === PseudoStateKind.DeepHistory );
+		vertex.Initialise( deepHistory || this.Initial.Kind === PseudoStateKind.DeepHistory );
 	},
 
 	Process : function( message )
@@ -475,7 +475,7 @@ function Path( source, target )
 		for( var i = 0; sourceAncestors[ i ] === targetAncestors[ i ]; i++ );
 	
 		// special case for leaving pseudo states where source and target vertices are in different regions
-		if( source instanceof PseudoState && ( sourceAncestors[ i ] != source ) )
+		if( source instanceof PseudoState && ( sourceAncestors[ i ] !== source ) )
 		{
 			path.Exit.push( function() { source.OnExit(); } );
 		}
@@ -510,7 +510,7 @@ function Ancestors( node )
 }
 
 // exports for node.js
-if( typeof exports != 'undefined' )
+if( typeof exports !== 'undefined' )
 {
 	exports.Completion = Completion;
 	exports.Else = Else;
