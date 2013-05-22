@@ -43,3 +43,8 @@ if (!Array.prototype.filter)
 		return res;
 	};
 }
+
+if( typeof console === 'undefined' )
+{
+	console = { log: function( string ){ }, assert: function( condition, message ) { } };
+}
