@@ -412,6 +412,7 @@ FinalState.prototype =
 
 function Completion( source, target, guard )
 {
+	this.Target = target;
 	this.Guard = guard ? guard : function() { return true; };
 	this.Path = Path( source, target );
 	this.Effect = [];
@@ -423,14 +424,17 @@ Completion.prototype =
 {
 	Traverse: function( deepHistory )
 	{
-		this.Path.Exit.forEach( function( action ) { action(); } );
+		if( this.Target && this.Target !== null )
+			this.Path.Exit.forEach( function( node ) { node.OnExit(); } );
 		
 		this.Effect.forEach( function( action ) { action(); } );
 		
-		this.Path.Enter.forEach( function( action ) { action(); } );
+		if( this.Target && this.Target !== null )
+		{
+			this.Path.Enter.forEach( function( node ) { node.BeginEnter(); } );
 		
-		if( this.Path.Complete )
-			this.Path.Complete( deepHistory );
+			this.Target.EndEnter( deepHistory );
+		}
 	}
 };
 
@@ -438,6 +442,7 @@ function Transition( source, target, guard )
 {
 	console.assert( source instanceof State, "Source of a transition must be a State" );
 	
+	this.Target = target;
 	this.Guard = guard ? guard : function( message ) { return true; };
 	this.Path = Path( source, target );
 	this.Effect = [];
@@ -449,22 +454,23 @@ Transition.prototype =
 {
 	Traverse: function( message )
 	{
-		this.Path.Exit.forEach( function( action ) { action(); } );
+		if( this.Target && this.Target !== null )
+			this.Path.Exit.forEach( function( node ) { node.OnExit(); } );
 		
 		this.Effect.forEach( function( action ) { action( message ); } );
 		
-		this.Path.Enter.forEach( function( action ) { action(); } );
+		if( this.Target && this.Target !== null )
+		{
+			this.Path.Enter.forEach( function( node ) { node.BeginEnter(); } );
 		
-		if( this.Path.Complete )
-			this.Path.Complete( false );
+			this.Target.EndEnter( false );
+		}
 	}
 };
 
 // the path to take between vertices
 function Path( source, target )
 {
-	var path = { Exit: [], Enter: [] };
-
 	if( target !== null )
 	{
 		// get the ancestors of the source and target vertices
@@ -474,26 +480,14 @@ function Path( source, target )
 		// iterate over all common ancestors
 		for( var i = 0; sourceAncestors[ i ] === targetAncestors[ i ]; i++ );
 	
-		// special case for leaving pseudo states where source and target vertices are in different regions
-		if( source instanceof PseudoState && ( sourceAncestors[ i ] !== source ) )
-		{
-			path.Exit.push( function() { source.OnExit(); } );
-		}
-
 		// leave the source ancestry (exit cascades)
-		( function( s ) { path.Exit.push( function() { s.OnExit(); } ); } )( sourceAncestors[ i ] );
+		var exit = [ sourceAncestors[ i ] ];
 	
-		// enter the target ancestry (beginEnter does not cascade)
-		for( ; i < targetAncestors.length; i++ )
-		{
-			( function( t ) { path.Enter.push( function() { t.BeginEnter(); } ); } )( targetAncestors[ i ] );
-		}
-		
-		// complete entry (endEnter cascades to any child regions)
-		path.Complete = function() { target.EndEnter(); };
+		if( source instanceof PseudoState && ( sourceAncestors[ i ] !== source ) )
+			exit.unshift( source );		
+	
+		return { Exit: exit, Enter: targetAncestors.slice( i ) };
 	}
-	
-	return path;
 }
 
 // returns the ancstors of a node
