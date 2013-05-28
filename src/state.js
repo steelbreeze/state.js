@@ -338,7 +338,7 @@ State.prototype =
 				
 				if( completion )
 				{
-					completion( deepHistory );
+					completion.Traverse( deepHistory );
 				}
 			}
 		}
