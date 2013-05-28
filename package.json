@@ -1,0 +1,29 @@
+{
+    "name": "state.js",
+    "version": "1.0.1",
+    "author": "Steelbreeze <mesmo@steelbreeze.net>",
+    "description": "Hierarchical finite state machine library for JavaScript",
+    "main": "./src/state",
+    "repository" : {
+        "type" : "git",
+        "url" : "https://github.com/steelbreeze/state.js"
+    },
+    "keywords": [
+    "finite",
+    "state",
+    "machine",
+	"FSM"
+  ],
+    "bugs" : {
+        "url" : "https://github.com/steelbreeze/state.js/issues"
+    },
+	"dependencies": {},
+    "devDependencies": {},
+
+    "licenses" : [
+        {
+            "type" : "GPL",
+            "url" : "https://github.com/steelbreeze/state.js/blob/master/LICENCE.md"
+        }
+    ]
+}
