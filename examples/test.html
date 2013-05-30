@@ -5,37 +5,27 @@
 		<script src="../src/oldie.js"></script>
 		<script src="../src/state.js"></script>
 		<script>
-			// create the state machine
-			var controller = new Region( "player" );
 		
-			// create some states
-			var initial1 = new PseudoState( PseudoStateKind.Initial, controller );
-			var operational = new State( "operational", controller );
-			var finalState = new FinalState( "final", controller );
-			var initial2 = new PseudoState( PseudoStateKind.Initial, operational );
-			var stopped = new State( "stopped", operational );
-			var active = new State( "active", operational );		
-			var running = new State( "running", active);
-			var paused = new State( "paused", active);	
-		
-			// add some behaviour
-			active.Entry.push( EngageHead );
-			active.Exit.push( DisengageHead );
-			running.Entry.push( StartMotor );
-			running.Exit.push( StopMotor );
+			var running = { kind: Kind.State, name: "running", entry: [ StartMotor ], exit: [ StopMotor ]  };
+			var paused = { kind: Kind.State, name: "paused" };
 			
-			// create the transitions
-			var initialise = new Completion( initial1, operational );
-			new Completion( initial2, stopped );
-			new Transition( stopped, running, function( s ) { return ( s == "play" ); } );
-			new Transition( active, stopped, function( s ) { return s == "stop"; } );
-			new Transition( running, paused, function( s ) { return s == "pause"; } );
-			new Transition( paused, running, function( s ) { return s == "play"; } );
-			new Transition( operational, finalState, function( s ) { return s == "off"; } );
+			var initial2 = { kind: Kind.Initial, name: "initial2" };
+			var stopped = { kind: Kind.State, name: "stopped" };
+			var active = { kind: Kind.State, name: "active", children: [ running, paused ], entry: [ EngageHead ], exit: [ DisengageHead ] };
 
-			// add some transition behaviour
-			initialise.Effect.push( StopMotor, DisengageHead );
+			var initial1 = { kind: Kind.Initial, name: "initial1" };
+			var operational = { kind: Kind.State, name: "operational", children: [ initial2, stopped, active ] };
+			var finalState = { kind: Kind.Final, name: "final" };
 			
+			controller = createStateMachine( { kind: Kind.Region, name: "player", children: [ initial1, operational, finalState ] },
+			                                   [ { kind: Kind.Completion, source: initial1,    target: operational, effect: [ StopMotor, DisengageHead ] },
+			                                     { kind: Kind.Completion, source: initial2,    target: stopped },
+			                                     { kind: Kind.Transition, source: stopped,     target: running, guard: function( s ) { return ( s == 'play' ); } },
+			                                     { kind: Kind.Transition, source: active,      target: stopped, guard: function( s ) { return s == 'stop'; } },
+			                                     { kind: Kind.Transition, source: running,     target: paused, guard: function( s ) { return s == 'pause'; } },
+			                                     { kind: Kind.Transition, source: paused,      target: running, guard: function( s ) { return s == 'play'; } },
+			                                     { kind: Kind.Transition, source: operational, target: finalState, guard: function( s ) { return s == 'off'; } } ] );
+
 			function EngageHead()
 			{
 				document.getElementById("head").innerHTML = "Head: engaged";
@@ -57,10 +47,10 @@
 			}
 			
 			// a little more behavior to adjust the graphic
-			stopped.Entry.push( function() { UpdateGraphic( "controller_stopped.png" ); } );
-			running.Entry.push( function() { UpdateGraphic( "controller_running.png" ); } );
-			paused.Entry.push( function() { UpdateGraphic( "controller_paused.png" ); } );
-			operational.Exit.push( function() { UpdateGraphic( "controller_final.png" ); } );
+			stopped.entry = [ function() { UpdateGraphic( "controller_stopped.png" ); } ];
+			running.entry.push( function() { UpdateGraphic( "controller_running.png" ); } );
+			paused.entry = [ function() { UpdateGraphic( "controller_paused.png" ); } ];
+			operational.exit = [ function() { UpdateGraphic( "controller_final.png" ); } ];
 			
 			function UpdateGraphic( uri )
 			{
@@ -68,16 +58,15 @@
 			}
 			</script>
 	</head>
-	<body onload="controller.Initialise()">
+	<body onload="controller.initialise()">
 		<h1>state.js cassette controller example</h1>
 		<p>This example implements a simple controller for a cassette player according to the model below:</p>
 		<p><img id="diagram" /></p>
 		<p>Press the buttons below to send events to the controller (check brower console for trace output):</p>
-		<button type="button" onclick="controller.Process( 'play' )">Play</button>
-		<button type="button" onclick="controller.Process( 'pause' )">Pause</button>
-		<button type="button" onclick="controller.Process( 'stop' )">Stop</button>
-		<button type="button" onclick="controller.Process( 'off' )">Off</button>
-		<button type="button" onclick="{ controller.Reset(); controller.Initialise(); }">Reset controller</button>
+		<button type="button" onclick="controller.process( 'play' )">Play</button>
+		<button type="button" onclick="controller.process( 'pause' )">Pause</button>
+		<button type="button" onclick="controller.process( 'stop' )">Stop</button>
+		<button type="button" onclick="controller.process( 'off' )">Off</button>
 		<p id="head">Head: </p>
 		<p id="motor">Motor: </p>
 	</body>

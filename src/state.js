@@ -19,9 +19,7 @@ Array.prototype.single = function( predicate )
 	var results = predicate ? this.filter( predicate ) : this;
 	
 	if( results.length === 1 )
-	{
 		return results[ 0 ];
-	}
 	
 	throw new Error( "Cannot return zero or more than one elements" );	
 };
@@ -30,488 +28,225 @@ Array.prototype.single = function( predicate )
 Array.prototype.singleOrUndefined = function( predicate )
 {
 	var results = predicate ? this.filter( predicate ) : this;
-	
+
 	if( results.length === 1 )
-	{
 		return results[ 0 ];
-	}
-	
+
 	if( results.length > 1 )
-	{
 		throw new Error( "Cannot return more than one elements" );
-	}
 };
 
-// returns the a random element of an array that satisfies a specified condition; throws an exception if more than one such elements exist
-Array.prototype.randomOrUndefined = function( predicate )
+// default guard conditions
+var Guard = { True: function() { return true; },
+							Else: function() { return false; } };
+
+// the various kinds of elements within a state machine
+var Kind = { DeepHistory: { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnterNonState, isInitial: true, isHistory: true, getCompletions: function( completions ) { return completions.single(); } },
+						 Final:       { isPseudoState: false, initialise: initialiseState,  onExit: onExitState,  onBeginEnter: beginEnterState },
+						 Initial:     { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnterNonState, isInitial: true, isHistory: false, getCompletions: function( completions ) { return completions.single(); } },
+						 Region:      { isPseudoState: false, initialise: initialiseRegion, onExit: onExitRegion, onBeginEnter: beginEnterNonState },
+						 State:       { isPseudoState: false, initialise: initialiseState,  onExit: onExitState,  onBeginEnter: beginEnterState, getCompletions: function( completions ) { return completions.singleOrUndefined( function( c ) { return c.guard(); } ); } },
+						 Completion:  { },
+						 Transition:  { } };	
+
+function ancestors( node )
 {
-	var results = predicate ? this.filter( predicate ) : this;
-	
-	if( results.length !== 0 )
-	{
-		return results[ ( results.length - 1 ) * Math.random() ];
-	}
-};
-
-// else guard for use in choice and junction pseudo states
-var Else = function() { return false; };
-
-var PseudoStateKind =
-{
-	Choice: { Name: "junction", IsInitial: false, IsHistory: false, GetCompletion: function( completions ) { var result = completions.randomOrUndefined( function( c ) { return c.Guard(); } ); if( !result ) { result = completions.single( function ( c ) { return c === Else; } ); } return result; } },
-	DeepHistory: { Name: "deepHistory", IsInitial: true, IsHistory: true, GetCompletion: function( completions ) { return completions.single(); } },
-	EntryPoint: { Name: "entryPoint", IsInitial: true, IsHistory: false, GetCompletion: function( completions ) { return completions.single(); } },
-	ExitPoint: { Name: "exitPoint", IsInitial: false, IsHistory: false, GetCompletion: function( completions ) { return completions.single( function( c ) { return c.Guard(); } ); } },
-	Initial: { Name: "initial", IsInitial: true, IsHistory: false, GetCompletion: function( completions ) { return completions.single(); } },
-	Junction: { Name: "junction", IsInitial: false, IsHistory: false, GetCompletion: function( completions ) { var result = completions.singleOrUndefined( function( c ) { return c.Guard(); } ); if( !result ) { result = completions.single( function ( c ) { return c === Else; } ); } return result; } },
-	ShallowHistory: { Name: "shallowHistory", IsInitial: true, IsHistory: true, GetCompletion: function( completions ) { return completions.single(); } }
-};
-
-// region constructor
-function Region( name, parent )
-{
-	if( parent )
-	{
-		console.assert( parent instanceof State, "parent must be a State" );
-		
-		parent.Regions.push( this );
-	}
-
-	this.Name = name;
-	this.Parent = parent;
-	this.IsActive = false;
-	this.Current = null;
-	this.Vertices = [];
+	if( node._parent )
+		return ancestors( node._parent ).concat( node );
+	else
+		return [ node ];
 }
 
-Region.prototype =
+function onExit( node )
 {
-	// true if a region is 'complete' (the current state is a final state)
-	IsComplete : function()
-	{
-		return this.Current instanceof FinalState;
-	},
+	console.log( "Leave: " + toString( node ) );
 
-	// initialises a region for use or subsiquent reuse
-	Initialise : function( deepHistory )
-	{
-		if( !deepHistory )
-		{
-			deepHistory = false;
-		}
-		
-		this.BeginEnter();
-		
-		var vertex = ( ( deepHistory || this.Initial.Kind.IsHistory ) && ( this.Current !== null ) ) ? this.Current : this.Initial;
-
-		vertex.Initialise( deepHistory || this.Initial.Kind === PseudoStateKind.DeepHistory );
-	},
-
-	Process : function( message )
-	{
-		if( this.Current !== null )
-		{
-			this.Current.Process( message );
-		}
-	},
-
-	Reset : function()
-	{
-		this.Vertices.forEach( function( vertex ) { vertex.Reset(); } );
-		this.IsActive = false;
-		this.Current = null; // TODO: remove the property rather than set null (or init to null)
-	},
-	
-	OnExit : function()
-	{
-		if( this.Current !== null && this.Current.IsActive === true )
-		{
-			this.Current.OnExit();
-		}
-		
-		console.log( "Leave: " + this.toString() );
-		
-		this.IsActive = false;
-	},
-
-	BeginEnter : function()
-	{
-		if( this.IsActive === true )
-		{
-			this.OnExit();
-		}
-		
-		console.log( "Enter: " + this );
-			
-		this.IsActive = true;
-	},
-
-	toString: function()
-	{
-		return this.Parent ? this.Parent.toString() + "." + this.Name : this.Name;
-	}
-};
-
-function PseudoState( kind, parent )
-{
-	// use a state's default region if a state was provided
-	if( parent instanceof State )
-	{
-		parent = parent.DefaultRegion();
-	}
-	
-	// validate parameters
-//	console.assert( kind in PseudoStateKind, "kind must be a PseudoStateKind" ) // TODO: get something like this working
-	console.assert( parent instanceof Region, "parent must be a Region" );
-
-	this.Kind = kind;
-	this.Parent = parent;
-	this.Completions = [];
-
-	// set the parent region's initial pseudo state value
-	if( kind.IsInitial === true )
-	{		
-		if( parent.Initial )
-		{
-			throw new Error( "Regions can have at most 1 initial pseudo state" );
-		}
-		
-		parent.Initial = this;
-	}
-	
-	// add the pseudo state to its parent
-	parent.Vertices.push( this );
+	node._isActive = false;
 }
 
-PseudoState.prototype = 
+function onExitRegion( node )
 {
-	Initialise: function()
-	{
-		this.BeginEnter();
-		this.EndEnter( false );
-	},
-	
-	Reset : function()
-	{
-	},
-	
-	OnExit: function()
-	{
-		console.log( "Leave: " + this );
-	},
+	node._current.kind.onExit( node._current );
 
-	BeginEnter: function()
-	{
-		console.log( "Enter: " + this );
-	},
-
-	EndEnter : function( deepHistory )
-	{
-		this.Kind.GetCompletion( this.Completions ).Traverse( deepHistory );
-	},
-	
-	toString: function()
-	{
-		return this.Parent ? this.Parent.toString() + "." + this.Kind.Name : this.Kind.Name;
-	}
-};
-	
-function State( name, parent )
-{
-	if( parent )
-	{
-		if( parent instanceof State )
-		{
-			parent = parent.DefaultRegion();
-		}
-		
-		console.assert( parent instanceof Region, "parent must be a Region" );
-			
-		parent.Vertices.push( this );
-	}
-	
-	this.Name = name;
-	this.Parent = parent;
-	this.IsActive = false;
-	this.Entry = [];
-	this.Exit = [];
-	this.Regions = [];
-	this.Completions = [];
-	this.Transitions = [];
+	onExit( node );
 }
 
-State.prototype = 
+function onExitState( node )
 {
-	IsSimple : function()
-	{
-		return this.Regions.length === 0;
-	},
-	
-	DefaultRegion: function()
-	{
-		if( !this.defaultRegion )
-		{
-			this.defaultRegion = new Region( "default", this );
-		}
-		
-		return this.defaultRegion;
-	},
-	
-	Initialise: function()
-	{
-		this.BeginEnter();
-		this.EndEnter( false );
-	},
-	
-	Process : function( message )
-	{
-		var transition = this.Transitions.singleOrUndefined( function( t ) { return t.Guard( message ); } );
-		var processed = transition ? true : false;
-					
-		if( processed === true )
-		{
-			transition.Traverse( message );
-		}
-		else
-		{
-			if( this.IsSimple() === false )
-			{
-				for( var i = 0; i < this.Regions.length; i++ )
-				{
-					if( this.Regions[ i ].IsActive === true )
-					{
-						processed |= this.Regions[ i ].Process( message );
-					}
-				}
-			}
-		}
-		
-		return processed;
-	},
+	if( node.children !== undefined )
+		node.children.forEach( function( region ) { if( region._isActive === true ) { region.kind.onExit( region ); } } );
 
-	Reset : function()
-	{
-		this.Regions.forEach( function( region ) { region.Reset(); } );
-		
-		this.IsActive = false;
-	},
-	
-	OnExit : function()
-	{
-		this.Regions.forEach( function( region ) { if( region.IsActive ) { region.OnExit(); } } );
-			
-		this.Exit.forEach( function( action ) { action(); } );
+	if( node.exit !== undefined )		
+		node.exit.forEach( function( action ) { action(); } );
 
-		console.log( "Leave: " + this.toString() );
-			
-		this.IsActive = false;
-	},
+	onExit( node );
+}
 
-	BeginEnter : function()
-	{
-		if( this.IsActive === true )
-		{
-			this.OnExit();
-		}
-		
-		console.log( "Enter: " + this.toString() );
-			
-		this.IsActive = true;
-			
-		if( this.Parent )
-		{
-			this.Parent.Current = this;
-		}
-		
-		this.Entry.forEach( function( action ) { action(); } );
-	},
+function beginEnterNonState( node )
+{
+	if( node._isActive === true )
+		node.kind.onExit( node );
 	
-	EndEnter : function( deepHistory )
-	{
-		this.Regions.forEach( function( region ) { region.Initialise( deepHistory ); } );
-		
-		if( this.Completions.length > 0 )
-		{
-			if( this.IsSimple() || this.Regions.every( function( region ) { return region.IsComplete(); } ) )
-			{
-				var completion = this.Completions.singleOrUndefined( function( c ) { return c.Guard(); } );
+	console.log( "Enter: " + toString( node ) );
+	
+	node._isActive = true;
+}
+
+function beginEnterState( node )
+{
+	if( node._isActive === true )
+		node.kind.onExit( node );
+	
+	console.log( "Enter: " + toString( node ) );
+	
+	node._isActive = true;
 				
-				if( completion )
+	if( node.entry !== undefined )
+		node.entry.forEach( function( action ) { action(); } );
+			
+	node._parent._current = node;
+}
+
+function endEnter( node, deepHistory )
+{
+	if( node.kind !== Kind.Region )
+	{		
+		if( node.children !== undefined )
+			node.children.forEach( function( region ) { initialiseRegion( region, deepHistory ); } );
+
+		if( node._transitions !== undefined )
+		{
+			var completions = node._transitions.filter( function( t ) { return t.kind === Kind.Completion; } );
+		
+			if( completions.length > 0 )
+			{
+				if( node.children === undefined || node.children.every( function( region ) { return region._current.kind === Kind.Final; } ) )
 				{
-					completion.Traverse( deepHistory );
+					var completion = node.kind.getCompletions( completions );
+		
+					if( completion )							
+						traverse( completion, deepHistory );
 				}
 			}
 		}
-	},
-
-	toString: function()
-	{
-		return this.Parent ? this.Parent.toString() + "." + this.Name : this.Name;
-	}
-};
-
-function FinalState( name, parent )
-{
-	if( parent instanceof State )
-	{
-		parent = parent.DefaultRegion();
-	}
-	
-	console.assert( parent instanceof Region, "parent must be a Region" );
-
-	this.Name = name;
-	this.Parent = parent;
-	this.IsActive = false;
-
-	parent.Vertices.push( this );
-}
-
-FinalState.prototype = 
-{
-	Initialise: function()
-	{
-		this.BeginEnter();
-		this.EndEnter( false );
-	},
-	
-	Process : function( message )
-	{		
-	},
-
-	Reset : function()
-	{		
-		this.IsActive = false;
-	},
-
-	BeginEnter : function()
-	{
-		if( this.IsActive === true )
-		{
-			this.OnExit();
-		}
-		
-		console.log( "Enter: " + this.toString() );
-			
-		this.IsActive = true;
-			
-		if( this.Parent )
-		{
-			this.Parent.Current = this;
-		}
-	},
-
-	EndEnter : function( deepHistory )
-	{
-	},
-	
-	toString: function()
-	{
-		return this.Parent ? this.Parent.toString() + "." + this.Name : this.Name;
-	}
-};
-
-function Completion( source, target, guard )
-{
-	this.Target = target;
-	this.Guard = guard ? guard : function() { return true; };
-	this.Path = Path( source, target );
-	this.Effect = [];
-	
-	source.Completions.push( this );
-}
-
-Completion.prototype =
-{
-	Traverse: function( deepHistory )
-	{
-		if( this.Target && this.Target !== null )
-			this.Path.Exit.forEach( function( node ) { node.OnExit(); } );
-		
-		this.Effect.forEach( function( action ) { action(); } );
-		
-		if( this.Target && this.Target !== null )
-		{
-			this.Path.Enter.forEach( function( node ) { node.BeginEnter(); } );
-		
-			this.Target.EndEnter( deepHistory );
-		}
-	}
-};
-
-function Transition( source, target, guard )
-{
-	console.assert( source instanceof State, "Source of a transition must be a State" );
-	
-	this.Target = target;
-	this.Guard = guard ? guard : function( message ) { return true; };
-	this.Path = Path( source, target );
-	this.Effect = [];
-	
-	source.Transitions.push( this );
-}
-
-Transition.prototype =
-{
-	Traverse: function( message )
-	{
-		if( this.Target && this.Target !== null )
-			this.Path.Exit.forEach( function( node ) { node.OnExit(); } );
-		
-		this.Effect.forEach( function( action ) { action( message ); } );
-		
-		if( this.Target && this.Target !== null )
-		{
-			this.Path.Enter.forEach( function( node ) { node.BeginEnter(); } );
-		
-			this.Target.EndEnter( false );
-		}
-	}
-};
-
-// the path to take between vertices
-function Path( source, target )
-{
-	if( target !== null )
-	{
-		// get the ancestors of the source and target vertices
-		var sourceAncestors = Ancestors( source );
-		var targetAncestors = Ancestors( target );
-
-		// iterate over all common ancestors
-		for( var i = 0; sourceAncestors[ i ] === targetAncestors[ i ]; i++ );
-	
-		// leave the source ancestry (exit cascades)
-		var exit = [ sourceAncestors[ i ] ];
-	
-		if( source instanceof PseudoState && ( sourceAncestors[ i ] !== source ) )
-			exit.unshift( source );		
-	
-		return { Exit: exit, Enter: targetAncestors.slice( i ) };
 	}
 }
 
-// returns the ancstors of a node
-function Ancestors( node )
+function initialiseRegion( node, deepHistory )
 {
-	if( node.Parent )
-	{
-		return Ancestors( node.Parent ).concat( node );
-	}
+	node.kind.onBeginEnter( node );
+
+	initialiseState( ( ( deepHistory || node._initial.kind.isHistory ) && ( node._current !== null ) ) ? node._current : node._initial, deepHistory || node._initial.kind === Kind.DeepHistory );
+}
+
+function initialiseState( node, deepHistory )
+{
+	node.kind.onBeginEnter( node );
+
+	endEnter( node, deepHistory );
+}
+
+function process( node, message )
+{		
+	if( node.kind === Kind.Region )
+			return process( node._current, message );
 	else
 	{
-		return [ node ];
+		var processed = false;
+					
+		if( node._transitions !== undefined )
+		{
+			var transitions = node._transitions.filter( function( t ) { return t.kind === Kind.Transition; } );				
+			var transition = transitions.singleOrUndefined( function( t ) { return t.guard( message ); } );
+			processed = transition ? true : false;
+		}
+				
+		if( processed === true )
+			traverse( transition, false, message );
+		else
+			if( node.children !== undefined )
+				for( var i = 0; i < node.children.length; i++ )
+					if( node.children[ i ]._isActive === true )
+						processed |= process( node.children[ i ], message );
+		
+		return processed;
 	}
 }
+
+function traverse( transition, deepHistory, message )
+{		
+	transition._onExit.forEach( function( node ) { node.kind.onExit( node ); } );
+
+	if( transition.effect !== undefined )
+		transition.effect.forEach( function( action ) { action( message ); } );
+	
+	transition._onEnter.forEach( function( node ) { node.kind.onBeginEnter( node ); } );
+
+	endEnter( transition.target, deepHistory );	
+}
+
+function toString( element )
+{
+	return element._parent ? toString( element._parent ) + "." + element.name : element.name;
+}
+
+function createStateMachine( node, transitions, parent )
+{
+	// set up node's attributes
+	node._isActive = false;
+	node._parent = parent;
+	
+	// set the parent's attributes if required
+	if( node.kind.isPseudoState === true && node.kind.isInitial === true )
+		parent._initial = node;
+	
+	if( node.children )
+	{
+		// inject regions as required
+		if( ( node.kind === Kind.State ) && ( node.children[ 0 ].kind !== Kind.Region ) )
+			node.children = [ { kind: Kind.Region, name: "default", children: node.children } ];
+
+			// recurse to children
+			node.children.forEach( function( child ) { createStateMachine( child, [], node ); } );
+	}
+
+	// assign transitions to source nodes
+	transitions.forEach( function( transition )
+	{
+		if( transition.source._transitions !== undefined )
+			transition.source._transitions.push( transition );
+		else
+			transition.source._transitions = [ transition ];
+
+		if( transition.target !== null )
+		{
+			var sourceAncestors = ancestors( transition.source );
+			var targetAncestors = ancestors( transition.target );
+				
+			for( var i = 0; sourceAncestors[ i ] === targetAncestors[ i ]; i++ );
+
+			transition._onExit = [ sourceAncestors[ i ] ];
+					
+			if( transition.source.kind.isPseudoState === true && sourceAncestors[ i ] !== transition.source )
+				transition.onExit.unshift( transition.source );	
+					
+			transition._onEnter = targetAncestors.slice( i );
+									
+			if( transition.guard === undefined )
+				transition.guard = Guard.True;
+		}
+	} );
+				
+	node.initialise = function() { node.kind.initialise( node ); };
+	node.process = function( message ) { process( node, message ); };			
+	
+	return node;
+}		
 
 // exports for node.js
 if( typeof exports !== 'undefined' )
 {
-	exports.Completion = Completion;
-	exports.Else = Else;
-	exports.FinalState = FinalState;
-	exports.Region = Region;
-	exports.PseudoState = PseudoState;
-	exports.State = State;
-	exports.PseudoStateKind = PseudoStateKind;
-	exports.Transition = Transition;
+	exports.Guard = Guard;
+	exports.Kind = Kind;
+	exports.createStateMachine = createStateMachine;
 }
