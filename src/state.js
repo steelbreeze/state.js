@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-// returns the only element of an array that satisfies a specified condition; throws an exception if zero or more than one such elements exist
+// returns the only item in an array where the predicate evaluates true
 Array.prototype.single = function( predicate )
 {
 	var results = predicate ? this.filter( predicate ) : this;
@@ -24,7 +24,7 @@ Array.prototype.single = function( predicate )
 	throw new Error( "Cannot return zero or more than one elements" );	
 };
 
-// returns the only element of an array that satisfies a specified condition; throws an exception if more than one such elements exist
+// returns the only item in an array where the predicate evaluates true or nothing
 Array.prototype.singleOrUndefined = function( predicate )
 {
 	var results = predicate ? this.filter( predicate ) : this;
@@ -36,143 +36,127 @@ Array.prototype.singleOrUndefined = function( predicate )
 		throw new Error( "Cannot return more than one elements" );
 };
 
-// default guard conditions
 var Guard = { True: function() { return true; },
 							Else: function() { return false; } };
 
-// the various kinds of elements within a state machine
-var Kind = { DeepHistory: { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnterNonState, isInitial: true, isHistory: true, getCompletions: function( completions ) { return completions.single(); } },
+var Kind = { DeepHistory: { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: true, isHistory: true, getCompletions: function( completions ) { return completions.single(); } },
 						 Final:       { isPseudoState: false, initialise: initialiseState,  onExit: onExitState,  onBeginEnter: beginEnterState },
-						 Initial:     { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnterNonState, isInitial: true, isHistory: false, getCompletions: function( completions ) { return completions.single(); } },
-						 Region:      { isPseudoState: false, initialise: initialiseRegion, onExit: onExitRegion, onBeginEnter: beginEnterNonState },
-						 State:       { isPseudoState: false, initialise: initialiseState,  onExit: onExitState,  onBeginEnter: beginEnterState, getCompletions: function( completions ) { return completions.singleOrUndefined( function( c ) { return c.guard(); } ); } },
+						 Initial:     { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: true, isHistory: false, getCompletions: function( completions ) { return completions.single(); } },
+						 Region:      { isPseudoState: false, initialise: initialiseRegion, onExit: onExitRegion, onBeginEnter: beginEnter,      process: processRegion },
+						 State:       { isPseudoState: false, initialise: initialiseState,  onExit: onExitState,  onBeginEnter: beginEnterState, process: processState, getCompletions: function( completions ) { return completions.singleOrUndefined( function( c ) { return c.guard(); } ); } },
 						 Completion:  { },
 						 Transition:  { } };	
 
+// returns the top-down ancestry of a node within a state machine
 function ancestors( node )
 {
-	if( node._parent )
-		return ancestors( node._parent ).concat( node );
-	else
-		return [ node ];
+	return node._parent ? ancestors( node._parent ).concat( node ) : [ node ];
 }
 
-function onExit( node )
+// leaves a node within a state machine
+function onExit( node ) 
 {
 	console.log( "Leave: " + toString( node ) );
 
 	node._isActive = false;
 }
 
-function onExitRegion( node )
+// leaves a region within a state machine
+function onExitRegion( region )
 {
-	node._current.kind.onExit( node._current );
-
-	onExit( node );
-}
-
-function onExitState( node )
-{
-	if( node.children !== undefined )
-		node.children.forEach( function( region ) { if( region._isActive === true ) { region.kind.onExit( region ); } } );
-
-	if( node.exit !== undefined )		
-		node.exit.forEach( function( action ) { action(); } );
-
-	onExit( node );
-}
-
-function beginEnterNonState( node )
-{
-	if( node._isActive === true )
-		node.kind.onExit( node );
-	
-	console.log( "Enter: " + toString( node ) );
-	
-	node._isActive = true;
-}
-
-function beginEnterState( node )
-{
-	if( node._isActive === true )
-		node.kind.onExit( node );
-	
-	console.log( "Enter: " + toString( node ) );
-	
-	node._isActive = true;
-				
-	if( node.entry !== undefined )
-		node.entry.forEach( function( action ) { action(); } );
-			
-	node._parent._current = node;
-}
-
-function endEnter( node, deepHistory )
-{
-	if( node.kind !== Kind.Region )
-	{		
-		if( node.children !== undefined )
-			node.children.forEach( function( region ) { initialiseRegion( region, deepHistory ); } );
-
-		if( node._transitions !== undefined )
-		{
-			var completions = node._transitions.filter( function( t ) { return t.kind === Kind.Completion; } );
-		
-			if( completions.length > 0 )
-			{
-				if( node.children === undefined || node.children.every( function( region ) { return region._current.kind === Kind.Final; } ) )
-				{
-					var completion = node.kind.getCompletions( completions );
-		
-					if( completion )							
-						traverse( completion, deepHistory );
-				}
-			}
-		}
-	}
-}
-
-function initialiseRegion( node, deepHistory )
-{
-	node.kind.onBeginEnter( node );
-
-	initialiseState( ( ( deepHistory || node._initial.kind.isHistory ) && ( node._current !== null ) ) ? node._current : node._initial, deepHistory || node._initial.kind === Kind.DeepHistory );
-}
-
-function initialiseState( node, deepHistory )
-{
-	node.kind.onBeginEnter( node );
-
-	endEnter( node, deepHistory );
-}
-
-function process( node, message )
-{		
-	if( node.kind === Kind.Region )
-			return process( node._current, message );
-	else
+	if( region._isActive === true )
 	{
-		var processed = false;
-					
-		if( node._transitions !== undefined )
-		{
-			var transitions = node._transitions.filter( function( t ) { return t.kind === Kind.Transition; } );				
-			var transition = transitions.singleOrUndefined( function( t ) { return t.guard( message ); } );
-			processed = transition ? true : false;
-		}
-				
-		if( processed === true )
-			traverse( transition, false, message );
-		else
-			if( node.children !== undefined )
-				for( var i = 0; i < node.children.length; i++ )
-					if( node.children[ i ]._isActive === true )
-						processed |= process( node.children[ i ], message );
-		
-		return processed;
+		onExitState( region._current );
+
+		onExit( region );
 	}
 }
 
+// leaves a state within a state machine
+function onExitState( state )
+{
+	if( state.children !== undefined )
+		state.children.forEach( onExitRegion );
+
+	if( state.exit !== undefined )		
+		state.exit.forEach( function( action ) { action(); } );
+
+	onExit( state );
+}
+
+// enter a node in a state machine
+function beginEnter( node )
+{
+	if( node._isActive === true )
+		node.kind.onExit( node );
+	
+	console.log( "Enter: " + toString( node ) );
+	
+	node._isActive = true;
+}
+
+// enter a state within a state machine
+function beginEnterState( state )
+{
+	beginEnter( state );
+			
+	if( state.entry !== undefined )
+		state.entry.forEach( function( action ) { action(); } );
+			
+	state._parent._current = state;
+}
+
+// completes the entry of a state by cascading to child regions and testing for completion transitions
+function endEnter( state, deepHistory )
+{
+	if( state.children !== undefined )
+		state.children.forEach( function( region ) { initialiseRegion( region, deepHistory ); } );
+
+	if( state._transitions !== undefined ) // there are transitions to evaulate
+		if( state.children === undefined || state.children.every( function( r ) { return r._current.kind === Kind.Final; } ) ) // state is 'complete'
+		 if( ( completions = state._transitions.filter( function( t ) { return t.kind === Kind.Completion; } ) ).length > 0 ) // there are completion transitions to evaluate
+			if( ( completion = state.kind.getCompletions( completions ) ) !== undefined ) // there is a completion transition to traverse
+				traverse( completion, deepHistory );
+}
+
+// initialise a region
+function initialiseRegion( region, deepHistory )
+{
+	beginEnter( region );
+
+	initialiseState( ( ( deepHistory || region._initial.kind.isHistory ) && ( region._current !== null ) ) ? region._current : region._initial, deepHistory || region._initial.kind === Kind.DeepHistory );
+}
+
+// initiaise a state
+function initialiseState( state, deepHistory )
+{
+	beginEnterState( state );
+	endEnter( state, deepHistory );
+}
+
+// process a message within a region
+function processRegion( region, message )
+{		
+	return processState( region._current, message );
+}
+
+// process a message within a state
+function processState( node, message )
+{		
+	if( node._transitions !== undefined ) // there are transitions to evaluate
+		if( ( transitions = node._transitions.filter( function( t ) { return t.kind === Kind.Transition; } ) ).length > 0 )	// there are event-based transitions
+			processed = ( transition = transitions.singleOrUndefined( function( t ) { return t.guard( message ); } ) ) !== undefined; // there is a single transion whose guard evaluates true
+			
+	if( processed )
+		traverse( transition, false, message );
+	else
+		if( node.children !== undefined )
+			node.children.forEach( function( region ) { if( region._isActive === true ) processed != processRegion( region, message ); } );
+		
+	return processed;
+}
+
+// traverse a transition
 function traverse( transition, deepHistory, message )
 {		
 	transition._onExit.forEach( function( node ) { node.kind.onExit( node ); } );
@@ -185,32 +169,29 @@ function traverse( transition, deepHistory, message )
 	endEnter( transition.target, deepHistory );	
 }
 
-function toString( element )
+// returns the fully qualified name of a node
+function toString( node )
 {
-	return element._parent ? toString( element._parent ) + "." + element.name : element.name;
+	return node._parent ? toString( node._parent ) + "." + node.name : node.name;
 }
 
+// initialises a state machine
 function createStateMachine( node, transitions, parent )
 {
-	// set up node's attributes
 	node._isActive = false;
 	node._parent = parent;
 	
-	// set the parent's attributes if required
 	if( node.kind.isPseudoState === true && node.kind.isInitial === true )
 		parent._initial = node;
 	
 	if( node.children )
 	{
-		// inject regions as required
 		if( ( node.kind === Kind.State ) && ( node.children[ 0 ].kind !== Kind.Region ) )
 			node.children = [ { kind: Kind.Region, name: "default", children: node.children } ];
 
-			// recurse to children
-			node.children.forEach( function( child ) { createStateMachine( child, [], node ); } );
+		node.children.forEach( function( child ) { createStateMachine( child, [], node ); } );
 	}
 
-	// assign transitions to source nodes
 	transitions.forEach( function( transition )
 	{
 		if( transition.source._transitions !== undefined )
@@ -238,12 +219,12 @@ function createStateMachine( node, transitions, parent )
 	} );
 				
 	node.initialise = function() { node.kind.initialise( node ); };
-	node.process = function( message ) { process( node, message ); };			
+	node.process = function( message ) { node.kind.process( node, message ); };			
 	
 	return node;
 }		
 
-// exports for node.js
+// node.js exports
 if( typeof exports !== 'undefined' )
 {
 	exports.Guard = Guard;
