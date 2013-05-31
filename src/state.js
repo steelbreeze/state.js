@@ -16,9 +16,7 @@
 // returns the only item in an array where the predicate evaluates true
 Array.prototype.single = function( predicate )
 {
-	var results = predicate ? this.filter( predicate ) : this;
-	
-	if( results.length === 1 )
+	if( ( results = predicate ? this.filter( predicate ) : this ).length === 1 )
 		return results[ 0 ];
 	
 	throw new Error( "Cannot return zero or more than one elements" );	
@@ -27,25 +25,38 @@ Array.prototype.single = function( predicate )
 // returns the only item in an array where the predicate evaluates true or nothing
 Array.prototype.singleOrUndefined = function( predicate )
 {
-	var results = predicate ? this.filter( predicate ) : this;
-
-	if( results.length === 1 )
+	if( ( results = predicate ? this.filter( predicate ) : this ).length === 1 )
 		return results[ 0 ];
 
 	if( results.length > 1 )
 		throw new Error( "Cannot return more than one elements" );
 };
 
+// returns a random element of an array where the predicate evaluates true or nothing
+Array.prototype.randomOrUndefined = function( predicate )
+{
+	if( ( results = predicate ? this.filter( predicate ) : this ).length !== 0 )
+		return results[ ( results.length - 1 ) * Math.random() ];
+};
+
 var Guard = { True: function() { return true; },
 							Else: function() { return false; } };
 
-var Kind = { DeepHistory: { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: true, isHistory: true, getCompletions: function( completions ) { return completions.single(); } },
-						 Final:       { isPseudoState: false, initialise: initialiseState,  onExit: onExitState,  onBeginEnter: beginEnterState },
-						 Initial:     { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: true, isHistory: false, getCompletions: function( completions ) { return completions.single(); } },
-						 Region:      { isPseudoState: false, initialise: initialiseRegion, onExit: onExitRegion, onBeginEnter: beginEnter,      process: processRegion },
-						 State:       { isPseudoState: false, initialise: initialiseState,  onExit: onExitState,  onBeginEnter: beginEnterState, process: processState, getCompletions: function( completions ) { return completions.singleOrUndefined( function( c ) { return c.guard(); } ); } },
-						 Completion:  { },
-						 Transition:  { } };	
+var Kind =
+{
+	Choice:         { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: false, isHistory: false, getCompletions:	function( completions ) { return completions.singleOrUndefined( function( c ) { return g.guard(); } ) || completions.single( function( c ) { return c === Guard.Else; } ) ; } },
+	DeepHistory:    { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: true,  isHistory: true,  getCompletions:	function( completions ) { return completions.single(); }	},
+	EntryPoint:     { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: true,  isHistory: false, getCompletions: function( completions ) { return completions.single(); } },
+	ExitPoint:      { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: false, isHistory: false, getCompletions: function( completions ) { return completions.single( function( c ) { return c.guard(); } ); } },
+	Final:          { isPseudoState: false, initialise: initialiseState,  onExit: onExitState,  onBeginEnter: beginEnterState },
+	Initial:        { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: true,  isHistory: false, getCompletions: function( completions ) { return completions.single(); } },
+	Junction:       { isPseudoState: true, initialise: initialiseState,   onExit: onExit,       onBeginEnter: beginEnter,      isInitial: false, isHistory: false, getCompletions:	function( completions ) { return completions.singleOrUndefined( function( c ) { return g.guard(); } ) || completions.single( function( c ) { return c === Guard.Else; } ) ; } },
+	Region:         { isPseudoState: false, initialise: initialiseRegion, onExit: onExitRegion, onBeginEnter: beginEnter,      process: processRegion },
+	ShallowHistory: { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: true,  isHistory: true,  getCompletions:	function( completions ) { return completions.single(); }	},
+	State:          { isPseudoState: false, initialise: initialiseState,  onExit: onExitState,  onBeginEnter: beginEnterState, process: processState, getCompletions: function( completions ) { return completions.singleOrUndefined( function( c ) { return c.guard(); } ); } },
+	Completion:     { },
+	Transition:     { }
+};	
 
 // returns the top-down ancestry of a node within a state machine
 function ancestors( node )
