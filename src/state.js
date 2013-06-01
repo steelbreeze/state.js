@@ -76,11 +76,9 @@ function onExit( node )
 function onExitRegion( region )
 {
 	if( region._isActive === true )
-	{
 		onExitState( region._current );
-
-		onExit( region );
-	}
+		
+	onExit( region );
 }
 
 // leaves a state within a state machine
@@ -170,14 +168,17 @@ function processState( node, message )
 // traverse a transition
 function traverse( transition, deepHistory, message )
 {		
-	transition._onExit.forEach( function( node ) { node.kind.onExit( node ); } );
+	if( transition._onExit !== undefined )
+		transition._onExit.forEach( function( node ) { node.kind.onExit( node ); } ); // leave the source node(s)
 
 	if( transition.effect !== undefined )
-		transition.effect.forEach( function( action ) { action( message ); } );
+		transition.effect.forEach( function( action ) { action( message ); } ); // perform the transition action(s)
 	
-	transition._onEnter.forEach( function( node ) { node.kind.onBeginEnter( node ); } );
+	if( transition._onEnter !== undefined )
+		transition._onEnter.forEach( function( node ) { node.kind.onBeginEnter( node ); } ); // enter the target node(s)
 
-	endEnter( transition.target, deepHistory );	
+	if( transition.target !== undefined || transition.target !== null )
+		endEnter( transition.target, deepHistory );	// complete entry (cascade entry to any children; test for completion transitions)
 }
 
 // returns the fully qualified name of a node
@@ -189,18 +190,18 @@ function toString( node )
 // initialises a state machine
 function createStateMachine( node, transitions, parent )
 {
-	node._isActive = false;
-	node._parent = parent;
+	node._isActive = false; // add the isActive flag (denotes a node has be entered but not exited)
+	node._parent = parent; // add the parent flag
 	
-	if( node.kind.isPseudoState === true && node.kind.isInitial === true )
-		parent._initial = node;
+	if( node.kind.isInitial === true )
+		parent._initial = node; // set the parent region's initial state as appropriate
 	
 	if( node.children )
 	{
 		if( ( node.kind === Kind.State ) && ( node.children[ 0 ].kind !== Kind.Region ) )
-			node.children = [ { kind: Kind.Region, name: "default", children: node.children } ];
+			node.children = [ { kind: Kind.Region, name: "default", children: node.children } ]; // create default regions as required
 
-		node.children.forEach( function( child ) { createStateMachine( child, [], node ); } );
+		node.children.forEach( function( child ) { createStateMachine( child, [], node ); } ); // initialise child nodes
 	}
 
 	transitions.forEach( function( transition )
@@ -218,7 +219,7 @@ function createStateMachine( node, transitions, parent )
 			for( var i = 0; sourceAncestors[ i ] === targetAncestors[ i ]; i++ );
 
 			transition._onExit = [ sourceAncestors[ i ] ];
-					
+
 			if( transition.source.kind.isPseudoState === true && sourceAncestors[ i ] !== transition.source )
 				transition.onExit.unshift( transition.source );	
 					
