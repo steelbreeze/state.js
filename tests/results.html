@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>state.js test results</title>
+		<script src="../src/state.js"></script>
+		<script>
+			function result( text )
+			{
+				var textNode = document.createTextNode( text );
+				
+				var textPara = document.createElement( "p" );
+				
+				textPara.appendChild( textNode );
+				
+				document.getElementById( "results" ).appendChild( textPara );
+			}
+			
+			function run()
+			{
+				var subInitial = { kind: Kind.Initial,  name: "subInitial" };
+				var subEnd     = { kind: Kind.Final,    name: "subEnd" };
+			
+				var initial   = { kind: Kind.Initial,  name: "initial" };
+				var activity1 = { kind: Kind.State,    name: "activity1" };
+				var activity2 = { kind: Kind.State,    name: "activity2", children: [ subInitial, subEnd ] };
+				var activity3 = { kind: Kind.State,    name: "activity3" };
+				var junction1 = { kind: Kind.Junction, name: "junction1" };
+				var junction2 = { kind: Kind.Junction, name: "junction2" };
+				var end       = { kind: Kind.Final,    name: "end" };
+			
+				var compTest = createStateMachine( { kind: Kind.Region, name: "compTest", children: [ initial, activity1, activity2, activity3, junction1, junction2, end ] },
+												 [ { kind: Kind.Completion, source: subInitial, target: subEnd },
+												   { kind: Kind.Completion, source: initial,    target: activity1 },
+												   { kind: Kind.Completion, source: activity1,  target: activity2 },
+												   { kind: Kind.Completion, source: activity2,  target: junction1 },
+												   { kind: Kind.Completion, source: junction1,  target: junction2 },
+												   { kind: Kind.Completion, source: junction2,  target: activity3 },
+												   { kind: Kind.Completion, source: activity3,  target: end } ] );
+						
+				compTest.initialise();
+								
+				result( "Completion Transitions: " + ( compTest.isComplete() ? "passed" : "failed" ) );
+			}
+			
+		</script>
+	</head>
+	<body onload="run()">
+		<h1>state.js test results</h1>
+		<div id="results">
+	</body>
+</html>
