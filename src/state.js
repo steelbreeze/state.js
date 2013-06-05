@@ -86,9 +86,12 @@ function onExit( node )
 function onExitRegion( region )
 {
 	if( region._isActive === true )
-		onExitState( region._current );
-		
-	onExit( region );
+	{
+		if( region._current !== undefined )
+			onExitState( region._current );
+
+		onExit( region );
+	}
 }
 
 // leaves a state within a state machine
@@ -122,7 +125,8 @@ function beginEnterState( state )
 	if( state.entry !== undefined )
 		state.entry.forEach( function( action ) { action(); } );
 			
-	state._parent._current = state;
+	if( state._parent !== undefined )
+		state._parent._current = state;
 }
 
 // completes the entry of a state by cascading to child regions and testing for completion transitions
@@ -161,17 +165,18 @@ function processRegion( region, message )
 
 // process a message within a state
 function processState( node, message )
-{		
+{	
+	var processed = false;
+		
 	if( node._transitions !== undefined ) // there are transitions to evaluate
-		if( ( transitions = node._transitions.filter( function( t ) { return t.kind === Kind.Transition; } ) ).length > 0 )	// there are event-based transitions
-			processed = ( transition = transitions.singleOrUndefined( function( t ) { return t.guard( message ); } ) ) !== undefined; // there is a single transion whose guard evaluates true
+		processed = ( ( transition = node._transitions.singleOrUndefined( function( t ) { return t.kind === Kind.Transition && t.guard( message ); } ) ) !== undefined );
 			
-	if( processed )
+	if( processed === true )
 		traverse( transition, false, message );
 	else
 		if( node.children !== undefined )
-			node.children.forEach( function( region ) { if( region._isActive === true ) processed != processRegion( region, message ); } );
-		
+			node.children.forEach( function( region ) { if( region._isActive === true ) if( processRegion( region, message ) === true ) processed = true; } );
+			
 	return processed;
 }
 
@@ -231,7 +236,7 @@ function createStateMachine( node, transitions, parent )
 			transition._onExit = [ sourceAncestors[ i ] ];
 
 			if( transition.source.kind.isPseudoState === true && sourceAncestors[ i ] !== transition.source )
-				transition.onExit.unshift( transition.source );	
+				transition._onExit.unshift( transition.source );	
 					
 			transition._onEnter = targetAncestors.slice( i );
 									
@@ -241,7 +246,7 @@ function createStateMachine( node, transitions, parent )
 	} );
 				
 	node.initialise = function() { node.kind.initialise( node ); };
-	node.process = function( message ) { node.kind.process( node, message ); };
+	node.process = function( message ) { return node.kind.process( node, message ); };
 	
 	if( node.kind === Kind.Region || node.kind == Kind.State )
 		node.isComplete = function() { return node.kind.isComplete( node ); };	

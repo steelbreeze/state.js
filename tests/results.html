@@ -6,16 +6,11 @@
 		<script>
 			function result( text )
 			{
-				var textNode = document.createTextNode( text );
-				
-				var textPara = document.createElement( "p" );
-				
-				textPara.appendChild( textNode );
-				
-				document.getElementById( "results" ).appendChild( textPara );
+				document.getElementById( "results" ).appendChild( document.createTextNode( text ) );
+				document.getElementById( "results" ).appendChild( document.createElement( "br" ) );
 			}
 			
-			function run()
+			function compTest()
 			{
 				var subInitial = { kind: Kind.Initial,  name: "subInitial" };
 				var subEnd     = { kind: Kind.Final,    name: "subEnd" };
@@ -28,7 +23,7 @@
 				var junction2 = { kind: Kind.Junction, name: "junction2" };
 				var end       = { kind: Kind.Final,    name: "end" };
 			
-				var compTest = createStateMachine( { kind: Kind.Region, name: "compTest", children: [ initial, activity1, activity2, activity3, junction1, junction2, end ] },
+				var machine = createStateMachine( { kind: Kind.Region, name: "compTest", children: [ initial, activity1, activity2, activity3, junction1, junction2, end ] },
 												 [ { kind: Kind.Completion, source: subInitial, target: subEnd },
 												   { kind: Kind.Completion, source: initial,    target: activity1 },
 												   { kind: Kind.Completion, source: activity1,  target: activity2 },
@@ -37,9 +32,64 @@
 												   { kind: Kind.Completion, source: junction2,  target: activity3 },
 												   { kind: Kind.Completion, source: activity3,  target: end } ] );
 						
-				compTest.initialise();
+				machine.initialise();
 								
-				result( "Completion Transitions: " + ( compTest.isComplete() ? "passed" : "failed" ) );
+				result( "Completion Transitions: " + ( machine.isComplete() ? "passed" : "failed" ) );
+			}
+
+			function extTest()
+			{
+				var j1 = { kind: Kind.Junction, name: "junction" };
+
+				var o1 = { kind: Kind.State, name: "o1" };
+				var o2 = { kind: Kind.State, name: "o2" };
+
+				var r1i = { kind: Kind.Initial, name: "initial" };
+				var r2i = { kind: Kind.Initial, name: "initial" };
+
+				var r1 = { kind: Kind.Region, name: "region1", children: [ r1i, o1 ] };
+				var r2 = { kind: Kind.Region, name: "region2", children: [ r2i, o2, j1 ] };
+				
+				var ci = { kind: Kind.Initial, name: "initial" };
+				var c1 = { kind: Kind.State, name: "c1" };
+				var c2 = { kind: Kind.State, name: "c2" };
+				
+				var initial1 = { kind: Kind.Initial, name: "initial" };
+				var composite = { kind: Kind.State, name: "composite", children: [ ci, c1, c2 ] };
+				var orthogonal = { kind: Kind.State, name: "orthogonal", children: [ r1, r2 ] };
+				var end = { kind: Kind.Final, name: "end" };
+				
+				var machine = createStateMachine( { kind: Kind.Region, name: "external", children: [ initial1, composite, orthogonal, end ] },
+											  [ { kind: Kind.Completion, source: initial1, target: composite },
+												{ kind: Kind.Completion, source: ci, target: c1 },
+											   { kind: Kind.Completion, source: j1, target: o1 },
+											   { kind: Kind.Completion, source: r1i, target: o1 },
+											   { kind: Kind.Completion, source: r2i, target: o2 },
+											   { kind: Kind.Transition, source: c2, target: c1, guard: function( c ) { return c === "1"; } },
+											   { kind: Kind.Transition, source: c1, target: j1, guard: function( c ) { return c === "2"; } },
+											   { kind: Kind.Transition, source: o1, target: o2, guard: function( c ) { return c === "3"; } },
+											   { kind: Kind.Transition, source: o2, target: c2, guard: function( c ) { return c === "4"; } },
+											   { kind: Kind.Transition, source: composite, target: orthogonal, guard: function( c ) { return c === "5"; } },
+											   { kind: Kind.Transition, source: composite, target: end, guard: function( c ) { return c === "x"; } } ] );
+
+				machine.initialise();
+				
+				result( "External Transitions (1): " + machine.process( "1" ) );
+				result( "External Transitions (2): " + machine.process( "2" ) );
+				result( "External Transitions (4): " + machine.process( "4" ) );
+				result( "External Transitions (3): " + machine.process( "3" ) );
+				result( "External Transitions (4): " + machine.process( "4" ) );
+				result( "External Transitions (1): " + machine.process( "1" ) );
+				result( "External Transitions (z): " + machine.process( "z" ) );
+				result( "External Transitions (x): " + machine.process( "x" ) );
+				
+				result( "External Transitions: " + ( machine.isComplete() ? "passed" : "failed" ) );
+			}
+
+			function run()
+			{
+				compTest();
+				extTest();
 			}
 			
 		</script>
