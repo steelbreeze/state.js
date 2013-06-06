@@ -50,9 +50,9 @@ var Kind =
 	ExitPoint:      { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: false, isHistory: false, getCompletions: function( completions ) { return completions.single( function( c ) { return c.guard(); } ); } },
 	Final:          { isPseudoState: false, initialise: initialiseState,  onExit: onExitState,  onBeginEnter: beginEnterState },
 	Initial:        { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: true,  isHistory: false, getCompletions: function( completions ) { return completions.single(); } },
-	Junction:       { isPseudoState: true, initialise: initialiseState,   onExit: onExit,       onBeginEnter: beginEnter,      isInitial: false, isHistory: false, getCompletions:	function( completions ) { return completions.singleOrUndefined( function( c ) { return c.guard(); } ) || completions.single( function( c ) { return c === Guard.Else; } ) ; } },
+	Junction:       { isPseudoState: true, initialise: initialiseState,   onExit: onExit,       onBeginEnter: beginEnter,      isInitial: false, isHistory: false, getCompletions: function( completions ) { return completions.singleOrUndefined( function( c ) { return c.guard(); } ) || completions.single( function( c ) { return c === Guard.Else; } ) ; } },
 	Region:         { isPseudoState: false, initialise: initialiseRegion, onExit: onExitRegion, onBeginEnter: beginEnter,      process: processRegion, isComplete: isRegionComplete },
-	ShallowHistory: { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: true,  isHistory: true,  getCompletions:	function( completions ) { return completions.single(); }	},
+	ShallowHistory: { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: true,  isHistory: true,  getCompletions: function( completions ) { return completions.single(); }	},
 	State:          { isPseudoState: false, initialise: initialiseState,  onExit: onExitState,  onBeginEnter: beginEnterState, process: processState,  isComplete: isStateComplete, getCompletions: function( completions ) { return completions.singleOrUndefined( function( c ) { return c.guard(); } ); } },
 	Completion:     { },
 	Transition:     { }
@@ -147,7 +147,7 @@ function initialiseRegion( region, deepHistory )
 {
 	beginEnter( region );
 
-	initialiseState( ( ( deepHistory || region._initial.kind.isHistory ) && ( region._current !== null ) ) ? region._current : region._initial, deepHistory || region._initial.kind === Kind.DeepHistory );
+	initialiseState( ( ( deepHistory || region._initial.kind.isHistory ) && region._current ) ? region._current : region._initial, deepHistory || region._initial.kind === Kind.DeepHistory );
 }
 
 // initiaise a state
