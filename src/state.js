@@ -182,17 +182,17 @@ function processState( node, message )
 
 // traverse a transition
 function traverse( transition, deepHistory, message )
-{		
-	if( transition._onExit !== undefined )
+{
+	if( transition._onExit )
 		transition._onExit.forEach( function( node ) { node.kind.onExit( node ); } ); // leave the source node(s)
 
-	if( transition.effect !== undefined )
+	if( transition.effect )
 		transition.effect.forEach( function( action ) { action( message ); } ); // perform the transition action(s)
 	
-	if( transition._onEnter !== undefined )
+	if( transition._onEnter )
 		transition._onEnter.forEach( function( node ) { node.kind.onBeginEnter( node ); } ); // enter the target node(s)
-
-	if( transition.target !== undefined || transition.target !== null )
+		
+	if( transition.target )
 		endEnter( transition.target, deepHistory );	// complete entry (cascade entry to any children; test for completion transitions)
 }
 
@@ -230,8 +230,12 @@ function createStateMachine( node, transitions, parent )
 		{
 			var sourceAncestors = ancestors( transition.source );
 			var targetAncestors = ancestors( transition.target );
+			var i = 0;
 				
-			for( var i = 0; sourceAncestors[ i ] === targetAncestors[ i ]; i++ );
+			if( transition.source === transition.target )
+				i = sourceAncestors.length - 1;
+			else
+				for( ; i < sourceAncestors.length && i < targetAncestors.length && sourceAncestors[ i ] === targetAncestors[ i ]; i++ );
 
 			transition._onExit = [ sourceAncestors[ i ] ];
 
