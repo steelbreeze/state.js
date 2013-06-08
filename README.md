@@ -18,6 +18,9 @@ Please see the [wiki](https://github.com/steelbreeze/state.js/wiki) for document
 
 ## Building state.js
 There is no build, download a copy of state.js and use it in your site or project.
+### Installing with node.js
+state.js is available as a node packaged module; to install type:
+`npm install state.js`
 
 ## Licence
 Copyright © 2013 Steelbreeze Limited.
