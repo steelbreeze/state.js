@@ -39,24 +39,21 @@ Array.prototype.randomOrUndefined = function( predicate )
 		return results[ ( results.length - 1 ) * Math.random() ];
 };
 
-var Guard = { True: function() { return true; },
-							Else: function() { return false; } };
+var True = function() { return true; };
+var Else = function() { return false; };
 
-var Kind =
-{
-	Choice:         { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: false, isHistory: false, getCompletions:	function( completions ) { return completions.singleOrUndefined( function( c ) { return c.guard(); } ) || completions.single( function( c ) { return c === Guard.Else; } ) ; } },
-	DeepHistory:    { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: true,  isHistory: true,  getCompletions:	function( completions ) { return completions.single(); }	},
-	EntryPoint:     { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: true,  isHistory: false, getCompletions: function( completions ) { return completions.single(); } },
-	ExitPoint:      { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: false, isHistory: false, getCompletions: function( completions ) { return completions.single( function( c ) { return c.guard(); } ); } },
-	Final:          { isPseudoState: false, initialise: initialiseState,  onExit: onExitState,  onBeginEnter: beginEnterState },
-	Initial:        { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: true,  isHistory: false, getCompletions: function( completions ) { return completions.single(); } },
-	Junction:       { isPseudoState: true, initialise: initialiseState,   onExit: onExit,       onBeginEnter: beginEnter,      isInitial: false, isHistory: false, getCompletions: function( completions ) { return completions.singleOrUndefined( function( c ) { return c.guard(); } ) || completions.single( function( c ) { return c === Guard.Else; } ) ; } },
-	Region:         { isPseudoState: false, initialise: initialiseRegion, onExit: onExitRegion, onBeginEnter: beginEnter,      process: processRegion, isComplete: isRegionComplete },
-	ShallowHistory: { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: true,  isHistory: true,  getCompletions: function( completions ) { return completions.single(); }	},
-	State:          { isPseudoState: false, initialise: initialiseState,  onExit: onExitState,  onBeginEnter: beginEnterState, process: processState,  isComplete: isStateComplete, getCompletions: function( completions ) { return completions.singleOrUndefined( function( c ) { return c.guard(); } ); } },
-	Completion:     { },
-	Transition:     { }
-};	
+var Choice =         { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: false, isHistory: false, getCompletions:	function( completions ) { return completions.singleOrUndefined( function( c ) { return c.guard(); } ) || completions.single( function( c ) { return c === Else; } ) ; } };
+var DeepHistory =    { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: true,  isHistory: true,  getCompletions:	function( completions ) { return completions.single(); } };
+var EntryPoint =     { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: true,  isHistory: false, getCompletions: function( completions ) { return completions.single(); } };
+var ExitPoint =      { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: false, isHistory: false, getCompletions: function( completions ) { return completions.single( function( c ) { return c.guard(); } ); } };
+var Final =          { isPseudoState: false, initialise: initialiseState,  onExit: onExitState,  onBeginEnter: beginEnterState };
+var Initial =        { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: true,  isHistory: false, getCompletions: function( completions ) { return completions.single(); } };
+var Junction =       { isPseudoState: true, initialise: initialiseState,   onExit: onExit,       onBeginEnter: beginEnter,      isInitial: false, isHistory: false, getCompletions: function( completions ) { return completions.singleOrUndefined( function( c ) { return c.guard(); } ) || completions.single( function( c ) { return c === Else; } ) ; } };
+var Region =         { isPseudoState: false, initialise: initialiseRegion, onExit: onExitRegion, onBeginEnter: beginEnter,      process: processRegion, isComplete: isRegionComplete };
+var ShallowHistory = { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: true,  isHistory: true,  getCompletions: function( completions ) { return completions.single(); }	};
+var State =          { isPseudoState: false, initialise: initialiseState,  onExit: onExitState,  onBeginEnter: beginEnterState, process: processState,  isComplete: isStateComplete, getCompletions: function( completions ) { return completions.singleOrUndefined( function( c ) { return c.guard(); } ); } };
+var Completion =     { };
+var Transition =     { };
 
 // returns the top-down ancestry of a node within a state machine
 function ancestors( node )
@@ -66,7 +63,7 @@ function ancestors( node )
 
 function isRegionComplete( region )
 {
-	return region._current.kind === Kind.Final;
+	return region._current.kind === Final;
 }
 
 function isStateComplete( state )
@@ -137,7 +134,7 @@ function endEnter( state, deepHistory )
 
 	if( state._transitions !== undefined ) // there are transitions to evaulate
 		if( isStateComplete( state ) === true )
-		 if( ( completions = state._transitions.filter( function( t ) { return t.kind === Kind.Completion; } ) ).length > 0 ) // there are completion transitions to evaluate
+		 if( ( completions = state._transitions.filter( function( t ) { return t.kind === Completion; } ) ).length > 0 ) // there are completion transitions to evaluate
 			if( ( completion = state.kind.getCompletions( completions ) ) !== undefined ) // there is a completion transition to traverse
 				traverse( completion, deepHistory );
 }
@@ -147,7 +144,7 @@ function initialiseRegion( region, deepHistory )
 {
 	beginEnter( region );
 
-	initialiseState( ( ( deepHistory || region._initial.kind.isHistory ) && region._current ) ? region._current : region._initial, deepHistory || region._initial.kind === Kind.DeepHistory );
+	initialiseState( ( ( deepHistory || region._initial.kind.isHistory ) && region._current ) ? region._current : region._initial, deepHistory || region._initial.kind === DeepHistory );
 }
 
 // initiaise a state
@@ -169,7 +166,7 @@ function processState( node, message )
 	var processed = false;
 		
 	if( node._transitions !== undefined ) // there are transitions to evaluate
-		processed = ( ( transition = node._transitions.singleOrUndefined( function( t ) { return t.kind === Kind.Transition && t.guard( message ); } ) ) !== undefined );
+		processed = ( ( transition = node._transitions.singleOrUndefined( function( t ) { return t.kind === Transition && t.guard( message ); } ) ) !== undefined );
 			
 	if( processed === true )
 		traverse( transition, false, message );
@@ -213,8 +210,8 @@ function createStateMachine( node, transitions, parent )
 	
 	if( node.children )
 	{
-		if( ( node.kind === Kind.State ) && ( node.children[ 0 ].kind !== Kind.Region ) )
-			node.children = [ { kind: Kind.Region, name: "default", children: node.children } ]; // create default regions as required
+		if( ( node.kind === State ) && ( node.children[ 0 ].kind !== Region ) )
+			node.children = [ { kind: Region, name: "default", children: node.children } ]; // create default regions as required
 
 		node.children.forEach( function( child ) { createStateMachine( child, [], node ); } ); // initialise child nodes
 	}
@@ -245,14 +242,14 @@ function createStateMachine( node, transitions, parent )
 			transition._onEnter = targetAncestors.slice( i );
 									
 			if( transition.guard === undefined )
-				transition.guard = Guard.True;
+				transition.guard = True;
 		}
 	} );
 				
 	node.initialise = function() { node.kind.initialise( node ); };
 	node.process = function( message ) { return node.kind.process( node, message ); };
 	
-	if( node.kind === Kind.Region || node.kind == Kind.State )
+	if( node.kind === Region || node.kind == State )
 		node.isComplete = function() { return node.kind.isComplete( node ); };	
 	
 	return node;
@@ -261,7 +258,18 @@ function createStateMachine( node, transitions, parent )
 // node.js exports
 if( typeof exports !== 'undefined' )
 {
-	exports.Guard = Guard;
-	exports.Kind = Kind;
+	exports.Else = Else;
+	exports.Choice = Choice;
+	exports.DeepHistory = DeepHistory;
+	exports.EntryPoint = EntryPoint;
+	exports.ExitPoint = ExitPoint;
+	exports.Final = Final;
+	exports.Initial = Initial;
+	exports.Junction = Junction;
+	exports.Region = Region;
+	exports.ShallowHistory = ShallowHistory;
+	exports.State = State;
+	exports.Completion = Completion;
+	exports.Transition = Transition;
 	exports.createStateMachine = createStateMachine;
 }

@@ -12,25 +12,25 @@
 			
 			function compTest()
 			{
-				var subInitial = { kind: Kind.Initial,  name: "subInitial" };
-				var subEnd     = { kind: Kind.Final,    name: "subEnd" };
+				var subInitial = { kind: Initial,  name: "subInitial" };
+				var subEnd     = { kind: Final,    name: "subEnd" };
 			
-				var initial   = { kind: Kind.Initial,  name: "initial" };
-				var activity1 = { kind: Kind.State,    name: "activity1" };
-				var activity2 = { kind: Kind.State,    name: "activity2", children: [ subInitial, subEnd ] };
-				var activity3 = { kind: Kind.State,    name: "activity3" };
-				var junction1 = { kind: Kind.Junction, name: "junction1" };
-				var junction2 = { kind: Kind.Junction, name: "junction2" };
-				var end       = { kind: Kind.Final,    name: "end" };
+				var initial   = { kind: Initial,  name: "initial" };
+				var activity1 = { kind: State,    name: "activity1" };
+				var activity2 = { kind: State,    name: "activity2", children: [ subInitial, subEnd ] };
+				var activity3 = { kind: State,    name: "activity3" };
+				var junction1 = { kind: Junction, name: "junction1" };
+				var junction2 = { kind: Junction, name: "junction2" };
+				var end       = { kind: Final,    name: "end" };
 			
-				var machine = createStateMachine( { kind: Kind.Region, name: "compTest", children: [ initial, activity1, activity2, activity3, junction1, junction2, end ] },
-												 [ { kind: Kind.Completion, source: subInitial, target: subEnd },
-												   { kind: Kind.Completion, source: initial,    target: activity1 },
-												   { kind: Kind.Completion, source: activity1,  target: activity2 },
-												   { kind: Kind.Completion, source: activity2,  target: junction1 },
-												   { kind: Kind.Completion, source: junction1,  target: junction2 },
-												   { kind: Kind.Completion, source: junction2,  target: activity3 },
-												   { kind: Kind.Completion, source: activity3,  target: end } ] );
+				var machine = createStateMachine( { kind: Region, name: "compTest", children: [ initial, activity1, activity2, activity3, junction1, junction2, end ] },
+												 [ { kind: Completion, source: subInitial, target: subEnd },
+												   { kind: Completion, source: initial,    target: activity1 },
+												   { kind: Completion, source: activity1,  target: activity2 },
+												   { kind: Completion, source: activity2,  target: junction1 },
+												   { kind: Completion, source: junction1,  target: junction2 },
+												   { kind: Completion, source: junction2,  target: activity3 },
+												   { kind: Completion, source: activity3,  target: end } ] );
 						
 				machine.initialise();
 								
@@ -39,38 +39,38 @@
 
 			function extTest()
 			{
-				var j1 = { kind: Kind.Junction, name: "junction" };
+				var j1 = { kind: Junction, name: "junction" };
 
-				var o1 = { kind: Kind.State, name: "o1" };
-				var o2 = { kind: Kind.State, name: "o2" };
+				var o1 = { kind: State, name: "o1" };
+				var o2 = { kind: State, name: "o2" };
 
-				var r1i = { kind: Kind.Initial, name: "initial" };
-				var r2i = { kind: Kind.Initial, name: "initial" };
+				var r1i = { kind: Initial, name: "initial" };
+				var r2i = { kind: Initial, name: "initial" };
 
-				var r1 = { kind: Kind.Region, name: "region1", children: [ r1i, o1 ] };
-				var r2 = { kind: Kind.Region, name: "region2", children: [ r2i, o2, j1 ] };
+				var r1 = { kind: Region, name: "region1", children: [ r1i, o1 ] };
+				var r2 = { kind: Region, name: "region2", children: [ r2i, o2, j1 ] };
 				
-				var ci = { kind: Kind.Initial, name: "initial" };
-				var c1 = { kind: Kind.State, name: "c1" };
-				var c2 = { kind: Kind.State, name: "c2" };
+				var ci = { kind: Initial, name: "initial" };
+				var c1 = { kind: State, name: "c1" };
+				var c2 = { kind: State, name: "c2" };
 				
-				var initial1 = { kind: Kind.Initial, name: "initial" };
-				var composite = { kind: Kind.State, name: "composite", children: [ ci, c1, c2 ] };
-				var orthogonal = { kind: Kind.State, name: "orthogonal", children: [ r1, r2 ] };
-				var end = { kind: Kind.Final, name: "end" };
+				var initial1 = { kind: Initial, name: "initial" };
+				var composite = { kind: State, name: "composite", children: [ ci, c1, c2 ] };
+				var orthogonal = { kind: State, name: "orthogonal", children: [ r1, r2 ] };
+				var end = { kind: Final, name: "end" };
 				
-				var machine = createStateMachine( { kind: Kind.Region, name: "external", children: [ initial1, composite, orthogonal, end ] },
-											    [ { kind: Kind.Completion, source: initial1, target: composite },
-										          { kind: Kind.Completion, source: ci, target: c1 },
-											      { kind: Kind.Completion, source: j1, target: o1 },
-											      { kind: Kind.Completion, source: r1i, target: o1 },
-											      { kind: Kind.Completion, source: r2i, target: o2 },
-											      { kind: Kind.Transition, source: c2, target: c1, guard: function( c ) { return c === "1"; } },
-											      { kind: Kind.Transition, source: c1, target: j1, guard: function( c ) { return c === "2"; } },
-											      { kind: Kind.Transition, source: o1, target: o2, guard: function( c ) { return c === "3"; } },
-											      { kind: Kind.Transition, source: o2, target: c2, guard: function( c ) { return c === "4"; } },
-											      { kind: Kind.Transition, source: composite, target: orthogonal, guard: function( c ) { return c === "5"; } },
-											      { kind: Kind.Transition, source: composite, target: end, guard: function( c ) { return c === "x"; } } ] );
+				var machine = createStateMachine( { kind: Region, name: "external", children: [ initial1, composite, orthogonal, end ] },
+											    [ { kind: Completion, source: initial1, target: composite },
+										          { kind: Completion, source: ci, target: c1 },
+											      { kind: Completion, source: j1, target: o1 },
+											      { kind: Completion, source: r1i, target: o1 },
+											      { kind: Completion, source: r2i, target: o2 },
+											      { kind: Transition, source: c2, target: c1, guard: function( c ) { return c === "1"; } },
+											      { kind: Transition, source: c1, target: j1, guard: function( c ) { return c === "2"; } },
+											      { kind: Transition, source: o1, target: o2, guard: function( c ) { return c === "3"; } },
+											      { kind: Transition, source: o2, target: c2, guard: function( c ) { return c === "4"; } },
+											      { kind: Transition, source: composite, target: orthogonal, guard: function( c ) { return c === "5"; } },
+											      { kind: Transition, source: composite, target: end, guard: function( c ) { return c === "x"; } } ] );
 
 				machine.initialise();
 				
@@ -88,22 +88,22 @@
 
 			function shallowTest()
 			{
-				var history = { kind: Kind.ShallowHistory, name: "history" };
-				var s1 =      { kind: Kind.State,   name: "s1" };
-				var s2 =      { kind: Kind.State,   name: "s2" };
+				var history = { kind: ShallowHistory, name: "history" };
+				var s1 =      { kind: State,   name: "s1" };
+				var s2 =      { kind: State,   name: "s2" };
 			
-				var initial = { kind: Kind.Initial, name: "initial" };
-				var shallow = { kind: Kind.State,          name: "shallow", children: [ history, s1, s2 ] };
-				var deep =    { kind: Kind.State,          name: "deep" };
-				var end =     { kind: Kind.Final,          name: "final" };
+				var initial = { kind: Initial, name: "initial" };
+				var shallow = { kind: State,          name: "shallow", children: [ history, s1, s2 ] };
+				var deep =    { kind: State,          name: "deep" };
+				var end =     { kind: Final,          name: "final" };
 			
-				var machine = createStateMachine( { kind: Kind.Region, name: "history", children: [ initial, shallow, deep, end ] },
-				                                [ { kind: Kind.Completion, source: initial, target: shallow },
-				                                  { kind: Kind.Completion, source: history, target: s1 },
-				                                  { kind: Kind.Transition, source: s1,      target: s2,      guard: function( c ) { return c === "move"; } },
-				                                  { kind: Kind.Transition, source: shallow, target: deep,    guard: function( c ) { return c === "go deep"; } },
-				                                  { kind: Kind.Transition, source: deep,    target: shallow, guard: function( c ) { return c === "go shallow"; } },
-				                                  { kind: Kind.Transition, source: s2,      target: end,     guard: function( c ) { return c === "end"; } } ] );
+				var machine = createStateMachine( { kind: Region, name: "history", children: [ initial, shallow, deep, end ] },
+				                                [ { kind: Completion, source: initial, target: shallow },
+				                                  { kind: Completion, source: history, target: s1 },
+				                                  { kind: Transition, source: s1,      target: s2,      guard: function( c ) { return c === "move"; } },
+				                                  { kind: Transition, source: shallow, target: deep,    guard: function( c ) { return c === "go deep"; } },
+				                                  { kind: Transition, source: deep,    target: shallow, guard: function( c ) { return c === "go shallow"; } },
+				                                  { kind: Transition, source: s2,      target: end,     guard: function( c ) { return c === "end"; } } ] );
 
 				machine.initialise();
 

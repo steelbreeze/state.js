@@ -6,25 +6,25 @@
 		<script src="../src/state.js"></script>
 		<script>
 		
-			var running = { kind: Kind.State, name: "running", entry: [ StartMotor ], exit: [ StopMotor ]  };
-			var paused = { kind: Kind.State, name: "paused" };
+			var running = { kind: State, name: "running", entry: [ StartMotor ], exit: [ StopMotor ]  };
+			var paused = { kind: State, name: "paused" };
 			
-			var initial2 = { kind: Kind.Initial, name: "initial2" };
-			var stopped = { kind: Kind.State, name: "stopped" };
-			var active = { kind: Kind.State, name: "active", children: [ running, paused ], entry: [ EngageHead ], exit: [ DisengageHead ] };
+			var initial2 = { kind: Initial, name: "initial2" };
+			var stopped = { kind: State, name: "stopped" };
+			var active = { kind: State, name: "active", children: [ running, paused ], entry: [ EngageHead ], exit: [ DisengageHead ] };
 
-			var initial1 = { kind: Kind.Initial, name: "initial1" };
-			var operational = { kind: Kind.State, name: "operational", children: [ initial2, stopped, active ] };
-			var finalState = { kind: Kind.Final, name: "final" };
+			var initial1 = { kind: Initial, name: "initial1" };
+			var operational = { kind: State, name: "operational", children: [ initial2, stopped, active ] };
+			var finalState = { kind: Final, name: "final" };
 			
-			controller = createStateMachine( { kind: Kind.Region, name: "player", children: [ initial1, operational, finalState ] },
-			                                   [ { kind: Kind.Completion, source: initial1,    target: operational, effect: [ StopMotor, DisengageHead ] },
-			                                     { kind: Kind.Completion, source: initial2,    target: stopped },
-			                                     { kind: Kind.Transition, source: stopped,     target: running, guard: function( s ) { return ( s == 'play' ); } },
-			                                     { kind: Kind.Transition, source: active,      target: stopped, guard: function( s ) { return s == 'stop'; } },
-			                                     { kind: Kind.Transition, source: running,     target: paused, guard: function( s ) { return s == 'pause'; } },
-			                                     { kind: Kind.Transition, source: paused,      target: running, guard: function( s ) { return s == 'play'; } },
-			                                     { kind: Kind.Transition, source: operational, target: finalState, guard: function( s ) { return s == 'off'; } } ] );
+			controller = createStateMachine( { kind: Region, name: "player", children: [ initial1, operational, finalState ] },
+			                                [ { kind: Completion, source: initial1,    target: operational, effect: [ StopMotor, DisengageHead ] },
+			                                  { kind: Completion, source: initial2,    target: stopped },
+			                                  { kind: Transition, source: stopped,     target: running, guard: function( s ) { return ( s == 'play' ); } },
+			                                  { kind: Transition, source: active,      target: stopped, guard: function( s ) { return s == 'stop'; } },
+			                                  { kind: Transition, source: running,     target: paused, guard: function( s ) { return s == 'pause'; } },
+			                                  { kind: Transition, source: paused,      target: running, guard: function( s ) { return s == 'play'; } },
+			                                  { kind: Transition, source: operational, target: finalState, guard: function( s ) { return s == 'off'; } } ] );
 
 			function EngageHead()
 			{
