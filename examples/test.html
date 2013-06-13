@@ -7,24 +7,27 @@
 		<script>
 		
 			var running = { kind: State, name: "running", entry: [ StartMotor ], exit: [ StopMotor ]  };
-			var paused = { kind: State, name: "paused" };
+			var paused  = { kind: State, name: "paused" };
 			
-			var initial2 = { kind: Initial, name: "initial2" };
+			var history = { kind: DeepHistory, name: "history" };
 			var stopped = { kind: State, name: "stopped" };
-			var active = { kind: State, name: "active", children: [ running, paused ], entry: [ EngageHead ], exit: [ DisengageHead ] };
+			var active  = { kind: State, name: "active", children: [ running, paused ], entry: [ EngageHead ], exit: [ DisengageHead ] };
 
-			var initial1 = { kind: Initial, name: "initial1" };
-			var operational = { kind: State, name: "operational", children: [ initial2, stopped, active ] };
-			var finalState = { kind: Final, name: "final" };
+			var initial1    = { kind: Initial, name: "initial1" };
+			var operational = { kind: State, name: "operational", children: [ history, stopped, active ] };
+			var flipped     = { kind: State, name: "flipped" };
+			var finalState  = { kind: Final, name: "final" };
 			
-			controller = createStateMachine( { kind: Region, name: "player", children: [ initial1, operational, finalState ] },
-			                                [ { kind: Completion, source: initial1,    target: operational, effect: [ StopMotor, DisengageHead ] },
-			                                  { kind: Completion, source: initial2,    target: stopped },
-			                                  { kind: Transition, source: stopped,     target: running, guard: function( s ) { return ( s == 'play' ); } },
-			                                  { kind: Transition, source: active,      target: stopped, guard: function( s ) { return s == 'stop'; } },
-			                                  { kind: Transition, source: running,     target: paused, guard: function( s ) { return s == 'pause'; } },
-			                                  { kind: Transition, source: paused,      target: running, guard: function( s ) { return s == 'play'; } },
-			                                  { kind: Transition, source: operational, target: finalState, guard: function( s ) { return s == 'off'; } } ] );
+			controller = createStateMachine( { kind: Region, name: "player", children: [ initial1, operational, flipped, finalState ] },
+			                                 [ { kind: Completion, source: initial1,    target: operational, effect: [ StopMotor, DisengageHead ] },
+			                                   { kind: Completion, source: history,     target: stopped },
+			                                   { kind: Transition, source: stopped,     target: running,     guard: function( s ) { return s == 'play'; } },
+			                                   { kind: Transition, source: active,      target: stopped,     guard: function( s ) { return s == 'stop'; } },
+			                                   { kind: Transition, source: running,     target: paused,      guard: function( s ) { return s == 'pause'; } },
+			                                   { kind: Transition, source: paused,      target: running,     guard: function( s ) { return s == 'play'; } },
+			                                   { kind: Transition, source: operational, target: flipped,     guard: function( s ) { return s == 'flip'; } },
+			                                   { kind: Transition, source: flipped,     target: operational, guard: function( s ) { return s == 'flip'; } },
+			                                   { kind: Transition, source: operational, target: finalState,  guard: function( s ) { return s == 'off'; } } ] );
 
 			function EngageHead()
 			{
@@ -51,6 +54,7 @@
 			running.entry.push( function() { UpdateGraphic( "controller_running.png" ); } );
 			paused.entry = [ function() { UpdateGraphic( "controller_paused.png" ); } ];
 			operational.exit = [ function() { UpdateGraphic( "controller_final.png" ); } ];
+			flipped.entry = [ function() { UpdateGraphic( "controller_flipped.png" ); } ];
 			
 			function UpdateGraphic( uri )
 			{
@@ -63,10 +67,11 @@
 		<p>This example implements a simple controller for a cassette player according to the model below:</p>
 		<p><img id="diagram" /></p>
 		<p>Press the buttons below to send events to the controller (check brower console for trace output):</p>
-		<button type="button" onclick="controller.process( 'play' )">Play</button>
-		<button type="button" onclick="controller.process( 'pause' )">Pause</button>
-		<button type="button" onclick="controller.process( 'stop' )">Stop</button>
-		<button type="button" onclick="controller.process( 'off' )">Off</button>
+		<button type="button" onclick="controller.process( 'play' )">play</button>
+		<button type="button" onclick="controller.process( 'pause' )">pause</button>
+		<button type="button" onclick="controller.process( 'stop' )">stop</button>
+		<button type="button" onclick="controller.process( 'flip' )">flip</button>
+		<button type="button" onclick="controller.process( 'off' )">off</button>
 		<p id="head">Head: </p>
 		<p id="motor">Motor: </p>
 	</body>
