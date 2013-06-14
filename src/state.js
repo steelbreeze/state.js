@@ -42,7 +42,7 @@ Array.prototype.randomOrUndefined = function( predicate )
 var True = function() { return true; };
 var Else = function() { return false; };
 
-var Choice =         { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: false, isHistory: false, getCompletions:	function( completions ) { return completions.singleOrUndefined( function( c ) { return c.guard(); } ) || completions.single( function( c ) { return c === Else; } ) ; } };
+var Choice =         { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: false, isHistory: false, getCompletions:	function( completions ) { return completions.randomOrUndefined( function( c ) { return c.guard(); } ) || completions.single( function( c ) { return c === Else; } ) ; } };
 var DeepHistory =    { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: true,  isHistory: true,  getCompletions:	function( completions ) { return completions.single(); } };
 var EntryPoint =     { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: true,  isHistory: false, getCompletions: function( completions ) { return completions.single(); } };
 var ExitPoint =      { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: false, isHistory: false, getCompletions: function( completions ) { return completions.single( function( c ) { return c.guard(); } ); } };
@@ -132,10 +132,9 @@ function endEnter( state, deepHistory )
 	if( state.children !== undefined )
 		state.children.forEach( function( region ) { initialiseRegion( region, deepHistory ); } );
 
-	if( state._transitions !== undefined ) // there are transitions to evaulate
+	if( state._completions !== undefined ) // there are completion transitions to evaulate
 		if( isStateComplete( state ) === true )
-		 if( ( completions = state._transitions.filter( function( t ) { return t.kind === Completion; } ) ).length > 0 ) // there are completion transitions to evaluate
-			if( ( completion = state.kind.getCompletions( completions ) ) !== undefined ) // there is a completion transition to traverse
+			if( ( completion = state.kind.getCompletions( state._completions ) ) !== undefined ) // there is a completion transition to traverse
 				traverse( completion, deepHistory );
 }
 
@@ -166,7 +165,7 @@ function processState( node, message )
 	var processed = false;
 		
 	if( node._transitions !== undefined ) // there are transitions to evaluate
-		processed = ( ( transition = node._transitions.singleOrUndefined( function( t ) { return t.kind === Transition && t.guard( message ); } ) ) !== undefined );
+		processed = ( ( transition = node._transitions.singleOrUndefined( function( t ) { return t.guard( message ); } ) ) !== undefined );
 			
 	if( processed === true )
 		traverse( transition, false, message );
@@ -218,11 +217,21 @@ function createStateMachine( node, transitions, parent )
 
 	transitions.forEach( function( transition )
 	{
-		if( transition.source._transitions !== undefined )
-			transition.source._transitions.push( transition );
+		if( transition.kind === Transition )
+		{
+			if( transition.source._transitions !== undefined )
+				transition.source._transitions.push( transition );
+			else
+				transition.source._transitions = [ transition ];
+		}
 		else
-			transition.source._transitions = [ transition ];
-
+		{
+			if( transition.source._completions !== undefined )
+				transition.source._completions.push( transition );
+			else
+				transition.source._completions = [ transition ];
+		}
+		
 		if( transition.target !== null )
 		{
 			var sourceAncestors = ancestors( transition.source );
