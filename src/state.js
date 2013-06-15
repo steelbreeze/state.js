@@ -16,7 +16,9 @@
 // returns the only item in an array where the predicate evaluates true
 Array.prototype.single = function( predicate )
 {
-	if( ( results = predicate ? this.filter( predicate ) : this ).length === 1 )
+	var results = predicate ? this.filter( predicate ) : this;
+
+	if( results.length === 1 )
 		return results[ 0 ];
 	
 	throw new Error( "Cannot return zero or more than one elements" );	
@@ -25,7 +27,9 @@ Array.prototype.single = function( predicate )
 // returns the only item in an array where the predicate evaluates true or nothing
 Array.prototype.singleOrUndefined = function( predicate )
 {
-	if( ( results = predicate ? this.filter( predicate ) : this ).length === 1 )
+	var results = predicate ? this.filter( predicate ) : this;
+	
+	if( results.length === 1 )
 		return results[ 0 ];
 
 	if( results.length > 1 )
@@ -35,7 +39,9 @@ Array.prototype.singleOrUndefined = function( predicate )
 // returns a random element of an array where the predicate evaluates true or nothing
 Array.prototype.randomOrUndefined = function( predicate )
 {
-	if( ( results = predicate ? this.filter( predicate ) : this ).length !== 0 )
+	var results = predicate ? this.filter( predicate ) : this;
+
+	if( results.length !== 0 )
 		return results[ ( results.length - 1 ) * Math.random() ];
 };
 
@@ -52,8 +58,8 @@ var Junction =       { isPseudoState: true, initialise: initialiseState,   onExi
 var Region =         { isPseudoState: false, initialise: initialiseRegion, onExit: onExitRegion, onBeginEnter: beginEnter,      process: processRegion, isComplete: isRegionComplete };
 var ShallowHistory = { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: true,  isHistory: true,  getCompletions: function( completions ) { return completions.single(); }	};
 var State =          { isPseudoState: false, initialise: initialiseState,  onExit: onExitState,  onBeginEnter: beginEnterState, process: processState,  isComplete: isStateComplete, getCompletions: function( completions ) { return completions.singleOrUndefined( function( c ) { return c.guard(); } ); } };
-var Completion =     { };
-var Transition =     { };
+var Completion =     { collection: "_completions" };
+var Transition =     { collection: "_transitions" };
 
 // returns the top-down ancestry of a node within a state machine
 function ancestors( node )
@@ -68,7 +74,7 @@ function isRegionComplete( region )
 
 function isStateComplete( state )
 {
-	return state.children === undefined || state.children.every( isRegionComplete );
+	return !state.children || state.children.every( isRegionComplete );
 }
 
 // leaves a node within a state machine
@@ -82,9 +88,9 @@ function onExit( node )
 // leaves a region within a state machine
 function onExitRegion( region )
 {
-	if( region._isActive === true )
+	if( region._isActive )
 	{
-		if( region._current !== undefined )
+		if( region._current )
 			onExitState( region._current );
 
 		onExit( region );
@@ -94,10 +100,10 @@ function onExitRegion( region )
 // leaves a state within a state machine
 function onExitState( state )
 {
-	if( state.children !== undefined )
+	if( state.children )
 		state.children.forEach( onExitRegion );
 
-	if( state.exit !== undefined )		
+	if( state.exit )		
 		state.exit.forEach( function( action ) { action(); } );
 
 	onExit( state );
@@ -106,7 +112,7 @@ function onExitState( state )
 // enter a node in a state machine
 function beginEnter( node )
 {
-	if( node._isActive === true )
+	if( node._isActive )
 		node.kind.onExit( node );
 	
 	console.log( "Enter: " + toString( node ) );
@@ -119,22 +125,24 @@ function beginEnterState( state )
 {
 	beginEnter( state );
 			
-	if( state.entry !== undefined )
+	if( state.entry )
 		state.entry.forEach( function( action ) { action(); } );
 			
-	if( state._parent !== undefined )
+	if( state._parent )
 		state._parent._current = state;
 }
 
 // completes the entry of a state by cascading to child regions and testing for completion transitions
 function endEnter( state, deepHistory )
 {
-	if( state.children !== undefined )
+	var completion;
+
+	if( state.children )
 		state.children.forEach( function( region ) { initialiseRegion( region, deepHistory ); } );
 
-	if( state._completions !== undefined ) // there are completion transitions to evaulate
-		if( isStateComplete( state ) === true )
-			if( ( completion = state.kind.getCompletions( state._completions ) ) !== undefined ) // there is a completion transition to traverse
+	if( state._completions )
+		if( isStateComplete( state ) )
+			if( ( completion = state.kind.getCompletions( state._completions ) ) )
 				traverse( completion, deepHistory );
 }
 
@@ -156,24 +164,18 @@ function initialiseState( state, deepHistory )
 // process a message within a region
 function processRegion( region, message )
 {		
-	return processState( region._current, message );
+	return region._isActive && processState( region._current, message );
 }
 
 // process a message within a state
 function processState( node, message )
 {	
-	var processed = false;
-		
-	if( node._transitions !== undefined ) // there are transitions to evaluate
-		processed = ( ( transition = node._transitions.singleOrUndefined( function( t ) { return t.guard( message ); } ) ) !== undefined );
-			
-	if( processed === true )
-		traverse( transition, false, message );
+	var transition = node._transitions ? node._transitions.singleOrUndefined( function( t ) { return t.guard( message ); } ) : undefined;
+	
+	if( transition )
+		return traverse( transition, false, message );
 	else
-		if( node.children !== undefined )
-			node.children.forEach( function( region ) { if( region._isActive === true ) if( processRegion( region, message ) === true ) processed = true; } );
-			
-	return processed;
+		return node.children ? node.children.reduce( function( result, region ) { return result || processRegion( region, message ); } , false ) : false;
 }
 
 // traverse a transition
@@ -190,6 +192,8 @@ function traverse( transition, deepHistory, message )
 		
 	if( transition.target )
 		endEnter( transition.target, deepHistory );	// complete entry (cascade entry to any children; test for completion transitions)
+		
+	return true;
 }
 
 // returns the fully qualified name of a node
@@ -204,7 +208,7 @@ function createStateMachine( node, transitions, parent )
 	node._isActive = false; // add the isActive flag (denotes a node has be entered but not exited)
 	node._parent = parent; // add the parent flag
 	
-	if( node.kind.isInitial === true )
+	if( node.kind.isInitial )
 		parent._initial = node; // set the parent region's initial state as appropriate
 	
 	if( node.children )
@@ -217,40 +221,30 @@ function createStateMachine( node, transitions, parent )
 
 	transitions.forEach( function( transition )
 	{
-		if( transition.kind === Transition )
-		{
-			if( transition.source._transitions !== undefined )
-				transition.source._transitions.push( transition );
-			else
-				transition.source._transitions = [ transition ];
-		}
+		if( transition.source[ transition.kind.collection ] )
+			transition.source[ transition.kind.collection ].push( transition );
 		else
+			transition.source[ transition.kind.collection ] = [ transition ];
+
+		if( transition.target )
 		{
-			if( transition.source._completions !== undefined )
-				transition.source._completions.push( transition );
-			else
-				transition.source._completions = [ transition ];
-		}
-		
-		if( transition.target !== null )
-		{
+			var i;
 			var sourceAncestors = ancestors( transition.source );
 			var targetAncestors = ancestors( transition.target );
-			var i = 0;
 				
 			if( transition.source === transition.target )
 				i = sourceAncestors.length - 1;
 			else
-				for( ; i < sourceAncestors.length && i < targetAncestors.length && sourceAncestors[ i ] === targetAncestors[ i ]; i++ );
+				for( i = 0 ; i < sourceAncestors.length && i < targetAncestors.length && sourceAncestors[ i ] === targetAncestors[ i ]; i++ );
 
 			transition._onExit = [ sourceAncestors[ i ] ];
 
-			if( transition.source.kind.isPseudoState === true && sourceAncestors[ i ] !== transition.source )
+			if( transition.source.kind.isPseudoState && sourceAncestors[ i ] !== transition.source )
 				transition._onExit.unshift( transition.source );	
 					
 			transition._onEnter = targetAncestors.slice( i );
 									
-			if( transition.guard === undefined )
+			if( !transition.guard )
 				transition.guard = True;
 		}
 	} );
