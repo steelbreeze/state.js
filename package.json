@@ -25,7 +25,7 @@
 	"junction",
 	"choice",
 	"transition",
-	"completion"
+	"completion",
 	"FSM"
   ],
     "bugs" : {
