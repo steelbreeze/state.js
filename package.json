@@ -1,6 +1,6 @@
 {
     "name": "state.js",
-    "version": "1.2.2",
+    "version": "1.2.3",
     "author": "Steelbreeze <mesmo@steelbreeze.net>",
     "description": "Hierarchical finite state machine library for JavaScript",
     "main": "./src/state",
@@ -9,6 +9,7 @@
         "url" : "https://github.com/steelbreeze/state.js"
     },
     "keywords": [
+    "uml",
     "finite",
     "state",
     "machine",
@@ -23,6 +24,8 @@
 	"history",
 	"junction",
 	"choice",
+	"transition",
+	"completion"
 	"FSM"
   ],
     "bugs" : {

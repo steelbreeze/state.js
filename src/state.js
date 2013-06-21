@@ -45,7 +45,6 @@ Array.prototype.randomOrUndefined = function( predicate )
 		return results[ ( results.length - 1 ) * Math.random() ];
 };
 
-var True = function() { return true; };
 var Else = function() { return false; };
 
 var Choice =         { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: false, isHistory: false, getCompletions:	function( completions ) { return completions.randomOrUndefined( function( c ) { return c.guard(); } ) || completions.single( function( c ) { return c === Else; } ) ; } };
@@ -58,8 +57,8 @@ var Junction =       { isPseudoState: true, initialise: initialiseState,   onExi
 var Region =         { isPseudoState: false, initialise: initialiseRegion, onExit: onExitRegion, onBeginEnter: beginEnter,      process: processRegion, isComplete: isRegionComplete };
 var ShallowHistory = { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: true,  isHistory: true,  getCompletions: function( completions ) { return completions.single(); }	};
 var State =          { isPseudoState: false, initialise: initialiseState,  onExit: onExitState,  onBeginEnter: beginEnterState, process: processState,  isComplete: isStateComplete, getCompletions: function( completions ) { return completions.singleOrUndefined( function( c ) { return c.guard(); } ); } };
-var Completion =     { collection: "_completions" };
-var Transition =     { collection: "_transitions" };
+var Completion =     { };
+var Transition =     { };
 
 // returns the top-down ancestry of a node within a state machine
 function ancestors( node )
@@ -162,20 +161,20 @@ function initialiseState( state, deepHistory )
 }
 
 // process a message within a region
-function processRegion( region, message )
+function processRegion( region, args )
 {		
-	return region._isActive && processState( region._current, message );
+	return region._isActive && processState( region._current, args );
 }
 
 // process a message within a state
-function processState( node, message )
+function processState( node, args )
 {	
-	var transition = node._transitions ? node._transitions.singleOrUndefined( function( t ) { return t.guard( message ); } ) : undefined;
+	var transition = node._transitions ? node._transitions.singleOrUndefined( function( t ) { return t.guard.apply( null, args ); } ) : undefined;
 	
 	if( transition )
-		return traverse( transition, false, message );
+		return traverse( transition, false, args );
 	else
-		return node.children ? node.children.reduce( function( result, region ) { return result || processRegion( region, message ); } , false ) : false;
+		return node.children ? node.children.reduce( function( result, region ) { return result || processRegion( region, args ); } , false ) : false;
 }
 
 // traverse a transition
@@ -185,7 +184,7 @@ function traverse( transition, deepHistory, message )
 		transition._onExit.forEach( function( node ) { node.kind.onExit( node ); } ); // leave the source node(s)
 
 	if( transition.effect )
-		transition.effect.forEach( function( action ) { action( message ); } ); // perform the transition action(s)
+		transition.effect.forEach( function( action ) { action.apply( null, message ); } ); // perform the transition action(s)
 	
 	if( transition._onEnter )
 		transition._onEnter.forEach( function( node ) { node.kind.onBeginEnter( node ); } ); // enter the target node(s)
@@ -221,10 +220,12 @@ function createStateMachine( node, transitions, parent )
 
 	transitions.forEach( function( transition )
 	{
-		if( transition.source[ transition.kind.collection ] )
-			transition.source[ transition.kind.collection ].push( transition );
+		var type = transition.guard && transition.guard.length > 0 ? "_transitions" : "_completions";
+
+		if( transition.source[ type ] )
+			transition.source[ type ].push( transition );
 		else
-			transition.source[ transition.kind.collection ] = [ transition ];
+			transition.source[ type ] = [ transition ];
 
 		if( transition.target )
 		{
@@ -245,12 +246,12 @@ function createStateMachine( node, transitions, parent )
 			transition._onEnter = targetAncestors.slice( i );
 									
 			if( !transition.guard )
-				transition.guard = True;
+				transition.guard = function() { return true; };
 		}
 	} );
 				
 	node.initialise = function() { node.kind.initialise( node ); };
-	node.process = function( message ) { return node.kind.process( node, message ); };
+	node.process = function() { return node.kind.process( node, arguments ); };
 	
 	if( node.kind === Region || node.kind == State )
 		node.isComplete = function() { return node.kind.isComplete( node ); };	
