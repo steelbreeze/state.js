@@ -1,6 +1,6 @@
 {
     "name": "state.js",
-    "version": "1.2.3",
+    "version": "1.2.4",
     "author": "Steelbreeze <mesmo@steelbreeze.net>",
     "description": "Hierarchical finite state machine library for JavaScript",
     "main": "./src/state",
@@ -36,8 +36,12 @@
 
     "licenses" : [
         {
+            "type" : "MIT",
+            "url" : "https://github.com/steelbreeze/state.js/blob/master/LICENCE_MIT.md"
+        },
+        {
             "type" : "GPL",
-            "url" : "https://github.com/steelbreeze/state.js/blob/master/LICENCE.md"
+            "url" : "https://github.com/steelbreeze/state.js/blob/master/LICENCE_GPL.md"
         }
     ]
 }
