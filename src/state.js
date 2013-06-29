@@ -57,8 +57,8 @@ var Junction =       { isPseudoState: true, initialise: initialiseState,   onExi
 var Region =         { isPseudoState: false, initialise: initialiseRegion, onExit: onExitRegion, onBeginEnter: beginEnter,      process: processRegion, isComplete: isRegionComplete };
 var ShallowHistory = { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: true,  isHistory: true,  getCompletions: function( completions ) { return completions.single(); }	};
 var State =          { isPseudoState: false, initialise: initialiseState,  onExit: onExitState,  onBeginEnter: beginEnterState, process: processState,  isComplete: isStateComplete, getCompletions: function( completions ) { return completions.singleOrUndefined( function( c ) { return c.guard(); } ); } };
-var Completion =     { };
-var Transition =     { };
+var Completion =     { }; // deprecated (will be removed in 1.3 release
+var Transition =     { }; // deprecated (will be removed in 1.3 release
 
 // returns the top-down ancestry of a node within a state machine
 function ancestors( node )
@@ -201,12 +201,18 @@ function toString( node )
 	return node._parent ? toString( node._parent ) + "." + node.name : node.name;
 }
 
-// initialises a state machine
-function createStateMachine( node, transitions, parent )
+// adds properties and methods to nodes within a state machine
+function preProcessNode( node, parent )
 {
 	node._isActive = false; // add the isActive flag (denotes a node has be entered but not exited)
 	node._parent = parent; // add the parent flag
 	
+	node.initialise = function() { node.kind.initialise( node ); };
+	node.process = function() { return node.kind.process( node, arguments ); };
+	
+	if( node.kind === Region || node.kind == State )
+		node.isComplete = function() { return node.kind.isComplete( node ); };	
+
 	if( node.kind.isInitial )
 		parent._initial = node; // set the parent region's initial state as appropriate
 	
@@ -215,47 +221,50 @@ function createStateMachine( node, transitions, parent )
 		if( ( node.kind === State ) && ( node.children[ 0 ].kind !== Region ) )
 			node.children = [ { kind: Region, name: "default", children: node.children } ]; // create default regions as required
 
-		node.children.forEach( function( child ) { createStateMachine( child, [], node ); } ); // initialise child nodes
+		node.children.forEach( function( child ) { preProcessNode( child, node ); } ); // pre-process child nodes
 	}
+}
 
-	transitions.forEach( function( transition )
+// adds transitions to source vertices and pre-computes the path from source to target
+function preProcessTransition( transition )
+{
+	var type = transition.guard && transition.guard.length > 0 ? "_transitions" : "_completions";
+
+	if( transition.source[ type ] )
+		transition.source[ type ].push( transition );
+	else
+		transition.source[ type ] = [ transition ];
+
+	if( transition.target )
 	{
-		var type = transition.guard && transition.guard.length > 0 ? "_transitions" : "_completions";
-
-		if( transition.source[ type ] )
-			transition.source[ type ].push( transition );
+		var i;
+		var sourceAncestors = ancestors( transition.source );
+		var targetAncestors = ancestors( transition.target );
+			
+		if( transition.source === transition.target )
+			i = sourceAncestors.length - 1;
 		else
-			transition.source[ type ] = [ transition ];
+			for( i = 0 ; i < sourceAncestors.length && i < targetAncestors.length && sourceAncestors[ i ] === targetAncestors[ i ]; i++ );
 
-		if( transition.target )
-		{
-			var i;
-			var sourceAncestors = ancestors( transition.source );
-			var targetAncestors = ancestors( transition.target );
+		transition._onExit = [ sourceAncestors[ i ] ];
+
+		if( transition.source.kind.isPseudoState && sourceAncestors[ i ] !== transition.source )
+			transition._onExit.unshift( transition.source );	
 				
-			if( transition.source === transition.target )
-				i = sourceAncestors.length - 1;
-			else
-				for( i = 0 ; i < sourceAncestors.length && i < targetAncestors.length && sourceAncestors[ i ] === targetAncestors[ i ]; i++ );
+		transition._onEnter = targetAncestors.slice( i );
+								
+		if( !transition.guard )
+			transition.guard = function() { return true; };
+	}
+}
 
-			transition._onExit = [ sourceAncestors[ i ] ];
-
-			if( transition.source.kind.isPseudoState && sourceAncestors[ i ] !== transition.source )
-				transition._onExit.unshift( transition.source );	
+// creates a state machine
+function createStateMachine( node, transitions )
+{
+	preProcessNode( node );
+	
+	transitions.forEach( preProcessTransition );
 					
-			transition._onEnter = targetAncestors.slice( i );
-									
-			if( !transition.guard )
-				transition.guard = function() { return true; };
-		}
-	} );
-				
-	node.initialise = function() { node.kind.initialise( node ); };
-	node.process = function() { return node.kind.process( node, arguments ); };
-	
-	if( node.kind === Region || node.kind == State )
-		node.isComplete = function() { return node.kind.isComplete( node ); };	
-	
 	return node;
 }		
 
