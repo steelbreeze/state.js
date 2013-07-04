@@ -26,3 +26,4 @@ state.js is available as a node packaged module; to install type:
 Copyright © 2013 Steelbreeze Limited.
 
 state.js may be licenced under either GPLv3 or MIT licences at your discretion.
+[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/1481fb51f491522f451063ef0b9604c7 "githalytics.com")](http://githalytics.com/steelbreeze/state.js)
