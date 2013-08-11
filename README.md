@@ -2,6 +2,8 @@
 
 The current stable release is 1.2.5.
 
+If you like this star it...
+
 Version 2 is coming soon... with seperation of the state machine model and state machine state.
 
 ## Introduction
