@@ -57,8 +57,6 @@ var Junction =       { isPseudoState: true, initialise: initialiseState,   onExi
 var Region =         { isPseudoState: false, initialise: initialiseRegion, onExit: onExitRegion, onBeginEnter: beginEnter,      process: processRegion, isComplete: isRegionComplete };
 var ShallowHistory = { isPseudoState: true,  initialise: initialiseState,  onExit: onExit,       onBeginEnter: beginEnter,      isInitial: true,  isHistory: true,  getCompletions: function( completions ) { return completions.single(); }	};
 var State =          { isPseudoState: false, initialise: initialiseState,  onExit: onExitState,  onBeginEnter: beginEnterState, process: processState,  isComplete: isStateComplete, getCompletions: function( completions ) { return completions.singleOrUndefined( function( c ) { return c.guard(); } ); } };
-var Completion =     { }; // deprecated (will be removed in 1.3 release
-var Transition =     { }; // deprecated (will be removed in 1.3 release
 
 // returns the top-down ancestry of a node within a state machine
 function ancestors( node )
@@ -66,131 +64,135 @@ function ancestors( node )
 	return node._parent ? ancestors( node._parent ).concat( node ) : [ node ];
 }
 
-function isRegionComplete( region )
+function isRegionComplete( node, state )
 {
-	return region._current.kind === Final;
+	return getCurrent( node, state ).kind === Final;
 }
 
-function isStateComplete( state )
+function isStateComplete( node, state )
 {
-	return !state.children || state.children.every( isRegionComplete );
+	return !node.children || node.children.every( function( child ) { return isRegionComplete( child, state ); } );
 }
 
 // leaves a node within a state machine
-function onExit( node ) 
+function onExit( node, state ) 
 {
 	console.log( "Leave: " + toString( node ) );
 
-	node._isActive = false;
+	setActive( node, state, false );
 }
 
 // leaves a region within a state machine
-function onExitRegion( region )
+function onExitRegion( node, state )
 {
-	if( region._isActive )
+	if( getActive( node, state ) )
 	{
-		if( region._current )
-			onExitState( region._current );
+		var current = getCurrent( node, state );
+		
+		if( current )
+			onExitState( current, state );
 
-		onExit( region );
+		onExit( node, state );
 	}
 }
 
 // leaves a state within a state machine
-function onExitState( state )
+function onExitState( node, state )
 {
-	if( state.children )
-		state.children.forEach( onExitRegion );
+	if( node.children )
+		node.children.forEach( function( child ) { return onExitRegion( child, state ); } );
 
-	if( state.exit )		
-		state.exit.forEach( function( action ) { action(); } );
+	if( node.exit )		
+		node.exit.forEach( function( action ) { action(); } );
 
-	onExit( state );
+	onExit( node, state );
 }
 
 // enter a node in a state machine
-function beginEnter( node )
+function beginEnter( node, state )
 {
-	if( node._isActive )
-		node.kind.onExit( node );
+	if( getActive( node, state ) )
+		node.kind.onExit( node, state );
 	
 	console.log( "Enter: " + toString( node ) );
-	
-	node._isActive = true;
+
+	setActive( node, state, true );	
 }
 
 // enter a state within a state machine
-function beginEnterState( state )
+function beginEnterState( node, state )
 {
-	beginEnter( state );
+	beginEnter( node, state );
 			
-	if( state.entry )
-		state.entry.forEach( function( action ) { action(); } );
+	if( node.entry )
+		node.entry.forEach( function( action ) { action(); } );
 			
-	if( state._parent )
-		state._parent._current = state;
+	if( node._parent )
+		setCurrent( node._parent, state, node );
 }
 
 // completes the entry of a state by cascading to child regions and testing for completion transitions
-function endEnter( state, deepHistory )
+function endEnter( node, state, deepHistory )
 {
 	var completion;
 
-	if( state.children )
-		state.children.forEach( function( region ) { initialiseRegion( region, deepHistory ); } );
+	if( node.children )
+		node.children.forEach( function( child ) { initialiseRegion( child, state, deepHistory ); } );
 
-	if( state._completions )
-		if( isStateComplete( state ) )
-			if( ( completion = state.kind.getCompletions( state._completions ) ) )
-				traverse( completion, deepHistory );
+	if( node._completions )
+		if( isStateComplete( node, state ) )
+			if( ( completion = node.kind.getCompletions( node._completions ) ) )
+				traverse( state, completion, deepHistory );
 }
 
 // initialise a region
-function initialiseRegion( region, deepHistory )
+function initialiseRegion( node, state, deepHistory )
 {
-	beginEnter( region );
+	beginEnter( node, state );
 
-	initialiseState( ( ( deepHistory || region._initial.kind.isHistory ) && region._current ) ? region._current : region._initial, deepHistory || region._initial.kind === DeepHistory );
+	var current = getCurrent( node, state );	
+
+	initialiseState( ( ( deepHistory || node._initial.kind.isHistory ) && current ) ? current : node._initial, state, deepHistory || node._initial.kind === DeepHistory );
 }
 
 // initiaise a state
-function initialiseState( state, deepHistory )
+function initialiseState( node, state, deepHistory )
 {
-	beginEnterState( state );
-	endEnter( state, deepHistory );
+	beginEnterState( node, state );
+	endEnter( node, state, deepHistory );
 }
 
 // process a message within a region
-function processRegion( region, args )
-{		
-	return region._isActive && processState( region._current, args );
+function processRegion( node, state, args )
+{
+	return getActive( node, state ) && processState( getCurrent( node, state ), state, args );
 }
 
 // process a message within a state
-function processState( node, args )
+function processState( node, state, args )
 {	
 	var transition = node._transitions ? node._transitions.singleOrUndefined( function( t ) { return t.guard.apply( null, args ); } ) : undefined;
 	
 	if( transition )
-		return traverse( transition, false, args );
+		return traverse( state, transition, false, args );
 	else
-		return node.children ? node.children.reduce( function( result, region ) { return result || processRegion( region, args ); } , false ) : false;
+		return node.children ? node.children.reduce( function( result, region ) { return result || processRegion( region, state, args ); } , false ) : false;
 }
 
 // traverse a transition
-function traverse( transition, deepHistory, message )
+function traverse( state, transition, deepHistory, message )
 {
 	if( transition._onExit )
-		transition._onExit.forEach( function( node ) { node.kind.onExit( node ); } ); // leave the source node(s)
+		transition._onExit.forEach( function( node ) { node.kind.onExit( node, state ); } ); // leave the source node(s)
 
 	if( transition.effect )
 		transition.effect.forEach( function( action ) { action.apply( null, message ); } ); // perform the transition action(s)
 	
 	if( transition._onEnter )
-		transition._onEnter.forEach( function( node ) { node.kind.onBeginEnter( node ); } ); // enter the target node(s)
+		transition._onEnter.forEach( function( node ) { node.kind.onBeginEnter( node, state ); } ); // enter the target node(s)
 		
 	if( transition.target )
-		endEnter( transition.target, deepHistory );	// complete entry (cascade entry to any children; test for completion transitions)
+		endEnter( transition.target, state, deepHistory );	// complete entry (cascade entry to any children; test for completion transitions)
 		
 	return true;
 }
@@ -204,14 +206,13 @@ function toString( node )
 // adds properties and methods to nodes within a state machine
 function preProcessNode( node, parent )
 {
-	node._isActive = false; // add the isActive flag (denotes a node has be entered but not exited)
 	node._parent = parent; // add the parent flag
 	
-	node.initialise = function() { node.kind.initialise( node ); };
-	node.process = function() { return node.kind.process( node, arguments ); };
+	node.initialise = function( state ) { node.kind.initialise( node, state ); };
+	node.process = function() { return node.kind.process( node, arguments[ 0 ], Array.prototype.slice.call( arguments, 1 ) ); };
 	
 	if( node.kind === Region || node.kind == State )
-		node.isComplete = function() { return node.kind.isComplete( node ); };	
+		node.isComplete = function( state ) { return node.kind.isComplete( node, state ); };	
 
 	if( node.kind.isInitial )
 		parent._initial = node; // set the parent region's initial state as appropriate
@@ -268,6 +269,33 @@ function createStateMachine( node, transitions )
 	return node;
 }		
 
+// gets a boolean indicating if a node is active or not
+function getActive( node, state )
+{
+	if( state._active )
+		return state._active[ toString( node ) ];
+}
+
+// sets a boolean indicating if a node is active or not
+function setActive( node, state, value )
+{
+	( state._active || ( state._active = [] ) )[ toString( node ) ] = value;
+}
+
+// gets the last known state of a region
+function getCurrent( node, state )
+{
+	if( state._current )
+		return state._current[ toString( node ) ];
+}
+
+// sets the last known state of a region
+function setCurrent( node, state, value )
+{
+	( state._current || ( state._current = [] ) )[ toString( node ) ] = value;
+}
+
+
 // node.js exports
 if( typeof exports !== 'undefined' )
 {
@@ -282,7 +310,5 @@ if( typeof exports !== 'undefined' )
 	exports.Region = Region;
 	exports.ShallowHistory = ShallowHistory;
 	exports.State = State;
-	exports.Completion = Completion;
-	exports.Transition = Transition;
 	exports.createStateMachine = createStateMachine;
 }

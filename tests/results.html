@@ -24,17 +24,18 @@
 				var end       = { kind: Final,    name: "end" };
 			
 				var machine = createStateMachine( { kind: Region, name: "compTest", children: [ initial, activity1, activity2, activity3, junction1, junction2, end ] },
-												 [ { kind: Completion, source: subInitial, target: subEnd },
-												   { kind: Completion, source: initial,    target: activity1 },
-												   { kind: Completion, source: activity1,  target: activity2 },
-												   { kind: Completion, source: activity2,  target: junction1 },
-												   { kind: Completion, source: junction1,  target: junction2 },
-												   { kind: Completion, source: junction2,  target: activity3 },
-												   { kind: Completion, source: activity3,  target: end } ] );
-						
-				machine.initialise();
+												 [ { source: subInitial, target: subEnd },
+												   { source: initial,    target: activity1 },
+												   { source: activity1,  target: activity2 },
+												   { source: activity2,  target: junction1 },
+												   { source: junction1,  target: junction2 },
+												   { source: junction2,  target: activity3 },
+												   { source: activity3,  target: end } ] );
+				var sms = {};
+
+				machine.initialise( sms );
 								
-				result( "Completion Transitions: " + ( machine.isComplete() ? "passed" : "failed" ) );
+				result( "Completion Transitions: " + ( machine.isComplete( sms ) ? "passed" : "failed" ) );
 			}
 
 			function extTest()
@@ -60,30 +61,32 @@
 				var end = { kind: Final, name: "end" };
 				
 				var machine = createStateMachine( { kind: Region, name: "external", children: [ initial1, composite, orthogonal, end ] },
-											    [ { kind: Completion, source: initial1, target: composite },
-										          { kind: Completion, source: ci, target: c1 },
-											      { kind: Completion, source: j1, target: o1 },
-											      { kind: Completion, source: r1i, target: o1 },
-											      { kind: Completion, source: r2i, target: o2 },
-											      { kind: Transition, source: c2, target: c1, guard: function( c ) { return c === "1"; } },
-											      { kind: Transition, source: c1, target: j1, guard: function( c ) { return c === "2"; } },
-											      { kind: Transition, source: o1, target: o2, guard: function( c ) { return c === "3"; } },
-											      { kind: Transition, source: o2, target: c2, guard: function( c ) { return c === "4"; } },
-											      { kind: Transition, source: composite, target: orthogonal, guard: function( c ) { return c === "5"; } },
-											      { kind: Transition, source: composite, target: end, guard: function( c ) { return c === "x"; } } ] );
+											    [ { source: initial1, target: composite },
+										          { source: ci, target: c1 },
+											      { source: j1, target: o1 },
+											      { source: r1i, target: o1 },
+											      { source: r2i, target: o2 },
+											      { source: c2, target: c1, guard: function( c ) { return c === "1"; } },
+											      { source: c1, target: j1, guard: function( c ) { return c === "2"; } },
+											      { source: o1, target: o2, guard: function( c ) { return c === "3"; } },
+											      { source: o2, target: c2, guard: function( c ) { return c === "4"; } },
+											      { source: composite, target: orthogonal, guard: function( c ) { return c === "5"; } },
+											      { source: composite, target: end, guard: function( c ) { return c === "x"; } } ] );
 
-				machine.initialise();
+				var sms = {};
 				
-				result( "External Transitions (1): " + machine.process( "1" ) );
-				result( "External Transitions (2): " + machine.process( "2" ) );
-				result( "External Transitions (3): " + machine.process( "4" ) );
-				result( "External Transitions (4): " + machine.process( "3" ) );
-				result( "External Transitions (5): " + machine.process( "4" ) );
-				result( "External Transitions (6): " + machine.process( "1" ) );
-				result( "External Transitions (7): " + machine.process( "z" ) );
-				result( "External Transitions (8): " + machine.process( "x" ) );
+				machine.initialise( sms );
 				
-				result( "External Transitions: " + ( machine.isComplete() ? "passed" : "failed" ) );
+				result( "External Transitions (1): " + machine.process( sms, "1" ) );
+				result( "External Transitions (2): " + machine.process( sms, "2" ) );
+				result( "External Transitions (3): " + machine.process( sms, "4" ) );
+				result( "External Transitions (4): " + machine.process( sms, "3" ) );
+				result( "External Transitions (5): " + machine.process( sms, "4" ) );
+				result( "External Transitions (6): " + machine.process( sms, "1" ) );
+				result( "External Transitions (7): " + machine.process( sms, "z" ) );
+				result( "External Transitions (8): " + machine.process( sms, "x" ) );
+				
+				result( "External Transitions: " + ( machine.isComplete( sms ) ? "passed" : "failed" ) );
 			}
 
 			function shallowTest()
@@ -98,21 +101,23 @@
 				var end =     { kind: Final,          name: "final" };
 			
 				var machine = createStateMachine( { kind: Region, name: "history", children: [ initial, shallow, deep, end ] },
-				                                [ { kind: Completion, source: initial, target: shallow },
-				                                  { kind: Completion, source: history, target: s1 },
-				                                  { kind: Transition, source: s1,      target: s2,      guard: function( c ) { return c === "move"; } },
-				                                  { kind: Transition, source: shallow, target: deep,    guard: function( c ) { return c === "go deep"; } },
-				                                  { kind: Transition, source: deep,    target: shallow, guard: function( c ) { return c === "go shallow"; } },
-				                                  { kind: Transition, source: s2,      target: end,     guard: function( c ) { return c === "end"; } } ] );
+				                                [ { source: initial, target: shallow },
+				                                  { source: history, target: s1 },
+				                                  { source: s1,      target: s2,      guard: function( c ) { return c === "move"; } },
+				                                  { source: shallow, target: deep,    guard: function( c ) { return c === "go deep"; } },
+				                                  { source: deep,    target: shallow, guard: function( c ) { return c === "go shallow"; } },
+				                                  { source: s2,      target: end,     guard: function( c ) { return c === "end"; } } ] );
+	
+				var sms = {};
 
-				machine.initialise();
+				machine.initialise( sms );
 
-				result( "Shallow History (1): " + machine.process( "move" ) );
-				result( "Shallow History (2): " + machine.process( "go deep" ) );
-				result( "Shallow History (3): " + machine.process( "go shallow" ) );
-				result( "Shallow History (4): " + machine.process( "end" ) );
+				result( "Shallow History (1): " + machine.process( sms, "move" ) );
+				result( "Shallow History (2): " + machine.process( sms, "go deep" ) );
+				result( "Shallow History (3): " + machine.process( sms, "go shallow" ) );
+				result( "Shallow History (4): " + machine.process( sms, "end" ) );
 			
-				result( "Shallow History: " + ( machine.isComplete() ? "passed" : "failed" ) );
+				result( "Shallow History: " + ( machine.isComplete( sms ) ? "passed" : "failed" ) );
 			}
 
 			function run()

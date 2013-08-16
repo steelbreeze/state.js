@@ -9,25 +9,31 @@
 			var running = { kind: State, name: "running", entry: [ StartMotor ], exit: [ StopMotor ]  };
 			var paused  = { kind: State, name: "paused" };
 			
-			var history = { kind: DeepHistory, name: "history" };
-			var stopped = { kind: State, name: "stopped" };
-			var active  = { kind: State, name: "active", children: [ running, paused ], entry: [ EngageHead ], exit: [ DisengageHead ] };
+			var history1 = { kind: DeepHistory, name: "history" };
+			var stopped =  { kind: State, name: "stopped" };
+			var active  =  { kind: State, name: "active", children: [ running, paused ], entry: [ EngageHead ], exit: [ DisengageHead ] };
 
 			var initial1    = { kind: Initial, name: "initial1" };
-			var operational = { kind: State, name: "operational", children: [ history, stopped, active ] };
+			var operational = { kind: State, name: "operational", children: [ history1, stopped, active ] };
 			var flipped     = { kind: State, name: "flipped" };
 			var finalState  = { kind: Final, name: "final" };
 			
 			controller = createStateMachine( { kind: Region, name: "player", children: [ initial1, operational, flipped, finalState ] },
-			                                 [ { kind: Completion, source: initial1,    target: operational, effect: [ StopMotor, DisengageHead ] },
-			                                   { kind: Completion, source: history,     target: stopped },
-			                                   { kind: Transition, source: stopped,     target: running,     guard: function( s ) { return s == 'play'; } },
-			                                   { kind: Transition, source: active,      target: stopped,     guard: function( s ) { return s == 'stop'; } },
-			                                   { kind: Transition, source: running,     target: paused,      guard: function( s ) { return s == 'pause'; } },
-			                                   { kind: Transition, source: paused,      target: running,     guard: function( s ) { return s == 'play'; } },
-			                                   { kind: Transition, source: operational, target: flipped,     guard: function( s ) { return s == 'flip'; } },
-			                                   { kind: Transition, source: flipped,     target: operational, guard: function( s ) { return s == 'flip'; } },
-			                                   { kind: Transition, source: operational, target: finalState,  guard: function( s ) { return s == 'off'; } } ] );
+			                                 [ { source: initial1,    target: operational, effect: [ StopMotor, DisengageHead ] },
+			                                   { source: history1,    target: stopped },
+			                                   { source: stopped,     target: running,     guard: function( s ) { return s == 'play'; } },
+			                                   { source: active,      target: stopped,     guard: function( s ) { return s == 'stop'; } },
+			                                   { source: running,     target: paused,      guard: function( s ) { return s == 'pause'; } },
+			                                   { source: paused,      target: running,     guard: function( s ) { return s == 'play'; } },
+			                                   { source: operational, target: flipped,     guard: function( s ) { return s == 'flip'; } },
+			                                   { source: flipped,     target: operational, guard: function( s ) { return s == 'flip'; } },
+			                                   { source: operational, target: finalState,  guard: function( s ) { return s == 'off'; } } ] );
+
+			function init()
+			{
+				sms = { name: "state" };
+				controller.initialise( sms )
+			}
 
 			function EngageHead()
 			{
@@ -62,16 +68,17 @@
 			}
 			</script>
 	</head>
-	<body onload="controller.initialise()">
+	<body onload="init()">
 		<h1>state.js cassette controller example</h1>
 		<p>This example implements a simple controller for a cassette player according to the model below:</p>
 		<p><img id="diagram" /></p>
 		<p>Press the buttons below to send events to the controller (check brower console for trace output):</p>
-		<button type="button" onclick="controller.process( 'play' )">play</button>
-		<button type="button" onclick="controller.process( 'pause' )">pause</button>
-		<button type="button" onclick="controller.process( 'stop' )">stop</button>
-		<button type="button" onclick="controller.process( 'flip' )">flip</button>
-		<button type="button" onclick="controller.process( 'off' )">off</button>
+		<button type="button" onclick="controller.process( sms, 'play' )">play</button>
+		<button type="button" onclick="controller.process( sms, 'pause' )">pause</button>
+		<button type="button" onclick="controller.process( sms, 'stop' )">stop</button>
+		<button type="button" onclick="controller.process( sms, 'flip' )">flip</button>
+		<button type="button" onclick="controller.process( sms, 'off' )">off</button>
+		<button type="button" onclick="init()">reset</button>
 		<p id="head">Head: </p>
 		<p id="motor">Motor: </p>
 	</body>

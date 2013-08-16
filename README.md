@@ -1,6 +1,18 @@
 # Welcome to state.js
 
-The current stable release is 1.2.5.
+The current stable release is 2.0.0.
+
+If you like this, star it...
+
+## Version 2 notes - please read before downloading
+Version 2 breaks apart the state machine model and the state machine state. This facilitates creating a single state machine model and using it with many different state machine states without any overhead of resetting the state machine, serializing/deserializing state or rebuilding the machine.
+
+###API changes
+The following are breaking API changes from version 1.2.x:
+
+Calls to initialise and process now take a new first parameter for the state machine state object; this will have the _active and _current properties added to it automatically.
+
+Also removed the previously depricated Completion and Transition objects (just remove kind: Completion or kind: Transition from your transitions).
 
 If you like this star it...
 
