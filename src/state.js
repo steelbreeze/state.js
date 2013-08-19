@@ -186,7 +186,7 @@ function traverse( state, transition, deepHistory, message )
 		transition._onExit.forEach( function( node ) { node.kind.onExit( node, state ); } ); // leave the source node(s)
 
 	if( transition.effect )
-		transition.effect.forEach( function( action ) { action.apply( null, message ); } ); // perform the transition action(s)
+		transition.effect.forEach( function( action ) { action.apply( message ); } ); // perform the transition action(s)
 	
 	if( transition._onEnter )
 		transition._onEnter.forEach( function( node ) { node.kind.onBeginEnter( node, state ); } ); // enter the target node(s)
