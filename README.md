@@ -1,6 +1,6 @@
 # Welcome to state.js
 
-The current stable release is 2.0.0.
+The current stable release is 2.0.1.
 
 If you like this, star it...
 
