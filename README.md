@@ -2,7 +2,7 @@
 
 The current stable release is 2.0.1.
 
-If you like this, star it...
+If you're using state.js I'd love to hear about it; please e-mail me at mesmo@steelbreeze.net 
 
 ## Version 2 notes - please read before downloading
 Version 2 breaks apart the state machine model and the state machine state. This facilitates creating a single state machine model and using it with many different state machine states without any overhead of resetting the state machine, serializing/deserializing state or rebuilding the machine.
