@@ -1,6 +1,6 @@
 # Welcome to state.js
 
-The latest beta is 3.0.b.
+The latest beta is 3.0.0.
 
 The current stable release is 2.0.1.
 
