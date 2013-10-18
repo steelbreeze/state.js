@@ -4,34 +4,35 @@
 		<title>state.js test results</title>
 		<script src="../src/state.js"></script>
 		<script>
-			function result( text )
-			{
-				document.getElementById( "results" ).appendChild( document.createTextNode( text ) );
-				document.getElementById( "results" ).appendChild( document.createElement( "br" ) );
+			function result( text ) {
+				document.getElementById("results").appendChild(document.createTextNode( text ));
+				document.getElementById("results").appendChild(document.createElement( "br" ));
 			}
 			
 			function compTest()
 			{
-				var subInitial = { kind: Initial,  name: "subInitial" };
-				var subEnd     = { kind: Final,    name: "subEnd" };
+                var machine = new Region("compTest");
+                var initial = new PseudoState("initial", PseudoStateKind.Initial, machine)
+
+                var activity1 = new SimpleState("activity1", machine );
+				var activity2 = new CompositeState("activity2", machine);
+				var activity3 = new SimpleState("activity3", machine);
+				var junction1 = new PseudoState("junction1", PseudoStateKind.Junction, machine);
+				var junction2 = new PseudoState("junction2", PseudoStateKind.Junction, machine);
+				var end       = new FinalState("end", machine);
+
+                var subInitial = new PseudoState("subInitial", PseudoStateKind.Initial, activity2);
+				var subEnd     = new FinalState("subEnd", activity2);
 			
-				var initial   = { kind: Initial,  name: "initial" };
-				var activity1 = { kind: State,    name: "activity1" };
-				var activity2 = { kind: State,    name: "activity2", children: [ subInitial, subEnd ] };
-				var activity3 = { kind: State,    name: "activity3" };
-				var junction1 = { kind: Junction, name: "junction1" };
-				var junction2 = { kind: Junction, name: "junction2" };
-				var end       = { kind: Final,    name: "end" };
-			
-				var machine = createStateMachine( { kind: Region, name: "compTest", children: [ initial, activity1, activity2, activity3, junction1, junction2, end ] },
-												 [ { source: subInitial, target: subEnd },
-												   { source: initial,    target: activity1 },
-												   { source: activity1,  target: activity2 },
-												   { source: activity2,  target: junction1 },
-												   { source: junction1,  target: junction2 },
-												   { source: junction2,  target: activity3 },
-												   { source: activity3,  target: end } ] );
-				var sms = {};
+				var t0 = new Transition( subInitial, subEnd);
+				var t1 = new Transition( initial,    activity1);
+				var t2 = new Transition( activity1,  activity2);
+				var t3 = new Transition( activity2,  junction1);
+				var t4 = new Transition( junction1,  junction2);
+				var t5 = new Transition( junction2,  activity3);
+				var t6 = new Transition( activity3,  end);
+                
+                var sms = {};
 
 				machine.initialise( sms );
 								
@@ -40,39 +41,37 @@
 
 			function extTest()
 			{
-				var j1 = { kind: Junction, name: "junction" };
-
-				var o1 = { kind: State, name: "o1" };
-				var o2 = { kind: State, name: "o2" };
-
-				var r1i = { kind: Initial, name: "initial" };
-				var r2i = { kind: Initial, name: "initial" };
-
-				var r1 = { kind: Region, name: "region1", children: [ r1i, o1 ] };
-				var r2 = { kind: Region, name: "region2", children: [ r2i, o2, j1 ] };
-				
-				var ci = { kind: Initial, name: "initial" };
-				var c1 = { kind: State, name: "c1" };
-				var c2 = { kind: State, name: "c2" };
-				
-				var initial1 = { kind: Initial, name: "initial" };
-				var composite = { kind: State, name: "composite", children: [ ci, c1, c2 ] };
-				var orthogonal = { kind: State, name: "orthogonal", children: [ r1, r2 ] };
-				var end = { kind: Final, name: "end" };
-				
-				var machine = createStateMachine( { kind: Region, name: "external", children: [ initial1, composite, orthogonal, end ] },
-											    [ { source: initial1, target: composite },
-										          { source: ci, target: c1 },
-											      { source: j1, target: o1 },
-											      { source: r1i, target: o1 },
-											      { source: r2i, target: o2 },
-											      { source: c2, target: c1, guard: function( c ) { return c === "1"; } },
-											      { source: c1, target: j1, guard: function( c ) { return c === "2"; } },
-											      { source: o1, target: o2, guard: function( c ) { return c === "3"; } },
-											      { source: o2, target: c2, guard: function( c ) { return c === "4"; } },
-											      { source: composite, target: orthogonal, guard: function( c ) { return c === "5"; } },
-											      { source: composite, target: end, guard: function( c ) { return c === "x"; } } ] );
-
+                var machine = new Region( "external" ); 
+    
+                var initial = new PseudoState( "initial", PseudoStateKind.Initial, machine );
+                var composite = new CompositeState( "composite", machine );
+                var orthogonal = new OrthogonalState( "orthogonal", machine );
+                var end = new FinalState( "final", machine);
+    
+                var c1 = new SimpleState( "c1", composite );
+                var c2 = new SimpleState( "c2", composite );
+            
+                var region1 = new Region( "region1", orthogonal );
+                var region2 = new Region( "region2", orthogonal );
+    
+                var o1 = new SimpleState( "o1", region1 );
+                var o2 = new SimpleState( "o2", region2 );
+    
+                var j1 = new PseudoState( "junction", PseudoStateKind.Junction, region2 );
+    
+                new Transition( initial, composite );
+                new Transition( new PseudoState( "initial", PseudoStateKind.Initial, composite ), c1 );
+                new Transition( c2, c1, function (command) {return command === "1";} );
+                new Transition( c1, j1, function (command) {return command === "2";} );
+                new Transition.Else( j1, o1 );
+                new Transition( o1, o2, function (command) {return command === "3";} );
+                new Transition( o2, c2, function (command) {return command === "4";} );
+                new Transition( composite, orthogonal, function (command) {return command === "5";} );
+                new Transition( composite, end, function (command) {return command === "x";} );
+    
+                new Transition( new PseudoState( "initial", PseudoStateKind.Initial, region1 ), o1 );
+                new Transition( new PseudoState( "initial", PseudoStateKind.Initial, region2 ), o2 );
+                
 				var sms = {};
 				
 				machine.initialise( sms );
@@ -91,23 +90,23 @@
 
 			function shallowTest()
 			{
-				var history = { kind: ShallowHistory, name: "history" };
-				var s1 =      { kind: State,   name: "s1" };
-				var s2 =      { kind: State,   name: "s2" };
-			
-				var initial = { kind: Initial, name: "initial" };
-				var shallow = { kind: State,          name: "shallow", children: [ history, s1, s2 ] };
-				var deep =    { kind: State,          name: "deep" };
-				var end =     { kind: Final,          name: "final" };
-			
-				var machine = createStateMachine( { kind: Region, name: "history", children: [ initial, shallow, deep, end ] },
-				                                [ { source: initial, target: shallow },
-				                                  { source: history, target: s1 },
-				                                  { source: s1,      target: s2,      guard: function( c ) { return c === "move"; } },
-				                                  { source: shallow, target: deep,    guard: function( c ) { return c === "go deep"; } },
-				                                  { source: deep,    target: shallow, guard: function( c ) { return c === "go shallow"; } },
-				                                  { source: s2,      target: end,     guard: function( c ) { return c === "end"; } } ] );
-	
+                var machine = new Region( "history" );
+    
+                var initial = new PseudoState( "initial", PseudoStateKind.Initial, machine );
+                var shallow = new CompositeState( "shallow", machine );
+                var deep = new SimpleState( "deep", machine );
+                var end = new FinalState( "final", machine );
+    
+                var s1 = new SimpleState( "s1", shallow );
+                var s2 = new SimpleState( "s2", shallow );
+    
+                new Transition( initial, shallow );
+                new Transition( new PseudoState( "shallow", PseudoStateKind.ShallowHistory, shallow ), s1 );
+                new Transition( s1, s2, function(c) { return c === "move";} );
+                new Transition( shallow, deep, function(c) { return c === "go deep";} );
+                new Transition( deep, shallow, function(c) { return c === "go shallow";} );
+                new Transition( s2, end, function( c ) { return c === "end"; } );
+
 				var sms = {};
 
 				machine.initialise( sms );
@@ -125,12 +124,11 @@
 				compTest();
 				extTest();
 				shallowTest();
-			}
-			
+			}			
 		</script>
 	</head>
 	<body onload="run()">
 		<h1>state.js test results</h1>
-		<div id="results">
+		<div id="results"/>
 	</body>
 </html>

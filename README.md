@@ -1,8 +1,13 @@
 # Welcome to state.js
 
+The latest beta is 3.0.b.
+
 The current stable release is 2.0.1.
 
 If you're using state.js I'd love to hear about it; please e-mail me at mesmo@steelbreeze.net 
+
+## Version 3 notes
+Version 3 moves back to a class based coding style; it provides more control via explicit use of SimpleState, CompositeState and OrthogonalState classes; this also removes the insertion of 'default' regions leading to a flatter model where orthogonal regions are not required.
 
 ## Version 2 notes - please read before downloading
 Version 2 breaks apart the state machine model and the state machine state. This facilitates creating a single state machine model and using it with many different state machine states without any overhead of resetting the state machine, serializing/deserializing state or rebuilding the machine.
@@ -13,10 +18,6 @@ The following are breaking API changes from version 1.2.x:
 Calls to initialise and process now take a new first parameter for the state machine state object; this will have the _active and _current properties added to it automatically.
 
 Also removed the previously depricated Completion and Transition objects (just remove kind: Completion or kind: Transition from your transitions).
-
-If you like this star it...
-
-Version 2 is coming soon... with seperation of the state machine model and state machine state.
 
 ## Introduction
 State.js is a JavaScript implementation of a state machine library that supports most of the UML 2 state machine semantics.
