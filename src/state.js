@@ -28,7 +28,7 @@ function initStateJS(exports) {
         if (completions.length === 1) {
             return completions[0];
         }
-        
+
         // otherwise the machine is malformed
         throw "initial pseudo states must have one and only one outbound transition";
     }
@@ -114,12 +114,7 @@ function initStateJS(exports) {
             return context.current[element];
         }
     }
-    
-    // returns the ancestors of an element
-    function ancestors(element) {
-        return element.owner ? ancestors(element.owner).concat(element) : [element];
-    }
-
+        
     /**
      * Enum for pseudo state kinds
      * @enum {object}
@@ -164,6 +159,102 @@ function initStateJS(exports) {
     };
 
     /**
+     * Creates an instance of an element.
+     *
+     * @constructor
+     * @this {Element}
+     * @param {string} name - The name given to the element.
+     * @param {(Region|CompositeState)} owner - The owning parent element.
+     */
+    function Element(name, owner) {
+        this.name = name;
+        this.owner = owner;
+    }
+    
+    /**
+     * Returns the fully qualified name of the element.
+     *
+     * @this {Element}
+     * @return {string} Fully qualified name of the element.
+     */
+    Element.prototype.qualifiedName = function () {
+        return this.owner ? this.owner + "." + this.name : this.name;
+    };
+
+    /**
+     * Returns the ancestors of the element.
+     *
+     * @this {Element}
+     * @return {Element[]} An array of elements.
+     */
+    Element.prototype.ancestors = function () {
+        var result = this.owner ? this.owner.ancestors() : [];
+        
+        result.push(this);
+        
+        return result;
+    };
+
+    /**
+     * Cascades the exit operation when begining a transition.
+     *
+     * @this {Element}
+     * @param {object} context - the state machine state.
+     */
+    Element.prototype.beginExit = function (context) {
+    };
+
+    /**
+     * Exits the element during a transition.
+     *
+     * @this {Element}
+     * @param {object} context - the state machine state.
+     */
+    Element.prototype.endExit = function (context) {
+        console.log("Leave: " + this.toString());
+
+        setActive(context, this, false);
+    };
+
+    /**
+     * Enters an element during a transition.
+     *
+     * @this {Element}
+     * @param {object} context - the state machine state.
+     */
+    Element.prototype.beginEnter = function (context) {
+        if (getActive(context, this)) {
+            this.beginExit(context);
+            this.endExit(context);
+        }
+	
+        console.log("Enter: " + this.toString());
+
+        setActive(context, this, true);
+    };
+
+    /**
+     * Cascades the entry operation when ending a transition.
+     *
+     * @this {Element}
+     * @param {object} context - the state machine state.
+     * @param {bool} deepHistory - flag to indicate deep history was in place while entering a parent region or composite state
+     */
+    Element.prototype.endEnter = function (context, deepHistory) {
+    };
+    
+    /**
+     * Returns the fully qualified name of the element.
+     *
+     * @override
+     * @this {Element}
+     * @return {string} Fully qualified name of the element.
+     */
+    Element.prototype.toString = function () {
+        return this.qualifiedName();
+    };
+    
+    /**
      * Creates an instance of a pseudo state.
      *
      * @constructor
@@ -173,9 +264,9 @@ function initStateJS(exports) {
      * @param {(Region|CompositeState)} owner - The owning parent region or composite state.
      */
     function PseudoState(name, kind, owner) {
-        this.name = name;
+        Element.call(this, name, owner);
+
         this.kind = kind;
-        this.owner = owner;
         this.completions = [];
     
         // update the parents initial state as appropriate
@@ -184,65 +275,19 @@ function initStateJS(exports) {
         }
     }
     
-    /**
-     * Called whenever a pseudo state is exited
-     *
-     * @private
-     * @this {PseudoState}
-     * @param {object} context - the state machine state.
-     */
-    PseudoState.prototype.onExit = function (context) {
-        console.log("Leave: " + this.toString());
+    PseudoState.prototype = new Element();
+    PseudoState.prototype.constructor = PseudoState;
 
-        setActive(context, this, false);
-    };
+    PseudoState.prototype.beginEnter = function (context) {
+        Element.prototype.beginEnter.call(this, context);
 
-    /**
-     * Called whenever a pseudo state is entered
-     *
-     * @private
-     * @this {PseudoState}
-     * @param {object} context - the state machine state.
-     */
-    PseudoState.prototype.onEnter = function (context) {
-        if (getActive(context, this)) {
-            this.onExit(context);
-        }
-
-        console.log("Enter: " + this.toString());
-
-        setActive(context, this, true);
-
-        if (this.kind === PseudoStateKind.Terminated) {
-            context.isTerminated = true;
+        if (this.kind === PseudoStateKind.Terminate) {
+            context.IsTerminated = true;
         }
     };
 
-    /**
-     * Called to complete entry of the pseudo state, triggering transition to the next state
-     *
-     * @private
-     * @this {PseudoState}
-     * @param {object} context - the state machine state.
-     * @param {bool} deepHistory - flag to indicate deep history was in place while entering a parent region or composite state
-     */
-    PseudoState.prototype.onComplete = function (context, deepHistory) {
-        var completion = this.kind.completions(this.completions);
-
-        if (completion) {
-            completion.traverse(context, deepHistory);
-        }
-    };
-
-    /**
-     * Returns the fully qualified name of the pseudo state.
-     *
-     * @override
-     * @this {PseudoState}
-     * @return {string} Fully qualified name of the pseudo state.
-     */
-    PseudoState.prototype.toString = function () {
-        return this.owner ? this.owner + "." + this.name : this.name;
+    PseudoState.prototype.endEnter = function (context, deepHistory) {
+        this.kind.completions(this.completions).traverse(context, deepHistory);
     };
     
     /**
@@ -254,12 +299,15 @@ function initStateJS(exports) {
      * @param {(Region|CompositeState)} owner - The owining parent region or composite state.
      */
     function SimpleState(name, owner) {
-        this.name = name;
-        this.owner = owner;
+        Element.call(this, name, owner);
+        
         this.completions = [];
         this.transitions = [];
     }
     
+    SimpleState.prototype = new Element();
+    SimpleState.prototype.constructor = SimpleState;
+
     /**
      * Determines if a simple state is complete
      *
@@ -278,14 +326,12 @@ function initStateJS(exports) {
      * @this {PseudoState}
      * @param {object} context - the state machine state.
      */
-    SimpleState.prototype.onExit = function (context) {
+    SimpleState.prototype.endExit = function (context) {
         if (this.exit) {
             this.exit.forEach(function (exit) { exit(); });
         }
-
-        console.log("Leave: " + this.toString());
-
-        setActive(context, this, false);
+        
+        Element.prototype.endExit.call(this, context);
     };
 
     /**
@@ -295,14 +341,8 @@ function initStateJS(exports) {
      * @this {SimpleState}
      * @param {object} context - the state machine state.
      */
-    SimpleState.prototype.onEnter = function (context) {
-        if (getActive(context, this)) {
-            this.onExit(context);
-        }
-
-        console.log("Enter: " + this.toString());
-
-        setActive(context, this, true);
+    SimpleState.prototype.beginEnter = function (context) {
+        Element.prototype.beginEnter.call(this, context);
 
         if (this.owner) {
             setCurrent(context, this.owner, this);
@@ -321,14 +361,14 @@ function initStateJS(exports) {
      * @param {object} context - the state machine state.
      * @param {bool} deepHistory - flag to indicate deep history was in place while entering a parent region or composite state
      */
-    SimpleState.prototype.onComplete = function (context, deepHistory) {
-        if (this.completions) {
-            if (this.isComplete(context)) {
-                var results = this.completions.filter(function (completion) { return completion.guard(); });
+    SimpleState.prototype.endEnter = function (context, deepHistory) {
+        if (this.isComplete(context)) {
+            var results = this.completions.filter(function (completion) { return completion.guard(); });
 
-                if (results.length === 1) {
-                    results[0].traverse(context, deepHistory);
-                }
+            // TODO: exception if > 1
+            
+            if (results.length === 1) {
+                results[0].traverse(context, deepHistory);
             }
         }
     };
@@ -359,17 +399,6 @@ function initStateJS(exports) {
         results[0].traverse(context, message);
 
         return true;
-    };
-
-    /**
-     * Returns the fully qualified name of the state.
-     *
-     * @override
-     * @this {SimpleState}
-     * @return {string} Fully qualified name of the state.
-     */
-    SimpleState.prototype.toString = function () {
-        return this.owner ? this.owner + "." + this.name : this.name;
     };
 
     /**
@@ -407,8 +436,8 @@ function initStateJS(exports) {
      * @param {object} context - the state machine state.
      */
     CompositeState.prototype.initialise = function (context) {
-        this.onEnter(context);
-        this.onComplete(context, false);
+        this.beginEnter(context);
+        this.endEnter(context, false);
     };
     
     /**
@@ -418,14 +447,13 @@ function initStateJS(exports) {
      * @this {CompositeState}
      * @param {object} context - the state machine state.
      */
-    CompositeState.prototype.onExit = function (context) {
+    CompositeState.prototype.beginExit = function (context) {
         var current = getCurrent(context, this);
     
         if (current) {
-            current.onExit(context);
+            current.beginExit(context);
+            current.endExit(context);
         }
-    
-        SimpleState.prototype.onExit.call(this, context);
     };
     
     /**
@@ -436,13 +464,13 @@ function initStateJS(exports) {
      * @param {object} context - the state machine state.
      * @param {bool} deepHistory - flag to indicate deep history was in place while entering a parent region or composite state
      */
-    CompositeState.prototype.onComplete = function (context, deepHistory) {
+    CompositeState.prototype.endEnter = function (context, deepHistory) {
         var current = (deepHistory || this.initial.kind.isHistory ? getCurrent(context, this) : this.initial) || this.initial;
     
-        current.onEnter(context);
-        current.onComplete(context, deepHistory || this.initial.kind === PseudoStateKind.DeepHistory);
+        current.beginEnter(context);
+        current.endEnter(context, deepHistory || this.initial.kind === PseudoStateKind.DeepHistory);
     
-        SimpleState.prototype.onComplete.call(this, context, deepHistory);
+        SimpleState.prototype.endEnter.call(this, context, deepHistory);
     };
     
     /**
@@ -497,26 +525,23 @@ function initStateJS(exports) {
      * @this {OrthogonalState}
      * @param {object} context - the state machine state.
      */
-    OrthogonalState.prototype.onExit = function (context) {
-        this.regions.forEach(function (region) { if (getActive(context, region)) {region.onExit(context); } });
-        
-        SimpleState.prototype.onExit.call(this, context);
+    OrthogonalState.prototype.beginExit = function (context) {
+        this.regions.forEach(function (region) { if (getActive(context, region)) {region.beginExit(context); region.endExit(context); } });
     };
-    
+
     /**
-     * Called to complete entry of the orthogonal state, enters child regions then tests for completion transitions as required
+     * Cascades the entry to child regions
      *
      * @private
-     * @this {OrthogonalStateState}
+     * @this {OrthogonalState}
      * @param {object} context - the state machine state.
-     * @param {bool} deepHistory - flag to indicate deep history was in place while entering a parent region or composite state
      */
-    OrthogonalState.prototype.onComplete = function (context, deepHistory) {
-        this.regions.forEach(function (region) { region.onEnter(context); region.onComplete(context, deepHistory); });
-        
-        SimpleState.prototype.onComplete.call(this, context, deepHistory);
+    OrthogonalState.prototype.endEnter = function (context, deepHistory) {
+        this.regions.forEach(function (region) { region.beginEnter(context); region.endEnter(context, deepHistory); });
+
+        SimpleState.PseudoState.endEnter.call(context, deepHistory);
     };
-    
+
     /**
      * Attempt to process a message against the orthogonal state
      *
@@ -574,14 +599,17 @@ function initStateJS(exports) {
      * @param {OrthogonalState} [owner] - The owining parent orthogonal state.
      */
     function Region(name, owner) {
-        this.name = name;
-        this.owner = owner;
+        Element.call(this, name, owner);
+        
         this.initial = null;
     
         if (this.owner) {
             this.owner.regions.push(this);
         }
     }
+
+    Region.prototype = new Element();
+    Region.prototype.constructor = Region;
 
     /**
      * Determines if a region is complete
@@ -601,8 +629,8 @@ function initStateJS(exports) {
      * @param {object} context - the state machine state.
      */
     Region.prototype.initialise = function (context) {
-        this.onEnter(context);
-        this.onComplete(context, false);
+        this.beginEnter(context);
+        this.endEnter(context, false);
     };
 
     /**
@@ -612,33 +640,13 @@ function initStateJS(exports) {
      * @this {Region}
      * @param {object} context - the state machine state.
      */
-    Region.prototype.onExit = function (context) {
+    Region.prototype.beginExit = function (context) {
         var current = getCurrent(context, this);
 
         if (current) {
-            current.onExit(context);
+            current.beginExit(context);
+            current.endExit(context);
         }
-
-        console.log("Leave: " + this.toString());
-
-        setActive(context, this, false);
-    };
-
-    /**
-     * Called whenever a region is entered
-     *
-     * @private
-     * @this {Region}
-     * @param {object} context - the state machine state.
-     */
-    Region.prototype.onEnter = function (context) {
-        if (getActive(context, this)) {
-            this.onExit(context);
-        }
-
-        console.log("Enter: " + this.toString());
-
-        setActive(context, this, true);
     };
 
     /**
@@ -649,11 +657,11 @@ function initStateJS(exports) {
      * @param {object} context - the state machine state.
      * @param {bool} deepHistory - flag to indicate deep history was in place while entering a parent region or composite state
      */
-    Region.prototype.onComplete = function (context, deepHistory) {
+    Region.prototype.endEnter = function (context, deepHistory) {
         var current = (deepHistory || this.initial.kind.isHistory ? getCurrent(context, this) : this.initial) || this.initial;
 
-        current.onEnter(context);
-        current.onComplete(context, deepHistory || this.initial.kind === PseudoStateKind.DeepHistory);
+        current.beginEnter(context);
+        current.endEnter(context, deepHistory || this.initial.kind === PseudoStateKind.DeepHistory);
     };
 
     /**
@@ -672,16 +680,9 @@ function initStateJS(exports) {
         return getActive(context, this) && getCurrent(context, this).process(context, message);
     };
 
-    /**
-     * Returns the fully qualified name of the region.
-     *
-     * @override
-     * @this {Region}
-     * @return {string} - Fully qualified name of the region.
-     */
-    Region.prototype.toString = function () {
-        return this.owner ? this.owner + "." + this.name : this.name;
-    };
+    function uncommon(sourceAncestors, targetAncestors, index) {
+        return sourceAncestors[index] === targetAncestors[index] ? uncommon(sourceAncestors, targetAncestors, index + 1) : index;
+    }
 
     /**
      * Creates an instance of a transition.
@@ -693,34 +694,19 @@ function initStateJS(exports) {
      * @param {function} [guard] The guard condition that must evaluate true prior to traversing from source to target.
      */
     function Transition(source, target, guard) {
-        this.target = target;
         this.guard = guard || function (message) { return true; };
     
         // evaluate path for non-internal transitions
         if (target) {
             // get the source and target ancetries
-            var sourceAncestors = ancestors(source),
-                targetAncestors = ancestors(target),
-                i = sourceAncestors.length - 1;
+            var sourceAncestors = source.ancestors(),
+                targetAncestors = target.ancestors(),
+                uncommonAncestor = source === target ? sourceAncestors.length - 1 : uncommon(sourceAncestors, targetAncestors, 0);
 
-            // find the index of the first divergance in the ancestry
-            if (source !== target) {
-                i = 0;
-                while (i < sourceAncestors.length && i < targetAncestors.length && sourceAncestors[i] === targetAncestors[i]) {
-                    i = i + 1;
-                }
-            }
-        
-            // exit from the first element below the common ancestor on the source side
-            this.onExit = [sourceAncestors[i]];
-        
-            // edge case to exit pseudo state if its the source and not the node being exited above
-            if (source.kind && sourceAncestors[i] !== source) {
-                this.onExit.unshift(source);
-            }
-
-            // enter all elements in the target ancestry below the common ancestor
-            this.onEnter = targetAncestors.slice(i);
+            this.exit = sourceAncestors.slice(uncommonAncestor);
+            this.enter = targetAncestors.slice(uncommonAncestor);
+            
+            this.exit.reverse();
         }
 
         // add to the appropriate set of transitions
@@ -737,8 +723,10 @@ function initStateJS(exports) {
      */
     Transition.prototype.traverse = function (context, message) {
         // exit all the elements as necessary
-        if (this.onExit) {
-            this.onExit.forEach(function (element) { element.onExit(context); });
+        if (this.exit) {
+            this.exit[0].beginExit(context);
+            
+            this.exit.forEach(function (element) { element.endExit(context); });
         }
 
         // call the transitions effect if required
@@ -747,13 +735,9 @@ function initStateJS(exports) {
         }
 
         // enter all elements as necessary
-        if (this.onEnter) {
-            this.onEnter.forEach(function (element) { element.onEnter(context); });
-        }
-
-        // complete the entry as necessary
-        if (this.target) {
-            this.target.onComplete(context, false);
+        if (this.enter) {
+            this.enter.forEach(function (element) { element.beginEnter(context); });
+            this.enter[this.enter.length - 1].endEnter(context, false);
         }
     };
     
@@ -776,6 +760,7 @@ function initStateJS(exports) {
     Transition.Else.prototype.constructor = Transition.Else;
 
     // export the public API
+    exports.Element = Element;
     exports.PseudoStateKind = PseudoStateKind;
     exports.PseudoState = PseudoState;
     exports.SimpleState = SimpleState;
