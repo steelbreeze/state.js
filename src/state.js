@@ -701,12 +701,10 @@ function initStateJS(exports) {
             // get the source and target ancetries
             var sourceAncestors = source.ancestors(),
                 targetAncestors = target.ancestors(),
-                uncommonAncestor = source === target ? sourceAncestors.length - 1 : uncommon(sourceAncestors, targetAncestors, 0);
+                uncommonAncestor = source.owner === target.owner ? sourceAncestors.length - 1 : uncommon(sourceAncestors, targetAncestors, 0);
 
-            this.exit = sourceAncestors.slice(uncommonAncestor);
+            this.exit = sourceAncestors.slice(uncommonAncestor).reverse();
             this.enter = targetAncestors.slice(uncommonAncestor);
-            
-            this.exit.reverse();
         }
 
         // add to the appropriate set of transitions
