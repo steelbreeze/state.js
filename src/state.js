@@ -430,17 +430,6 @@ function initStateJS(exports) {
     };
     
     /**
-     * Initialises a composite state to its inital state
-     *
-     * @this {CompositeState}
-     * @param {object} context - the state machine state.
-     */
-    CompositeState.prototype.initialise = function (context) {
-        this.beginEnter(context);
-        this.endEnter(context, false);
-    };
-    
-    /**
      * Called whenever a composite state is exited
      *
      * @private
@@ -703,8 +692,10 @@ function initStateJS(exports) {
                 targetAncestors = target.ancestors(),
                 uncommonAncestor = source.owner === target.owner ? sourceAncestors.length - 1 : uncommon(sourceAncestors, targetAncestors, 0);
 
-            this.exit = sourceAncestors.slice(uncommonAncestor).reverse();
+            this.exit = sourceAncestors.slice(uncommonAncestor);
             this.enter = targetAncestors.slice(uncommonAncestor);
+            
+            this.exit.reverse();
         }
 
         // add to the appropriate set of transitions
