@@ -37,7 +37,7 @@ function initStateJS(exports) {
     function getChoiceCompletion(completions) {
         
         // find completions with guards that evaluate true
-        var results = completions.filter(function (completion) { return completion.guard(); });
+        var results = completions.filter(function (completion) { return !completion.isElse && completion.guard(); });
     
         // select a random one in the event of multiple available
         if (results.length > 1) {
@@ -60,27 +60,39 @@ function initStateJS(exports) {
     
     // selects the appropriate completion transition for a junction pseudo state
     function getJunctionCompletion(completions) {
+        var result = null;
         
-        // find completions with guards that evaluate true
-        var results = completions.filter(function (completion) { return completion.guard(); });
-
-        // if more than one, the machine is malformed
-        if (results.length > 1) {
-            throw "junction pseudo state has multiple outbound transitions";
-        }
-    
-        // look for 'else' completions if none found
-        if (results.length === 0) {
-            results = completions.filter(function (completion) { return completion.isElse; });
+        completions.forEach(function (completion) {
+            if (!completion.isElse) {
+                if (completion.guard()) {
+                    if (result !== null) {
+                        throw "junction PseudoState has multiple valid completion transitions";
+                    }
+                    
+                    result = completion;
+                }
+            }
+        });
+        
+        if (result !== null) {
+            return result;
         }
         
-        // return the completion if a single one or else found
-        if (results.length === 1) {
-            return results[0];
+        completions.forEach(function (completion) {
+            if (completion.isElse) {
+                if (result !== null) {
+                    throw "junctiom PseudoState has multiple else completion transitions";
+                }
+                    
+                result = completion;
+            }
+        });
+        
+        if (result !== null) {
+            return result;
         }
-    
-        // otherwise the machine is malformed
-        throw "junction pseudo state has no valid outbound transition";
+        
+        throw "junction PseudoState has no valid competion transitions";
     }
     
     // sets an element within a state machine active for a given context
@@ -363,12 +375,20 @@ function initStateJS(exports) {
      */
     SimpleState.prototype.endEnter = function (context, deepHistory) {
         if (this.isComplete(context)) {
-            var results = this.completions.filter(function (completion) { return completion.guard(); });
-
-            // TODO: exception if > 1
+            var result = null;
             
-            if (results.length === 1) {
-                results[0].traverse(context, deepHistory);
+            this.completions.forEach(function (transition) {
+                if (transition.guard()) {
+                    if (result !== null) {
+                        throw "more than one completion transition found";
+                    }
+                    
+                    result = transition;
+                }
+            });
+            
+            if (result !== null) {
+                result.traverse(context, deepHistory);
             }
         }
     };
@@ -386,19 +406,23 @@ function initStateJS(exports) {
             return false;
         }
 
-        var results = this.transitions.filter(function (transition) { return transition.guard(message); });
-
-        if (results.length !== 1) {
-            if (results.length === 0) {
-                return false;
+        var result = null;
+        
+        this.transitions.forEach(function (transition) {
+            if (transition.guard(message)) {
+                if (result !== null) {
+                    throw "more than one transition found for message: " + message.toString();
+                }
+                
+                result = transition;
             }
-
-            throw "more than one transition found for message: " + message.toString();
+        });
+        
+        if (result !== null) {
+            result.traverse(context, message);
         }
-
-        results[0].traverse(context, message);
-
-        return true;
+        
+        return result !== null;
     };
 
     /**
