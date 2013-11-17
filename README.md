@@ -4,9 +4,6 @@ The current stable release is 3.1.1.
 
 If you're using state.js I'd love to hear about it; please e-mail me at mesmo@steelbreeze.net 
 
-## Version 3 notes
-Version 3 moves back to a class based coding style; it provides more control via explicit use of SimpleState, CompositeState and OrthogonalState classes; this also removes the insertion of 'default' regions leading to a flatter model where orthogonal regions are not required.
-
 ## Introduction
 State.js is a JavaScript implementation of a state machine library that supports most of the UML 2 state machine semantics.
 
