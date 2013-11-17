@@ -29,7 +29,7 @@ The versions are in the form {major}.{minor}.{build}
 * Build changes can introduce features, though usually are fixes and performance enhancements; these will never break the public API.
 
 ## Documentation
-The documentation is being re-created...
+The documentation is being re-created... you're best following the lead from the examples at the moment.
 
 ## Building state.js
 There is no build, download a copy of state.js and use it in your site or project.
