@@ -29,7 +29,7 @@ The versions are in the form {major}.{minor}.{build}
 * Build changes can introduce features, though usually are fixes and performance enhancements; these will never break the public API.
 
 ## Documentation
-Please see the [wiki](https://github.com/steelbreeze/state.js/wiki) for documentation.
+The documentation is being re-created...
 
 ## Building state.js
 There is no build, download a copy of state.js and use it in your site or project.
