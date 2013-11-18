@@ -19,4 +19,4 @@ Please read the following guidelines before opening any issue.
 ## Key branches
 
 - `master` is the latest, deployed version.
-
+[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/1481fb51f491522f451063ef0b9604c7 "githalytics.com")](http://githalytics.com/steelbreeze/state.js)

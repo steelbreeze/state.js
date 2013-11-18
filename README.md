@@ -7,7 +7,7 @@ If you're using state.js I'd love to hear about it; please e-mail me at mesmo@st
 ## Introduction
 State.js is a JavaScript implementation of a state machine library that supports most of the UML 2 state machine semantics.
 
-State.js provides a hierarchical state machine capable of managing orthogonal regions; a variety of pseudo state kinds are implemented including initial, shallow & deep history, choice, junction and entry & exit points. 
+State.js provides a hierarchical state machine capable of managing orthogonal regions; a variety of pseudo state kinds are implemented including initial, shallow & deep history, choice, junction and terminate. 
 
 ## Versioning
 The versions are in the form {major}.{minor}.{build}
