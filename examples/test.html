@@ -6,7 +6,9 @@
 		<script src="../src/state.js"></script>
         <script>
             // create the state machine
-            var controller = new Region("player");
+            var machine = new StateMachine("machine");
+            
+            var controller = new Region("player", machine);
 
             // create some states
             var initial = new PseudoState("initial", PseudoStateKind.Initial, controller);
@@ -40,7 +42,7 @@
 			function init()
 			{
 				sms = { name: "state" };
-				controller.initialise( sms )
+				machine.initialise( sms )
 			}
 
 			function EngageHead()
@@ -81,11 +83,11 @@
 		<p>This example implements a simple controller for a cassette player according to the model below:</p>
 		<p><img id="diagram" /></p>
 		<p>Press the buttons below to send events to the controller (check brower console for trace output):</p>
-		<button type="button" onclick="controller.process( sms, 'play' )">play</button>
-		<button type="button" onclick="controller.process( sms, 'pause' )">pause</button>
-		<button type="button" onclick="controller.process( sms, 'stop' )">stop</button>
-		<button type="button" onclick="controller.process( sms, 'flip' )">flip</button>
-		<button type="button" onclick="controller.process( sms, 'off' )">off</button>
+		<button type="button" onclick="machine.process( sms, 'play' )">play</button>
+		<button type="button" onclick="machine.process( sms, 'pause' )">pause</button>
+		<button type="button" onclick="machine.process( sms, 'stop' )">stop</button>
+		<button type="button" onclick="machine.process( sms, 'flip' )">flip</button>
+		<button type="button" onclick="machine.process( sms, 'off' )">off</button>
 		<button type="button" onclick="init()">reset</button>
 		<p id="head">Head: </p>
 		<p id="motor">Motor: </p>
