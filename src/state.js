@@ -664,7 +664,6 @@ function initStateJS(exports) {
     Transition.Else.prototype.constructor = Transition.Else;
 
     // export the public API
-    exports.Element = Element;
     exports.PseudoStateKind = PseudoStateKind;
     exports.PseudoState = PseudoState;
     exports.SimpleState = SimpleState;
