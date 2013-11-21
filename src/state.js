@@ -614,7 +614,7 @@ function initStateJS(exports) {
         this.guard = guard || function (message) { return true; };
     
         // evaluate path for non-internal transitions
-        if (target) {
+        if (target && target !== null) {
             var sourceAncestors = source.ancestors(),
                 targetAncestors = target.ancestors(),
                 uncommonAncestor = source.owner === target.owner ? sourceAncestors.length - 1 : uncommon(sourceAncestors, targetAncestors, 0);
