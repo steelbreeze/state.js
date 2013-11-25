@@ -625,10 +625,10 @@ function initStateJS(exports) {
                 targetAncestors = target.owner.ancestors(),
                 lca = LCA(sourceAncestors, targetAncestors);
 
-            this.exit = sourceAncestors.slice(lca + 1);
-            this.enter = targetAncestors.slice(lca + 1);
+            this.sourceAncestorsToExit = sourceAncestors.slice(lca + 1);
+            this.targetAncestorsToEnter = targetAncestors.slice(lca + 1);
             
-            this.exit.reverse();
+            this.sourceAncestorsToExit.reverse();
             
             this.source = source;
             this.target = target;
@@ -638,19 +638,19 @@ function initStateJS(exports) {
     }
     
     Transition.prototype.traverse = function (context, message) {
-        if (this.exit) {
+        if (this.sourceAncestorsToExit) {
             this.source.beginExit(context);
             this.source.endExit(context);
             
-            this.exit.forEach(function (element) { element.endExit(context); });
+            this.sourceAncestorsToExit.forEach(function (ancestor) { ancestor.endExit(context); });
         }
 
         if (this.effect) {
             this.effect.forEach(function (effect) { effect(message); });
         }
 
-        if (this.enter) {
-            this.enter.forEach(function (element) { element.beginEnter(context); });
+        if (this.targetAncestorsToEnter) {
+            this.targetAncestorsToEnter.forEach(function (ancestor) { ancestor.beginEnter(context); });
             
             this.target.beginEnter(context);
             this.target.endEnter(context, false);
