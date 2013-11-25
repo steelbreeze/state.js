@@ -597,7 +597,7 @@ function initStateJS(exports) {
         return this.regions.reduce(function (result, region) {return region.process(context, message) || result; }, false);
     };
  
-    function lca(sourceAncestors, targetAncestors) {
+    function LCA(sourceAncestors, targetAncestors) {
         var common = 0;
         
         while (sourceAncestors.length > common && targetAncestors.length > common && sourceAncestors[common] === targetAncestors[common]) {
@@ -620,15 +620,18 @@ function initStateJS(exports) {
         this.guard = guard || function (message) { return true; };
     
         // evaluate path for non-internal transitions
-        if (target && target !== null) {
-            var sourceAncestors = source.ancestors(),
-                targetAncestors = target.ancestors(),
-                ignoreAncestors = lca(sourceAncestors, targetAncestors) + (source === target ? 0 : 1);
+        if (target && (target !== null)) {
+            var sourceAncestors = source.owner.ancestors(),
+                targetAncestors = target.owner.ancestors(),
+                lca = LCA(sourceAncestors, targetAncestors);
 
-            this.exit = sourceAncestors.slice(ignoreAncestors);
-            this.enter = targetAncestors.slice(ignoreAncestors);
+            this.exit = sourceAncestors.slice(lca + 1);
+            this.enter = targetAncestors.slice(lca + 1);
             
             this.exit.reverse();
+            
+            this.source = source;
+            this.target = target;
         }
 
         source[guard && guard.length > 0 ? "transitions" : "completions"].push(this);
@@ -636,7 +639,8 @@ function initStateJS(exports) {
     
     Transition.prototype.traverse = function (context, message) {
         if (this.exit) {
-            this.exit[0].beginExit(context);
+            this.source.beginExit(context);
+            this.source.endExit(context);
             
             this.exit.forEach(function (element) { element.endExit(context); });
         }
@@ -647,7 +651,9 @@ function initStateJS(exports) {
 
         if (this.enter) {
             this.enter.forEach(function (element) { element.beginEnter(context); });
-            this.enter[this.enter.length - 1].endEnter(context, false);
+            
+            this.target.beginEnter(context);
+            this.target.endEnter(context, false);
         }
     };
     
