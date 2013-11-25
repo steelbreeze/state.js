@@ -597,8 +597,14 @@ function initStateJS(exports) {
         return this.regions.reduce(function (result, region) {return region.process(context, message) || result; }, false);
     };
  
-    function uncommon(sourceAncestors, targetAncestors, index) {
-        return sourceAncestors[index] === targetAncestors[index] ? uncommon(sourceAncestors, targetAncestors, index + 1) : index;
+    function lca(sourceAncestors, targetAncestors) {
+        var common = 0;
+        
+        while (sourceAncestors.length > common && targetAncestors.length > common && sourceAncestors[common] === targetAncestors[common]) {
+            common = common + 1;
+        }
+        
+        return common - 1;
     }
 
     /**
@@ -617,10 +623,10 @@ function initStateJS(exports) {
         if (target && target !== null) {
             var sourceAncestors = source.ancestors(),
                 targetAncestors = target.ancestors(),
-                uncommonAncestor = source.owner === target.owner ? sourceAncestors.length - 1 : uncommon(sourceAncestors, targetAncestors, 0);
+                ignoreAncestors = lca(sourceAncestors, targetAncestors) + (source === target ? 0 : 1);
 
-            this.exit = sourceAncestors.slice(uncommonAncestor);
-            this.enter = targetAncestors.slice(uncommonAncestor);
+            this.exit = sourceAncestors.slice(ignoreAncestors);
+            this.enter = targetAncestors.slice(ignoreAncestors);
             
             this.exit.reverse();
         }
