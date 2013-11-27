@@ -241,16 +241,12 @@ function initStateJS(exports) {
     PseudoState.prototype = new Element();
     PseudoState.prototype.constructor = PseudoState;
 
-    PseudoState.prototype.beginEnter = function (context) {
-        Element.prototype.beginEnter.call(this, context);
-
+    PseudoState.prototype.endEnter = function (context, deepHistory) {
         if (this.kind === PseudoStateKind.Terminate) {
             context.IsTerminated = true;
+        } else {
+            this.kind.completions(this.completions).traverse(context, deepHistory);
         }
-    };
-
-    PseudoState.prototype.endEnter = function (context, deepHistory) {
-        this.kind.completions(this.completions).traverse(context, deepHistory);
     };
     
     /**
@@ -328,11 +324,13 @@ function initStateJS(exports) {
             }
         });
         
-        if (result !== null) {
-            result.traverse(context, message);
+        if (result === null) {
+            return false;
         }
         
-        return result !== null;
+        result.traverse(context, message);
+
+        return true;
     };
 
     /**
@@ -352,7 +350,9 @@ function initStateJS(exports) {
     CompositeState.prototype.constructor = CompositeState;
 
     CompositeState.prototype.isComplete = function (context) {
-        return context.isTerminated || getCurrent(context, this).isFinalState;
+        var current = getCurrent(context, this);
+        
+        return context.isTerminated || current === null || current.isFinalState || getActive(context, current) === false;
     };
     
     CompositeState.prototype.beginExit = function (context) {
@@ -466,7 +466,9 @@ function initStateJS(exports) {
      * @return {bool} True if the region is complete.
      */
     Region.prototype.isComplete = function (context) {
-        return context.isTerminated || getCurrent(context, this).isFinalState;
+        var current = getCurrent(context, this);
+        
+        return context.isTerminated || current === null || current.isFinalState || getActive(context, current) === false;
     };
 
     /**
