@@ -316,10 +316,6 @@ function initStateJS(exports) {
     };
 
     SimpleState.prototype.process = function (context, message) {
-        if (context.isTerminated) {
-            return false;
-        }
-
         var result = null;
         
         this.transitions.forEach(function (transition) {
@@ -378,10 +374,6 @@ function initStateJS(exports) {
     };
     
     CompositeState.prototype.process = function (context, message) {
-        if (context.isTerminated) {
-            return false;
-        }
-    
         return SimpleState.prototype.process.call(this, context, message) || getCurrent(context, this).process(context, message);
     };
     
@@ -418,10 +410,6 @@ function initStateJS(exports) {
     };
 
     OrthogonalState.prototype.process = function (context, message) {
-        if (context.isTerminated) {
-            return false;
-        }
-    
         return SimpleState.prototype.process.call(this, context, message) || this.regions.reduce(function (result, region) {return region.process(context, message) || result; }, false);
     };
     
