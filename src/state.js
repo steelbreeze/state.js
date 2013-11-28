@@ -17,77 +17,8 @@
 
 /*global console */
 
-// initialise state.js
 function initStateJS(exports) {
     "use strict";
-    
-    // selects the approriate completion transition for a initial pseudo states
-    function getInitialCompletion(completions) {
-        
-        // return the completion if a single one
-        if (completions.length === 1) {
-            return completions[0];
-        }
-
-        // otherwise the machine is malformed
-        throw "initial pseudo states must have one and only one outbound transition";
-    }
-    
-    function getChoiceCompletion(completions) {
-        
-        var results = completions.filter(function (completion) { return !completion.isElse && completion.guard(); });
-    
-        if (results.length > 1) {
-            return results[(results.length - 1) * Math.random()];
-        }
-    
-        if (results.length === 0) {
-            results = completions.filter(function (completion) { return completion.isElse; });
-        }
-        
-        if (results.length === 1) {
-            return results[0];
-        }
-        
-        // otherwise the machine is malformed
-        throw "choice pseudo state has no valid outbound transition";
-    }
-    
-    function getJunctionCompletion(completions) {
-        var result = null;
-        
-        completions.forEach(function (completion) {
-            if (!completion.isElse) {
-                if (completion.guard()) {
-                    if (result !== null) {
-                        throw "junction PseudoState has multiple valid completion transitions";
-                    }
-                    
-                    result = completion;
-                }
-            }
-        });
-        
-        if (result !== null) {
-            return result;
-        }
-        
-        completions.forEach(function (completion) {
-            if (completion.isElse) {
-                if (result !== null) {
-                    throw "junctiom PseudoState has multiple else completion transitions";
-                }
-                    
-                result = completion;
-            }
-        });
-        
-        if (result !== null) {
-            return result;
-        }
-        
-        throw "junction PseudoState has no valid competion transitions";
-    }
     
     function setActive(context, element, value) {
         if (!context.active) {
@@ -116,7 +47,147 @@ function initStateJS(exports) {
             return context.current[element];
         }
     }
+
+    function LCA(sourceAncestors, targetAncestors) {
+        var common = 0;
         
+        while (sourceAncestors.length > common && targetAncestors.length > common && sourceAncestors[common] === targetAncestors[common]) {
+            common = common + 1;
+        }
+        
+        return common - 1;
+    }
+
+    /**
+     * Creates an instance of a transition.
+     * @constructor
+     * @this {Transition}
+     * @param {object} source - The source state or pseudo state of the transition.
+     * @param {object} [target] - The target state or pseudo state of the transition.
+     * @param {function} [guard] The guard condition that must evaluate true prior to traversing from source to target.
+     */
+    function Transition(source, target, guard) {
+        this.guard = guard || function (message) { return true; };
+    
+        // evaluate path for non-internal transitions
+        if (target && (target !== null)) {
+            var sourceAncestors = source.owner.ancestors(),
+                targetAncestors = target.owner.ancestors(),
+                lca = LCA(sourceAncestors, targetAncestors);
+
+            this.sourceAncestorsToExit = sourceAncestors.slice(lca + 1);
+            this.targetAncestorsToEnter = targetAncestors.slice(lca + 1);
+            
+            this.sourceAncestorsToExit.reverse();
+            
+            this.source = source;
+            this.target = target;
+        }
+
+        source[guard && guard.length > 0 ? "transitions" : "completions"].push(this);
+    }
+    
+    Transition.prototype.traverse = function (context, message) {
+        if (this.sourceAncestorsToExit) {
+            this.source.beginExit(context);
+            this.source.endExit(context);
+            
+            this.sourceAncestorsToExit.forEach(function (ancestor) { ancestor.endExit(context); });
+        }
+
+        if (this.effect) {
+            this.effect.forEach(function (effect) { effect(message); });
+        }
+
+        if (this.targetAncestorsToEnter) {
+            this.targetAncestorsToEnter.forEach(function (ancestor) { ancestor.beginEnter(context); });
+            
+            this.target.beginEnter(context);
+            this.target.endEnter(context, false);
+        }
+    };
+    
+    /**
+     * Creates an instance of an else transition for use at choice and junction pseudo states.
+     * @constructor
+     * @augments Transition
+     * @this {Transition.Else}
+     * @param {object} source - The source state or pseudo state of the transition.
+     * @param {object} [target] - The target state or pseudo state of the transition.
+     */
+    Transition.Else = function (source, target) {
+        Transition.call(this, source, target, function () { return false; });
+    };
+    
+    Transition.Else.prototype = Transition.prototype;
+    Transition.Else.prototype.constructor = Transition.Else;
+
+    // selects the approriate completion transition for a initial pseudo states
+    function getInitialCompletion(completions) {
+        
+        // return the completion if a single one
+        if (completions.length === 1) {
+            return completions[0];
+        }
+
+        // otherwise the machine is malformed
+        throw "initial pseudo states must have one and only one outbound transition";
+    }
+    
+    function getChoiceCompletion(completions) {
+        
+        var results = completions.filter(function (completion) { return completion.guard(); });
+    
+        if (results.length > 1) {
+            return results[(results.length - 1) * Math.random()];
+        }
+    
+        if (results.length === 0) {
+            results = completions.filter(function (completion) { return completion instanceof Transition.Else; });
+        }
+        
+        if (results.length === 1) {
+            return results[0];
+        }
+        
+        // otherwise the machine is malformed
+        throw "choice pseudo state has no valid outbound transition";
+    }
+    
+    function getJunctionCompletion(completions) {
+        var result = null;
+        
+        completions.forEach(function (completion) {
+            if (completion.guard()) {
+                if (result !== null) {
+                    throw "junction PseudoState has multiple valid completion transitions";
+                }
+                    
+                result = completion;
+            }
+        });
+        
+        if (result !== null) {
+            return result;
+        }
+        
+        completions.forEach(function (completion) {
+            if (completion instanceof Transition.Else) {
+                if (result !== null) {
+                    throw "junctiom PseudoState has multiple else completion transitions";
+                }
+                    
+                result = completion;
+            }
+        });
+        
+        if (result !== null) {
+            return result;
+        }
+        
+        throw "junction PseudoState has no valid competion transitions";
+    }
+            
     /**
      * Enum for pseudo state kinds
      * @enum {object}
@@ -167,7 +238,6 @@ function initStateJS(exports) {
     
     /**
      * Returns the fully qualified name of the element.
-     *
      * @this {Element}
      * @return {string} Fully qualified name of the element.
      */
@@ -208,7 +278,6 @@ function initStateJS(exports) {
     
     /**
      * Returns the fully qualified name of the element.
-     *
      * @override
      * @this {Element}
      * @return {string} Fully qualified name of the element.
@@ -219,7 +288,6 @@ function initStateJS(exports) {
     
     /**
      * Creates an instance of a pseudo state.
-     *
      * @constructor
      * @this {PseudoState}
      * @param {string} name - The name given to the pseudo state.
@@ -251,7 +319,6 @@ function initStateJS(exports) {
     
     /**
      * Creates an instance of a simple state.
-     *
      * @constructor
      * @this {SimpleState}
      * @param {string} name - The name given to the simple state.
@@ -335,7 +402,6 @@ function initStateJS(exports) {
 
     /**
      * Creates an instance of a composite state.
-     *
      * @constructor
      * @augments SimpleState
      * @this {CompositeState}
@@ -379,7 +445,6 @@ function initStateJS(exports) {
     
     /**
      * Creates an instance of an orthogonal state.
-     *
      * @constructor
      * @augments SimpleState
      * @this {OrthogonalState}
@@ -415,7 +480,6 @@ function initStateJS(exports) {
     
     /**
      * Creates an instance of a final state.
-     *
      * @constructor
      * @augments SimpleState
      * @this {FinalState}
@@ -439,7 +503,6 @@ function initStateJS(exports) {
 
     /**
      * Creates an instance of a region.
-     *
      * @constructor
      * @this {Region}
      * @param {string} name The name given to the simple state.
@@ -460,7 +523,6 @@ function initStateJS(exports) {
 
     /**
      * Determines if a region is complete
-     *
      * @this {Region}
      * @param {object} context - the state machine state.
      * @return {bool} True if the region is complete.
@@ -473,7 +535,6 @@ function initStateJS(exports) {
 
     /**
      * Initialises a region to its inital state
-     *
      * @this {CompositeState}
      * @param {object} context - the state machine state.
      */
@@ -500,7 +561,6 @@ function initStateJS(exports) {
 
     /**
      * Attempt to process a message against the region
-     *
      * @this {Region}
      * @param {object} context - the state machine state.
      * @param {object} message - the message to pass into the state machine.
@@ -516,7 +576,6 @@ function initStateJS(exports) {
 
     /**
      * Creates an instance of a state machine.
-     *
      * @constructor
      * @this {StateMachine}
      * @param {string} name The name given to the state machine.
@@ -532,7 +591,6 @@ function initStateJS(exports) {
 
     /**
      * Determines if a state machine is complete
-     *
      * @this {StateMachine}
      * @param {object} context - the state machine state.
      * @return {bool} True if the state machine is complete.
@@ -543,7 +601,6 @@ function initStateJS(exports) {
 
     /**
      * Initialises a state machine to its inital state
-     *
      * @this {StateMachine}
      * @param {object} context - the state machine state.
      */
@@ -551,7 +608,6 @@ function initStateJS(exports) {
         this.beginEnter(context);
         this.endEnter(context, false);
     };
-
     
     StateMachine.prototype.beginExit = function (context) {
         this.regions.forEach(function (region) {
@@ -573,7 +629,6 @@ function initStateJS(exports) {
 
     /**
      * Attempt to process a message against the state machine
-     *
      * @this {StateMachine}
      * @param {object} context - the state machine state.
      * @param {object} message - the message to pass into the state machine.
@@ -586,84 +641,6 @@ function initStateJS(exports) {
 
         return this.regions.reduce(function (result, region) {return region.process(context, message) || result; }, false);
     };
- 
-    function LCA(sourceAncestors, targetAncestors) {
-        var common = 0;
-        
-        while (sourceAncestors.length > common && targetAncestors.length > common && sourceAncestors[common] === targetAncestors[common]) {
-            common = common + 1;
-        }
-        
-        return common - 1;
-    }
-
-    /**
-     * Creates an instance of a transition.
-     *
-     * @constructor
-     * @this {Transition}
-     * @param {object} source - The source state or pseudo state of the transition.
-     * @param {object} [target] - The target state or pseudo state of the transition.
-     * @param {function} [guard] The guard condition that must evaluate true prior to traversing from source to target.
-     */
-    function Transition(source, target, guard) {
-        this.guard = guard || function (message) { return true; };
-    
-        // evaluate path for non-internal transitions
-        if (target && (target !== null)) {
-            var sourceAncestors = source.owner.ancestors(),
-                targetAncestors = target.owner.ancestors(),
-                lca = LCA(sourceAncestors, targetAncestors);
-
-            this.sourceAncestorsToExit = sourceAncestors.slice(lca + 1);
-            this.targetAncestorsToEnter = targetAncestors.slice(lca + 1);
-            
-            this.sourceAncestorsToExit.reverse();
-            
-            this.source = source;
-            this.target = target;
-        }
-
-        source[guard && guard.length > 0 ? "transitions" : "completions"].push(this);
-    }
-    
-    Transition.prototype.traverse = function (context, message) {
-        if (this.sourceAncestorsToExit) {
-            this.source.beginExit(context);
-            this.source.endExit(context);
-            
-            this.sourceAncestorsToExit.forEach(function (ancestor) { ancestor.endExit(context); });
-        }
-
-        if (this.effect) {
-            this.effect.forEach(function (effect) { effect(message); });
-        }
-
-        if (this.targetAncestorsToEnter) {
-            this.targetAncestorsToEnter.forEach(function (ancestor) { ancestor.beginEnter(context); });
-            
-            this.target.beginEnter(context);
-            this.target.endEnter(context, false);
-        }
-    };
-    
-    /**
-     * Creates an instance of an else transition for use at choice and junction pseudo states.
-     *
-     * @constructor
-     * @augments Transition
-     * @this {Transition.Else}
-     * @param {object} source - The source state or pseudo state of the transition.
-     * @param {object} [target] - The target state or pseudo state of the transition.
-     */
-    Transition.Else = function (source, target) {
-        Transition.call(this, source, target, function () { return false; });
-
-        this.isElse = true;
-    };
-    
-    Transition.Else.prototype = Transition.prototype;
-    Transition.Else.prototype.constructor = Transition.Else;
 
     // export the public API
     exports.PseudoStateKind = PseudoStateKind;
