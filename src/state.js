@@ -20,6 +20,14 @@
 function initStateJS(exports) {
     "use strict";
     
+    function True() {
+        return true;
+    }
+    
+    function False() {
+        return false;
+    }
+    
     function setActive(context, element, value) {
         if (!context.active) {
             context.active = [];
@@ -67,7 +75,7 @@ function initStateJS(exports) {
      * @param {function} [guard] The guard condition that must evaluate true prior to traversing from source to target.
      */
     function Transition(source, target, guard) {
-        this.guard = guard || function (message) { return true; };
+        this.guard = guard || True;
     
         // evaluate path for non-internal transitions
         if (target && (target !== null)) {
@@ -116,7 +124,7 @@ function initStateJS(exports) {
      * @param {object} [target] - The target state or pseudo state of the transition.
      */
     Transition.Else = function (source, target) {
-        Transition.call(this, source, target, function () { return false; });
+        Transition.call(this, source, target, False);
     };
     
     Transition.Else.prototype = Transition.prototype;
