@@ -56,16 +56,6 @@ function initStateJS(exports) {
         }
     }
 
-    function LCA(sourceAncestors, targetAncestors) {
-        var common = 0;
-        
-        while (sourceAncestors.length > common && targetAncestors.length > common && sourceAncestors[common] === targetAncestors[common]) {
-            common = common + 1;
-        }
-        
-        return common - 1;
-    }
-
     /**
      * Creates an instance of a transition.
      * @constructor
@@ -81,10 +71,14 @@ function initStateJS(exports) {
         if (target && (target !== null)) {
             var sourceAncestors = source.owner.ancestors(),
                 targetAncestors = target.owner.ancestors(),
-                lca = LCA(sourceAncestors, targetAncestors);
+                ignoreAncestors = 0;
 
-            this.sourceAncestorsToExit = sourceAncestors.slice(lca + 1);
-            this.targetAncestorsToEnter = targetAncestors.slice(lca + 1);
+            while (sourceAncestors.length > ignoreAncestors && targetAncestors.length > ignoreAncestors && sourceAncestors[ignoreAncestors] === targetAncestors[ignoreAncestors]) {
+                ignoreAncestors = ignoreAncestors + 1;
+            }
+
+            this.sourceAncestorsToExit = sourceAncestors.slice(ignoreAncestors);
+            this.targetAncestorsToEnter = targetAncestors.slice(ignoreAncestors);
             
             this.sourceAncestorsToExit.reverse();
             
