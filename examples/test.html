@@ -15,7 +15,7 @@
             var operational = new CompositeState("operational", controller);
             var flipped = new SimpleState("flipped", controller);
             var final = new FinalState("final", controller);
-            var history = new PseudoState("history", PseudoStateKind.DeepHistory, operational);
+            var history1 = new PseudoState("history", PseudoStateKind.DeepHistory, operational);
             var stopped = new SimpleState("stopped", operational);
             var active = new CompositeState("active", operational);
             var running = new SimpleState("running", active);
@@ -23,7 +23,7 @@
             
             // create transitions between states (one with transition behaviour)
             var t0 = new Transition(initial, operational);
-            var t1 = new Transition(history, stopped);
+            var t1 = new Transition(history1, stopped);
             var t2 = new Transition(stopped, running, function (s) { return s === "play"; });
             var t3 = new Transition(active, stopped, function (s) { return s === "stop"; });
             var t4 = new Transition(running, paused, function (s) { return s === "pause"; });
