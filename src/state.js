@@ -96,19 +96,27 @@ function initStateJS(exports) {
     }
     
     Transition.prototype.traverse = function (context, message) {
+        var i, len;
+        
         if (this.source) {
             this.source.beginExit(context);
             this.source.endExit(context);
-            
-            this.sourceAncestorsToExit.forEach(function (ancestor) { ancestor.endExit(context); });
+
+            for (i = 0, len = this.sourceAncestorsToExit.length; i < len; i = i + 1) {
+                this.sourceAncestorsToExit[i].endExit(context);
+            }
         }
 
         if (this.effect) {
-            this.effect.forEach(function (effect) { effect(message); });
+            for (i = 0, len = this.effect.length; i < len; i = i + 1) {
+                this.effect[i](message);
+            }
         }
 
         if (this.target) {
-            this.targetAncestorsToEnter.forEach(function (ancestor) { ancestor.beginEnter(context); });
+            for (i = 0, len = this.targetAncestorsToEnter.length; i < len; i = i + 1) {
+                this.targetAncestorsToEnter[i].beginEnter(context);
+            }
             
             this.target.beginEnter(context);
             this.target.endEnter(context, false);
@@ -130,36 +138,29 @@ function initStateJS(exports) {
     Transition.Else.prototype = Transition.prototype;
     Transition.Else.prototype.constructor = Transition.Else;
 
-    // selects the approriate completion transition for a initial pseudo states
     function getInitialCompletion(completions) {
         
-        // return the completion if a single one
         if (completions.length === 1) {
             return completions[0];
         }
 
-        // otherwise the machine is malformed
         throw "initial pseudo states must have one and only one outbound transition";
     }
     
     function getChoiceCompletion(completions) {
+        var i, len, results = [];
         
-        var results = completions.filter(function (completion) { return completion.guard(); });
-    
-        if (results.length > 1) {
+        for (i = 0, len = completions.length; i < len; i = i + 1) {
+            if (completions[i].guard()) {
+                results.push(completions[i]);
+            }
+        }
+            
+        if (results.length > 0) {
             return results[(results.length - 1) * Math.random()];
         }
-    
-        if (results.length === 0) {
-            results = completions.filter(function (completion) { return completion instanceof Transition.Else; });
-        }
-        
-        if (results.length === 1) {
-            return results[0];
-        }
-        
-        // otherwise the machine is malformed
-        throw "choice pseudo state has no valid outbound transition";
+
+        return single(completions, function (c) { return c instanceof Transition.Else; });
     }
     
     function getJunctionCompletion(completions) {
@@ -318,14 +319,20 @@ function initStateJS(exports) {
     };
 
     SimpleState.prototype.endExit = function (context) {
+        var i, len;
+        
         if (this.exit) {
-            this.exit.forEach(function (exit) { exit(); });
+            for (i = 0, len = this.exit.length; i < len; i = i + 1) {
+                this.exit[i]();
+            }
         }
         
         Element.prototype.endExit.call(this, context);
     };
 
     SimpleState.prototype.beginEnter = function (context) {
+        var i, len;
+
         Element.prototype.beginEnter.call(this, context);
 
         if (this.owner) {
@@ -333,7 +340,9 @@ function initStateJS(exports) {
         }
 
         if (this.entry) {
-            this.entry.forEach(function (entry) { entry(); });
+            for (i = 0, len = this.entry.length; i < len; i = i + 1) {
+                this.entry[i]();
+            }
         }
     };
 
@@ -420,21 +429,53 @@ function initStateJS(exports) {
     OrthogonalState.prototype.constructor = OrthogonalState;
     
     OrthogonalState.prototype.isComplete = function (context) {
-        return context.isTerminated || this.regions.every(function (region) { return region.isComplete(context); });
+        var i, len;
+        
+        if (!context.isTerminated) {
+            for (i = 0, len = this.regions.length; i < len; i = i + 1) {
+                if (!this.regions[i].isComplete(context)) {
+                    return false;
+                }
+            }
+        }
+        
+        return true;
     };
     
     OrthogonalState.prototype.beginExit = function (context) {
-        this.regions.forEach(function (region) { if (getActive(context, region)) {region.beginExit(context); region.endExit(context); } });
+        var i, len;
+        
+        for (i = 0, len = this.regions.length; i < len; i = i + 1) {
+            if (getActive(context, this.regions[i])) {
+                this.regions[i].beginExit(context);
+                this.regions[i].endExit(context);
+            }
+        }
     };
 
     OrthogonalState.prototype.endEnter = function (context, deepHistory) {
-        this.regions.forEach(function (region) { region.beginEnter(context); region.endEnter(context, deepHistory); });
+        var i, len;
+
+        for (i = 0, len = this.regions.length; i < len; i = i + 1) {
+            this.regions[i].beginEnter(context);
+            this.regions[i].endEnter(context);
+        }
 
         SimpleState.prototype.endEnter.call(context, deepHistory);
     };
 
     OrthogonalState.prototype.process = function (context, message) {
-        return SimpleState.prototype.process.call(this, context, message) || this.regions.reduce(function (result, region) {return region.process(context, message) || result; }, false);
+        var i, len, result = false;
+        
+        if (!context.isTerminated) {
+            if ((result = SimpleState.prototype.process.call(this, context, message)) === false) {
+                for (i = 0, len = this.regions.length; i < len; i = i + 1) {
+                    result = this.regions[i].process(context, message) || result;
+                }
+            }
+        }
+        
+        return result;
     };
     
     /**
@@ -555,7 +596,17 @@ function initStateJS(exports) {
      * @return {bool} True if the state machine is complete.
      */
     StateMachine.prototype.isComplete = function (context) {
-        return context.isTerminated || this.regions.every(function (region) { return region.isComplete(context); });
+        var i, len;
+        
+        if (!context.isTerminated) {
+            for (i = 0, len = this.regions.length; i < len; i = i + 1) {
+                if (!this.regions[i].isComplete(context)) {
+                    return false;
+                }
+            }
+        }
+        
+        return true;
     };
 
     /**
@@ -569,20 +620,24 @@ function initStateJS(exports) {
     };
     
     StateMachine.prototype.beginExit = function (context) {
-        this.regions.forEach(function (region) {
-            if (getActive(context, this)) {
-                region.beginExit(context);
-                region.endExit(context);
+        var i, len;
+        
+        for (i = 0, len = this.regions.length; i < len; i = i + 1) {
+            if (getActive(context, this.regions[i])) {
+                this.regions[i].beginExit(context);
+                this.regions[i].endExit(context);
             }
-        });
+        }
 	};
 
     StateMachine.prototype.endEnter = function (context, deepHistory) {
-        this.regions.forEach(function (region) {
-            region.beginEnter(context);
-            region.endEnter(context, deepHistory);
-        });
-
+        var i, len;
+        
+        for (i = 0, len = this.regions.length; i < len; i = i + 1) {
+            this.regions[i].beginEnter(context);
+            this.regions[i].endEnter(context, deepHistory);
+        }
+        
         Element.prototype.endEnter.call(context, deepHistory);
     };
 
@@ -594,11 +649,16 @@ function initStateJS(exports) {
      * @return {bool} True of if the message caused a transition execution.
      */
     StateMachine.prototype.process = function (context, message) {
-        if (context.isTerminated) {
-            return false;
+        var i, len, result = false;
+        
+        if (!context.isTerminated) {
+            
+            for (i = 0, len = this.regions.length; i < len; i = i + 1) {
+                result = this.regions[i].process(context, message) || result;
+            }
         }
-
-        return this.regions.reduce(function (result, region) {return region.process(context, message) || result; }, false);
+        
+        return result;
     };
 
     // export the public API
