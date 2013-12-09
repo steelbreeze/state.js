@@ -16,18 +16,25 @@
  */
 
 /*global console */
-
 function initStateJS(exports) {
     "use strict";
     
-    function True() {
-        return true;
+    function single(collection, predicate) {
+        var i, len, result;
+        
+        for (i = 0, len = collection.length; i < len; i = i + 1) {
+            if (predicate(collection[i])) {
+                if (result) {
+                    throw "single found more than one result";
+                }
+                
+                result = collection[i];
+            }
+        }
+        
+        return result;
     }
-    
-    function False() {
-        return false;
-    }
-    
+
     function setActive(context, element, value) {
         if (!context.active) {
             context.active = [];
@@ -65,9 +72,8 @@ function initStateJS(exports) {
      * @param {function} [guard] The guard condition that must evaluate true prior to traversing from source to target.
      */
     function Transition(source, target, guard) {
-        this.guard = guard || True;
+        this.guard = guard || function () { return true; };
     
-        // evaluate path for non-internal transitions
         if (target && (target !== null)) {
             var sourceAncestors = source.owner.ancestors(),
                 targetAncestors = target.owner.ancestors(),
@@ -90,7 +96,7 @@ function initStateJS(exports) {
     }
     
     Transition.prototype.traverse = function (context, message) {
-        if (this.sourceAncestorsToExit) {
+        if (this.source) {
             this.source.beginExit(context);
             this.source.endExit(context);
             
@@ -101,7 +107,7 @@ function initStateJS(exports) {
             this.effect.forEach(function (effect) { effect(message); });
         }
 
-        if (this.targetAncestorsToEnter) {
+        if (this.target) {
             this.targetAncestorsToEnter.forEach(function (ancestor) { ancestor.beginEnter(context); });
             
             this.target.beginEnter(context);
@@ -118,7 +124,7 @@ function initStateJS(exports) {
      * @param {object} [target] - The target state or pseudo state of the transition.
      */
     Transition.Else = function (source, target) {
-        Transition.call(this, source, target, False);
+        Transition.call(this, source, target, function () { return false; });
     };
     
     Transition.Else.prototype = Transition.prototype;
@@ -157,33 +163,15 @@ function initStateJS(exports) {
     }
     
     function getJunctionCompletion(completions) {
-        var result = null;
+        var result = single(completions, function (c) { return c.guard(); });
         
-        completions.forEach(function (completion) {
-            if (completion.guard()) {
-                if (result !== null) {
-                    throw "junction PseudoState has multiple valid completion transitions";
-                }
-                    
-                result = completion;
-            }
-        });
-        
-        if (result !== null) {
+        if (result) {
             return result;
         }
         
-        completions.forEach(function (completion) {
-            if (completion instanceof Transition.Else) {
-                if (result !== null) {
-                    throw "junctiom PseudoState has multiple else completion transitions";
-                }
-                    
-                result = completion;
-            }
-        });
+        result = single(completions, function (c) { return c instanceof Transition.Else; });
         
-        if (result !== null) {
+        if (result) {
             return result;
         }
         
@@ -238,11 +226,6 @@ function initStateJS(exports) {
         this.owner = owner;
     }
     
-    /**
-     * Returns the fully qualified name of the element.
-     * @this {Element}
-     * @return {string} Fully qualified name of the element.
-     */
     Element.prototype.qualifiedName = function () {
         return this.owner ? this.owner + "." + this.name : this.name;
     };
@@ -278,12 +261,6 @@ function initStateJS(exports) {
     Element.prototype.endEnter = function (context, deepHistory) {
     };
     
-    /**
-     * Returns the fully qualified name of the element.
-     * @override
-     * @this {Element}
-     * @return {string} Fully qualified name of the element.
-     */
     Element.prototype.toString = function () {
         return this.qualifiedName();
     };
@@ -362,38 +339,18 @@ function initStateJS(exports) {
 
     SimpleState.prototype.endEnter = function (context, deepHistory) {
         if (this.isComplete(context)) {
-            var result = null;
+            var result = single(this.completions, function (c) { return c.guard(); });
             
-            this.completions.forEach(function (transition) {
-                if (transition.guard()) {
-                    if (result !== null) {
-                        throw "more than one completion transition found";
-                    }
-                    
-                    result = transition;
-                }
-            });
-            
-            if (result !== null) {
+            if (result) {
                 result.traverse(context, deepHistory);
             }
         }
     };
 
     SimpleState.prototype.process = function (context, message) {
-        var result = null;
-        
-        this.transitions.forEach(function (transition) {
-            if (transition.guard(message)) {
-                if (result !== null) {
-                    throw "more than one transition found for message: " + message.toString();
-                }
+        var result = single(this.transitions, function (t) { return t.guard(message); });
                 
-                result = transition;
-            }
-        });
-        
-        if (result === null) {
+        if (!result) {
             return false;
         }
         
