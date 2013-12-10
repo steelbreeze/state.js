@@ -115,9 +115,9 @@
     };
 
     Element.prototype.endExit = function (context) {
-        if (console) {
-            console.log("Leave: " + this.toString());
-        }
+//        if (console) {
+//            console.log("Leave: " + this.toString());
+//        }
         
         context.active[this] = false;
     };
@@ -128,9 +128,9 @@
             this.endExit(context);
         }
 	
-        if (console) {
-            console.log("Enter: " + this.toString());
-        }
+//        if (console) {
+//            console.log("Enter: " + this.toString());
+//        }
         
         if (!context.active) {
             context.active = [];
