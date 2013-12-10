@@ -243,7 +243,9 @@ function initStateJS(exports) {
     };
 
     Element.prototype.endExit = function (context) {
-        console.log("Leave: " + this.toString());
+        if (console) {
+            console.log("Leave: " + this.toString());
+        }
 
         setActive(context, this, false);
     };
@@ -254,8 +256,10 @@ function initStateJS(exports) {
             this.endExit(context);
         }
 	
-        console.log("Enter: " + this.toString());
-
+        if (console) {
+            console.log("Enter: " + this.toString());
+        }
+        
         setActive(context, this, true);
     };
 
