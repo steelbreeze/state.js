@@ -36,30 +36,30 @@ function initStateJS(exports) {
     }
 
     function setActive(context, element, value) {
-        if (!context.active) {
-            context.active = [];
+        if (!context.steelbreeze_statejs_active) {
+            context.steelbreeze_statejs_active = [];
         }
     
-        context.active[element] = value;
+        context.steelbreeze_statejs_active[element] = value;
     }
     
     function getActive(context, element) {
-        if (context.active) {
-            return context.active[element];
+        if (context.steelbreeze_statejs_active) {
+            return context.steelbreeze_statejs_active[element];
         }
     }
     
     function setCurrent(context, element, value) {
-        if (!context.current) {
-            context.current = [];
+        if (!context.steelbreeze_statejs_current) {
+            context.steelbreeze_statejs_current = [];
         }
     
-        context.current[element] = value;
+        context.steelbreeze_statejs_current[element] = value;
     }
 
     function getCurrent(context, element) {
-        if (context.current) {
-            return context.current[element];
+        if (context.steelbreeze_statejs_current) {
+            return context.steelbreeze_statejs_current[element];
         }
     }
 
