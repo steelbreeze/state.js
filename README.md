@@ -1,6 +1,6 @@
 # Welcome to state.js
 
-The current stable release is 3.1.10.
+The current stable release is 3.1.11 (the lite version has moved into its own repo).
 
 If you're using state.js I'd love to hear about it; please e-mail me at mesmo@steelbreeze.net 
 
