@@ -232,11 +232,7 @@ function initStateJS(exports) {
     };
 
     Element.prototype.ancestors = function () {
-        var result = this.owner ? this.owner.ancestors() : [];
-        
-        result.push(this);
-        
-        return result;
+        return (this.owner ? this.owner.ancestors() : []).concat(this);
     };
 
     Element.prototype.beginExit = function (context) {
