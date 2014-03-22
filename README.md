@@ -1,6 +1,6 @@
 # Welcome to state.js
 
-The current stable release is 4.0.1
+The current stable release is 4.0.2
 
 If you're using state.js I'd love to hear about it; please e-mail me at mesmo@steelbreeze.net 
 
@@ -36,5 +36,5 @@ state.js is available as a node packaged module; to install type:
 ## Licence
 Copyright © 2013-4 Steelbreeze Limited.
 
-state.js may be licenced under either GPLv3 or MIT licences at your discretion.
+state.js is licenced under either the MIT licences.
 [![githalytics.com alpha](https://cruel-carlota.pagodabox.com/1481fb51f491522f451063ef0b9604c7 "githalytics.com")](http://githalytics.com/steelbreeze/state.js)
