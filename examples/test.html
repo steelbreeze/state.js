@@ -44,22 +44,22 @@
 				machine.initialise( sms )
 			}
 
-			function EngageHead()
+			function EngageHead(context, message)
 			{
 				document.getElementById("head").innerHTML = "Head: engaged";
 			}
 			
-			function DisengageHead()
+			function DisengageHead(context, message)
 			{
 				document.getElementById("head").innerHTML = "Head: disengaged";
 			}
 			
-			function StartMotor()
+			function StartMotor(context, message)
 			{
 				document.getElementById("motor").innerHTML = "Motor: running";
 			}
 			
-			function StopMotor()
+			function StopMotor(context, message)
 			{
 				document.getElementById("motor").innerHTML = "Motor: stopped";
 			}

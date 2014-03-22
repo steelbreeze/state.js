@@ -1,18 +1,24 @@
-/* Copyright © 2013 Steelbreeze Limited.
+/* The MIT License (MIT)
  *
- * state.js is free software: you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
- *
+ * Copyright (c) 2014 Steelbreeze Limited
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  */
 
 /*global console */
@@ -35,31 +41,31 @@ function initStateJS(exports) {
         return result;
     }
 
-    function setActive(context, element, value) {
-        if (!context.steelbreeze_statejs_active) {
-            context.steelbreeze_statejs_active = [];
+    function setActive(state, element, value) {
+        if (!state.steelbreeze_statejs_active) {
+            state.steelbreeze_statejs_active = [];
         }
     
-        context.steelbreeze_statejs_active[element] = value;
+        state.steelbreeze_statejs_active[element] = value;
     }
     
-    function getActive(context, element) {
-        if (context.steelbreeze_statejs_active) {
-            return context.steelbreeze_statejs_active[element];
+    function getActive(state, element) {
+        if (state.steelbreeze_statejs_active) {
+            return state.steelbreeze_statejs_active[element];
         }
     }
     
-    function setCurrent(context, element, value) {
-        if (!context.steelbreeze_statejs_current) {
-            context.steelbreeze_statejs_current = [];
+    function setCurrent(state, element, value) {
+        if (!state.steelbreeze_statejs_current) {
+            state.steelbreeze_statejs_current = [];
         }
     
-        context.steelbreeze_statejs_current[element] = value;
+        state.steelbreeze_statejs_current[element] = value;
     }
 
-    function getCurrent(context, element) {
-        if (context.steelbreeze_statejs_current) {
-            return context.steelbreeze_statejs_current[element];
+    function getCurrent(state, element) {
+        if (state.steelbreeze_statejs_current) {
+            return state.steelbreeze_statejs_current[element];
         }
     }
 
@@ -95,31 +101,37 @@ function initStateJS(exports) {
         source[guard && guard.length > 0 ? "transitions" : "completions"].push(this);
     }
     
-    Transition.prototype.traverse = function (context, message) {
+    Transition.prototype.onEffect = function (state, message) {
+        var i, len;
+        
+        if (this.effect) {
+            for (i = 0, len = this.effect.length; i < len; i = i + 1) {
+                this.effect[i](state, message);
+            }
+        }
+    };
+    
+    Transition.prototype.traverse = function (state, message) {
         var i, len;
         
         if (this.source) {
-            this.source.beginExit(context);
-            this.source.endExit(context);
+            this.source.beginExit(state);
+            this.source.endExit(state);
 
             for (i = 0, len = this.sourceAncestorsToExit.length; i < len; i = i + 1) {
-                this.sourceAncestorsToExit[i].endExit(context);
+                this.sourceAncestorsToExit[i].endExit(state);
             }
         }
 
-        if (this.effect) {
-            for (i = 0, len = this.effect.length; i < len; i = i + 1) {
-                this.effect[i](message);
-            }
-        }
+        this.onEffect(state, message);
 
         if (this.target) {
             for (i = 0, len = this.targetAncestorsToEnter.length; i < len; i = i + 1) {
-                this.targetAncestorsToEnter[i].beginEnter(context);
+                this.targetAncestorsToEnter[i].beginEntry(state);
             }
             
-            this.target.beginEnter(context);
-            this.target.endEnter(context, false);
+            this.target.beginEntry(state);
+            this.target.endEntry(state, false);
         }
     };
     
@@ -216,7 +228,7 @@ function initStateJS(exports) {
         ShallowHistory: { isInitial: true, isHistory: true, completions: getInitialCompletion },
 
         /**
-         * Entering a terminate pseudostate implies that the execution of this state machine by means of its context object is terminated.
+         * Entering a terminate pseudostate implies that the execution of this state machine by means of its state object is terminated.
          * @alias Terminate
          */
         Terminate: { isInitial: false, isHistory: false, completions: null }
@@ -235,31 +247,27 @@ function initStateJS(exports) {
         return (this.owner ? this.owner.ancestors() : []).concat(this);
     };
 
-    Element.prototype.beginExit = function (context) {
+    Element.prototype.beginExit = function (state) {
     };
 
-    Element.prototype.endExit = function (context) {
-//        if (console) {
-//            console.log("Leave: " + this.toString());
-//        }
+    Element.prototype.endExit = function (state) {
+        console.log("Leave: " + this.toString());
 
-        setActive(context, this, false);
+        setActive(state, this, false);
     };
 
-    Element.prototype.beginEnter = function (context) {
-        if (getActive(context, this)) {
-            this.beginExit(context);
-            this.endExit(context);
+    Element.prototype.beginEntry = function (state) {
+        if (getActive(state, this)) {
+            this.beginExit(state);
+            this.endExit(state);
         }
 	
-//        if (console) {
-//            console.log("Enter: " + this.toString());
-//        }
+        console.log("Enter: " + this.toString());
         
-        setActive(context, this, true);
+        setActive(state, this, true);
     };
 
-    Element.prototype.endEnter = function (context, deepHistory) {
+    Element.prototype.endEntry = function (state, deepHistory) {
     };
     
     Element.prototype.toString = function () {
@@ -289,11 +297,11 @@ function initStateJS(exports) {
     PseudoState.prototype = new Element();
     PseudoState.prototype.constructor = PseudoState;
 
-    PseudoState.prototype.endEnter = function (context, deepHistory) {
+    PseudoState.prototype.endEntry = function (state, deepHistory) {
         if (this.kind === PseudoStateKind.Terminate) {
-            context.IsTerminated = true;
+            state.IsTerminated = true;
         } else {
-            this.kind.completions(this.completions).traverse(context, deepHistory);
+            this.kind.completions(this.completions).traverse(state, deepHistory);
         }
     };
     
@@ -314,56 +322,66 @@ function initStateJS(exports) {
     SimpleState.prototype = new Element();
     SimpleState.prototype.constructor = SimpleState;
 
-    SimpleState.prototype.isComplete = function (context) {
+    SimpleState.prototype.isComplete = function (state) {
         return true;
     };
 
-    SimpleState.prototype.endExit = function (context) {
+    SimpleState.prototype.onExit = function (state) {
         var i, len;
         
         if (this.exit) {
             for (i = 0, len = this.exit.length; i < len; i = i + 1) {
-                this.exit[i]();
+                this.exit[i](state);
             }
         }
-        
-        Element.prototype.endExit.call(this, context);
     };
 
-    SimpleState.prototype.beginEnter = function (context) {
+    SimpleState.prototype.endExit = function (state) {
+        this.onExit(state);
+        
+        Element.prototype.endExit.call(this, state);
+    };
+
+    SimpleState.prototype.onEntry = function (state) {
         var i, len;
-
-        Element.prototype.beginEnter.call(this, context);
-
-        if (this.owner) {
-            setCurrent(context, this.owner, this);
-        }
 
         if (this.entry) {
             for (i = 0, len = this.entry.length; i < len; i = i + 1) {
-                this.entry[i]();
+                this.entry[i](state);
             }
         }
     };
 
-    SimpleState.prototype.endEnter = function (context, deepHistory) {
-        if (this.isComplete(context)) {
+    SimpleState.prototype.beginEntry = function (state) {
+
+        Element.prototype.beginEntry.call(this, state);
+
+        if (this.owner) {
+            setCurrent(state, this.owner, this);
+        }
+
+        this.onEntry(state);
+            
+    };
+
+    SimpleState.prototype.endEntry = function (state, deepHistory) {
+        if (this.isComplete(state)) {
             var result = single(this.completions, function (c) { return c.guard(); });
             
             if (result) {
-                result.traverse(context, deepHistory);
+                result.traverse(state, deepHistory);
             }
         }
     };
 
-    SimpleState.prototype.process = function (context, message) {
+    SimpleState.prototype.process = function (state, message) {
         var result = single(this.transitions, function (t) { return t.guard(message); });
                 
         if (!result) {
             return false;
         }
         
-        result.traverse(context, message);
+        result.traverse(state, message);
 
         return true;
     };
@@ -383,32 +401,32 @@ function initStateJS(exports) {
     CompositeState.prototype = new SimpleState();
     CompositeState.prototype.constructor = CompositeState;
 
-    CompositeState.prototype.isComplete = function (context) {
-        var current = getCurrent(context, this);
+    CompositeState.prototype.isComplete = function (state) {
+        var current = getCurrent(state, this);
         
-        return context.isTerminated || current === null || current.isFinalState || getActive(context, current) === false;
+        return state.isTerminated || current === null || current.isFinalState || getActive(state, current) === false;
     };
     
-    CompositeState.prototype.beginExit = function (context) {
-        var current = getCurrent(context, this);
+    CompositeState.prototype.beginExit = function (state) {
+        var current = getCurrent(state, this);
     
         if (current) {
-            current.beginExit(context);
-            current.endExit(context);
+            current.beginExit(state);
+            current.endExit(state);
         }
     };
     
-    CompositeState.prototype.endEnter = function (context, deepHistory) {
-        var current = (deepHistory || this.initial.kind.isHistory ? getCurrent(context, this) : this.initial) || this.initial;
+    CompositeState.prototype.endEntry = function (state, deepHistory) {
+        var current = (deepHistory || this.initial.kind.isHistory ? getCurrent(state, this) : this.initial) || this.initial;
     
-        current.beginEnter(context);
-        current.endEnter(context, deepHistory || this.initial.kind === PseudoStateKind.DeepHistory);
+        current.beginEntry(state);
+        current.endEntry(state, deepHistory || this.initial.kind === PseudoStateKind.DeepHistory);
     
-        SimpleState.prototype.endEnter.call(this, context, deepHistory);
+        SimpleState.prototype.endEntry.call(this, state, deepHistory);
     };
     
-    CompositeState.prototype.process = function (context, message) {
-        return SimpleState.prototype.process.call(this, context, message) || getCurrent(context, this).process(context, message);
+    CompositeState.prototype.process = function (state, message) {
+        return SimpleState.prototype.process.call(this, state, message) || getCurrent(state, this).process(state, message);
     };
     
     /**
@@ -428,12 +446,12 @@ function initStateJS(exports) {
     OrthogonalState.prototype = new SimpleState();
     OrthogonalState.prototype.constructor = OrthogonalState;
     
-    OrthogonalState.prototype.isComplete = function (context) {
+    OrthogonalState.prototype.isComplete = function (state) {
         var i, len;
         
-        if (!context.isTerminated) {
+        if (!state.isTerminated) {
             for (i = 0, len = this.regions.length; i < len; i = i + 1) {
-                if (!this.regions[i].isComplete(context)) {
+                if (!this.regions[i].isComplete(state)) {
                     return false;
                 }
             }
@@ -442,35 +460,35 @@ function initStateJS(exports) {
         return true;
     };
     
-    OrthogonalState.prototype.beginExit = function (context) {
+    OrthogonalState.prototype.beginExit = function (state) {
         var i, len;
         
         for (i = 0, len = this.regions.length; i < len; i = i + 1) {
-            if (getActive(context, this.regions[i])) {
-                this.regions[i].beginExit(context);
-                this.regions[i].endExit(context);
+            if (getActive(state, this.regions[i])) {
+                this.regions[i].beginExit(state);
+                this.regions[i].endExit(state);
             }
         }
     };
 
-    OrthogonalState.prototype.endEnter = function (context, deepHistory) {
+    OrthogonalState.prototype.endEntry = function (state, deepHistory) {
         var i, len;
 
         for (i = 0, len = this.regions.length; i < len; i = i + 1) {
-            this.regions[i].beginEnter(context);
-            this.regions[i].endEnter(context);
+            this.regions[i].beginEntry(state);
+            this.regions[i].endEntry(state);
         }
 
-        SimpleState.prototype.endEnter.call(context, deepHistory);
+        SimpleState.prototype.endEntry.call(state, deepHistory);
     };
 
-    OrthogonalState.prototype.process = function (context, message) {
+    OrthogonalState.prototype.process = function (state, message) {
         var i, len, result = false;
         
-        if (!context.isTerminated) {
-            if ((result = SimpleState.prototype.process.call(this, context, message)) === false) {
+        if (!state.isTerminated) {
+            if ((result = SimpleState.prototype.process.call(this, state, message)) === false) {
                 for (i = 0, len = this.regions.length; i < len; i = i + 1) {
-                    result = this.regions[i].process(context, message) || result;
+                    result = this.regions[i].process(state, message) || result;
                 }
             }
         }
@@ -497,7 +515,7 @@ function initStateJS(exports) {
     delete FinalState.prototype.comlpetions;
     delete FinalState.prototype.transitions;
     
-    FinalState.prototype.process = function (context, message) {
+    FinalState.prototype.process = function (state, message) {
         return false;
     };
 
@@ -524,54 +542,54 @@ function initStateJS(exports) {
     /**
      * Determines if a region is complete
      * @this {Region}
-     * @param {object} context - the state machine state.
+     * @param {object} state - the state machine state.
      * @return {bool} True if the region is complete.
      */
-    Region.prototype.isComplete = function (context) {
-        var current = getCurrent(context, this);
+    Region.prototype.isComplete = function (state) {
+        var current = getCurrent(state, this);
         
-        return context.isTerminated || current === null || current.isFinalState || getActive(context, current) === false;
+        return state.isTerminated || current === null || current.isFinalState || getActive(state, current) === false;
     };
 
     /**
      * Initialises a region to its inital state
      * @this {CompositeState}
-     * @param {object} context - the state machine state.
+     * @param {object} state - the state machine state.
      */
-    Region.prototype.initialise = function (context) {
-        this.beginEnter(context);
-        this.endEnter(context, false);
+    Region.prototype.initialise = function (state) {
+        this.beginEntry(state);
+        this.endEntry(state, false);
     };
 
-    Region.prototype.beginExit = function (context) {
-        var current = getCurrent(context, this);
+    Region.prototype.beginExit = function (state) {
+        var current = getCurrent(state, this);
 
         if (current) {
-            current.beginExit(context);
-            current.endExit(context);
+            current.beginExit(state);
+            current.endExit(state);
         }
     };
 
-    Region.prototype.endEnter = function (context, deepHistory) {
-        var current = (deepHistory || this.initial.kind.isHistory ? getCurrent(context, this) : this.initial) || this.initial;
+    Region.prototype.endEntry = function (state, deepHistory) {
+        var current = (deepHistory || this.initial.kind.isHistory ? getCurrent(state, this) : this.initial) || this.initial;
 
-        current.beginEnter(context);
-        current.endEnter(context, deepHistory || this.initial.kind === PseudoStateKind.DeepHistory);
+        current.beginEntry(state);
+        current.endEntry(state, deepHistory || this.initial.kind === PseudoStateKind.DeepHistory);
     };
 
     /**
      * Attempt to process a message against the region
      * @this {Region}
-     * @param {object} context - the state machine state.
+     * @param {object} state - the state machine state.
      * @param {object} message - the message to pass into the state machine.
      * @return {bool} True of if the message caused a transition execution.
      */
-    Region.prototype.process = function (context, message) {
-        if (context.isTerminated) {
+    Region.prototype.process = function (state, message) {
+        if (state.isTerminated) {
             return false;
         }
 
-        return getActive(context, this) && getCurrent(context, this).process(context, message);
+        return getActive(state, this) && getCurrent(state, this).process(state, message);
     };
 
     /**
@@ -592,15 +610,15 @@ function initStateJS(exports) {
     /**
      * Determines if a state machine is complete
      * @this {StateMachine}
-     * @param {object} context - the state machine state.
+     * @param {object} state - the state machine state.
      * @return {bool} True if the state machine is complete.
      */
-    StateMachine.prototype.isComplete = function (context) {
+    StateMachine.prototype.isComplete = function (state) {
         var i, len;
         
-        if (!context.isTerminated) {
+        if (!state.isTerminated) {
             for (i = 0, len = this.regions.length; i < len; i = i + 1) {
-                if (!this.regions[i].isComplete(context)) {
+                if (!this.regions[i].isComplete(state)) {
                     return false;
                 }
             }
@@ -612,49 +630,49 @@ function initStateJS(exports) {
     /**
      * Initialises a state machine to its inital state
      * @this {StateMachine}
-     * @param {object} context - the state machine state.
+     * @param {object} state - the state machine state.
      */
-    StateMachine.prototype.initialise = function (context) {
-        this.beginEnter(context);
-        this.endEnter(context, false);
+    StateMachine.prototype.initialise = function (state) {
+        this.beginEntry(state);
+        this.endEntry(state, false);
     };
     
-    StateMachine.prototype.beginExit = function (context) {
+    StateMachine.prototype.beginExit = function (state) {
         var i, len;
         
         for (i = 0, len = this.regions.length; i < len; i = i + 1) {
-            if (getActive(context, this.regions[i])) {
-                this.regions[i].beginExit(context);
-                this.regions[i].endExit(context);
+            if (getActive(state, this.regions[i])) {
+                this.regions[i].beginExit(state);
+                this.regions[i].endExit(state);
             }
         }
 	};
 
-    StateMachine.prototype.endEnter = function (context, deepHistory) {
+    StateMachine.prototype.endEntry = function (state, deepHistory) {
         var i, len;
         
         for (i = 0, len = this.regions.length; i < len; i = i + 1) {
-            this.regions[i].beginEnter(context);
-            this.regions[i].endEnter(context, deepHistory);
+            this.regions[i].beginEntry(state);
+            this.regions[i].endEntry(state, deepHistory);
         }
         
-        Element.prototype.endEnter.call(context, deepHistory);
+        Element.prototype.endEntry.call(state, deepHistory);
     };
 
     /**
      * Attempt to process a message against the state machine
      * @this {StateMachine}
-     * @param {object} context - the state machine state.
+     * @param {object} state - the state machine state.
      * @param {object} message - the message to pass into the state machine.
      * @return {bool} True of if the message caused a transition execution.
      */
-    StateMachine.prototype.process = function (context, message) {
+    StateMachine.prototype.process = function (state, message) {
         var i, len, result = false;
         
-        if (!context.isTerminated) {
+        if (!state.isTerminated) {
             
             for (i = 0, len = this.regions.length; i < len; i = i + 1) {
-                result = this.regions[i].process(context, message) || result;
+                result = this.regions[i].process(state, message) || result;
             }
         }
         
@@ -673,11 +691,11 @@ function initStateJS(exports) {
     exports.Transition = Transition;
 }
 
-// initialise in node.js context
+// initialise in node.js state
 if (this.exports) {
     initStateJS(this.exports);
 
-// initialise in the require.js context
+// initialise in the require.js state
 } else if (this.define) {
     this.define(function (require, exports, module) { "use strict"; initStateJS(exports); });
     
