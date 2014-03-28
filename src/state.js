@@ -41,6 +41,7 @@ function initStateJS(exports) {
         return result;
     }
 
+    // TODO: add similar methods to the state machine state on initialisation in StateMachine
     function setActive(state, element, value) {
         if (!state.steelbreeze_statejs_active) {
             state.steelbreeze_statejs_active = [];
@@ -78,7 +79,7 @@ function initStateJS(exports) {
      * @param {function} [guard] The guard condition that must evaluate true prior to traversing from source to target.
      */
     function Transition(source, target, guard) {
-        this.guard = guard || function () { return true; };
+        this.guard = guard || function (state) { return true; };
     
         if (target && (target !== null)) {
             var sourceAncestors = source.owner.ancestors(),
@@ -98,7 +99,7 @@ function initStateJS(exports) {
             this.target = target;
         }
 
-        source[guard && guard.length > 0 ? "transitions" : "completions"].push(this);
+        source[guard && guard.length > 1 ? "transitions" : "completions"].push(this);
     }
     
     Transition.prototype.onEffect = function (state, message) {
@@ -144,13 +145,13 @@ function initStateJS(exports) {
      * @param {object} [target] - The target state or pseudo state of the transition.
      */
     Transition.Else = function (source, target) {
-        Transition.call(this, source, target, function () { return false; });
+        Transition.call(this, source, target, function (state) { return false; });
     };
     
     Transition.Else.prototype = Transition.prototype;
     Transition.Else.prototype.constructor = Transition.Else;
 
-    function getInitialCompletion(completions) {
+    function getInitialCompletion(state, completions) {
         
         if (completions.length === 1) {
             return completions[0];
@@ -159,11 +160,11 @@ function initStateJS(exports) {
         throw "initial pseudo states must have one and only one outbound transition";
     }
     
-    function getChoiceCompletion(completions) {
+    function getChoiceCompletion(state, completions) {
         var i, len, results = [];
         
         for (i = 0, len = completions.length; i < len; i = i + 1) {
-            if (completions[i].guard()) {
+            if (completions[i].guard(state)) {
                 results.push(completions[i]);
             }
         }
@@ -175,8 +176,8 @@ function initStateJS(exports) {
         return single(completions, function (c) { return c instanceof Transition.Else; });
     }
     
-    function getJunctionCompletion(completions) {
-        var result = single(completions, function (c) { return c.guard(); });
+    function getJunctionCompletion(state, completions) {
+        var result = single(completions, function (c) { return c.guard(state); });
         
         if (result) {
             return result;
@@ -301,7 +302,7 @@ function initStateJS(exports) {
         if (this.kind === PseudoStateKind.Terminate) {
             state.IsTerminated = true;
         } else {
-            this.kind.completions(this.completions).traverse(state, deepHistory);
+            this.kind.completions(state, this.completions).traverse(state, deepHistory);
         }
     };
     
@@ -366,7 +367,7 @@ function initStateJS(exports) {
 
     SimpleState.prototype.endEntry = function (state, deepHistory) {
         if (this.isComplete(state)) {
-            var result = single(this.completions, function (c) { return c.guard(); });
+            var result = single(this.completions, function (c) { return c.guard(state); });
             
             if (result) {
                 result.traverse(state, deepHistory);
@@ -375,7 +376,7 @@ function initStateJS(exports) {
     };
 
     SimpleState.prototype.process = function (state, message) {
-        var result = single(this.transitions, function (t) { return t.guard(message); });
+        var result = single(this.transitions, function (t) { return t.guard(state, message); });
                 
         if (!result) {
             return false;

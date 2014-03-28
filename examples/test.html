@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>state.js v3.0.0 test</title>
+        <title>state.js v4.1.0 test</title>
 		<script src="../src/state.js"></script>
         <script>
             // create the state machine
@@ -23,13 +23,13 @@
             // create transitions between states (one with transition behaviour)
             var t0 = new Transition(initial, operational);
             var t1 = new Transition(history1, stopped);
-            var t2 = new Transition(stopped, running, function (s) { return s === "play"; });
-            var t3 = new Transition(active, stopped, function (s) { return s === "stop"; });
-            var t4 = new Transition(running, paused, function (s) { return s === "pause"; });
-            var t5 = new Transition(paused, running, function (s) { return s === "play"; });
-            var t6 = new Transition(operational, flipped, function (s) { return s === "flip"; });
-            var t7 = new Transition(flipped, operational, function (s) { return s === "flip"; });
-            var t8 = new Transition(operational, final, function (s) { return s === "off"; });
+            var t2 = new Transition(stopped, running, function (s, c) { return c === "play"; });
+            var t3 = new Transition(active, stopped, function (s, c) { return c === "stop"; });
+            var t4 = new Transition(running, paused, function (s, c) { return c === "pause"; });
+            var t5 = new Transition(paused, running, function (s, c) { return c === "play"; });
+            var t6 = new Transition(operational, flipped, function (s, c) { return c === "flip"; });
+            var t7 = new Transition(flipped, operational, function (s, c) { return c === "flip"; });
+            var t8 = new Transition(operational, final, function (s, c) { return s, c === "off"; });
             
             // add some behaviour
             active.entry = [EngageHead];
@@ -78,7 +78,7 @@
         </script>
     </head>
 	<body onload="init()">
-        <h1>state.js v3.0.b test</h1>
+        <h1>state.js v4.1.0 test</h1>
 		<p>This example implements a simple controller for a cassette player according to the model below:</p>
 		<p><img id="diagram" /></p>
 		<p>Press the buttons below to send events to the controller (check brower console for trace output):</p>

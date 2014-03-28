@@ -63,13 +63,13 @@
     
                 new Transition( initial, composite );
                 new Transition( new PseudoState( "initial", PseudoStateKind.Initial, composite ), c1 );
-                new Transition( c2, c1, function (command) {return command === "1";} );
-                new Transition( c1, j1, function (command) {return command === "2";} );
+                new Transition( c2, c1, function (state, command) {return command === "1";} );
+                new Transition( c1, j1, function (state, command) {return command === "2";} );
                 new Transition.Else( j1, o1 );
-                new Transition( o1, o2, function (command) {return command === "3";} );
-                new Transition( o2, c2, function (command) {return command === "4";} );
-                new Transition( composite, orthogonal, function (command) {return command === "5";} );
-                new Transition( composite, end, function (command) {return command === "x";} );
+                new Transition( o1, o2, function (state, command) {return command === "3";} );
+                new Transition( o2, c2, function (state, command) {return command === "4";} );
+                new Transition( composite, orthogonal, function (state, command) {return command === "5";} );
+                new Transition( composite, end, function (state, command) {return command === "x";} );
     
                 new Transition( new PseudoState( "initial", PseudoStateKind.Initial, region1 ), o1 );
                 new Transition( new PseudoState( "initial", PseudoStateKind.Initial, region2 ), o2 );
@@ -104,10 +104,10 @@
     
                 new Transition( initial, shallow );
                 new Transition( new PseudoState( "shallow", PseudoStateKind.ShallowHistory, shallow ), s1 );
-                new Transition( s1, s2, function(c) { return c === "move";} );
-                new Transition( shallow, deep, function(c) { return c === "go deep";} );
-                new Transition( deep, shallow, function(c) { return c === "go shallow";} );
-                new Transition( s2, end, function( c ) { return c === "end"; } );
+                new Transition( s1, s2, function(state, c) { return c === "move";} );
+                new Transition( shallow, deep, function(state, c) { return c === "go deep";} );
+                new Transition( deep, shallow, function(state, c) { return c === "go shallow";} );
+                new Transition( s2, end, function(state,c) { return c === "end"; } );
 
 				var sms = {};
 

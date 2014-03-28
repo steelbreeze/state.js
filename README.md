@@ -1,11 +1,15 @@
 # Welcome to state.js
 
-The current stable release is 4.0.2
+The current stable release is 4.1.0
 
 If you're using state.js I'd love to hear about it; please e-mail me at mesmo@steelbreeze.net 
 
-## Version 4
-Version 4 adds passing of the state machine state (a.k.a. context) to the Effect, Entry and Exit callbacks. This is only a breaking change in the area of message based transitions where the state machine state is passed to the Effect callback as the first parameter, with the message that caused the transition passed as the second parameter.
+## Version 4.1
+Version 4.1 adds passing of the state machine state (a.k.a. context) to the guard condintions of transitions.
+
+##Version 4
+Version 4 adds passing of the state machine state (a.k.a. context) to the Effect, Entry and Exit callbacks. This is only a breaking change in the area of message 
+based transitions where the state machine state is passed to the Effect callback as the first parameter, with the message that caused the transition passed as the second parameter.
 
 Added onEntry, onExit and onEffect methods to raise the Entry, Exit and Effect callbacks respectively; these can be replaced in derivative code as required where more complex behaviour is requied.
 
