@@ -480,7 +480,7 @@ function initStateJS(exports) {
             this.regions[i].endEntry(state);
         }
 
-        SimpleState.prototype.endEntry.call(state, deepHistory);
+        SimpleState.prototype.endEntry.call(this, state, deepHistory);
     };
 
     OrthogonalState.prototype.process = function (state, message) {
@@ -657,7 +657,7 @@ function initStateJS(exports) {
             this.regions[i].endEntry(state, deepHistory);
         }
         
-        Element.prototype.endEntry.call(state, deepHistory);
+        Element.prototype.endEntry.call(this, state, deepHistory);
     };
 
     /**
