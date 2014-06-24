@@ -88,6 +88,7 @@
 		<button type="button" onclick="machine.process( sms, 'flip' )">flip</button>
 		<button type="button" onclick="machine.process( sms, 'off' )">off</button>
 		<button type="button" onclick="init()">reset</button>
+		<button type="button" onclick="console.log( JSON.stringify( machine.getCurrent( sms ) ) )">current</button>
 		<p id="head">Head: </p>
 		<p id="motor">Motor: </p>
 	</body>

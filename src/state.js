@@ -271,6 +271,10 @@ function initStateJS(exports) {
     Element.prototype.endEntry = function (state, deepHistory) {
     };
     
+    Element.prototype.getCurrent = function (state) {
+        return { name: this.name };
+    };
+    
     Element.prototype.toString = function () {
         return this.qualifiedName();
     };
@@ -429,6 +433,16 @@ function initStateJS(exports) {
     CompositeState.prototype.process = function (state, message) {
         return SimpleState.prototype.process.call(this, state, message) || getCurrent(state, this).process(state, message);
     };
+
+    CompositeState.prototype.getCurrent = function (state) {
+        var result = Element.prototype.getCurrent.call(this, state), current = getCurrent(state, this);
+        
+        if (current) {
+            result.current = current.getCurrent(state);
+        }
+        
+        return result;
+    };
     
     /**
      * Creates an instance of an orthogonal state.
@@ -497,6 +511,20 @@ function initStateJS(exports) {
         return result;
     };
     
+    OrthogonalState.prototype.getCurrent = function (state) {
+        var result = Element.prototype.getCurrent.call(this, state), i, len;
+        result.regions = [];
+        
+        for (i = 0, len = this.regions.length; i < len; i = i + 1) {
+            if (getActive(state, this.regions[i])) {
+                result.regions[i] = this.regions[i].getCurrent(state);
+            }
+        }
+        
+        return result;
+    };
+    
+
     /**
      * Creates an instance of a final state.
      * @constructor
@@ -593,6 +621,16 @@ function initStateJS(exports) {
         return getActive(state, this) && getCurrent(state, this).process(state, message);
     };
 
+    Region.prototype.getCurrent = function (state) {
+        var result = Element.prototype.getCurrent.call(this, state), current = getCurrent(state, this);
+        
+        if (current) {
+            result.current = current.getCurrent(state);
+        }
+        
+        return result;
+    };
+    
     /**
      * Creates an instance of a state machine.
      * @constructor
@@ -680,6 +718,19 @@ function initStateJS(exports) {
         return result;
     };
 
+    StateMachine.prototype.getCurrent = function (state) {
+        var result = Element.prototype.getCurrent.call(this, state), i, len;
+        result.regions = [];
+        
+        for (i = 0, len = this.regions.length; i < len; i = i + 1) {
+            if (getActive(state, this.regions[i])) {
+                result.regions[i] = this.regions[i].getCurrent(state);
+            }
+        }
+        
+        return result;
+    };
+    
     // export the public API
     exports.PseudoStateKind = PseudoStateKind;
     exports.PseudoState = PseudoState;
