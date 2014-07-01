@@ -65,6 +65,7 @@
                 new Transition( new PseudoState( "initial", PseudoStateKind.Initial, composite ), c1 );
                 new Transition( c2, c1, function (state, command) {return command === "1";} );
                 new Transition( c1, j1, function (state, command) {return command === "2";} );
+                new Transition( j1, o1, function (state) {return state === "normal";} ); // should always be false
                 new Transition.Else( j1, o1 );
                 new Transition( o1, o2, function (state, command) {return command === "3";} );
                 new Transition( o2, c2, function (state, command) {return command === "4";} );

@@ -146,6 +146,7 @@ function initStateJS(exports) {
      */
     Transition.Else = function (source, target) {
         Transition.call(this, source, target, function (state) { return false; });
+        this.isElse = true;
     };
     
     Transition.Else.prototype = Transition.prototype;
@@ -173,7 +174,7 @@ function initStateJS(exports) {
             return results[(results.length - 1) * Math.random()];
         }
 
-        return single(completions, function (c) { return c instanceof Transition.Else; });
+        return single(completions, function (c) { return c.isElse; });
     }
     
     function getJunctionCompletion(state, completions) {
@@ -183,7 +184,7 @@ function initStateJS(exports) {
             return result;
         }
         
-        result = single(completions, function (c) { return c instanceof Transition.Else; });
+        result = single(completions, function (c) { return c.isElse; });
         
         if (result) {
             return result;
