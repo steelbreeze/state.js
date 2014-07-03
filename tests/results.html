@@ -122,11 +122,64 @@
 				result( "Shallow History: " + ( machine.isComplete( sms ) ? "passed" : "failed" ) );
 			}
 
+            function muximise1() {
+                var main = new Region("muximise1");
+
+                var initial = new PseudoState("initial", PseudoStateKind.Initial, main);
+                var ortho = new OrthogonalState("ortho", main);
+                var simple = new SimpleState("simple", main);
+                var final = new FinalState("final", main);
+
+                var r1 = new Region("r1", ortho);
+                var r2 = new Region("r2", ortho);
+
+                var i1 = new PseudoState("initial", PseudoStateKind.ShallowHistory, r1);
+                var i2 = new PseudoState("initial", PseudoStateKind.ShallowHistory, r2);
+
+                var s1 = new SimpleState("s1", r1);
+                var s2 = new SimpleState("s2", r2);
+
+                var f1 = new FinalState("f1", r1);
+                var f2 = new FinalState("f2", r2);
+
+                new Transition(initial, ortho);
+
+                new Transition(i1, s1);
+                new Transition(i2, s2);
+
+                new Transition(ortho, final); // This should happen once all regions in ortho are complete?
+
+                new Transition(s1, f1, function(s, c) {
+                    return c === "complete1";
+                });
+
+                new Transition(s2, f2, function(s, c) {
+                    return c === "complete2";
+                });
+
+                new Transition(ortho, simple, function(s, c) {
+                    return c === "jump";
+                });
+
+                new Transition(simple, ortho, function(s, c) {
+                    return c === "back";
+                });
+                
+                var state = {};				
+				main.initialise(state);
+
+                main.process(state, "complete1");
+                main.process(state, "complete2");
+            
+            	result("Muximuse test 1: " + (main.isComplete(state) ? "passed" : "failed"));
+            }
+            
 			function run()
 			{
 				compTest();
 				extTest();
 				shallowTest();
+                muximise1();
 			}			
 		</script>
 	</head>

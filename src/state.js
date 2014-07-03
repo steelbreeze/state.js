@@ -371,6 +371,10 @@ function initStateJS(exports) {
     };
 
     SimpleState.prototype.endEntry = function (state, deepHistory) {
+        this.evaluateCompletions(state, deepHistory);
+    };
+
+    SimpleState.prototype.evaluateCompletions = function (state, deepHistory) {
         if (this.isComplete(state)) {
             var result = single(this.completions, function (c) { return c.guard(state); });
             
@@ -379,7 +383,7 @@ function initStateJS(exports) {
             }
         }
     };
-
+    
     SimpleState.prototype.process = function (state, message) {
         var result = single(this.transitions, function (t) { return t.guard(state, message); });
                 
@@ -432,7 +436,14 @@ function initStateJS(exports) {
     };
     
     CompositeState.prototype.process = function (state, message) {
-        return SimpleState.prototype.process.call(this, state, message) || getCurrent(state, this).process(state, message);
+        var result = SimpleState.prototype.process.call(this, state, message) || getCurrent(state, this).process(state, message);
+        
+        // NOTE: the following code is the fix to bug #5; while this is now correct, it may introduce unexpected behaviour in old models
+        if (result === true) {
+            this.evaluateCompletions(state, false);
+        }
+        
+        return result;
     };
 
     CompositeState.prototype.getCurrent = function (state) {
@@ -507,6 +518,11 @@ function initStateJS(exports) {
                     result = this.regions[i].process(state, message) || result;
                 }
             }
+        }
+        
+        // NOTE: the following code is the fix to bug #5; while this is now correct, it may introduce unexpected behaviour in old models
+        if (result === true) {
+            this.evaluateCompletions(state, false);
         }
         
         return result;
