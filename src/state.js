@@ -1,24 +1,7 @@
-/* The MIT License (MIT)
- *
+/* State v4 finite state machine library
+ * http://www.steelbreeze.net/state.js
  * Copyright (c) 2014 Steelbreeze Limited
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * Licensed under MIT and GPL v3 licences
  */
 
 /*global console */
@@ -69,18 +52,36 @@ function initStateJS(exports) {
             return state.steelbreeze_statejs_current[element];
         }
     }
-
+    
+    function invoke1(behavior, p1) {
+        var i, l;
+        
+        for (i = 0, l = behavior.length; i < l; i = i + 1) {
+            behavior[i](p1);
+        }
+    }
+    
+    function invoke2(behavior, p1, p2) {
+        var i, l;
+        
+        for (i = 0, l = behavior.length; i < l; i = i + 1) {
+            behavior[i](p1, p2);
+        }
+    }
+    
     /**
      * Creates an instance of a transition.
      * @constructor
      * @this {Transition}
-     * @param {object} source - The source state or pseudo state of the transition.
-     * @param {object} [target] - The target state or pseudo state of the transition.
-     * @param {function} [guard] The guard condition that must evaluate true prior to traversing from source to target.
+     * @param {(PseudoState|SimpleState)} source - The source state or pseudo state of the transition.
+     * @param {(PseudoState|SimpleState)} [target] - The target state or pseudo state of the transition; to create an internal transition, omit the target by passing either undefined or null.
+     * @param {function} [guard] The guard condition that must evaluate true prior to traversing from source to target. Guard conditions are boolean functions: completion transition guards will take the state machine state as a parameter; message based transition guards will take the state machine state and triggering message as parameters.
      */
     function Transition(source, target, guard) {
         this.guard = guard || function (state) { return true; };
     
+        this.effect = [];
+        
         if (target && (target !== null)) {
             var sourceAncestors = source.owner.ancestors(),
                 targetAncestors = target.owner.ancestors(),
@@ -103,13 +104,7 @@ function initStateJS(exports) {
     }
     
     Transition.prototype.onEffect = function (state, message) {
-        var i, len;
-        
-        if (this.effect) {
-            for (i = 0, len = this.effect.length; i < len; i = i + 1) {
-                this.effect[i](state, message);
-            }
-        }
+        invoke2(this.effect, state, message);
     };
     
     Transition.prototype.traverse = function (state, message) {
@@ -141,8 +136,8 @@ function initStateJS(exports) {
      * @constructor
      * @augments Transition
      * @this {Transition.Else}
-     * @param {object} source - The source state or pseudo state of the transition.
-     * @param {object} [target] - The target state or pseudo state of the transition.
+     * @param {(PseudoState|SimpleState)} source - The source state or pseudo state of the transition.
+     * @param {(PseudoState|SimpleState)} target - The target state or pseudo state of the transition.
      */
     Transition.Else = function (source, target) {
         Transition.call(this, source, target, function (state) { return false; });
@@ -323,6 +318,12 @@ function initStateJS(exports) {
         
         this.completions = [];
         this.transitions = [];
+        
+        /** Array of callback functions defining the exit behavior of the state; each function will be passed the state machine state as a parameter */
+        this.exit = [];
+        
+        /** Array of callback functions defining the exit behavior of the state; each function will be passed the state machine state as a parameter */
+        this.entry = [];
     }
     
     SimpleState.prototype = new Element();
@@ -333,13 +334,7 @@ function initStateJS(exports) {
     };
 
     SimpleState.prototype.onExit = function (state) {
-        var i, len;
-        
-        if (this.exit) {
-            for (i = 0, len = this.exit.length; i < len; i = i + 1) {
-                this.exit[i](state);
-            }
-        }
+        invoke1(this.exit, state);
     };
 
     SimpleState.prototype.endExit = function (state) {
@@ -349,13 +344,7 @@ function initStateJS(exports) {
     };
 
     SimpleState.prototype.onEntry = function (state) {
-        var i, len;
-
-        if (this.entry) {
-            for (i = 0, len = this.entry.length; i < len; i = i + 1) {
-                this.entry[i](state);
-            }
-        }
+        invoke1(this.entry, state);
     };
 
     SimpleState.prototype.beginEntry = function (state) {
