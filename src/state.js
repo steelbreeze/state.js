@@ -425,7 +425,8 @@ function initStateJS(exports) {
     };
     
     CompositeState.prototype.process = function (state, message) {
-        var result = SimpleState.prototype.process.call(this, state, message) || getCurrent(state, this).process(state, message);
+//        var result = SimpleState.prototype.process.call(this, state, message) || getCurrent(state, this).process(state, message);
+        var result = getCurrent(state, this).process(state, message) || SimpleState.prototype.process.call(this, state, message);
         
         // NOTE: the following code is the fix to bug #5; while this is now correct, it may introduce unexpected behaviour in old models
         if (result === true) {
@@ -502,10 +503,13 @@ function initStateJS(exports) {
         var i, len, result = false;
         
         if (!state.isTerminated) {
-            if ((result = SimpleState.prototype.process.call(this, state, message)) === false) {
-                for (i = 0, len = this.regions.length; i < len; i = i + 1) {
-                    result = this.regions[i].process(state, message) || result;
-                }
+//            if ((result = SimpleState.prototype.process.call(this, state, message)) === false) {
+            for (i = 0, len = this.regions.length; i < len; i = i + 1) {
+                result = this.regions[i].process(state, message) || result;
+            }
+            
+            if (result === false) {
+                result = SimpleState.prototype.process.call(this, state, message);
             }
         }
         

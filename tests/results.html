@@ -174,12 +174,34 @@
             	result("Muximuse test 1: " + (main.isComplete(state) ? "passed" : "failed"));
             }
             
+            function brice1() {
+                var main = new Region("brice");
+                var initial1 = new PseudoState("initial", PseudoStateKind.Initial, main);
+                var myComposite1 = new CompositeState("MyComposite1", main);
+                var myComposite2 = new SimpleState("MyComposite2", main);
+                var initial2 = new PseudoState("initial", PseudoStateKind.Initial, myComposite1);
+                var state1 = new SimpleState("State1", myComposite1);
+                var state2 = new SimpleState("State1", myComposite1);
+                
+                new Transition(initial1, myComposite1);
+                new Transition(initial2, state1);
+                new Transition(myComposite1, myComposite2, function(s,c) { return c === "A";}).effect = [function() { result("Brice test1: failed"); }];
+                new Transition(state1, state2, function(s,c) { return c === "A";}).effect = [function() { result("Brice test1: passed"); }];
+                
+                var state = {};				
+				main.initialise(state);
+
+                main.process(state, "A");
+
+            }
+            
 			function run()
 			{
 				compTest();
 				extTest();
 				shallowTest();
                 muximise1();
+                brice1();
 			}			
 		</script>
 	</head>
