@@ -1,6 +1,6 @@
 # Welcome to state.js
 
-The current stable release is 4.1.5
+The current stable release is 4.1.6
 
 If you're using state.js I'd love to hear about it; please e-mail me at mesmo@steelbreeze.net 
 
