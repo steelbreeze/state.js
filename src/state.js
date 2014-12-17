@@ -4,7 +4,6 @@
  * Licensed under MIT and GPL v3 licences
  */
 
-/*global console */
 function initStateJS(exports) {
     "use strict";
     
@@ -248,8 +247,6 @@ function initStateJS(exports) {
     };
 
     Element.prototype.endExit = function (state) {
-        console.log("Leave: " + this.toString());
-
         setActive(state, this, false);
     };
 
@@ -259,8 +256,6 @@ function initStateJS(exports) {
             this.endExit(state);
         }
 	
-        console.log("Enter: " + this.toString());
-        
         setActive(state, this, true);
     };
 
