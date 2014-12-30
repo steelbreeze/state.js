@@ -1,6 +1,6 @@
 {
     "name": "state.js",
-    "version": "4.1.6",
+    "version": "5.0.0",
     "author": "Steelbreeze <mesmo@steelbreeze.net>",
     "description": "Hierarchical finite state machine library for JavaScript",
     "main": "./src/state",
