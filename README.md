@@ -1,14 +1,14 @@
 # Welcome to state.js
 
-The current stable release is 4.1.6
+The current stable release is 4.1.7
 
-If you're using state.js I'd love to hear about it; please e-mail me at mesmo@steelbreeze.net 
+If you're using state.js I'd love to hear about it; please e-mail me at mesmo@steelbreeze.net
 
 ## Version 4.1
 Version 4.1 adds passing of the state machine state (a.k.a. context) to the guard condintions of transitions.
 
 ##Version 4
-Version 4 adds passing of the state machine state (a.k.a. context) to the Effect, Entry and Exit callbacks. This is only a breaking change in the area of message 
+Version 4 adds passing of the state machine state (a.k.a. context) to the Effect, Entry and Exit callbacks. This is only a breaking change in the area of message
 based transitions where the state machine state is passed to the Effect callback as the first parameter, with the message that caused the transition passed as the second parameter.
 
 Added onEntry, onExit and onEffect methods to raise the Entry, Exit and Effect callbacks respectively; these can be replaced in derivative code as required where more complex behaviour is requied.
@@ -20,7 +20,7 @@ The licence has also moved to MIT only.
 ## Introduction
 State.js is a JavaScript implementation of a state machine library that supports most of the UML 2 state machine semantics.
 
-State.js provides a hierarchical state machine capable of managing orthogonal regions; a variety of pseudo state kinds are implemented including initial, shallow & deep history, choice, junction and terminate. 
+State.js provides a hierarchical state machine capable of managing orthogonal regions; a variety of pseudo state kinds are implemented including initial, shallow & deep history, choice, junction and terminate.
 
 ## Versioning
 The versions are in the form {major}.{minor}.{build}
