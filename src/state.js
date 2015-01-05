@@ -4,10 +4,11 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-// State v4 finite state machine library
-// http://www.steelbreeze.net/state.js
-// Copyright (c) 2014 Steelbreeze Limited
-// Licensed under MIT and GPL v3 licences
+/* State v5 finite state machine library
+ * http://www.steelbreeze.net/state.js
+ * Copyright (c) 2014-5 Steelbreeze Limited
+ * Licensed under MIT and GPL v3 licences
+ */
 var FSM;
 (function (FSM) {
     function invoke(actions, p1, p2, p3) {
@@ -17,6 +18,7 @@ var FSM;
             }
         }
     }
+    // DONE: TODO: remove this line
     var DictionaryContext = (function () {
         function DictionaryContext(name) {
             this.name = name;
@@ -24,11 +26,11 @@ var FSM;
         }
         DictionaryContext.prototype.setCurrent = function (region, value) {
             if (region) {
-                this.dictionary[region.qualifiedName] = value;
+                this.last[region.qualifiedName] = value;
             }
         };
         DictionaryContext.prototype.getCurrent = function (region) {
-            return this.dictionary[region.qualifiedName];
+            return this.last[region.qualifiedName];
         };
         DictionaryContext.prototype.toString = function () {
             return this.name;
@@ -36,6 +38,7 @@ var FSM;
         return DictionaryContext;
     })();
     FSM.DictionaryContext = DictionaryContext;
+    // DONE: TODO: remove this line
     var NamedElement = (function () {
         function NamedElement(name, parent) {
             this.name = name;

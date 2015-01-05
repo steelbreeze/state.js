@@ -1,9 +1,9 @@
 # Welcome to state.js
 
-The current stable release is 4.1.6 on the master branch.
+The current stable release is 4.1.7 on the master branch.
 This is the version 5 development branch and currently incomplete.
 
-If you're using state.js I'd love to hear about it; please e-mail me at mesmo@steelbreeze.net 
+If you're using state.js I'd love to hear about it; please e-mail me at mesmo@steelbreeze.net
 
 ## Version 5
 Version 5 is a complete re-write from version 4.x.x:
@@ -14,7 +14,7 @@ Version 5 is a complete re-write from version 4.x.x:
 ## Introduction
 State.js is a JavaScript implementation of a state machine library that supports most of the UML 2 state machine semantics.
 
-State.js provides a hierarchical state machine capable of managing orthogonal regions; a variety of pseudo state kinds are implemented including initial, shallow & deep history, choice, junction and terminate. 
+State.js provides a hierarchical state machine capable of managing orthogonal regions; a variety of pseudo state kinds are implemented including initial, shallow & deep history, choice, junction and terminate.
 
 ## Versioning
 The versions are in the form {major}.{minor}.{build}
