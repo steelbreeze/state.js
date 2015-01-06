@@ -22,6 +22,7 @@ var FSM;
     var DictionaryContext = (function () {
         function DictionaryContext(name) {
             this.name = name;
+            this.last = {};
             this.isTerminated = false;
         }
         DictionaryContext.prototype.setCurrent = function (region, value) {
@@ -51,6 +52,7 @@ var FSM;
         return NamedElement;
     })();
     FSM.NamedElement = NamedElement;
+    // DONE: TODO: remove this line
     var StateMachineElement = (function (_super) {
         __extends(StateMachineElement, _super);
         function StateMachineElement(name, parent) {
@@ -72,12 +74,13 @@ var FSM;
         };
         StateMachineElement.prototype.bootstrap = function (deepHistoryAbove) {
             var element = this;
+            // TODO: remove console.log on final release
             this.leave.push(function (message, context, history) {
                 console.log(context + " leave " + element);
-            }); // TODO: turn into static function
+            });
             this.beginEnter.push(function (message, context, history) {
                 console.log(context + " enter " + element);
-            }); // TODO: turn into static function
+            });
             this.enter = this.beginEnter.concat(this.endEnter);
         };
         StateMachineElement.prototype.bootstrapEnter = function (traverse, next) {
@@ -86,11 +89,13 @@ var FSM;
         return StateMachineElement;
     })(NamedElement);
     FSM.StateMachineElement = StateMachineElement;
+    // DONE: TODO: remove this line
     var Vertex = (function (_super) {
         __extends(Vertex, _super);
-        function Vertex(name, parent) {
+        function Vertex(name, parent, selector) {
             _super.call(this, name, parent);
             this.transitions = [];
+            this.selector = selector;
             if (parent) {
                 parent.vertices.push(this);
                 this.root.clean = false;
@@ -120,11 +125,21 @@ var FSM;
                 this.evaluate(this, context);
             }
         };
+        Vertex.prototype.isFinal = function () {
+            return this.transitions.length === 0;
+        };
         Vertex.prototype.isComplete = function (context) {
             return true;
         };
         Vertex.prototype.evaluate = function (message, context) {
-            // TODO: complete eval
+            var transition = this.selector(this.transitions, message, context);
+            if (transition) {
+                invoke(transition.traverse, message, context, false);
+                return true;
+            }
+            else {
+                return false;
+            }
         };
         return Vertex;
     })(StateMachineElement);
@@ -193,7 +208,7 @@ var FSM;
     var PseudoState = (function (_super) {
         __extends(PseudoState, _super);
         function PseudoState(name, parent, kind) {
-            _super.call(this, name, parent);
+            _super.call(this, name, parent, pseudoState(kind));
             this.kind = kind;
             if (isInitial(kind)) {
                 parent.initial = this;
@@ -213,7 +228,7 @@ var FSM;
     var State = (function (_super) {
         __extends(State, _super);
         function State(name, parent) {
-            _super.call(this, name, parent);
+            _super.call(this, name, parent, state);
             this.regions = [];
             this.exitActions = [];
             this.entryActions = [];
@@ -364,4 +379,28 @@ var FSM;
         return Transition;
     })();
     FSM.Transition = Transition;
+    function pseudoState(kind) {
+        // TODO: add other pseudostatekind selectors
+        return initial;
+    }
+    function state(transitions, message, context) {
+        var result;
+        for (var i = 0, l = transitions.length; i < l; i++) {
+            if (transitions[i].guard(message, context)) {
+                if (result) {
+                    throw "Multiple outbound transitions evaluated true";
+                }
+                result = transitions[i];
+            }
+        }
+        return result;
+    }
+    function initial(transitions, message, context) {
+        if (transitions.length === 1) {
+            return transitions[0];
+        }
+        else {
+            throw "Initial transition must have a single outbound transition";
+        }
+    }
 })(FSM || (FSM = {}));

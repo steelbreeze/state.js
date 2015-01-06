@@ -4,8 +4,10 @@
  * Licensed under MIT and GPL v3 licences
  */
 module FSM {
-    export interface Action<T1, T2, T3> { (p1: T1, p2: T2, p3: T3): void }
-    export interface Actions<T1, T2, T3> extends Array<Action<T1, T2, T3>> {}
+    // TODO: make these private
+    export interface Func<T1, T2, T3, TR> { (p1: T1, p2: T2, p3: T3): TR }
+    export interface Action<T1, T2, T3> extends Func<T1, T2, T3, void> { }
+    export interface Actions<T1, T2, T3> extends Array<Action<T1, T2, T3>> { }
     export interface Predicate<T1, T2> { (p1: T1, p2: T2):Boolean }
 
     function invoke<T1, T2, T3>(actions: Actions<T1, T2, T3>, p1?: T1, p2?: T2, p3?: T3): void {
@@ -30,7 +32,7 @@ module FSM {
 
     // DONE: TODO: remove this line
     export class DictionaryContext implements IContext {
-        private last: StateDictionary;
+        private last: StateDictionary = {};
 
         public isTerminated: Boolean = false;
 
@@ -66,6 +68,7 @@ module FSM {
         }
     }
 
+    // DONE: TODO: remove this line
     export class StateMachineElement extends NamedElement {
         root: StateMachine;
         leave: Actions<any, IContext, Boolean>;
@@ -97,8 +100,9 @@ module FSM {
         bootstrap(deepHistoryAbove: Boolean): void {
             var element = this;
 
-            this.leave.push(function(message: any, context: IContext, history: Boolean) { console.log(context + " leave " + element); }); // TODO: turn into static function
-            this.beginEnter.push(function(message: any, context: IContext, history: Boolean) { console.log(context + " enter " + element); }); // TODO: turn into static function
+            // TODO: remove console.log on final release
+            this.leave.push(function(message: any, context: IContext, history: Boolean) { console.log(context + " leave " + element); });
+            this.beginEnter.push(function(message: any, context: IContext, history: Boolean) { console.log(context + " enter " + element); });
 
             this.enter = this.beginEnter.concat(this.endEnter);
         }
@@ -108,12 +112,16 @@ module FSM {
         }
     }
 
+    // DONE: TODO: remove this line
     export class Vertex extends StateMachineElement {
         transitions: Transition[] = [];
-
-        constructor(name: string, parent: Region) {
+        selector: Func<Transition[], any, IContext, Transition>;
+        
+        constructor(name: string, parent: Region, selector: Func<Transition[], any, IContext, Transition>) {
             super(name, parent);
 
+            this.selector = selector;
+            
             if (parent) {
                 parent.vertices.push(this);
 
@@ -151,12 +159,24 @@ module FSM {
             }
         }
 
+        isFinal(): Boolean {
+            return this.transitions.length === 0;
+        }
+        
         isComplete(context: IContext): Boolean {
             return true;
         }
 
-        evaluate(message: any, context: IContext) {
-            // TODO: complete eval
+        evaluate(message: any, context: IContext): Boolean {
+            var transition: Transition = this.selector(this.transitions, message, context);
+            
+            if (transition) {
+                invoke(transition.traverse, message, context, false);
+                
+                return true;
+            } else {
+                return false
+            }
         }
     }
 
@@ -222,7 +242,7 @@ module FSM {
 
     export class PseudoState extends Vertex {
         constructor(name: string, parent: Region, public kind: PseudoStateKind) {
-            super(name, parent);
+            super(name, parent, pseudoState(kind));
 
             if (isInitial(kind)) {
                 parent.initial = this;
@@ -244,7 +264,7 @@ module FSM {
         entryActions: Actions<any, IContext, Boolean> = [];
 
         constructor(name: string, parent: Region) {
-            super(name, parent);
+            super(name, parent, state);
         }
 
         exit<TMessage>(action: Action<TMessage, IContext, Boolean>): State {
@@ -423,4 +443,33 @@ module FSM {
             }
         }
     }
+    
+    function pseudoState(kind: PseudoStateKind): Func<Transition[], any, IContext, Transition> {
+        // TODO: add other pseudostatekind selectors
+        return initial;
+    }
+        
+    function state(transitions: Transition[], message: any, context: IContext): Transition {
+        var result: Transition;
+                
+        for (var i:number = 0, l:number = transitions.length; i < l; i++) {
+            if(transitions[i].guard(message, context)) {
+                if(result) {
+                    throw "Multiple outbound transitions evaluated true";
+                }
+
+                result = transitions[i];
+            }
+        }
+        
+        return result;
+    }
+    
+    function initial(transitions: Transition[], message: any, context: IContext): Transition {
+        if(transitions.length === 1) {
+            return transitions[0];
+        } else {
+            throw "Initial transition must have a single outbound transition";
+        }
+    }        
 }

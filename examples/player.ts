@@ -36,7 +36,7 @@ var region3 = new FSM.Region("default", active);
 var running = new FSM.State("running", region3).entry(startMotor).exit(stopMotor);
 var paused = new FSM.State("paused", region3);
 
-initial.To(operational).effect(disengageHead).effect(startMotor);
+initial.To(operational).effect(disengageHead).effect(stopMotor);
 dhistory.To(stopped);
 stopped.To(running).when<String>(function(command: String): Boolean { return command === "play"; });
 active.To(stopped).when<String>(function(command: String): Boolean { return command === "stop"; });
