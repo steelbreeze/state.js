@@ -4,19 +4,19 @@
 // Licensed under MIT and GPL v3 licences
 /// <reference path="../src/state.ts" />
 
-function engageHead() {
+function engageHead(): void {
     console.log("- engaging head");
 }
 
-function disengageHead() {
+function disengageHead(): void {
     console.log("- disengaging head");
 }
 
-function startMotor() {
+function startMotor(): void {
     console.log("- starting motor");
 }
 
-function stopMotor() {
+function stopMotor(): void {
     console.log("- stopping motor");
 }
 
