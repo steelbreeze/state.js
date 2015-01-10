@@ -50,3 +50,5 @@ choice.To(operational).effect(function(): void { console.log("- transition B bac
 var context = new FSM.DictionaryContext("example");
 
 model.initialise(context);
+
+model.evaluate("rand", context);

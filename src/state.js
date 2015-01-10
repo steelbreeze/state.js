@@ -12,8 +12,9 @@ var __extends = this.__extends || function (d, b) {
 var FSM;
 (function (FSM) {
     function invoke(actions, p1, p2, p3) {
+        var i, l;
         if (actions) {
-            for (var i = 0, l = actions.length; i < l; i++) {
+            for (i = 0, l = actions.length; i < l; i++) {
                 actions[i](p1, p2, p3);
             }
         }
@@ -144,13 +145,14 @@ var FSM;
         return Vertex;
     })(StateMachineElement);
     FSM.Vertex = Vertex;
+    // DONE: TODO: remove this line
     var Region = (function (_super) {
         __extends(Region, _super);
         function Region(name, parent) {
             _super.call(this, name, parent);
             this.vertices = [];
             parent.regions.push(this);
-            this.root.clean = false;
+            this.root.clean = false; // TODO: move into StateMachineElement?
         }
         Region.prototype.isComplete = function (context) {
             return context.getCurrent(this).isFinal();
@@ -168,11 +170,11 @@ var FSM;
                     invoke(current.leave, message, context, history);
                 }
             });
-            if (deepHistoryAbove || !this.initial || isHistory(this.initial.kind)) {
+            if (deepHistoryAbove || !this.initial || this.initial.isHistory()) {
                 var init = this.initial;
                 this.endEnter.push(function (message, context, history) {
                     var ini = init;
-                    if (history || isHistory(init.kind)) {
+                    if (history || init.isHistory()) {
                         ini = context.getCurrent(region) || init;
                     }
                     invoke(ini.enter, message, context, history || (init.kind === 1 /* DeepHistory */));
@@ -188,35 +190,42 @@ var FSM;
                 this.vertices[i].bootstrapTransitions();
             }
         };
+        Region.prototype.evaluate = function (message, context) {
+            return context.getCurrent(this).evaluate(message, context);
+        };
+        Region.defaultName = "default";
         return Region;
     })(StateMachineElement);
     FSM.Region = Region;
+    // DONE: TODO: remove this line
     (function (PseudoStateKind) {
         PseudoStateKind[PseudoStateKind["Choice"] = 0] = "Choice";
         PseudoStateKind[PseudoStateKind["DeepHistory"] = 1] = "DeepHistory";
         PseudoStateKind[PseudoStateKind["Initial"] = 2] = "Initial";
-        PseudoStateKind[PseudoStateKind["ShallowHistory"] = 3] = "ShallowHistory";
-        PseudoStateKind[PseudoStateKind["Terminate"] = 4] = "Terminate";
+        PseudoStateKind[PseudoStateKind["Junction"] = 3] = "Junction";
+        PseudoStateKind[PseudoStateKind["ShallowHistory"] = 4] = "ShallowHistory";
+        PseudoStateKind[PseudoStateKind["Terminate"] = 5] = "Terminate";
     })(FSM.PseudoStateKind || (FSM.PseudoStateKind = {}));
     var PseudoStateKind = FSM.PseudoStateKind;
-    function isHistory(kind) {
-        return kind === 1 /* DeepHistory */ || kind === 3 /* ShallowHistory */;
-    }
-    function isInitial(kind) {
-        return kind === 2 /* Initial */ || isHistory(kind);
-    }
+    // DONE: TODO: remove this line
     var PseudoState = (function (_super) {
         __extends(PseudoState, _super);
         function PseudoState(name, parent, kind) {
             _super.call(this, name, parent, pseudoState(kind));
             this.kind = kind;
-            if (isInitial(kind)) {
+            if (this.isInitial()) {
                 parent.initial = this;
             }
         }
+        PseudoState.prototype.isHistory = function () {
+            return this.kind === 1 /* DeepHistory */ || this.kind === 4 /* ShallowHistory */;
+        };
+        PseudoState.prototype.isInitial = function () {
+            return this.kind === 2 /* Initial */ || this.isHistory();
+        };
         PseudoState.prototype.bootstrap = function (deepHistoryAbove) {
             _super.prototype.bootstrap.call(this, deepHistoryAbove);
-            if (this.kind === 4 /* Terminate */) {
+            if (this.kind === 5 /* Terminate */) {
                 this.enter.push(function (message, context, history) {
                     context.isTerminated = true;
                 });
@@ -225,6 +234,7 @@ var FSM;
         return PseudoState;
     })(Vertex);
     FSM.PseudoState = PseudoState;
+    // DONE: TODO: remove this line
     var State = (function (_super) {
         __extends(State, _super);
         function State(name, parent) {
@@ -289,6 +299,22 @@ var FSM;
                     traverse = traverse.concat(region.enter);
                 }
             }
+        };
+        State.prototype.evaluate = function (message, context) {
+            var processed = false;
+            for (var i = 0, l = this.regions.length; i < l; i++) {
+                var region = this.regions[i];
+                if (region.evaluate(message, context)) {
+                    processed = true;
+                }
+            }
+            if (processed === false) {
+                processed = _super.prototype.evaluate.call(this, message, context);
+            }
+            if (processed === true) {
+                this.evaluateCompletions(this, context, false);
+            }
+            return processed;
         };
         return State;
     })(Vertex);
@@ -380,8 +406,18 @@ var FSM;
     })();
     FSM.Transition = Transition;
     function pseudoState(kind) {
-        // TODO: add other pseudostatekind selectors
-        return initial;
+        switch (kind) {
+            case 2 /* Initial */:
+            case 1 /* DeepHistory */:
+            case 4 /* ShallowHistory */:
+                return initial;
+            case 3 /* Junction */:
+                return junction;
+            case 0 /* Choice */:
+                return choice;
+            case 5 /* Terminate */:
+                return terminate;
+        }
     }
     function state(transitions, message, context) {
         var result;

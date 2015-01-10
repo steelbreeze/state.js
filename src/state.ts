@@ -6,13 +6,15 @@
 module FSM {
     // TODO: make these private
     export interface Func<T1, T2, T3, TR> { (p1: T1, p2: T2, p3: T3): TR }
-    export interface Action<T1, T2, T3> extends Func<T1, T2, T3, void> { }
+    export interface Action<T1, T2, T3> { (p1: T1, p2: T2, p3: T3): void }
     export interface Actions<T1, T2, T3> extends Array<Action<T1, T2, T3>> { }
     export interface Predicate<T1, T2> { (p1: T1, p2: T2):Boolean }
 
     function invoke<T1, T2, T3>(actions: Actions<T1, T2, T3>, p1?: T1, p2?: T2, p3?: T3): void {
+        var i: number, l: number;
+        
         if (actions) {
-            for (var i:number = 0, l:number = actions.length; i < l; i++) {
+            for (i = 0, l = actions.length; i < l; i++) {
                 actions[i](p1, p2, p3);
             }
         }
@@ -86,7 +88,7 @@ module FSM {
             this.reset();
         }
 
-        ancestors(): StateMachineElement[] {
+        ancestors(): Array<StateMachineElement> {
             return (this.parent ? this.parent.ancestors() : []).concat(this);
         }
 
@@ -114,10 +116,10 @@ module FSM {
 
     // DONE: TODO: remove this line
     export class Vertex extends StateMachineElement {
-        transitions: Transition[] = [];
-        selector: Func<Transition[], any, IContext, Transition>;
+        transitions: Array<Transition> = [];
+        selector: Func<Array<Transition>, any, IContext, Transition>;
         
-        constructor(name: string, parent: Region, selector: Func<Transition[], any, IContext, Transition>) {
+        constructor(name: string, parent: Region, selector: Func<Array<Transition>, any, IContext, Transition>) {
             super(name, parent);
 
             this.selector = selector;
@@ -180,15 +182,17 @@ module FSM {
         }
     }
 
+    // DONE: TODO: remove this line
     export class Region extends StateMachineElement {
-        vertices: Vertex[] = [];
+        static defaultName: string = "default";
+        vertices: Array<Vertex> = [];
         initial: PseudoState;
-
+        
         constructor(name: string, parent: State) {
             super(name, parent);
 
             parent.regions.push(this);
-            this.root.clean = false;
+            this.root.clean = false; // TODO: move into StateMachineElement?
         }
 
         isComplete(context: IContext): Boolean {
@@ -206,10 +210,10 @@ module FSM {
 
             this.leave.push(function(message: any, context: IContext, history: Boolean) { var current = context.getCurrent(region); if (current.leave) { invoke(current.leave, message, context, history); } });
 
-            if (deepHistoryAbove || !this.initial || isHistory(this.initial.kind)) {
+            if (deepHistoryAbove || !this.initial || this.initial.isHistory()) {
                 var init: PseudoState = this.initial;
 
-                this.endEnter.push(function(message: any, context: IContext, history: Boolean) { var ini:Vertex = init; if (history || isHistory(init.kind)) {ini = context.getCurrent(region) || init;} invoke(ini.enter, message, context, history || (init.kind === PseudoStateKind.DeepHistory)); });
+                this.endEnter.push(function(message: any, context: IContext, history: Boolean) { var ini:Vertex = init; if (history || init.isHistory()) {ini = context.getCurrent(region) || init;} invoke(ini.enter, message, context, history || (init.kind === PseudoStateKind.DeepHistory)); });
             } else {
                 this.endEnter = this.endEnter.concat(this.initial.enter);
             }
@@ -222,44 +226,52 @@ module FSM {
                 this.vertices[i].bootstrapTransitions();
             }
         }
+        
+        evaluate(message: any, context: IContext): Boolean {
+            return context.getCurrent(this).evaluate(message, context);
+        }
     }
 
+    // DONE: TODO: remove this line
     export enum PseudoStateKind {
         Choice,
         DeepHistory,
         Initial,
+        Junction,
         ShallowHistory,
         Terminate
     }
 
-    function isHistory(kind: PseudoStateKind): Boolean {
-        return kind === PseudoStateKind.DeepHistory || kind === PseudoStateKind.ShallowHistory;
-    }
-
-    function isInitial(kind: PseudoStateKind): Boolean {
-        return kind === PseudoStateKind.Initial || isHistory(kind);
-    }
-
+    // DONE: TODO: remove this line
     export class PseudoState extends Vertex {
         constructor(name: string, parent: Region, public kind: PseudoStateKind) {
             super(name, parent, pseudoState(kind));
 
-            if (isInitial(kind)) {
+            if (this.isInitial()) {
                 parent.initial = this;
             }
+        }
+
+        isHistory(): Boolean {
+            return this.kind === PseudoStateKind.DeepHistory || this.kind === PseudoStateKind.ShallowHistory;
+        }
+
+        isInitial(): Boolean {
+            return this.kind === PseudoStateKind.Initial || this.isHistory();
         }
 
         bootstrap(deepHistoryAbove: Boolean): void {
             super.bootstrap(deepHistoryAbove);
 
             if (this.kind === PseudoStateKind.Terminate) {
-                this.enter.push(function(message: any, context: IContext, history: Boolean) { context.isTerminated = true; });
+                this.enter.push(function(message: any, context: IContext, history: Boolean): void { context.isTerminated = true; });
             }
         }
     }
 
+    // DONE: TODO: remove this line
     export class State extends Vertex {
-        regions: Region[] = [];
+        regions: Array<Region> = [];
         exitActions: Actions<any, IContext, Boolean> = [];
         entryActions: Actions<any, IContext, Boolean> = [];
 
@@ -334,13 +346,35 @@ module FSM {
         bootstrapEnter(traverse: Actions<any, IContext, Boolean>, next: StateMachineElement) {
             super.bootstrapEnter(traverse, next);
 
-        for( var i:number = 0, l:number = this.regions.length; i < l; i++) {
+            for( var i:number = 0, l:number = this.regions.length; i < l; i++) {
                 var region: Region = this.regions[i];
 
                 if (region !== next) {
                     traverse = traverse.concat(region.enter);
                 }
             }
+        }
+        
+        evaluate(message: any, context: IContext): Boolean {
+            var processed: Boolean = false;
+            
+            for( var i:number = 0, l:number = this.regions.length; i < l; i++) {
+                var region: Region = this.regions[i];
+                
+                if(region.evaluate(message, context)) {
+                    processed = true;
+                }
+            }
+            
+            if(processed === false) {
+                processed = super.evaluate(message, context);
+            }
+            
+            if(processed === true) {
+                this.evaluateCompletions(this, context, false);
+            }
+            
+            return processed;
         }
     }
 
@@ -444,12 +478,26 @@ module FSM {
         }
     }
     
-    function pseudoState(kind: PseudoStateKind): Func<Transition[], any, IContext, Transition> {
-        // TODO: add other pseudostatekind selectors
-        return initial;
+    function pseudoState(kind: PseudoStateKind): Func<Array<Transition>, any, IContext, Transition> {
+        switch(kind) {
+            
+        case PseudoStateKind.Initial:
+        case PseudoStateKind.DeepHistory:
+        case PseudoStateKind.ShallowHistory:
+            return initial;
+        
+        case PseudoStateKind.Junction:
+            return junction;
+        
+        case PseudoStateKind.Choice:
+            return choice;
+            
+        case PseudoStateKind.Terminate:
+            return terminate;
+        }
     }
         
-    function state(transitions: Transition[], message: any, context: IContext): Transition {
+    function state(transitions: Array<Transition>, message: any, context: IContext): Transition {
         var result: Transition;
                 
         for (var i:number = 0, l:number = transitions.length; i < l; i++) {
@@ -465,7 +513,7 @@ module FSM {
         return result;
     }
     
-    function initial(transitions: Transition[], message: any, context: IContext): Transition {
+    function initial(transitions: Array<Transition>, message: any, context: IContext): Transition {
         if(transitions.length === 1) {
             return transitions[0];
         } else {

@@ -56,3 +56,4 @@ choice.To(operational).effect(function () {
 });
 var context = new FSM.DictionaryContext("example");
 model.initialise(context);
+model.evaluate("rand", context);
