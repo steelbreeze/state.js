@@ -165,7 +165,7 @@ function initStateJS(exports) {
         }
             
         if (results.length > 0) {
-            return results[(results.length - 1) * Math.random()];
+            return results[Math.round((results.length - 1) * Math.random())];
         }
 
         return single(completions, function (c) { return c.isElse; });

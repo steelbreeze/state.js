@@ -1,6 +1,6 @@
 # Welcome to state.js
 
-The current stable release is 4.1.7
+The current stable release is 4.1.8
 
 Version 5 is currently under development on the v5-dev branch; this is still very much a work in progress...
 
