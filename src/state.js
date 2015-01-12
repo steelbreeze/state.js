@@ -361,9 +361,13 @@ var FSM;
             // default the transition to a completion transition
             this.completion();
         }
+        Transition.prototype.isElse = function () {
+            return false;
+        };
         Transition.prototype.completion = function () {
-            this.guard = function (context, message) {
-                return message === this.source;
+            var src = this.source;
+            this.guard = function (message, context) {
+                return message === src;
             };
             return this;
         };
@@ -438,5 +442,56 @@ var FSM;
         else {
             throw "Initial transition must have a single outbound transition";
         }
+    }
+    function junction(transitions, message, context) {
+        var result, i, l = transitions.length;
+        for (i = 0; i < l; i++) {
+            if (transitions[i].isElse() === false) {
+                if (transitions[i].guard(message, context) === true) {
+                    if (result) {
+                        throw "Multiple outbound transitions evaluated true";
+                    }
+                    result = transitions[i];
+                }
+            }
+        }
+        if (!result) {
+            for (i = 0; i < l; i++) {
+                if (transitions[i].isElse() === true) {
+                    if (result) {
+                        throw "Multiple outbound transitions evaluated true";
+                    }
+                    result = transitions[i];
+                }
+            }
+        }
+        return result;
+    }
+    function choice(transitions, message, context) {
+        var results = [], result, i, l = transitions.length;
+        for (i = 0; i < l; i++) {
+            if (transitions[i].isElse() === false) {
+                if (transitions[i].guard(message, context) === true) {
+                    results.push(transitions[i]);
+                }
+            }
+        }
+        if (results.length !== 0) {
+            result = results[Math.round((results.length - 1) * Math.random())];
+        }
+        if (!result) {
+            for (i = 0; i < l; i++) {
+                if (transitions[i].isElse() === true) {
+                    if (result) {
+                        throw "Multiple outbound transitions evaluated true";
+                    }
+                    result = transitions[i];
+                }
+            }
+        }
+        return result;
+    }
+    function terminate(transitions, message, context) {
+        return;
     }
 })(FSM || (FSM = {}));

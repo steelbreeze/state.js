@@ -413,7 +413,7 @@ module FSM {
         }
     }
 
-    export class Transition {
+    export class Transition { // TODO: implement else transitions
         guard: Predicate<any, IContext>;
         actions: Actions<any, IContext, Boolean> = [];
         traverse: Actions<any, IContext, Boolean> = [];
@@ -423,8 +423,14 @@ module FSM {
             this.completion();
         }
 
+        isElse(): Boolean {
+            return false;
+        }
+        
         completion(): Transition {
-            this.guard = function(context: IContext, message: any): Boolean { return message === this.source; };
+            var src = this.source;
+            
+            this.guard = function(message: any, context: IContext): Boolean { return message === src; };
 
             return this;
         }
@@ -519,5 +525,70 @@ module FSM {
         } else {
             throw "Initial transition must have a single outbound transition";
         }
-    }        
+    }
+    
+    function junction(transitions: Array<Transition>, message: any, context: IContext): Transition {
+        var result: Transition, i: number, l: number = transitions.length;
+        
+        for(i = 0; i < l; i++) {
+            if(transitions[i].isElse() === false) {
+                if(transitions[i].guard(message, context) === true) {
+                    if(result) {
+                            throw "Multiple outbound transitions evaluated true";
+                    }
+                    
+                    result = transitions[i];
+                }
+            }
+        }
+        
+        if (!result) {
+            for(i = 0; i < l; i++) {
+                if(transitions[i].isElse() === true) {
+                    if(result) {
+                            throw "Multiple outbound transitions evaluated true";
+                    }
+
+                    result = transitions[i];
+                }
+            }
+        }
+        
+        return result;
+    }
+    
+    function choice(transitions: Array<Transition>, message: any, context: IContext): Transition {
+        var results: Array<Transition> = [], result: Transition, i: number, l: number = transitions.length;
+                
+        for(i = 0; i < l; i++) {
+            if(transitions[i].isElse() === false) {
+                
+                if(transitions[i].guard(message, context) === true) {
+                    results.push(transitions[i]);
+                }
+            }
+        }
+
+        if (results.length !== 0) {
+            result = results[Math.round((results.length - 1) * Math.random())];            
+        }
+        
+        if (!result) {
+            for(i = 0; i < l; i++) {
+                if(transitions[i].isElse() === true) {
+                    if(result) {
+                            throw "Multiple outbound transitions evaluated true";
+                    }
+
+                    result = transitions[i];
+                }
+            }
+        }
+        
+        return result;
+    }
+    
+    function terminate(transitions: Array<Transition>, message: any, context: IContext): Transition {        
+        return;
+    }
 }
