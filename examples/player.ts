@@ -52,3 +52,4 @@ var context = new FSM.DictionaryContext("example");
 model.initialise(context);
 
 model.evaluate("rand", context);
+model.evaluate("off", context);
