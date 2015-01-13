@@ -11,12 +11,9 @@ var __extends = this.__extends || function (d, b) {
  */
 var FSM;
 (function (FSM) {
-    function invoke(actions, p1, p2, p3) {
-        var i, l;
-        if (actions) {
-            for (i = 0, l = actions.length; i < l; i++) {
-                actions[i](p1, p2, p3);
-            }
+    function invoke(actions, message, context, history) {
+        for (var i = 0, l = actions.length; i < l; i++) {
+            actions[i](message, context, history);
         }
     }
     // DONE: TODO: remove this line
@@ -74,13 +71,13 @@ var FSM;
             this.enter = [];
         };
         StateMachineElement.prototype.bootstrap = function (deepHistoryAbove) {
-            var element = this;
+            var _this = this;
             // TODO: remove console.log on final release
             this.leave.push(function (message, context, history) {
-                console.log(context + " leave " + element);
+                console.log(context + " leave " + _this);
             });
             this.beginEnter.push(function (message, context, history) {
-                console.log(context + " enter " + element);
+                console.log(context + " enter " + _this);
             });
             this.enter = this.beginEnter.concat(this.endEnter);
         };
@@ -109,10 +106,10 @@ var FSM;
             return transition;
         };
         Vertex.prototype.bootstrap = function (deepHistoryAbove) {
+            var _this = this;
             _super.prototype.bootstrap.call(this, deepHistoryAbove);
-            var vertex = this;
             this.endEnter.push(function (message, context, history) {
-                vertex.evaluateCompletions(message, context, history);
+                _this.evaluateCompletions(message, context, history);
             });
             this.enter = this.beginEnter.concat(this.endEnter);
         };
@@ -158,26 +155,24 @@ var FSM;
             return context.getCurrent(this).isFinal();
         };
         Region.prototype.bootstrap = function (deepHistoryAbove) {
-            var region = this;
+            var _this = this;
             for (var i = 0, l = this.vertices.length; i < l; i++) {
-                var vertex = this.vertices[i];
-                vertex.reset();
-                vertex.bootstrap(deepHistoryAbove || (this.initial && this.initial.kind === 1 /* DeepHistory */));
+                this.vertices[i].reset();
+                this.vertices[i].bootstrap(deepHistoryAbove || (this.initial && this.initial.kind === 1 /* DeepHistory */));
             }
             this.leave.push(function (message, context, history) {
-                var current = context.getCurrent(region);
+                var current = context.getCurrent(_this);
                 if (current.leave) {
                     invoke(current.leave, message, context, history);
                 }
             });
             if (deepHistoryAbove || !this.initial || this.initial.isHistory()) {
-                var init = this.initial;
                 this.endEnter.push(function (message, context, history) {
-                    var ini = init;
-                    if (history || init.isHistory()) {
-                        ini = context.getCurrent(region) || init;
+                    var ini = _this.initial;
+                    if (history || _this.initial.isHistory()) {
+                        ini = context.getCurrent(_this) || _this.initial;
                     }
-                    invoke(ini.enter, message, context, history || (init.kind === 1 /* DeepHistory */));
+                    invoke(ini.enter, message, context, history || (_this.initial.kind === 1 /* DeepHistory */));
                 });
             }
             else {
@@ -266,8 +261,7 @@ var FSM;
             return this.regions.length > 1;
         };
         State.prototype.bootstrap = function (deepHistoryAbove) {
-            var state = this; // TODO: make sure state.parent in callback below works
-            var sparent = this.parent;
+            var _this = this;
             for (var i = 0, l = this.regions.length; i < l; i++) {
                 var region = this.regions[i];
                 region.reset();
@@ -281,7 +275,7 @@ var FSM;
             this.leave = this.leave.concat(this.exitActions);
             this.beginEnter = this.beginEnter.concat(this.entryActions);
             this.beginEnter.push(function (message, context, history) {
-                context.setCurrent(sparent, state);
+                context.setCurrent(_this.parent, _this);
             });
             this.enter = this.beginEnter.concat(this.endEnter);
         };
@@ -358,16 +352,15 @@ var FSM;
             this.target = target;
             this.actions = [];
             this.traverse = [];
-            // default the transition to a completion transition
-            this.completion();
+            this.completion(); // default the transition to a completion transition
         }
         Transition.prototype.isElse = function () {
             return false;
         };
         Transition.prototype.completion = function () {
-            var src = this.source;
+            var _this = this;
             this.guard = function (message, context) {
-                return message === src;
+                return message === _this.source;
             };
             return this;
         };

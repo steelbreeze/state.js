@@ -4,19 +4,19 @@
 // Licensed under MIT and GPL v3 licences
 /// <reference path="../src/state.ts" />
 
-function engageHead(): void {
+function engageHead() {
     console.log("- engaging head");
 }
 
-function disengageHead(): void {
+function disengageHead() {
     console.log("- disengaging head");
 }
 
-function startMotor(): void {
+function startMotor() {
     console.log("- starting motor");
 }
 
-function stopMotor(): void {
+function stopMotor() {
     console.log("- stopping motor");
 }
 
@@ -38,14 +38,14 @@ var paused = new FSM.State("paused", region3);
 
 initial.To(operational).effect(disengageHead).effect(stopMotor);
 dhistory.To(stopped);
-stopped.To(running).when<String>(function(command: String): Boolean { return command === "play"; });
-active.To(stopped).when<String>(function(command: String): Boolean { return command === "stop"; });
-running.To(paused).when<String>(function(command: String): Boolean { return command === "pause"; });
-paused.To(running).when<String>(function(command: String): Boolean { return command === "play"; });
-operational.To(final).when<String>(function(command: String): Boolean { return command === "off"; });
-operational.To(choice).when<String>(function(command: String): Boolean { return command === "rand"; });
-choice.To(operational).effect(function(): void { console.log("- transition A back to operational"); });
-choice.To(operational).effect(function(): void { console.log("- transition B back to operational"); });
+stopped.To(running).when<String>((command: String): Boolean => { return command === "play"; });
+active.To(stopped).when<String>((command: String): Boolean => { return command === "stop"; });
+running.To(paused).when<String>((command: String): Boolean => { return command === "pause"; });
+paused.To(running).when<String>((command: String): Boolean => { return command === "play"; });
+operational.To(final).when<String>((command: String): Boolean => { return command === "off"; });
+operational.To(choice).when<String>((command: String): Boolean => { return command === "rand"; });
+choice.To(operational).effect(() => { console.log("- transition A back to operational"); });
+choice.To(operational).effect(() => { console.log("- transition B back to operational"); });
 
 var context = new FSM.DictionaryContext("example");
 
