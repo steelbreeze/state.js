@@ -11,9 +11,9 @@ var __extends = this.__extends || function (d, b) {
  */
 var FSM;
 (function (FSM) {
-    function invoke(actions, message, context, history) {
-        for (var i = 0, l = actions.length; i < l; i++) {
-            actions[i](message, context, history);
+    function invoke(behavior, message, context, history) {
+        for (var i = 0, l = behavior.length; i < l; i++) {
+            behavior[i](message, context, history);
         }
     }
     // DONE: TODO: remove this line
@@ -73,10 +73,10 @@ var FSM;
         StateMachineElement.prototype.bootstrap = function (deepHistoryAbove) {
             var _this = this;
             // TODO: remove console.log on final release
-            this.leave.push(function (message, context, history) {
+            this.leave.push(function (message, context) {
                 console.log(context + " leave " + _this);
             });
-            this.beginEnter.push(function (message, context, history) {
+            this.beginEnter.push(function (message, context) {
                 console.log(context + " enter " + _this);
             });
             this.enter = this.beginEnter.concat(this.endEnter);
@@ -238,13 +238,13 @@ var FSM;
             this.exitActions = [];
             this.entryActions = [];
         }
-        State.prototype.exit = function (action) {
-            this.exitActions.push(action);
+        State.prototype.exit = function (exitAction) {
+            this.exitActions.push(exitAction);
             this.root.clean = false;
             return this;
         };
-        State.prototype.entry = function (action) {
-            this.entryActions.push(action);
+        State.prototype.entry = function (entryAction) {
+            this.entryActions.push(entryAction);
             this.root.clean = false;
             return this;
         };
@@ -368,8 +368,8 @@ var FSM;
             this.guard = guard;
             return this;
         };
-        Transition.prototype.effect = function (action) {
-            this.actions.push(action);
+        Transition.prototype.effect = function (transitionAction) {
+            this.actions.push(transitionAction);
             this.source.root.clean = false;
             return this;
         };

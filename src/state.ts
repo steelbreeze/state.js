@@ -4,12 +4,23 @@
  * Licensed under MIT and GPL v3 licences
  */
 module FSM {
-    function invoke(actions: Array<(message: any, context: IContext, history: Boolean) => any>, message: any, context: IContext, history: Boolean): void {
-        for (var i = 0, l = actions.length; i < l; i++) {
-            actions[i](message, context, history);
+    export interface Guard {
+        (message: any, context: IContext): Boolean;
+    }
+    
+    export interface Action {
+        (message: any, context: IContext, history: Boolean): any;
+    }
+    
+    export interface Behavior extends Array<Action> {
+    }
+        
+    function invoke(behavior: Behavior, message: any, context: IContext, history: Boolean): void {
+        for (var i = 0, l = behavior.length; i < l; i++) {
+            behavior[i](message, context, history);
         }
     }
-
+    
     // DONE: TODO: remove this line
     export interface IContext {
         isTerminated: Boolean;
@@ -63,10 +74,10 @@ module FSM {
     // DONE: TODO: remove this line
     export class StateMachineElement extends NamedElement {
         root: StateMachine;
-        leave: Array<(message: any, context: IContext, history: Boolean) => any>;
-        beginEnter: Array<(message: any, context: IContext, history: Boolean) => any>;
-        endEnter: Array<(message: any, context: IContext, history: Boolean) => any>;
-        enter: Array<(message: any, context: IContext, history: Boolean) => any>;
+        leave: Behavior;
+        beginEnter: Behavior;
+        endEnter: Behavior;
+        enter: Behavior;
 
         constructor(name: string, public parent: StateMachineElement) {
             super(name, parent);
@@ -91,13 +102,13 @@ module FSM {
 
         bootstrap(deepHistoryAbove: Boolean): void {
             // TODO: remove console.log on final release
-            this.leave.push((message: any, context: IContext, history: Boolean) => { console.log(context + " leave " + this); });
-            this.beginEnter.push((message: any, context: IContext, history: Boolean) => { console.log(context + " enter " + this); });
+            this.leave.push((message: any, context: IContext) => { console.log(context + " leave " + this); });
+            this.beginEnter.push((message: any, context: IContext) => { console.log(context + " enter " + this); });
 
             this.enter = this.beginEnter.concat(this.endEnter);
         }
 
-        bootstrapEnter(traverse: Array<(message: any, context: IContext, history: Boolean) => any>, next: StateMachineElement) {
+        bootstrapEnter(traverse: Behavior, next: StateMachineElement) {
             traverse = traverse.concat(this.beginEnter);
         }
     }
@@ -253,23 +264,23 @@ module FSM {
     // DONE: TODO: remove this line
     export class State extends Vertex {
         regions: Array<Region> = [];
-        exitActions: Array<(message: any, context: IContext, history: Boolean) => any> = [];
-        entryActions: Array<(message: any, context: IContext, history: Boolean) => any> = [];
+        exitActions: Behavior = [];
+        entryActions: Behavior = [];
 
         constructor(name: string, parent: Region) {
             super(name, parent, state);
         }
 
-        exit<TMessage>(action: (message: any, context: IContext, history: Boolean) => any): State {
-            this.exitActions.push(action);
+        exit<TMessage>(exitAction: Action): State {
+            this.exitActions.push(exitAction);
 
             this.root.clean = false;
 
             return this;
         }
 
-        entry<TMessage>(action: (message: any, context: IContext, history: Boolean) => any): State {
-            this.entryActions.push(action);
+        entry<TMessage>(entryAction: Action): State {
+            this.entryActions.push(entryAction);
 
             this.root.clean = false;
 
@@ -321,7 +332,7 @@ module FSM {
             super.bootstrapTransitions();
         }
 
-        bootstrapEnter(traverse: Array<(message: any, context: IContext, history: Boolean) => any>, next: StateMachineElement) {
+        bootstrapEnter(traverse: Behavior, next: StateMachineElement) {
             super.bootstrapEnter(traverse, next);
 
             for( var i:number = 0, l:number = this.regions.length; i < l; i++) {
@@ -392,9 +403,9 @@ module FSM {
     }
 
     export class Transition { // TODO: implement else transitions
-        guard: (message: any, context: IContext) => Boolean;
-        actions: Array<(message: any, context: IContext, history: Boolean) => any> = [];
-        traverse: Array<(message: any, context: IContext, history: Boolean) => any> = [];
+        guard: Guard;
+        actions: Behavior = [];
+        traverse: Behavior = [];
 
         constructor(private source: Vertex, private target?: Vertex) {
             this.completion(); // default the transition to a completion transition
@@ -410,14 +421,14 @@ module FSM {
             return this;
         }
 
-        when<TMessage>(guard: (message: any, context: IContext) => Boolean): Transition {
+        when<TMessage>(guard: Guard): Transition {
             this.guard = guard;
 
             return this;
         }
 
-        effect<TMessage>(action: (message: any, context: IContext, history: Boolean) => any): Transition {
-            this.actions.push(action);
+        effect<TMessage>(transitionAction: Action): Transition {
+            this.actions.push(transitionAction);
 
             this.source.root.clean = false;
 
