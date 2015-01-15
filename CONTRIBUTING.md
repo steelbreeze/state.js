@@ -2,10 +2,6 @@
 
 Looking to contribute something to state.cs? **Here's how you can help.**
 
-## JavaScript
-
-I am a complete JavaScript novice; please help improve the quality of the code...
-
 ## Reporting issues
 
 We only accept issues that are bug reports or feature requests.

@@ -16,7 +16,6 @@ var FSM;
             behavior[i](message, context, history);
         }
     }
-    // DONE: TODO: remove this line
     var DictionaryContext = (function () {
         function DictionaryContext(name) {
             this.name = name;
@@ -37,11 +36,10 @@ var FSM;
         return DictionaryContext;
     })();
     FSM.DictionaryContext = DictionaryContext;
-    // DONE: TODO: remove this line
     var NamedElement = (function () {
-        function NamedElement(name, parent) {
+        function NamedElement(name, element) {
             this.name = name;
-            this.qualifiedName = parent ? parent.qualifiedName + NamedElement.namespaceSeperator + name : name;
+            this.qualifiedName = element ? element.qualifiedName + NamedElement.namespaceSeperator + name : name;
         }
         NamedElement.prototype.toString = function () {
             return this.qualifiedName;
@@ -50,19 +48,20 @@ var FSM;
         return NamedElement;
     })();
     FSM.NamedElement = NamedElement;
-    // DONE: TODO: remove this line
     var StateMachineElement = (function (_super) {
         __extends(StateMachineElement, _super);
-        function StateMachineElement(name, parent) {
-            _super.call(this, name, parent);
-            this.parent = parent;
-            if (parent) {
-                this.root = parent.root;
+        function StateMachineElement(name, element) {
+            _super.call(this, name, element);
+            if (element) {
+                this.root = element.root;
             }
             this.reset();
         }
+        StateMachineElement.prototype.parent = function () {
+            return;
+        }; // NOTE: this is really an abstract method but there's no construct for it
         StateMachineElement.prototype.ancestors = function () {
-            return (this.parent ? this.parent.ancestors() : []).concat(this);
+            return (this.parent() ? this.parent().ancestors() : []).concat(this);
         };
         StateMachineElement.prototype.reset = function () {
             this.leave = [];
@@ -87,15 +86,15 @@ var FSM;
         return StateMachineElement;
     })(NamedElement);
     FSM.StateMachineElement = StateMachineElement;
-    // DONE: TODO: remove this line
     var Vertex = (function (_super) {
         __extends(Vertex, _super);
-        function Vertex(name, parent, selector) {
-            _super.call(this, name, parent);
+        function Vertex(name, region, selector) {
+            _super.call(this, name, region);
+            this.region = region;
             this.transitions = [];
             this.selector = selector;
-            if (parent) {
-                parent.vertices.push(this);
+            if (region) {
+                region.vertices.push(this);
                 this.root.clean = false;
             }
         }
@@ -142,15 +141,18 @@ var FSM;
         return Vertex;
     })(StateMachineElement);
     FSM.Vertex = Vertex;
-    // DONE: TODO: remove this line
     var Region = (function (_super) {
         __extends(Region, _super);
-        function Region(name, parent) {
-            _super.call(this, name, parent);
+        function Region(name, state) {
+            _super.call(this, name, state);
+            this.state = state;
             this.vertices = [];
-            parent.regions.push(this);
+            state.regions.push(this);
             this.root.clean = false; // TODO: move into StateMachineElement?
         }
+        Region.prototype.parent = function () {
+            return this.state;
+        };
         Region.prototype.isComplete = function (context) {
             return context.getCurrent(this).isFinal();
         };
@@ -192,7 +194,6 @@ var FSM;
         return Region;
     })(StateMachineElement);
     FSM.Region = Region;
-    // DONE: TODO: remove this line
     (function (PseudoStateKind) {
         PseudoStateKind[PseudoStateKind["Choice"] = 0] = "Choice";
         PseudoStateKind[PseudoStateKind["DeepHistory"] = 1] = "DeepHistory";
@@ -202,7 +203,6 @@ var FSM;
         PseudoStateKind[PseudoStateKind["Terminate"] = 5] = "Terminate";
     })(FSM.PseudoStateKind || (FSM.PseudoStateKind = {}));
     var PseudoStateKind = FSM.PseudoStateKind;
-    // DONE: TODO: remove this line
     var PseudoState = (function (_super) {
         __extends(PseudoState, _super);
         function PseudoState(name, parent, kind) {
@@ -229,22 +229,33 @@ var FSM;
         return PseudoState;
     })(Vertex);
     FSM.PseudoState = PseudoState;
-    // DONE: TODO: remove this line
     var State = (function (_super) {
         __extends(State, _super);
         function State(name, parent) {
-            _super.call(this, name, parent, state);
+            _super.call(this, name, parent, State.selector);
             this.regions = [];
-            this.exitActions = [];
-            this.entryActions = [];
+            this.exitBehavior = [];
+            this.entryBehavior = [];
         }
+        State.selector = function (transitions, message, context) {
+            var result;
+            for (var i = 0, l = transitions.length; i < l; i++) {
+                if (transitions[i].guard(message, context)) {
+                    if (result) {
+                        throw "Multiple outbound transitions evaluated true";
+                    }
+                    result = transitions[i];
+                }
+            }
+            return result;
+        };
         State.prototype.exit = function (exitAction) {
-            this.exitActions.push(exitAction);
+            this.exitBehavior.push(exitAction);
             this.root.clean = false;
             return this;
         };
         State.prototype.entry = function (entryAction) {
-            this.entryActions.push(entryAction);
+            this.entryBehavior.push(entryAction);
             this.root.clean = false;
             return this;
         };
@@ -272,10 +283,10 @@ var FSM;
                 this.endEnter = this.endEnter.concat(region.enter);
             }
             _super.prototype.bootstrap.call(this, deepHistoryAbove);
-            this.leave = this.leave.concat(this.exitActions);
-            this.beginEnter = this.beginEnter.concat(this.entryActions);
+            this.leave = this.leave.concat(this.exitBehavior);
+            this.beginEnter = this.beginEnter.concat(this.entryBehavior);
             this.beginEnter.push(function (message, context, history) {
-                context.setCurrent(_this.parent, _this);
+                context.setCurrent(_this.region, _this);
             });
             this.enter = this.beginEnter.concat(this.endEnter);
         };
@@ -350,7 +361,7 @@ var FSM;
         function Transition(source, target) {
             this.source = source;
             this.target = target;
-            this.actions = [];
+            this.transitionBehavior = [];
             this.traverse = [];
             this.completion(); // default the transition to a completion transition
         }
@@ -369,16 +380,16 @@ var FSM;
             return this;
         };
         Transition.prototype.effect = function (transitionAction) {
-            this.actions.push(transitionAction);
+            this.transitionBehavior.push(transitionAction);
             this.source.root.clean = false;
             return this;
         };
         Transition.prototype.bootstrap = function () {
             if (this.target === null) {
-                this.traverse = this.actions;
+                this.traverse = this.transitionBehavior;
             }
             else if (this.target.parent === this.source.parent) {
-                this.traverse = this.source.leave.concat(this.actions).concat(this.target.enter);
+                this.traverse = this.source.leave.concat(this.transitionBehavior).concat(this.target.enter);
             }
             else {
                 var sourceAncestors = this.source.ancestors();
@@ -391,7 +402,7 @@ var FSM;
                 // leave the first uncommon ancestor
                 this.traverse = (i < sourceAncestors.length ? sourceAncestors[i] : this.source).leave;
                 // perform the transition action
-                this.traverse = this.traverse.concat(this.actions);
+                this.traverse = this.traverse.concat(this.transitionBehavior);
                 while (i < targetAncestors.length) {
                     targetAncestors[i++].bootstrapEnter(this.traverse, targetAncestors[i]);
                 }
@@ -415,18 +426,6 @@ var FSM;
             case 5 /* Terminate */:
                 return terminate;
         }
-    }
-    function state(transitions, message, context) {
-        var result;
-        for (var i = 0, l = transitions.length; i < l; i++) {
-            if (transitions[i].guard(message, context)) {
-                if (result) {
-                    throw "Multiple outbound transitions evaluated true";
-                }
-                result = transitions[i];
-            }
-        }
-        return result;
     }
     function initial(transitions, message, context) {
         if (transitions.length === 1) {

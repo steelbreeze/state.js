@@ -4,6 +4,7 @@
  * Licensed under MIT and GPL v3 licences
  */
 module FSM {
+    
     export interface Guard {
         (message: any, context: IContext): Boolean;
     }
@@ -21,19 +22,16 @@ module FSM {
         }
     }
     
-    // DONE: TODO: remove this line
     export interface IContext {
         isTerminated: Boolean;
-        setCurrent(region: StateMachineElement, value: State): void;
-        getCurrent(region: StateMachineElement): State;
+        setCurrent(region: Region, value: State): void;
+        getCurrent(region: Region): State;
     }
 
-    // DONE: TODO: remove this line
     interface StateDictionary {
         [index: string]: State;
     }
 
-    // DONE: TODO: remove this line
     export class DictionaryContext implements IContext {
         private last: StateDictionary = {};
 
@@ -57,13 +55,12 @@ module FSM {
         }
     }
 
-    // DONE: TODO: remove this line
     export class NamedElement {
-        public static namespaceSeperator = ".";
+        static namespaceSeperator = ".";
         qualifiedName: string;
 
-        constructor( public name: string, parent: NamedElement) {
-            this.qualifiedName = parent ? parent.qualifiedName + NamedElement.namespaceSeperator + name : name;
+        constructor( public name: string, element: NamedElement) {
+            this.qualifiedName = element ? element.qualifiedName + NamedElement.namespaceSeperator + name : name;
         }
 
         toString(): String {
@@ -71,7 +68,6 @@ module FSM {
         }
     }
 
-    // DONE: TODO: remove this line
     export class StateMachineElement extends NamedElement {
         root: StateMachine;
         leave: Behavior;
@@ -79,18 +75,20 @@ module FSM {
         endEnter: Behavior;
         enter: Behavior;
 
-        constructor(name: string, public parent: StateMachineElement) {
-            super(name, parent);
+        constructor(name: string, element: StateMachineElement) {
+            super(name, element);
 
-            if(parent) {
-                this.root = parent.root;
+            if(element) {
+                this.root = element.root;
             }
 
             this.reset();
         }
 
+        parent(): StateMachineElement { return; } // NOTE: this is really an abstract method but there's no construct for it
+        
         ancestors(): Array<StateMachineElement> {
-            return (this.parent ? this.parent.ancestors() : []).concat(this);
+            return (this.parent() ? this.parent().ancestors() : []).concat(this);
         }
 
         reset(): void {
@@ -113,18 +111,17 @@ module FSM {
         }
     }
 
-    // DONE: TODO: remove this line
     export class Vertex extends StateMachineElement {
         transitions: Array<Transition> = [];
         selector: (transitions: Array<Transition>, message: any, context: IContext) => Transition;      
 
-        constructor(name: string, parent: Region, selector: (transitions: Array<Transition>, message: any, context: IContext) => Transition) {
-            super(name, parent);
+        constructor(name: string, public region: Region, selector: (transitions: Array<Transition>, message: any, context: IContext) => Transition) {
+            super(name, region);
 
             this.selector = selector;
             
-            if (parent) {
-                parent.vertices.push(this);
+            if (region) {
+                region.vertices.push(this);
 
                 this.root.clean = false;
             }
@@ -179,19 +176,22 @@ module FSM {
         }
     }
 
-    // DONE: TODO: remove this line
     export class Region extends StateMachineElement {
         static defaultName: string = "default";
         vertices: Array<Vertex> = [];
         initial: PseudoState;
         
-        constructor(name: string, parent: State) {
-            super(name, parent);
-
-            parent.regions.push(this);
+        constructor(name: string, public state: State) {
+            super(name, state);
+            
+            state.regions.push(this);
             this.root.clean = false; // TODO: move into StateMachineElement?
         }
 
+        parent(): StateMachineElement {
+            return this.state;
+        }
+        
         isComplete(context: IContext): Boolean {
             return context.getCurrent(this).isFinal();
         }
@@ -224,7 +224,6 @@ module FSM {
         }
     }
 
-    // DONE: TODO: remove this line
     export enum PseudoStateKind {
         Choice,
         DeepHistory,
@@ -234,7 +233,6 @@ module FSM {
         Terminate
     }
 
-    // DONE: TODO: remove this line
     export class PseudoState extends Vertex {
         constructor(name: string, parent: Region, public kind: PseudoStateKind) {
             super(name, parent, pseudoState(kind));
@@ -261,18 +259,33 @@ module FSM {
         }
     }
 
-    // DONE: TODO: remove this line
     export class State extends Vertex {
+        private static selector(transitions: Array<Transition>, message: any, context: IContext): Transition {
+            var result: Transition;
+                
+            for (var i:number = 0, l:number = transitions.length; i < l; i++) {
+                if(transitions[i].guard(message, context)) {
+                    if(result) {
+                        throw "Multiple outbound transitions evaluated true";
+                    }
+
+                    result = transitions[i];
+                }
+            }
+        
+            return result;
+        }
+
         regions: Array<Region> = [];
-        exitActions: Behavior = [];
-        entryActions: Behavior = [];
+        private exitBehavior: Behavior = [];
+        private entryBehavior: Behavior = [];
 
         constructor(name: string, parent: Region) {
-            super(name, parent, state);
+            super(name, parent, State.selector);
         }
 
         exit<TMessage>(exitAction: Action): State {
-            this.exitActions.push(exitAction);
+            this.exitBehavior.push(exitAction);
 
             this.root.clean = false;
 
@@ -280,7 +293,7 @@ module FSM {
         }
 
         entry<TMessage>(entryAction: Action): State {
-            this.entryActions.push(entryAction);
+            this.entryBehavior.push(entryAction);
 
             this.root.clean = false;
 
@@ -316,10 +329,10 @@ module FSM {
 
             super.bootstrap(deepHistoryAbove);
 
-            this.leave = this.leave.concat(this.exitActions);
-            this.beginEnter = this.beginEnter.concat(this.entryActions);
+            this.leave = this.leave.concat(this.exitBehavior);
+            this.beginEnter = this.beginEnter.concat(this.entryBehavior);
 
-            this.beginEnter.push((message: any, context: IContext, history: Boolean) => { context.setCurrent(this.parent, this); });
+            this.beginEnter.push((message: any, context: IContext, history: Boolean) => { context.setCurrent(this.region, this); });
 
             this.enter = this.beginEnter.concat(this.endEnter);
         }
@@ -404,7 +417,7 @@ module FSM {
 
     export class Transition { // TODO: implement else transitions
         guard: Guard;
-        actions: Behavior = [];
+        transitionBehavior: Behavior = [];
         traverse: Behavior = [];
 
         constructor(private source: Vertex, private target?: Vertex) {
@@ -428,7 +441,7 @@ module FSM {
         }
 
         effect<TMessage>(transitionAction: Action): Transition {
-            this.actions.push(transitionAction);
+            this.transitionBehavior.push(transitionAction);
 
             this.source.root.clean = false;
 
@@ -437,9 +450,9 @@ module FSM {
 
         bootstrap(): void {
             if (this.target === null) { // internal transitions: just the actions
-                this.traverse = this.actions;
+                this.traverse = this.transitionBehavior;
             } else if (this.target.parent === this.source.parent) { // local transitions: exit and enter with no complexity
-                this.traverse = this.source.leave.concat(this.actions).concat(this.target.enter);
+                this.traverse = this.source.leave.concat(this.transitionBehavior).concat(this.target.enter);
             } else { // complex external transition
                 var sourceAncestors = this.source.ancestors();
                 var targetAncestors = this.target.ancestors();
@@ -456,7 +469,7 @@ module FSM {
                 this.traverse = (i < sourceAncestors.length ? sourceAncestors[i] : this.source).leave;
 
                 // perform the transition action
-                this.traverse = this.traverse.concat(this.actions);
+                this.traverse = this.traverse.concat(this.transitionBehavior);
 
                 // enter the target ancestry
                 while(i < targetAncestors.length) {
@@ -487,23 +500,7 @@ module FSM {
             return terminate;
         }
     }
-        
-    function state(transitions: Array<Transition>, message: any, context: IContext): Transition {
-        var result: Transition;
-                
-        for (var i:number = 0, l:number = transitions.length; i < l; i++) {
-            if(transitions[i].guard(message, context)) {
-                if(result) {
-                    throw "Multiple outbound transitions evaluated true";
-                }
-
-                result = transitions[i];
-            }
-        }
-        
-        return result;
-    }
-    
+            
     function initial(transitions: Array<Transition>, message: any, context: IContext): Transition {
         if(transitions.length === 1) {
             return transitions[0];

@@ -5,22 +5,23 @@
 		<script src="../src/state.js"></script>
         <script>
             // create the state machine
-            var machine = new StateMachine("machine");
+            var machine = new FSM.StateMachine("machine");
             
-            var controller = new Region("player", machine);
+            var controller = new FSM.Region("player", machine);
 
             // create some states
-            var initial = new PseudoState("initial", PseudoStateKind.Initial, controller);
-            var operational = new CompositeState("operational", controller);
-            var flipped = new SimpleState("flipped", controller);
-            var final = new FinalState("final", controller);
-            var history1 = new PseudoState("history", PseudoStateKind.DeepHistory, operational);
-            var stopped = new SimpleState("stopped", operational);
-            var active = new CompositeState("active", operational);
-            var running = new SimpleState("running", active);
-            var paused = new SimpleState("paused", active);
+            var initial = new FSM.PseudoState("initial", controller, FSM.PseudoStateKind.Initial);
+            var operational = new FSM.State("operational", controller);
+            var flipped = new FSM.State("flipped", controller);
+            var final = new FSM.FinalState("final", controller);
+            var history1 = new FSM.PseudoState("history", operational, FSM.PseudoStateKind.DeepHistory);
+            var stopped = new FSM.State("stopped", operational);
+            var active = new FSM.State("active", operational);
+            var running = new FSM.State("running", active);
+            var paused = new FSM.State("paused", active);
             
             // create transitions between states (one with transition behaviour)
+            /*
             var t0 = new Transition(initial, operational);
             var t1 = new Transition(history1, stopped);
             var t2 = new Transition(stopped, running, function (s, c) { return c === "play"; });
@@ -37,7 +38,7 @@
             running.entry = [StartMotor];
             running.exit = [StopMotor];
             t0.effect = [DisengageHead, StopMotor];
-                        
+            */            
 			function init()
 			{
 				sms = { name: "state" };
