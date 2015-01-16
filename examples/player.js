@@ -54,3 +54,6 @@ operational.To(final).when(function (command) {
 var context = new FSM.DictionaryContext("example");
 model.initialise(context);
 model.evaluate("play", context);
+model.evaluate("pause", context);
+model.evaluate("flip", context);
+model.evaluate("flip", context);
