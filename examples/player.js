@@ -19,7 +19,7 @@ var model = new FSM.StateMachine("player");
 var region1 = new FSM.Region("default", model);
 var initial = new FSM.PseudoState("initial", region1, 2 /* Initial */);
 var operational = new FSM.State("operational", region1);
-var choice = new FSM.PseudoState("choice", region1, 0 /* Choice */);
+var flipped = new FSM.State("flipped", region1);
 var final = new FSM.FinalState("final", region1);
 var region2 = new FSM.Region("default", operational);
 var dhistory = new FSM.PseudoState("history", region2, 1 /* DeepHistory */);
@@ -42,19 +42,15 @@ running.To(paused).when(function (command) {
 paused.To(running).when(function (command) {
     return command === "play";
 });
+operational.To(flipped).when(function (command) {
+    return command === "flip";
+});
+flipped.To(operational).when(function (command) {
+    return command === "flip";
+});
 operational.To(final).when(function (command) {
     return command === "off";
 });
-operational.To(choice).when(function (command) {
-    return command === "rand";
-});
-choice.To(operational).effect(function () {
-    console.log("- transition A back to operational");
-});
-choice.To(operational).effect(function () {
-    console.log("- transition B back to operational");
-});
 var context = new FSM.DictionaryContext("example");
 model.initialise(context);
-model.evaluate("rand", context);
-model.evaluate("off", context);
+model.evaluate("play", context);

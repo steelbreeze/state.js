@@ -106,8 +106,8 @@ module FSM {
             this.enter = this.beginEnter.concat(this.endEnter);
         }
 
-        bootstrapEnter(traverse: Behavior, next: StateMachineElement) {
-            traverse = traverse.concat(this.beginEnter);
+        bootstrapEnter(add: (additional: Behavior) => void, next: StateMachineElement) {
+            add(this.beginEnter);
         }
     }
 
@@ -127,6 +127,10 @@ module FSM {
             }
         }
 
+        parent(): StateMachineElement {
+            return this.region;
+        }
+        
         To(target?: Vertex): Transition {
             var transition = new Transition(this, target);
 
@@ -234,11 +238,11 @@ module FSM {
     }
 
     export class PseudoState extends Vertex {
-        constructor(name: string, parent: Region, public kind: PseudoStateKind) {
-            super(name, parent, pseudoState(kind));
+        constructor(name: string, region: Region, public kind: PseudoStateKind) {
+            super(name, region, pseudoState(kind));
 
             if (this.isInitial()) {
-                parent.initial = this;
+                region.initial = this;
             }
         }
 
@@ -280,8 +284,8 @@ module FSM {
         private exitBehavior: Behavior = [];
         private entryBehavior: Behavior = [];
 
-        constructor(name: string, parent: Region) {
-            super(name, parent, State.selector);
+        constructor(name: string, region: Region) {
+            super(name, region, State.selector);
         }
 
         exit<TMessage>(exitAction: Action): State {
@@ -345,14 +349,14 @@ module FSM {
             super.bootstrapTransitions();
         }
 
-        bootstrapEnter(traverse: Behavior, next: StateMachineElement) {
-            super.bootstrapEnter(traverse, next);
+        bootstrapEnter(add: (additional: Behavior) => void, next: StateMachineElement) {
+            super.bootstrapEnter(add, next);
 
             for( var i:number = 0, l:number = this.regions.length; i < l; i++) {
                 var region: Region = this.regions[i];
 
                 if (region !== next) {
-                    traverse = traverse.concat(region.enter);
+                    add(region.enter);
                 }
             }
         }
@@ -381,8 +385,8 @@ module FSM {
     }
 
     export class FinalState extends State {
-        constructor(name: string, parent: Region) {
-            super(name, parent);
+        constructor(name: string, region: Region) {
+            super(name, region);
         }
 
         isFinal(): Boolean {
@@ -451,29 +455,35 @@ module FSM {
         bootstrap(): void {
             if (this.target === null) { // internal transitions: just the actions
                 this.traverse = this.transitionBehavior;
-            } else if (this.target.parent === this.source.parent) { // local transitions: exit and enter with no complexity
+            } else if (this.target.region === this.source.region) { // local transitions: exit and enter with no complexity
                 this.traverse = this.source.leave.concat(this.transitionBehavior).concat(this.target.enter);
             } else { // complex external transition
                 var sourceAncestors = this.source.ancestors();
                 var targetAncestors = this.target.ancestors();
-                var i: number = 0, l: number = Math.min(sourceAncestors.length, targetAncestors.length);
+                var sourceAncestorsLength = sourceAncestors.length;
+                var targetAncestorsLength = targetAncestors.length;
+                var i = 0, l = Math.min(sourceAncestorsLength, targetAncestorsLength);
 
                 // find the index of the first uncommon ancestor
                 while((i < l) && (sourceAncestors[i] === targetAncestors[i])) {
-                    ++i;
+                    i++;
                 }
 
                 // TODO: assert common ancestor is a region
 
                 // leave the first uncommon ancestor
-                this.traverse = (i < sourceAncestors.length ? sourceAncestors[i] : this.source).leave;
+                this.traverse = (i < sourceAncestorsLength ? sourceAncestors[i] : this.source).leave.slice(0);
 
                 // perform the transition action
                 this.traverse = this.traverse.concat(this.transitionBehavior);
 
+                if (i >= targetAncestorsLength ) {
+                    this.traverse = this.traverse.concat(this.target.beginEnter);
+                }
+                                
                 // enter the target ancestry
-                while(i < targetAncestors.length) {
-                    targetAncestors[i++].bootstrapEnter(this.traverse, targetAncestors[i]);
+                while(i < targetAncestorsLength) {
+                    targetAncestors[i++].bootstrapEnter((additional: Behavior) => { this.traverse = this.traverse.concat(additional); }, targetAncestors[i]);
                 }
 
                 // trigger cascade

@@ -80,8 +80,8 @@ var FSM;
             });
             this.enter = this.beginEnter.concat(this.endEnter);
         };
-        StateMachineElement.prototype.bootstrapEnter = function (traverse, next) {
-            traverse = traverse.concat(this.beginEnter);
+        StateMachineElement.prototype.bootstrapEnter = function (add, next) {
+            add(this.beginEnter);
         };
         return StateMachineElement;
     })(NamedElement);
@@ -98,6 +98,9 @@ var FSM;
                 this.root.clean = false;
             }
         }
+        Vertex.prototype.parent = function () {
+            return this.region;
+        };
         Vertex.prototype.To = function (target) {
             var transition = new Transition(this, target);
             this.transitions.push(transition);
@@ -205,11 +208,11 @@ var FSM;
     var PseudoStateKind = FSM.PseudoStateKind;
     var PseudoState = (function (_super) {
         __extends(PseudoState, _super);
-        function PseudoState(name, parent, kind) {
-            _super.call(this, name, parent, pseudoState(kind));
+        function PseudoState(name, region, kind) {
+            _super.call(this, name, region, pseudoState(kind));
             this.kind = kind;
             if (this.isInitial()) {
-                parent.initial = this;
+                region.initial = this;
             }
         }
         PseudoState.prototype.isHistory = function () {
@@ -231,8 +234,8 @@ var FSM;
     FSM.PseudoState = PseudoState;
     var State = (function (_super) {
         __extends(State, _super);
-        function State(name, parent) {
-            _super.call(this, name, parent, State.selector);
+        function State(name, region) {
+            _super.call(this, name, region, State.selector);
             this.regions = [];
             this.exitBehavior = [];
             this.entryBehavior = [];
@@ -296,12 +299,12 @@ var FSM;
             }
             _super.prototype.bootstrapTransitions.call(this);
         };
-        State.prototype.bootstrapEnter = function (traverse, next) {
-            _super.prototype.bootstrapEnter.call(this, traverse, next);
+        State.prototype.bootstrapEnter = function (add, next) {
+            _super.prototype.bootstrapEnter.call(this, add, next);
             for (var i = 0, l = this.regions.length; i < l; i++) {
                 var region = this.regions[i];
                 if (region !== next) {
-                    traverse = traverse.concat(region.enter);
+                    add(region.enter);
                 }
             }
         };
@@ -326,8 +329,8 @@ var FSM;
     FSM.State = State;
     var FinalState = (function (_super) {
         __extends(FinalState, _super);
-        function FinalState(name, parent) {
-            _super.call(this, name, parent);
+        function FinalState(name, region) {
+            _super.call(this, name, region);
         }
         FinalState.prototype.isFinal = function () {
             return true;
@@ -385,26 +388,34 @@ var FSM;
             return this;
         };
         Transition.prototype.bootstrap = function () {
+            var _this = this;
             if (this.target === null) {
                 this.traverse = this.transitionBehavior;
             }
-            else if (this.target.parent === this.source.parent) {
+            else if (this.target.region === this.source.region) {
                 this.traverse = this.source.leave.concat(this.transitionBehavior).concat(this.target.enter);
             }
             else {
                 var sourceAncestors = this.source.ancestors();
                 var targetAncestors = this.target.ancestors();
-                var i = 0, l = Math.min(sourceAncestors.length, targetAncestors.length);
+                var sourceAncestorsLength = sourceAncestors.length;
+                var targetAncestorsLength = targetAncestors.length;
+                var i = 0, l = Math.min(sourceAncestorsLength, targetAncestorsLength);
                 while ((i < l) && (sourceAncestors[i] === targetAncestors[i])) {
-                    ++i;
+                    i++;
                 }
                 // TODO: assert common ancestor is a region
                 // leave the first uncommon ancestor
-                this.traverse = (i < sourceAncestors.length ? sourceAncestors[i] : this.source).leave;
+                this.traverse = (i < sourceAncestorsLength ? sourceAncestors[i] : this.source).leave.slice(0);
                 // perform the transition action
                 this.traverse = this.traverse.concat(this.transitionBehavior);
-                while (i < targetAncestors.length) {
-                    targetAncestors[i++].bootstrapEnter(this.traverse, targetAncestors[i]);
+                if (i >= targetAncestorsLength) {
+                    this.traverse = this.traverse.concat(this.target.beginEnter);
+                }
+                while (i < targetAncestorsLength) {
+                    targetAncestors[i++].bootstrapEnter(function (additional) {
+                        _this.traverse = _this.traverse.concat(additional);
+                    }, targetAncestors[i]);
                 }
                 // trigger cascade
                 this.traverse = this.traverse.concat(this.target.endEnter);

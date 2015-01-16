@@ -39,13 +39,14 @@ declare module FSM {
         ancestors(): StateMachineElement[];
         reset(): void;
         bootstrap(deepHistoryAbove: Boolean): void;
-        bootstrapEnter(traverse: Behavior, next: StateMachineElement): void;
+        bootstrapEnter(add: (additional: Behavior) => void, next: StateMachineElement): void;
     }
     class Vertex extends StateMachineElement {
         region: Region;
         transitions: Transition[];
         selector: (transitions: Transition[], message: any, context: IContext) => Transition;
         constructor(name: string, region: Region, selector: (transitions: Transition[], message: any, context: IContext) => Transition);
+        parent(): StateMachineElement;
         To(target?: Vertex): Transition;
         bootstrap(deepHistoryAbove: Boolean): void;
         bootstrapTransitions(): void;
@@ -76,7 +77,7 @@ declare module FSM {
     }
     class PseudoState extends Vertex {
         kind: PseudoStateKind;
-        constructor(name: string, parent: Region, kind: PseudoStateKind);
+        constructor(name: string, region: Region, kind: PseudoStateKind);
         isHistory(): Boolean;
         isInitial(): Boolean;
         bootstrap(deepHistoryAbove: Boolean): void;
@@ -86,7 +87,7 @@ declare module FSM {
         regions: Region[];
         private exitBehavior;
         private entryBehavior;
-        constructor(name: string, parent: Region);
+        constructor(name: string, region: Region);
         exit<TMessage>(exitAction: Action): State;
         entry<TMessage>(entryAction: Action): State;
         isFinal(): Boolean;
@@ -95,11 +96,11 @@ declare module FSM {
         isOrthogonal(): Boolean;
         bootstrap(deepHistoryAbove: Boolean): void;
         bootstrapTransitions(): void;
-        bootstrapEnter(traverse: Behavior, next: StateMachineElement): void;
+        bootstrapEnter(add: (additional: Behavior) => void, next: StateMachineElement): void;
         evaluate(message: any, context: IContext): Boolean;
     }
     class FinalState extends State {
-        constructor(name: string, parent: Region);
+        constructor(name: string, region: Region);
         isFinal(): Boolean;
     }
     class StateMachine extends State {

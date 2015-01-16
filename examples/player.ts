@@ -22,9 +22,10 @@ function stopMotor() {
 
 var model = new FSM.StateMachine("player");
 var region1 = new FSM.Region("default", model);
+
 var initial = new FSM.PseudoState("initial", region1, FSM.PseudoStateKind.Initial);
 var operational = new FSM.State("operational", region1);
-var choice = new FSM.PseudoState("choice", region1, FSM.PseudoStateKind.Choice);
+var flipped = new FSM.State("flipped", region1);
 var final = new FSM.FinalState("final", region1);
 
 var region2 = new FSM.Region("default", operational);
@@ -42,14 +43,14 @@ stopped.To(running).when<String>((command: String): Boolean => { return command 
 active.To(stopped).when<String>((command: String): Boolean => { return command === "stop"; });
 running.To(paused).when<String>((command: String): Boolean => { return command === "pause"; });
 paused.To(running).when<String>((command: String): Boolean => { return command === "play"; });
+operational.To(flipped).when<string>((command: string): Boolean => { return command === "flip"; });
+flipped.To(operational).when<string>((command: string): Boolean => { return command === "flip"; });
 operational.To(final).when<String>((command: String): Boolean => { return command === "off"; });
-operational.To(choice).when<String>((command: String): Boolean => { return command === "rand"; });
-choice.To(operational).effect(() => { console.log("- transition A back to operational"); });
-choice.To(operational).effect(() => { console.log("- transition B back to operational"); });
 
 var context = new FSM.DictionaryContext("example");
 
 model.initialise(context);
 
-model.evaluate("rand", context);
-model.evaluate("off", context);
+model.evaluate("play", context);
+//model.evaluate("flip", context);
+//model.evaluate("flip", context);
