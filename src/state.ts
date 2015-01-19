@@ -3,8 +3,17 @@
  * Copyright (c) 2014-5 Steelbreeze Limited
  * Licensed under MIT and GPL v3 licences
  */
-module FSM {
-    
+
+module FSM {    
+    export enum PseudoStateKind {
+        Choice,
+        DeepHistory,
+        Initial,
+        Junction,
+        ShallowHistory,
+        Terminate
+    }
+
     export interface Guard {
         (message: any, context: IContext): Boolean;
     }
@@ -16,6 +25,12 @@ module FSM {
     export interface Behavior extends Array<Action> {
     }
         
+    function assert(condition: Boolean, error: string): void {
+        if (!condition) {
+            throw error;
+        }
+    }
+    
     function invoke(behavior: Behavior, message: any, context: IContext, history: Boolean): void {
         for (var i = 0, l = behavior.length; i < l; i++) {
             behavior[i](message, context, history);
@@ -70,19 +85,18 @@ module FSM {
 
     export class StateMachineElement extends NamedElement {
         root: StateMachine;
-        leave: Behavior;
-        beginEnter: Behavior;
-        endEnter: Behavior;
-        enter: Behavior;
+        leave: Behavior = [];
+        beginEnter: Behavior= [];
+        endEnter: Behavior =[];
+        enter: Behavior = [];
 
-        constructor(name: string, element: StateMachineElement) {
-            super(name, element);
+        constructor(name: string, parentElement: StateMachineElement) {
+            super(name, parentElement);
 
-            if(element) {
-                this.root = element.root;
+            if(parentElement) {
+                this.root = parentElement.root;
+                this.root.clean = false;
             }
-
-            this.reset();
         }
 
         parent(): StateMachineElement { return; } // NOTE: this is really an abstract method but there's no construct for it
@@ -122,8 +136,6 @@ module FSM {
             
             if (region) {
                 region.vertices.push(this);
-
-                this.root.clean = false;
             }
         }
 
@@ -189,7 +201,6 @@ module FSM {
             super(name, state);
             
             state.regions.push(this);
-            this.root.clean = false; // TODO: move into StateMachineElement?
         }
 
         parent(): StateMachineElement {
@@ -226,15 +237,6 @@ module FSM {
         evaluate(message: any, context: IContext): Boolean {
             return context.getCurrent(this).evaluate(message, context);
         }
-    }
-
-    export enum PseudoStateKind {
-        Choice,
-        DeepHistory,
-        Initial,
-        Junction,
-        ShallowHistory,
-        Terminate
     }
 
     export class PseudoState extends Vertex {
@@ -469,7 +471,8 @@ module FSM {
                     i++;
                 }
 
-                // TODO: assert common ancestor is a region
+                // validate transition does not cross sibling regions boundaries
+                assert(!(sourceAncestors[i] instanceof Region), "Transitions may not cross sibling orthogonal region boundaries");
 
                 // leave the first uncommon ancestor
                 this.traverse = (i < sourceAncestorsLength ? sourceAncestors[i] : this.source).leave.slice(0);

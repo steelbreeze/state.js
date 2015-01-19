@@ -1,4 +1,12 @@
 declare module FSM {
+    enum PseudoStateKind {
+        Choice = 0,
+        DeepHistory = 1,
+        Initial = 2,
+        Junction = 3,
+        ShallowHistory = 4,
+        Terminate = 5,
+    }
     interface Guard {
         (message: any, context: IContext): Boolean;
     }
@@ -34,7 +42,7 @@ declare module FSM {
         beginEnter: Behavior;
         endEnter: Behavior;
         enter: Behavior;
-        constructor(name: string, element: StateMachineElement);
+        constructor(name: string, parentElement: StateMachineElement);
         parent(): StateMachineElement;
         ancestors(): StateMachineElement[];
         reset(): void;
@@ -66,14 +74,6 @@ declare module FSM {
         bootstrap(deepHistoryAbove: Boolean): void;
         bootstrapTransitions(): void;
         evaluate(message: any, context: IContext): Boolean;
-    }
-    enum PseudoStateKind {
-        Choice = 0,
-        DeepHistory = 1,
-        Initial = 2,
-        Junction = 3,
-        ShallowHistory = 4,
-        Terminate = 5,
     }
     class PseudoState extends Vertex {
         kind: PseudoStateKind;

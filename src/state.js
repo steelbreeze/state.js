@@ -1,16 +1,30 @@
+/* State v5 finite state machine library
+ * http://www.steelbreeze.net/state.js
+ * Copyright (c) 2014-5 Steelbreeze Limited
+ * Licensed under MIT and GPL v3 licences
+ */
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-/* State v5 finite state machine library
- * http://www.steelbreeze.net/state.js
- * Copyright (c) 2014-5 Steelbreeze Limited
- * Licensed under MIT and GPL v3 licences
- */
 var FSM;
 (function (FSM) {
+    (function (PseudoStateKind) {
+        PseudoStateKind[PseudoStateKind["Choice"] = 0] = "Choice";
+        PseudoStateKind[PseudoStateKind["DeepHistory"] = 1] = "DeepHistory";
+        PseudoStateKind[PseudoStateKind["Initial"] = 2] = "Initial";
+        PseudoStateKind[PseudoStateKind["Junction"] = 3] = "Junction";
+        PseudoStateKind[PseudoStateKind["ShallowHistory"] = 4] = "ShallowHistory";
+        PseudoStateKind[PseudoStateKind["Terminate"] = 5] = "Terminate";
+    })(FSM.PseudoStateKind || (FSM.PseudoStateKind = {}));
+    var PseudoStateKind = FSM.PseudoStateKind;
+    function assert(condition, error) {
+        if (!condition) {
+            throw error;
+        }
+    }
     function invoke(behavior, message, context, history) {
         for (var i = 0, l = behavior.length; i < l; i++) {
             behavior[i](message, context, history);
@@ -50,12 +64,16 @@ var FSM;
     FSM.NamedElement = NamedElement;
     var StateMachineElement = (function (_super) {
         __extends(StateMachineElement, _super);
-        function StateMachineElement(name, element) {
-            _super.call(this, name, element);
-            if (element) {
-                this.root = element.root;
+        function StateMachineElement(name, parentElement) {
+            _super.call(this, name, parentElement);
+            this.leave = [];
+            this.beginEnter = [];
+            this.endEnter = [];
+            this.enter = [];
+            if (parentElement) {
+                this.root = parentElement.root;
+                this.root.clean = false;
             }
-            this.reset();
         }
         StateMachineElement.prototype.parent = function () {
             return;
@@ -95,7 +113,6 @@ var FSM;
             this.selector = selector;
             if (region) {
                 region.vertices.push(this);
-                this.root.clean = false;
             }
         }
         Vertex.prototype.parent = function () {
@@ -151,7 +168,6 @@ var FSM;
             this.state = state;
             this.vertices = [];
             state.regions.push(this);
-            this.root.clean = false; // TODO: move into StateMachineElement?
         }
         Region.prototype.parent = function () {
             return this.state;
@@ -197,15 +213,6 @@ var FSM;
         return Region;
     })(StateMachineElement);
     FSM.Region = Region;
-    (function (PseudoStateKind) {
-        PseudoStateKind[PseudoStateKind["Choice"] = 0] = "Choice";
-        PseudoStateKind[PseudoStateKind["DeepHistory"] = 1] = "DeepHistory";
-        PseudoStateKind[PseudoStateKind["Initial"] = 2] = "Initial";
-        PseudoStateKind[PseudoStateKind["Junction"] = 3] = "Junction";
-        PseudoStateKind[PseudoStateKind["ShallowHistory"] = 4] = "ShallowHistory";
-        PseudoStateKind[PseudoStateKind["Terminate"] = 5] = "Terminate";
-    })(FSM.PseudoStateKind || (FSM.PseudoStateKind = {}));
-    var PseudoStateKind = FSM.PseudoStateKind;
     var PseudoState = (function (_super) {
         __extends(PseudoState, _super);
         function PseudoState(name, region, kind) {
@@ -404,7 +411,8 @@ var FSM;
                 while ((i < l) && (sourceAncestors[i] === targetAncestors[i])) {
                     i++;
                 }
-                // TODO: assert common ancestor is a region
+                // validate transition does not cross sibling regions boundaries
+                assert(!(sourceAncestors[i] instanceof Region), "Transitions may not cross sibling orthogonal region boundaries");
                 // leave the first uncommon ancestor
                 this.traverse = (i < sourceAncestorsLength ? sourceAncestors[i] : this.source).leave.slice(0);
                 // perform the transition action
