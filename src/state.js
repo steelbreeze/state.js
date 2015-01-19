@@ -20,20 +20,10 @@ var FSM;
         PseudoStateKind[PseudoStateKind["Terminate"] = 5] = "Terminate";
     })(FSM.PseudoStateKind || (FSM.PseudoStateKind = {}));
     var PseudoStateKind = FSM.PseudoStateKind;
-    function assert(condition, error) {
-        if (!condition) {
-            throw error;
-        }
-    }
-    function invoke(behavior, message, context, history) {
-        for (var i = 0, l = behavior.length; i < l; i++) {
-            behavior[i](message, context, history);
-        }
-    }
     var DictionaryContext = (function () {
         function DictionaryContext(name) {
             this.name = name;
-            this.last = {};
+            this.last = [];
             this.isTerminated = false;
         }
         DictionaryContext.prototype.setCurrent = function (region, value) {
@@ -50,6 +40,7 @@ var FSM;
         return DictionaryContext;
     })();
     FSM.DictionaryContext = DictionaryContext;
+    // TODO: JSON context object - probably better than dictionary
     var NamedElement = (function () {
         function NamedElement(name, element) {
             this.name = name;
@@ -504,5 +495,15 @@ var FSM;
     }
     function terminate(transitions, message, context) {
         return;
+    }
+    function invoke(behavior, message, context, history) {
+        for (var i = 0, l = behavior.length; i < l; i++) {
+            behavior[i](message, context, history);
+        }
+    }
+    function assert(condition, error) {
+        if (!condition) {
+            throw error;
+        }
     }
 })(FSM || (FSM = {}));

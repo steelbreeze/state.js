@@ -26,7 +26,7 @@ declare module FSM {
         isTerminated: Boolean;
         constructor(name: string);
         setCurrent(region: StateMachineElement, value: State): void;
-        getCurrent(region: StateMachineElement): State;
+        getCurrent(region: StateMachineElement): any;
         toString(): string;
     }
     class NamedElement {

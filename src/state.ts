@@ -25,30 +25,14 @@ module FSM {
     export interface Behavior extends Array<Action> {
     }
         
-    function assert(condition: Boolean, error: string): void {
-        if (!condition) {
-            throw error;
-        }
-    }
-    
-    function invoke(behavior: Behavior, message: any, context: IContext, history: Boolean): void {
-        for (var i = 0, l = behavior.length; i < l; i++) {
-            behavior[i](message, context, history);
-        }
-    }
-    
     export interface IContext {
         isTerminated: Boolean;
         setCurrent(region: Region, value: State): void;
         getCurrent(region: Region): State;
     }
 
-    interface StateDictionary {
-        [index: string]: State;
-    }
-
     export class DictionaryContext implements IContext {
-        private last: StateDictionary = {};
+        private last = [];
 
         public isTerminated: Boolean = false;
 
@@ -70,6 +54,8 @@ module FSM {
         }
     }
 
+    // TODO: JSON context object - probably better than dictionary
+    
     export class NamedElement {
         static namespaceSeperator = ".";
         qualifiedName: string;
@@ -585,5 +571,17 @@ module FSM {
     
     function terminate(transitions: Array<Transition>, message: any, context: IContext): Transition {        
         return;
+    }
+        
+    function invoke(behavior: Behavior, message: any, context: IContext, history: Boolean): void {
+        for (var i = 0, l = behavior.length; i < l; i++) {
+            behavior[i](message, context, history);
+        }
+    }
+      
+    function assert(condition: Boolean, error: string): void {
+        if (!condition) {
+            throw error;
+        }
     }
 }
