@@ -68,7 +68,7 @@ var FSM;
         }
         StateMachineElement.prototype.parent = function () {
             return;
-        }; // NOTE: this is really an abstract method but there's no construct for it
+        }; // NOTE: this is really an abstract method...
         StateMachineElement.prototype.ancestors = function () {
             return (this.parent() ? this.parent().ancestors() : []).concat(this);
         };
@@ -366,14 +366,15 @@ var FSM;
             this.traverse = [];
             this.completion(); // default the transition to a completion transition
         }
-        Transition.prototype.isElse = function () {
-            return false;
-        };
         Transition.prototype.completion = function () {
             var _this = this;
             this.guard = function (message, context) {
                 return message === _this.source;
             };
+            return this;
+        };
+        Transition.prototype.else = function () {
+            this.guard = Transition.isElse;
             return this;
         };
         Transition.prototype.when = function (guard) {
@@ -420,6 +421,9 @@ var FSM;
                 this.traverse = this.traverse.concat(this.target.endEnter);
             }
         };
+        Transition.isElse = function (message, context) {
+            return false;
+        };
         return Transition;
     })();
     FSM.Transition = Transition;
@@ -448,18 +452,16 @@ var FSM;
     function junction(transitions, message, context) {
         var result, i, l = transitions.length;
         for (i = 0; i < l; i++) {
-            if (transitions[i].isElse() === false) {
-                if (transitions[i].guard(message, context) === true) {
-                    if (result) {
-                        throw "Multiple outbound transitions evaluated true";
-                    }
-                    result = transitions[i];
+            if (transitions[i].guard(message, context) === true) {
+                if (result) {
+                    throw "Multiple outbound transitions evaluated true";
                 }
+                result = transitions[i];
             }
         }
         if (!result) {
             for (i = 0; i < l; i++) {
-                if (transitions[i].isElse() === true) {
+                if (transitions[i].guard === Transition.isElse) {
                     if (result) {
                         throw "Multiple outbound transitions evaluated true";
                     }
@@ -472,10 +474,8 @@ var FSM;
     function choice(transitions, message, context) {
         var results = [], result, i, l = transitions.length;
         for (i = 0; i < l; i++) {
-            if (transitions[i].isElse() === false) {
-                if (transitions[i].guard(message, context) === true) {
-                    results.push(transitions[i]);
-                }
+            if (transitions[i].guard(message, context) === true) {
+                results.push(transitions[i]);
             }
         }
         if (results.length !== 0) {
@@ -483,7 +483,7 @@ var FSM;
         }
         if (!result) {
             for (i = 0; i < l; i++) {
-                if (transitions[i].isElse() === true) {
+                if (transitions[i].guard === Transition.isElse) {
                     if (result) {
                         throw "Multiple outbound transitions evaluated true";
                     }

@@ -112,12 +112,13 @@ declare module FSM {
     class Transition {
         private source;
         private target;
+        static isElse: Guard;
         guard: Guard;
         transitionBehavior: Behavior;
         traverse: Behavior;
         constructor(source: Vertex, target?: Vertex);
-        isElse(): Boolean;
         completion(): Transition;
+        else(): Transition;
         when<TMessage>(guard: Guard): Transition;
         effect<TMessage>(transitionAction: Action): Transition;
         bootstrap(): void;

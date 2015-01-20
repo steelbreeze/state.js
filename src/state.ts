@@ -85,7 +85,7 @@ module FSM {
             }
         }
 
-        parent(): StateMachineElement { return; } // NOTE: this is really an abstract method but there's no construct for it
+        parent(): StateMachineElement { return; } // NOTE: this is really an abstract method...
         
         ancestors(): Array<StateMachineElement> {
             return (this.parent() ? this.parent().ancestors() : []).concat(this);
@@ -407,7 +407,9 @@ module FSM {
         }
     }
 
-    export class Transition { // TODO: implement else transitions
+    export class Transition {        
+        static isElse: Guard = (message: any, context: IContext): Boolean => { return false; };
+        
         guard: Guard;
         transitionBehavior: Behavior = [];
         traverse: Behavior = [];
@@ -416,16 +418,18 @@ module FSM {
             this.completion(); // default the transition to a completion transition
         }
 
-        isElse(): Boolean {
-            return false;
-        }
-        
         completion(): Transition {
             this.guard = (message: any, context: IContext): Boolean => { return message === this.source; };
 
             return this;
         }
 
+        else(): Transition {
+            this.guard = Transition.isElse;
+            
+            return this;
+        }
+        
         when<TMessage>(guard: Guard): Transition {
             this.guard = guard;
 
@@ -512,20 +516,18 @@ module FSM {
         var result: Transition, i: number, l: number = transitions.length;
         
         for(i = 0; i < l; i++) {
-            if(transitions[i].isElse() === false) {
-                if(transitions[i].guard(message, context) === true) {
-                    if(result) {
-                            throw "Multiple outbound transitions evaluated true";
-                    }
-                    
-                    result = transitions[i];
+            if(transitions[i].guard(message, context) === true) {
+                if(result) {
+                        throw "Multiple outbound transitions evaluated true";
                 }
+
+                result = transitions[i];
             }
         }
         
         if (!result) {
             for(i = 0; i < l; i++) {
-                if(transitions[i].isElse() === true) {
+                if(transitions[i].guard === Transition.isElse) {
                     if(result) {
                             throw "Multiple outbound transitions evaluated true";
                     }
@@ -542,11 +544,8 @@ module FSM {
         var results: Array<Transition> = [], result: Transition, i: number, l: number = transitions.length;
                 
         for(i = 0; i < l; i++) {
-            if(transitions[i].isElse() === false) {
-                
-                if(transitions[i].guard(message, context) === true) {
-                    results.push(transitions[i]);
-                }
+            if(transitions[i].guard(message, context) === true) {
+                results.push(transitions[i]);
             }
         }
 
@@ -556,7 +555,7 @@ module FSM {
         
         if (!result) {
             for(i = 0; i < l; i++) {
-                if(transitions[i].isElse() === true) {
+                if(transitions[i].guard === Transition.isElse) {
                     if(result) {
                             throw "Multiple outbound transitions evaluated true";
                     }
