@@ -51,9 +51,10 @@ flipped.To(operational).when(function (command) {
 operational.To(final).when(function (command) {
     return command === "off";
 });
-var context = new FSM.DictionaryContext("example");
+var context = new FSM.Context();
 model.initialise(context);
 model.evaluate("play", context);
 model.evaluate("pause", context);
 model.evaluate("flip", context);
 model.evaluate("flip", context);
+console.log(context);

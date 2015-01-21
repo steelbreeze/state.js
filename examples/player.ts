@@ -47,7 +47,7 @@ operational.To(flipped).when<string>((command: string): Boolean => { return comm
 flipped.To(operational).when<string>((command: string): Boolean => { return command === "flip"; });
 operational.To(final).when<String>((command: String): Boolean => { return command === "off"; });
 
-var context = new FSM.DictionaryContext("example");
+var context = new FSM.Context();
 
 model.initialise(context);
 
@@ -55,3 +55,5 @@ model.evaluate("play", context);
 model.evaluate("pause", context);
 model.evaluate("flip", context);
 model.evaluate("flip", context);
+
+console.log(context);

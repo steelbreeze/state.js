@@ -20,27 +20,20 @@ var FSM;
         PseudoStateKind[PseudoStateKind["Terminate"] = 5] = "Terminate";
     })(FSM.PseudoStateKind || (FSM.PseudoStateKind = {}));
     var PseudoStateKind = FSM.PseudoStateKind;
-    var DictionaryContext = (function () {
-        function DictionaryContext(name) {
-            this.name = name;
-            this.last = [];
+    // TODO: JSON context object - probably better than dictionary
+    var Context = (function () {
+        function Context() {
             this.isTerminated = false;
         }
-        DictionaryContext.prototype.setCurrent = function (region, value) {
-            if (region) {
-                this.last[region.qualifiedName] = value;
-            }
+        Context.prototype.setCurrent = function (region, value) {
+            this[region.qualifiedName] = value;
         };
-        DictionaryContext.prototype.getCurrent = function (region) {
-            return this.last[region.qualifiedName];
+        Context.prototype.getCurrent = function (region) {
+            return this[region.qualifiedName];
         };
-        DictionaryContext.prototype.toString = function () {
-            return this.name;
-        };
-        return DictionaryContext;
+        return Context;
     })();
-    FSM.DictionaryContext = DictionaryContext;
-    // TODO: JSON context object - probably better than dictionary
+    FSM.Context = Context;
     var NamedElement = (function () {
         function NamedElement(name, element) {
             this.name = name;
@@ -287,7 +280,9 @@ var FSM;
             this.leave = this.leave.concat(this.exitBehavior);
             this.beginEnter = this.beginEnter.concat(this.entryBehavior);
             this.beginEnter.push(function (message, context, history) {
-                context.setCurrent(_this.region, _this);
+                if (_this.region) {
+                    context.setCurrent(_this.region, _this);
+                }
             });
             this.enter = this.beginEnter.concat(this.endEnter);
         };

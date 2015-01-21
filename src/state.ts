@@ -31,30 +31,18 @@ module FSM {
         getCurrent(region: Region): State;
     }
 
-    export class DictionaryContext implements IContext {
-        private last = [];
-
+    // TODO: JSON context object - probably better than dictionary
+    export class Context implements IContext {
         public isTerminated: Boolean = false;
 
-        constructor(public name: string) {
-        }
-
         setCurrent(region: StateMachineElement, value: State) {
-            if(region) {
-                this.last[region.qualifiedName] = value;
-            }
+            this[region.qualifiedName] = value;
         }
 
         getCurrent(region: StateMachineElement) {
-            return this.last[region.qualifiedName];
-        }
-
-        toString(): string {
-            return this.name;
+            return this[region.qualifiedName];
         }
     }
-
-    // TODO: JSON context object - probably better than dictionary
     
     export class NamedElement {
         static namespaceSeperator = ".";
@@ -324,7 +312,7 @@ module FSM {
             this.leave = this.leave.concat(this.exitBehavior);
             this.beginEnter = this.beginEnter.concat(this.entryBehavior);
 
-            this.beginEnter.push((message: any, context: IContext, history: Boolean) => { context.setCurrent(this.region, this); });
+            this.beginEnter.push((message: any, context: IContext, history: Boolean) => { if (this.region) { context.setCurrent(this.region, this); } });
 
             this.enter = this.beginEnter.concat(this.endEnter);
         }

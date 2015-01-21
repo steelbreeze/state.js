@@ -20,14 +20,10 @@ declare module FSM {
         setCurrent(region: Region, value: State): void;
         getCurrent(region: Region): State;
     }
-    class DictionaryContext implements IContext {
-        name: string;
-        private last;
+    class Context implements IContext {
         isTerminated: Boolean;
-        constructor(name: string);
         setCurrent(region: StateMachineElement, value: State): void;
         getCurrent(region: StateMachineElement): any;
-        toString(): string;
     }
     class NamedElement {
         name: string;
