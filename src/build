@@ -1,1 +1,1 @@
-tsc -d -w --out state.js state.ts
+tsc -d -w  --noImplicitAny --out state.js state.ts

@@ -4,7 +4,13 @@
  * Licensed under MIT and GPL v3 licences
  */
 
-module FSM {    
+/**
+ * Finite State Machine library
+ */
+module FSM {
+    /**
+     * Enumeration describing the various types of PseudoState allowed.
+     */
     export enum PseudoStateKind {
         Choice,
         DeepHistory,
@@ -14,36 +20,54 @@ module FSM {
         Terminate
     }
 
+    /**
+     * Type signature for guard conditions used by Transitions.
+     */
     export interface Guard {
         (message: any, context: IContext): Boolean;
     }
     
+    /**
+     * Type signature for an action performed durin Transitions.
+     */
     export interface Action {
         (message: any, context: IContext, history: Boolean): any;
     }
     
+    /**
+     * Type signature for a set of actions performed during Transitions.
+     */
     export interface Behavior extends Array<Action> {
     }
-        
+
+    /**
+     * Interface for the state machine context; an object used as each instance of a state machine (as the classes in this library describe a state machine model).
+     */
     export interface IContext {
         isTerminated: Boolean;
         setCurrent(region: Region, value: State): void;
         getCurrent(region: Region): State;
     }
 
-    // TODO: JSON context object - probably better than dictionary
+    /**
+     * Default working implementation of a state machine context class.
+     */
     export class Context implements IContext {
         public isTerminated: Boolean = false;
+        private last: any = [];
 
-        setCurrent(region: StateMachineElement, value: State) {
-            this[region.qualifiedName] = value;
+        setCurrent(region: Region, value: State): void {
+            this.last[region.qualifiedName] = value;
         }
 
-        getCurrent(region: StateMachineElement) {
-            return this[region.qualifiedName];
+        getCurrent(region: Region): State {
+            return this.last[region.qualifiedName];
         }
     }
     
+    /**
+     * An abstract class that can be used as the base for any named elmeent that nay apperar in a model.
+     */
     export class NamedElement {
         static namespaceSeperator = ".";
         qualifiedName: string;
@@ -57,6 +81,9 @@ module FSM {
         }
     }
 
+    /**
+     * An abstract class that can be used as the base for any elmeent with a state machine.
+     */
     export class StateMachineElement extends NamedElement {
         root: StateMachine;
         leave: Behavior = [];
@@ -99,6 +126,9 @@ module FSM {
         }
     }
 
+    /**
+     * An element within a state machine model that can be the source or target of a transition.
+     */
     export class Vertex extends StateMachineElement {
         transitions: Array<Transition> = [];
         selector: (transitions: Array<Transition>, message: any, context: IContext) => Transition;      
@@ -166,6 +196,9 @@ module FSM {
         }
     }
 
+    /**
+     * An element within a state machine model that is a container of Vertices.
+     */
     export class Region extends StateMachineElement {
         static defaultName: string = "default";
         vertices: Array<Vertex> = [];
@@ -213,6 +246,9 @@ module FSM {
         }
     }
 
+    /**
+     * An element within a state machine model that represents an transitory Vertex within the state machine model.
+     */
     export class PseudoState extends Vertex {
         constructor(name: string, region: Region, public kind: PseudoStateKind) {
             super(name, region, pseudoState(kind));
@@ -239,6 +275,9 @@ module FSM {
         }
     }
 
+    /**
+     * An element within a state machine model that represents an invariant condition within the life of the state machine instance.
+     */
     export class State extends Vertex {
         private static selector(transitions: Array<Transition>, message: any, context: IContext): Transition {
             var result: Transition;
@@ -360,6 +399,9 @@ module FSM {
         }
     }
 
+    /**
+     * An element within a state machine model that represents completion of the life of the containing Region within the state machine instance.
+     */
     export class FinalState extends State {
         constructor(name: string, region: Region) {
             super(name, region);
@@ -370,6 +412,9 @@ module FSM {
         }
     }
 
+    /**
+     * An element within a state machine model that represents the root (ultimate parent) of the state machine model.
+     */
     export class StateMachine extends State {
         clean: Boolean = true;
 
@@ -393,8 +438,19 @@ module FSM {
 
             invoke(this.enter, undefined, context, false);
         }
+        
+        evaluate(message: any, context: IContext): Boolean {
+            if (context.isTerminated) {
+                return false;
+            }
+            
+            return super.evaluate(message, context);
+        }
     }
 
+    /**
+     * An element within a state machine model that represents a valid transition between vertices in response to a message.
+     */
     export class Transition {        
         static isElse: Guard = (message: any, context: IContext): Boolean => { return false; };
         

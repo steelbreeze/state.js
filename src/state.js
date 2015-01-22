@@ -9,8 +9,14 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
+/**
+ * Finite State Machine library
+ */
 var FSM;
 (function (FSM) {
+    /**
+     * Enumeration describing the various types of PseudoState allowed.
+     */
     (function (PseudoStateKind) {
         PseudoStateKind[PseudoStateKind["Choice"] = 0] = "Choice";
         PseudoStateKind[PseudoStateKind["DeepHistory"] = 1] = "DeepHistory";
@@ -20,20 +26,26 @@ var FSM;
         PseudoStateKind[PseudoStateKind["Terminate"] = 5] = "Terminate";
     })(FSM.PseudoStateKind || (FSM.PseudoStateKind = {}));
     var PseudoStateKind = FSM.PseudoStateKind;
-    // TODO: JSON context object - probably better than dictionary
+    /**
+     * Default working implementation of a state machine context class.
+     */
     var Context = (function () {
         function Context() {
             this.isTerminated = false;
+            this.last = [];
         }
         Context.prototype.setCurrent = function (region, value) {
-            this[region.qualifiedName] = value;
+            this.last[region.qualifiedName] = value;
         };
         Context.prototype.getCurrent = function (region) {
-            return this[region.qualifiedName];
+            return this.last[region.qualifiedName];
         };
         return Context;
     })();
     FSM.Context = Context;
+    /**
+     * An abstract class that can be used as the base for any named elmeent that nay apperar in a model.
+     */
     var NamedElement = (function () {
         function NamedElement(name, element) {
             this.name = name;
@@ -46,6 +58,9 @@ var FSM;
         return NamedElement;
     })();
     FSM.NamedElement = NamedElement;
+    /**
+     * An abstract class that can be used as the base for any elmeent with a state machine.
+     */
     var StateMachineElement = (function (_super) {
         __extends(StateMachineElement, _super);
         function StateMachineElement(name, parentElement) {
@@ -88,6 +103,9 @@ var FSM;
         return StateMachineElement;
     })(NamedElement);
     FSM.StateMachineElement = StateMachineElement;
+    /**
+     * An element within a state machine model that can be the source or target of a transition.
+     */
     var Vertex = (function (_super) {
         __extends(Vertex, _super);
         function Vertex(name, region, selector) {
@@ -145,6 +163,9 @@ var FSM;
         return Vertex;
     })(StateMachineElement);
     FSM.Vertex = Vertex;
+    /**
+     * An element within a state machine model that is a container of Vertices.
+     */
     var Region = (function (_super) {
         __extends(Region, _super);
         function Region(name, state) {
@@ -197,6 +218,9 @@ var FSM;
         return Region;
     })(StateMachineElement);
     FSM.Region = Region;
+    /**
+     * An element within a state machine model that represents an transitory Vertex within the state machine model.
+     */
     var PseudoState = (function (_super) {
         __extends(PseudoState, _super);
         function PseudoState(name, region, kind) {
@@ -223,6 +247,9 @@ var FSM;
         return PseudoState;
     })(Vertex);
     FSM.PseudoState = PseudoState;
+    /**
+     * An element within a state machine model that represents an invariant condition within the life of the state machine instance.
+     */
     var State = (function (_super) {
         __extends(State, _super);
         function State(name, region) {
@@ -320,6 +347,9 @@ var FSM;
         return State;
     })(Vertex);
     FSM.State = State;
+    /**
+     * An element within a state machine model that represents completion of the life of the containing Region within the state machine instance.
+     */
     var FinalState = (function (_super) {
         __extends(FinalState, _super);
         function FinalState(name, region) {
@@ -331,6 +361,9 @@ var FSM;
         return FinalState;
     })(State);
     FSM.FinalState = FinalState;
+    /**
+     * An element within a state machine model that represents the root (ultimate parent) of the state machine model.
+     */
     var StateMachine = (function (_super) {
         __extends(StateMachine, _super);
         function StateMachine(name) {
@@ -350,9 +383,18 @@ var FSM;
             }
             invoke(this.enter, undefined, context, false);
         };
+        StateMachine.prototype.evaluate = function (message, context) {
+            if (context.isTerminated) {
+                return false;
+            }
+            return _super.prototype.evaluate.call(this, message, context);
+        };
         return StateMachine;
     })(State);
     FSM.StateMachine = StateMachine;
+    /**
+     * An element within a state machine model that represents a valid transition between vertices in response to a message.
+     */
     var Transition = (function () {
         function Transition(source, target) {
             this.source = source;
