@@ -47,49 +47,33 @@ var FSM;
     })();
     FSM.Context = Context;
     /**
-     * An abstract class that can be used as the base for any named elmeent that nay apperar in a model.
-     */
-    var NamedElement = (function () {
-        function NamedElement(name, element) {
-            this.name = name;
-            this.qualifiedName = element ? element.qualifiedName + NamedElement.namespaceSeperator + name : name;
-        }
-        NamedElement.prototype.toString = function () {
-            return this.qualifiedName;
-        };
-        NamedElement.namespaceSeperator = ".";
-        return NamedElement;
-    })();
-    FSM.NamedElement = NamedElement;
-    /**
      * An abstract class that can be used as the base for any elmeent with a state machine.
      */
-    var StateMachineElement = (function (_super) {
-        __extends(StateMachineElement, _super);
-        function StateMachineElement(name, parentElement) {
-            _super.call(this, name, parentElement);
+    var Element = (function () {
+        function Element(name, element) {
+            this.name = name;
             this.leave = [];
             this.beginEnter = [];
             this.endEnter = [];
             this.enter = [];
-            if (parentElement) {
-                this.root = parentElement.root;
+            if (element) {
+                this.root = element.root;
                 this.root.clean = false;
             }
         }
-        StateMachineElement.prototype.parent = function () {
+        Element.prototype.parent = function () {
             return;
         }; // NOTE: this is really an abstract method...
-        StateMachineElement.prototype.ancestors = function () {
+        Element.prototype.ancestors = function () {
             return (this.parent() ? this.parent().ancestors() : []).concat(this);
         };
-        StateMachineElement.prototype.reset = function () {
+        Element.prototype.reset = function () {
             this.leave = [];
             this.beginEnter = [];
             this.endEnter = [];
             this.enter = [];
         };
-        StateMachineElement.prototype.bootstrap = function (deepHistoryAbove) {
+        Element.prototype.bootstrap = function (deepHistoryAbove) {
             var _this = this;
             // TODO: remove console.log on final release
             this.leave.push(function (message, context) {
@@ -100,12 +84,18 @@ var FSM;
             });
             this.enter = this.beginEnter.concat(this.endEnter);
         };
-        StateMachineElement.prototype.bootstrapEnter = function (add, next) {
+        Element.prototype.bootstrapEnter = function (add, next) {
             add(this.beginEnter);
         };
-        return StateMachineElement;
-    })(NamedElement);
-    FSM.StateMachineElement = StateMachineElement;
+        Element.prototype.toString = function () {
+            return this.ancestors().map(function (e) {
+                return e.name;
+            }).join(Element.namespaceSeperator);
+        };
+        Element.namespaceSeperator = ".";
+        return Element;
+    })();
+    FSM.Element = Element;
     /**
      * An element within a state machine model that is a container of Vertices.
      */
@@ -159,7 +149,7 @@ var FSM;
         };
         Region.defaultName = "default";
         return Region;
-    })(StateMachineElement);
+    })(Element);
     FSM.Region = Region;
     /**
      * An element within a state machine model that can be the source or target of a transition.
@@ -224,7 +214,7 @@ var FSM;
             }
         };
         return Vertex;
-    })(StateMachineElement);
+    })(Element);
     FSM.Vertex = Vertex;
     /**
      * An element within a state machine model that represents an transitory Vertex within the state machine model.
@@ -285,7 +275,11 @@ var FSM;
                     region = this.regions[i];
                 }
             }
-            return region || new Region(Region.defaultName, this);
+            if (!region) {
+                region = new Region(Region.defaultName, this);
+                console.log("CREATED: " + region.qualifiedName);
+            }
+            return region;
         };
         State.prototype.exit = function (exitAction) {
             this.exitBehavior.push(exitAction);

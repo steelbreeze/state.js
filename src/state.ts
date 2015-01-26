@@ -71,43 +71,27 @@ module FSM {
     }
 
     /**
-     * An abstract class that can be used as the base for any named elmeent that nay apperar in a model.
-     */
-    export class NamedElement {
-        static namespaceSeperator = ".";
-        qualifiedName: string;
-
-        constructor( public name: string, element: NamedElement) {
-            this.qualifiedName = element ? element.qualifiedName + NamedElement.namespaceSeperator + name : name;
-        }
-
-        toString(): String {
-            return this.qualifiedName;
-        }
-    }
-
-    /**
      * An abstract class that can be used as the base for any elmeent with a state machine.
      */
-    export class StateMachineElement extends NamedElement {
+    export class Element {
+        static namespaceSeperator = ".";
+        qualifiedName: string;
         root: StateMachine;
         leave: Behavior = [];
         beginEnter: Behavior= [];
         endEnter: Behavior =[];
         enter: Behavior = [];
 
-        constructor(name: string, parentElement: StateMachineElement) {
-            super(name, parentElement);
-
-            if(parentElement) {
-                this.root = parentElement.root;
+        constructor(public name: string, element: Element) {    
+            if(element) {
+                this.root = element.root;
                 this.root.clean = false;
             }
         }
 
-        parent(): StateMachineElement { return; } // NOTE: this is really an abstract method...
+        parent(): Element { return; } // NOTE: this is really an abstract method...
 
-        ancestors(): Array<StateMachineElement> {
+        ancestors(): Array<Element> {
             return (this.parent() ? this.parent().ancestors() : []).concat(this);
         }
 
@@ -126,15 +110,19 @@ module FSM {
             this.enter = this.beginEnter.concat(this.endEnter);
         }
 
-        bootstrapEnter(add: (additional: Behavior) => void, next: StateMachineElement) {
+        bootstrapEnter(add: (additional: Behavior) => void, next: Element) {
             add(this.beginEnter);
+        }
+        
+        toString(): String {
+            return this.ancestors().map<string>((e)=> { return e.name; }).join(Element.namespaceSeperator);
         }
     }
 
     /**
      * An element within a state machine model that is a container of Vertices.
      */
-    export class Region extends StateMachineElement {
+    export class Region extends Element {
         static defaultName: string = "default";
         vertices: Array<Vertex> = [];
         initial: PseudoState;
@@ -145,7 +133,7 @@ module FSM {
             state.regions.push(this);
         }
 
-        parent(): StateMachineElement {
+        parent(): Element {
             return this.state;
         }
         
@@ -184,7 +172,7 @@ module FSM {
     /**
      * An element within a state machine model that can be the source or target of a transition.
      */
-    export class Vertex extends StateMachineElement {
+    export class Vertex extends Element {
         region: Region;
         transitions: Array<Transition> = [];
         selector: (transitions: Array<Transition>, message: any, context: IContext) => Transition;      
@@ -208,7 +196,7 @@ module FSM {
             }
         }
 
-        parent(): StateMachineElement {
+        parent(): Element {
             return this.region;
         }
         
@@ -335,7 +323,13 @@ module FSM {
                 }
             }
             
-            return region || new Region(Region.defaultName, this);
+            if (!region) {
+                region = new Region(Region.defaultName, this);
+                
+                console.log( "CREATED: " + region.qualifiedName);
+            }
+            
+            return region;
         }
         
         exit<TMessage>(exitAction: Action): State {
@@ -399,7 +393,7 @@ module FSM {
             super.bootstrapTransitions();
         }
 
-        bootstrapEnter(add: (additional: Behavior) => void, next: StateMachineElement) {
+        bootstrapEnter(add: (additional: Behavior) => void, next: Element) {
             super.bootstrapEnter(add, next);
 
             for( var i:number = 0, l:number = this.regions.length; i < l; i++) {
