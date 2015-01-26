@@ -1,11 +1,7 @@
-/* State v5 finite state machine library
+/** State v5 finite state machine library
  * http://www.steelbreeze.net/state.js
  * Copyright (c) 2014-5 Steelbreeze Limited
  * Licensed under MIT and GPL v3 licences
- */
-
-/**
- * Finite State Machine library
  */
 module FSM {
     /**
@@ -26,14 +22,14 @@ module FSM {
     export interface Guard {
         (message: any, context: IContext): Boolean;
     }
-    
+
     /**
      * Type signature for an action performed durin Transitions.
      */
     export interface Action {
         (message: any, context: IContext, history: Boolean): any;
     }
-    
+
     /**
      * Type signature for a set of actions performed during Transitions.
      */
@@ -54,17 +50,26 @@ module FSM {
      */
     export class Context implements IContext {
         public isTerminated: Boolean = false;
-        private last: any = [];
 
-        setCurrent(region: Region, value: State): void {
-            this.last[region.qualifiedName] = value;
+        setCurrent(region: Region, value: State): void {            
+            this.element(region).last = value;        
         }
 
-        getCurrent(region: Region): State {
-            return this.last[region.qualifiedName];
+        getCurrent(region: Region): State {            
+            return this.element(region).last;
+        }
+        
+        private element(region: Region): any {
+            var ancestors = region.ancestors(), e = this;
+            
+            for (var i = 0, l = ancestors.length; i < l; i++) {
+                e = e[ancestors[i].name] || ( e[ancestors[i].name] = {} );
+            }
+            
+            return e;
         }
     }
-    
+
     /**
      * An abstract class that can be used as the base for any named elmeent that nay apperar in a model.
      */
@@ -101,7 +106,7 @@ module FSM {
         }
 
         parent(): StateMachineElement { return; } // NOTE: this is really an abstract method...
-        
+
         ancestors(): Array<StateMachineElement> {
             return (this.parent() ? this.parent().ancestors() : []).concat(this);
         }
@@ -127,19 +132,79 @@ module FSM {
     }
 
     /**
+     * An element within a state machine model that is a container of Vertices.
+     */
+    export class Region extends StateMachineElement {
+        static defaultName: string = "default";
+        vertices: Array<Vertex> = [];
+        initial: PseudoState;
+        
+        constructor(name: string, public state: State) {
+            super(name, state);
+            
+            state.regions.push(this);
+        }
+
+        parent(): StateMachineElement {
+            return this.state;
+        }
+        
+        isComplete(context: IContext): Boolean {
+            return context.getCurrent(this).isFinal();
+        }
+
+        bootstrap(deepHistoryAbove: Boolean): void {
+            for( var i:number = 0, l:number = this.vertices.length; i < l; i++) {
+                this.vertices[i].reset();
+                this.vertices[i].bootstrap(deepHistoryAbove || (this.initial && this.initial.kind === PseudoStateKind.DeepHistory));
+            }
+
+            this.leave.push((message: any, context: IContext, history: Boolean) => { var current = context.getCurrent(this); if (current.leave) { invoke(current.leave, message, context, history); } });
+
+            if (deepHistoryAbove || !this.initial || this.initial.isHistory()) {
+                this.endEnter.push((message: any, context: IContext, history: Boolean) => { var ini:Vertex = this.initial; if (history || this.initial.isHistory()) {ini = context.getCurrent(this) || this.initial;} invoke(ini.enter, message, context, history || (this.initial.kind === PseudoStateKind.DeepHistory)); });
+            } else {
+                this.endEnter = this.endEnter.concat(this.initial.enter);
+            }
+
+            super.bootstrap(deepHistoryAbove);
+        }
+
+        bootstrapTransitions(): void {
+            for( var i:number = 0, l:number = this.vertices.length; i < l; i++) {
+                this.vertices[i].bootstrapTransitions();
+            }
+        }
+        
+        evaluate(message: any, context: IContext): Boolean {
+            return context.getCurrent(this).evaluate(message, context);
+        }
+    }
+
+    /**
      * An element within a state machine model that can be the source or target of a transition.
      */
     export class Vertex extends StateMachineElement {
+        region: Region;
         transitions: Array<Transition> = [];
         selector: (transitions: Array<Transition>, message: any, context: IContext) => Transition;      
 
-        constructor(name: string, public region: Region, selector: (transitions: Array<Transition>, message: any, context: IContext) => Transition) {
-            super(name, region);
+        constructor(name: string, element: Region, selector: (transitions: Array<Transition>, message: any, context: IContext) => Transition);
+        constructor(name: string, element: State, selector: (transitions: Array<Transition>, message: any, context: IContext) => Transition);
+        constructor(name: string, element: any, selector: (transitions: Array<Transition>, message: any, context: IContext) => Transition) {
+            super(name, element);
 
             this.selector = selector;
             
-            if (region) {
-                region.vertices.push(this);
+            if (element instanceof Region) {                
+                this.region = <Region>element;
+            } else if (element instanceof State) {
+                this.region = (<State>element).defaultRegion();
+            }
+            
+            if (this.region) {
+                this.region.vertices.push(this);
+                
             }
         }
 
@@ -197,64 +262,20 @@ module FSM {
     }
 
     /**
-     * An element within a state machine model that is a container of Vertices.
-     */
-    export class Region extends StateMachineElement {
-        static defaultName: string = "default";
-        vertices: Array<Vertex> = [];
-        initial: PseudoState;
-        
-        constructor(name: string, public state: State) {
-            super(name, state);
-            
-            state.regions.push(this);
-        }
-
-        parent(): StateMachineElement {
-            return this.state;
-        }
-        
-        isComplete(context: IContext): Boolean {
-            return context.getCurrent(this).isFinal();
-        }
-
-        bootstrap(deepHistoryAbove: Boolean): void {
-            for( var i:number = 0, l:number = this.vertices.length; i < l; i++) {
-                this.vertices[i].reset();
-                this.vertices[i].bootstrap(deepHistoryAbove || (this.initial && this.initial.kind === PseudoStateKind.DeepHistory));
-            }
-
-            this.leave.push((message: any, context: IContext, history: Boolean) => { var current = context.getCurrent(this); if (current.leave) { invoke(current.leave, message, context, history); } });
-
-            if (deepHistoryAbove || !this.initial || this.initial.isHistory()) {
-                this.endEnter.push((message: any, context: IContext, history: Boolean) => { var ini:Vertex = this.initial; if (history || this.initial.isHistory()) {ini = context.getCurrent(this) || this.initial;} invoke(ini.enter, message, context, history || (this.initial.kind === PseudoStateKind.DeepHistory)); });
-            } else {
-                this.endEnter = this.endEnter.concat(this.initial.enter);
-            }
-
-            super.bootstrap(deepHistoryAbove);
-        }
-
-        bootstrapTransitions(): void {
-            for( var i:number = 0, l:number = this.vertices.length; i < l; i++) {
-                this.vertices[i].bootstrapTransitions();
-            }
-        }
-        
-        evaluate(message: any, context: IContext): Boolean {
-            return context.getCurrent(this).evaluate(message, context);
-        }
-    }
-
-    /**
      * An element within a state machine model that represents an transitory Vertex within the state machine model.
      */
     export class PseudoState extends Vertex {
-        constructor(name: string, region: Region, public kind: PseudoStateKind) {
-            super(name, region, pseudoState(kind));
+        kind: PseudoStateKind;
+        
+        constructor(name: string, element: Region, kind: PseudoStateKind);
+        constructor(name: string, element: State, kind: PseudoStateKind);
+        constructor(name: string, element: any, kind: PseudoStateKind) {
+            super(name, element, pseudoState(kind));
+            
+            this.kind = kind;
 
             if (this.isInitial()) {
-                region.initial = this;
+                this.region.initial = this;
             }
         }
 
@@ -294,15 +315,29 @@ module FSM {
         
             return result;
         }
-
+        
         regions: Array<Region> = [];
         private exitBehavior: Behavior = [];
         private entryBehavior: Behavior = [];
 
-        constructor(name: string, region: Region) {
-            super(name, region, State.selector);
+        constructor(name: string, element: Region);
+        constructor(name: string, element: State);
+        constructor(name: string, element: any) {
+            super(name, element, State.selector);
         }
 
+        defaultRegion(): Region {
+            var region: Region;            
+            
+            for (var i = 0, l = this.regions.length; i < l; i++) {
+                if (this.regions[i].name === Region.defaultName) {
+                    region = this.regions[i];
+                }
+            }
+            
+            return region || new Region(Region.defaultName, this);
+        }
+        
         exit<TMessage>(exitAction: Action): State {
             this.exitBehavior.push(exitAction);
 
@@ -403,8 +438,10 @@ module FSM {
      * An element within a state machine model that represents completion of the life of the containing Region within the state machine instance.
      */
     export class FinalState extends State {
-        constructor(name: string, region: Region) {
-            super(name, region);
+        constructor(name: string, element: Region);
+        constructor(name: string, element: State);
+        constructor(name: string, element: any) {
+            super(name, element);
         }
 
         isFinal(): Boolean {

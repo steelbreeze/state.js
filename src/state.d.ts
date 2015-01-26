@@ -1,5 +1,7 @@
-/**
- * Finite State Machine library
+/** State v5 finite state machine library
+ * http://www.steelbreeze.net/state.js
+ * Copyright (c) 2014-5 Steelbreeze Limited
+ * Licensed under MIT and GPL v3 licences
  */
 declare module FSM {
     /**
@@ -46,6 +48,7 @@ declare module FSM {
         private last;
         setCurrent(region: Region, value: State): void;
         getCurrent(region: Region): State;
+        element(region: Region): any;
     }
     /**
      * An abstract class that can be used as the base for any named elmeent that nay apperar in a model.

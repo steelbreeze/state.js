@@ -21,21 +21,18 @@ function stopMotor() {
 }
 
 var model = new FSM.StateMachine("player");
-var region1 = new FSM.Region("default", model);
 
-var initial = new FSM.PseudoState("initial", region1, FSM.PseudoStateKind.Initial);
-var operational = new FSM.State("operational", region1);
-var flipped = new FSM.State("flipped", region1);
-var final = new FSM.FinalState("final", region1);
+var initial = new FSM.PseudoState("initial", model, FSM.PseudoStateKind.Initial);
+var operational = new FSM.State("operational", model);
+var flipped = new FSM.State("flipped", model);
+var final = new FSM.FinalState("final", model);
 
-var region2 = new FSM.Region("default", operational);
-var dhistory = new FSM.PseudoState("history", region2, FSM.PseudoStateKind.DeepHistory);
-var stopped = new FSM.State("stopped", region2);
-var active = new FSM.State("active", region2).entry(engageHead).exit(disengageHead);
+var dhistory = new FSM.PseudoState("history", operational, FSM.PseudoStateKind.DeepHistory);
+var stopped = new FSM.State("stopped", operational);
+var active = new FSM.State("active", operational).entry(engageHead).exit(disengageHead);
 
-var region3 = new FSM.Region("default", active);
-var running = new FSM.State("running", region3).entry(startMotor).exit(stopMotor);
-var paused = new FSM.State("paused", region3);
+var running = new FSM.State("running", active).entry(startMotor).exit(stopMotor);
+var paused = new FSM.State("paused", active);
 
 initial.To(operational).effect(disengageHead).effect(stopMotor);
 dhistory.To(stopped);
@@ -56,4 +53,3 @@ model.evaluate("pause", context);
 model.evaluate("flip", context);
 model.evaluate("flip", context);
 
-console.log(context);

@@ -1,16 +1,13 @@
-/* State v5 finite state machine library
- * http://www.steelbreeze.net/state.js
- * Copyright (c) 2014-5 Steelbreeze Limited
- * Licensed under MIT and GPL v3 licences
- */
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-/**
- * Finite State Machine library
+/** State v5 finite state machine library
+ * http://www.steelbreeze.net/state.js
+ * Copyright (c) 2014-5 Steelbreeze Limited
+ * Licensed under MIT and GPL v3 licences
  */
 var FSM;
 (function (FSM) {
@@ -32,13 +29,19 @@ var FSM;
     var Context = (function () {
         function Context() {
             this.isTerminated = false;
-            this.last = [];
         }
         Context.prototype.setCurrent = function (region, value) {
-            this.last[region.qualifiedName] = value;
+            this.element(region).last = value;
         };
         Context.prototype.getCurrent = function (region) {
-            return this.last[region.qualifiedName];
+            return this.element(region).last;
+        };
+        Context.prototype.element = function (region) {
+            var ancestors = region.ancestors(), e = this;
+            for (var i = 0, l = ancestors.length; i < l; i++) {
+                e = e[ancestors[i].name] || (e[ancestors[i].name] = {});
+            }
+            return e;
         };
         return Context;
     })();
@@ -104,66 +107,6 @@ var FSM;
     })(NamedElement);
     FSM.StateMachineElement = StateMachineElement;
     /**
-     * An element within a state machine model that can be the source or target of a transition.
-     */
-    var Vertex = (function (_super) {
-        __extends(Vertex, _super);
-        function Vertex(name, region, selector) {
-            _super.call(this, name, region);
-            this.region = region;
-            this.transitions = [];
-            this.selector = selector;
-            if (region) {
-                region.vertices.push(this);
-            }
-        }
-        Vertex.prototype.parent = function () {
-            return this.region;
-        };
-        Vertex.prototype.To = function (target) {
-            var transition = new Transition(this, target);
-            this.transitions.push(transition);
-            this.root.clean = false;
-            return transition;
-        };
-        Vertex.prototype.bootstrap = function (deepHistoryAbove) {
-            var _this = this;
-            _super.prototype.bootstrap.call(this, deepHistoryAbove);
-            this.endEnter.push(function (message, context, history) {
-                _this.evaluateCompletions(message, context, history);
-            });
-            this.enter = this.beginEnter.concat(this.endEnter);
-        };
-        Vertex.prototype.bootstrapTransitions = function () {
-            for (var i = 0, l = this.transitions.length; i < l; i++) {
-                this.transitions[i].bootstrap();
-            }
-        };
-        Vertex.prototype.evaluateCompletions = function (message, context, history) {
-            if (this.isComplete(context)) {
-                this.evaluate(this, context);
-            }
-        };
-        Vertex.prototype.isFinal = function () {
-            return this.transitions.length === 0;
-        };
-        Vertex.prototype.isComplete = function (context) {
-            return true;
-        };
-        Vertex.prototype.evaluate = function (message, context) {
-            var transition = this.selector(this.transitions, message, context);
-            if (transition) {
-                invoke(transition.traverse, message, context, false);
-                return true;
-            }
-            else {
-                return false;
-            }
-        };
-        return Vertex;
-    })(StateMachineElement);
-    FSM.Vertex = Vertex;
-    /**
      * An element within a state machine model that is a container of Vertices.
      */
     var Region = (function (_super) {
@@ -219,15 +162,80 @@ var FSM;
     })(StateMachineElement);
     FSM.Region = Region;
     /**
+     * An element within a state machine model that can be the source or target of a transition.
+     */
+    var Vertex = (function (_super) {
+        __extends(Vertex, _super);
+        function Vertex(name, element, selector) {
+            _super.call(this, name, element);
+            this.transitions = [];
+            this.selector = selector;
+            if (element instanceof Region) {
+                this.region = element;
+            }
+            else if (element instanceof State) {
+                this.region = element.defaultRegion();
+            }
+            if (this.region) {
+                this.region.vertices.push(this);
+            }
+        }
+        Vertex.prototype.parent = function () {
+            return this.region;
+        };
+        Vertex.prototype.To = function (target) {
+            var transition = new Transition(this, target);
+            this.transitions.push(transition);
+            this.root.clean = false;
+            return transition;
+        };
+        Vertex.prototype.bootstrap = function (deepHistoryAbove) {
+            var _this = this;
+            _super.prototype.bootstrap.call(this, deepHistoryAbove);
+            this.endEnter.push(function (message, context, history) {
+                _this.evaluateCompletions(message, context, history);
+            });
+            this.enter = this.beginEnter.concat(this.endEnter);
+        };
+        Vertex.prototype.bootstrapTransitions = function () {
+            for (var i = 0, l = this.transitions.length; i < l; i++) {
+                this.transitions[i].bootstrap();
+            }
+        };
+        Vertex.prototype.evaluateCompletions = function (message, context, history) {
+            if (this.isComplete(context)) {
+                this.evaluate(this, context);
+            }
+        };
+        Vertex.prototype.isFinal = function () {
+            return this.transitions.length === 0;
+        };
+        Vertex.prototype.isComplete = function (context) {
+            return true;
+        };
+        Vertex.prototype.evaluate = function (message, context) {
+            var transition = this.selector(this.transitions, message, context);
+            if (transition) {
+                invoke(transition.traverse, message, context, false);
+                return true;
+            }
+            else {
+                return false;
+            }
+        };
+        return Vertex;
+    })(StateMachineElement);
+    FSM.Vertex = Vertex;
+    /**
      * An element within a state machine model that represents an transitory Vertex within the state machine model.
      */
     var PseudoState = (function (_super) {
         __extends(PseudoState, _super);
-        function PseudoState(name, region, kind) {
-            _super.call(this, name, region, pseudoState(kind));
+        function PseudoState(name, element, kind) {
+            _super.call(this, name, element, pseudoState(kind));
             this.kind = kind;
             if (this.isInitial()) {
-                region.initial = this;
+                this.region.initial = this;
             }
         }
         PseudoState.prototype.isHistory = function () {
@@ -252,8 +260,8 @@ var FSM;
      */
     var State = (function (_super) {
         __extends(State, _super);
-        function State(name, region) {
-            _super.call(this, name, region, State.selector);
+        function State(name, element) {
+            _super.call(this, name, element, State.selector);
             this.regions = [];
             this.exitBehavior = [];
             this.entryBehavior = [];
@@ -269,6 +277,15 @@ var FSM;
                 }
             }
             return result;
+        };
+        State.prototype.defaultRegion = function () {
+            var region;
+            for (var i = 0, l = this.regions.length; i < l; i++) {
+                if (this.regions[i].name === Region.defaultName) {
+                    region = this.regions[i];
+                }
+            }
+            return region || new Region(Region.defaultName, this);
         };
         State.prototype.exit = function (exitAction) {
             this.exitBehavior.push(exitAction);
@@ -352,8 +369,8 @@ var FSM;
      */
     var FinalState = (function (_super) {
         __extends(FinalState, _super);
-        function FinalState(name, region) {
-            _super.call(this, name, region);
+        function FinalState(name, element) {
+            _super.call(this, name, element);
         }
         FinalState.prototype.isFinal = function () {
             return true;
