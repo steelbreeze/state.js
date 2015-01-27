@@ -90,7 +90,7 @@ var FSM;
         Element.prototype.toString = function () {
             return this.ancestors().map(function (e) {
                 return e.name;
-            }).join(Element.namespaceSeperator);
+            }).join(Element.namespaceSeperator); // NOTE: while this may look costly, only used at runtime rarely if ever
         };
         Element.namespaceSeperator = ".";
         return Element;
@@ -277,7 +277,6 @@ var FSM;
             }
             if (!region) {
                 region = new Region(Region.defaultName, this);
-                console.log("CREATED: " + region.qualifiedName);
             }
             return region;
         };

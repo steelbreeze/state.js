@@ -75,7 +75,6 @@ module FSM {
      */
     export class Element {
         static namespaceSeperator = ".";
-        qualifiedName: string;
         root: StateMachine;
         leave: Behavior = [];
         beginEnter: Behavior= [];
@@ -114,8 +113,8 @@ module FSM {
             add(this.beginEnter);
         }
         
-        toString(): String {
-            return this.ancestors().map<string>((e)=> { return e.name; }).join(Element.namespaceSeperator);
+         toString(): String {
+            return this.ancestors().map<string>((e)=> { return e.name; }).join(Element.namespaceSeperator); // NOTE: while this may look costly, only used at runtime rarely if ever
         }
     }
 
@@ -325,8 +324,6 @@ module FSM {
             
             if (!region) {
                 region = new Region(Region.defaultName, this);
-                
-                console.log( "CREATED: " + region.qualifiedName);
             }
             
             return region;
