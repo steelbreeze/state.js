@@ -41,51 +41,48 @@ declare module FSM {
         getCurrent(region: Region): State;
     }
     /**
-     * Default working implementation of a state machine context class.
-     */
-    class Context implements IContext {
-        isTerminated: Boolean;
-        private last;
-        setCurrent(region: Region, value: State): void;
-        getCurrent(region: Region): State;
-        element(region: Region): any;
-    }
-    /**
-     * An abstract class that can be used as the base for any named elmeent that nay apperar in a model.
-     */
-    class NamedElement {
-        name: string;
-        static namespaceSeperator: string;
-        qualifiedName: string;
-        constructor(name: string, element: NamedElement);
-        toString(): String;
-    }
-    /**
      * An abstract class that can be used as the base for any elmeent with a state machine.
      */
-    class StateMachineElement extends NamedElement {
+    class Element {
+        name: string;
+        static namespaceSeperator: string;
         root: StateMachine;
         leave: Behavior;
         beginEnter: Behavior;
         endEnter: Behavior;
         enter: Behavior;
-        constructor(name: string, parentElement: StateMachineElement);
-        parent(): StateMachineElement;
-        ancestors(): Array<StateMachineElement>;
+        parent: () => Element;
+        constructor(name: string, element: Element);
+        ancestors(): Array<Element>;
         reset(): void;
         bootstrap(deepHistoryAbove: Boolean): void;
-        bootstrapEnter(add: (additional: Behavior) => void, next: StateMachineElement): void;
+        bootstrapEnter(add: (additional: Behavior) => void, next: Element): void;
+        toString(): string;
+    }
+    /**
+     * An element within a state machine model that is a container of Vertices.
+     */
+    class Region extends Element {
+        state: State;
+        static defaultName: string;
+        vertices: Array<Vertex>;
+        initial: PseudoState;
+        constructor(name: string, state: State);
+        isComplete(context: IContext): Boolean;
+        bootstrap(deepHistoryAbove: Boolean): void;
+        bootstrapTransitions(): void;
+        evaluate(message: any, context: IContext): Boolean;
     }
     /**
      * An element within a state machine model that can be the source or target of a transition.
      */
-    class Vertex extends StateMachineElement {
+    class Vertex extends Element {
         region: Region;
         transitions: Array<Transition>;
         selector: (transitions: Array<Transition>, message: any, context: IContext) => Transition;
-        constructor(name: string, region: Region, selector: (transitions: Array<Transition>, message: any, context: IContext) => Transition);
-        parent(): StateMachineElement;
-        To(target?: Vertex): Transition;
+        constructor(name: string, element: Region, selector: (transitions: Array<Transition>, message: any, context: IContext) => Transition);
+        constructor(name: string, element: State, selector: (transitions: Array<Transition>, message: any, context: IContext) => Transition);
+        to(target?: Vertex): Transition;
         bootstrap(deepHistoryAbove: Boolean): void;
         bootstrapTransitions(): void;
         evaluateCompletions(message: any, context: IContext, history: Boolean): void;
@@ -94,26 +91,12 @@ declare module FSM {
         evaluate(message: any, context: IContext): Boolean;
     }
     /**
-     * An element within a state machine model that is a container of Vertices.
-     */
-    class Region extends StateMachineElement {
-        state: State;
-        static defaultName: string;
-        vertices: Array<Vertex>;
-        initial: PseudoState;
-        constructor(name: string, state: State);
-        parent(): StateMachineElement;
-        isComplete(context: IContext): Boolean;
-        bootstrap(deepHistoryAbove: Boolean): void;
-        bootstrapTransitions(): void;
-        evaluate(message: any, context: IContext): Boolean;
-    }
-    /**
      * An element within a state machine model that represents an transitory Vertex within the state machine model.
      */
     class PseudoState extends Vertex {
         kind: PseudoStateKind;
-        constructor(name: string, region: Region, kind: PseudoStateKind);
+        constructor(name: string, element: Region, kind: PseudoStateKind);
+        constructor(name: string, element: State, kind: PseudoStateKind);
         isHistory(): Boolean;
         isInitial(): Boolean;
         bootstrap(deepHistoryAbove: Boolean): void;
@@ -126,7 +109,9 @@ declare module FSM {
         regions: Array<Region>;
         private exitBehavior;
         private entryBehavior;
-        constructor(name: string, region: Region);
+        constructor(name: string, element: Region);
+        constructor(name: string, element: State);
+        defaultRegion(): Region;
         exit<TMessage>(exitAction: Action): State;
         entry<TMessage>(entryAction: Action): State;
         isFinal(): Boolean;
@@ -135,18 +120,19 @@ declare module FSM {
         isOrthogonal(): Boolean;
         bootstrap(deepHistoryAbove: Boolean): void;
         bootstrapTransitions(): void;
-        bootstrapEnter(add: (additional: Behavior) => void, next: StateMachineElement): void;
+        bootstrapEnter(add: (additional: Behavior) => void, next: Element): void;
         evaluate(message: any, context: IContext): Boolean;
     }
     /**
      * An element within a state machine model that represents completion of the life of the containing Region within the state machine instance.
      */
     class FinalState extends State {
-        constructor(name: string, region: Region);
+        constructor(name: string, element: Region);
+        constructor(name: string, element: State);
         isFinal(): Boolean;
     }
     /**
-     * An element within a state machine model that represents the root (ultimate parent) of the state machine model.
+     * An element within a state machine model that represents the root of the state machine model.
      */
     class StateMachine extends State {
         clean: Boolean;
@@ -171,5 +157,14 @@ declare module FSM {
         when<TMessage>(guard: Guard): Transition;
         effect<TMessage>(transitionAction: Action): Transition;
         bootstrap(): void;
+    }
+    /**
+     * Default working implementation of a state machine context class.
+     */
+    class Context implements IContext {
+        isTerminated: Boolean;
+        private last;
+        setCurrent(region: Region, value: State): void;
+        getCurrent(region: Region): State;
     }
 }

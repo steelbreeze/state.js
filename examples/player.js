@@ -25,27 +25,27 @@ var stopped = new FSM.State("stopped", operational);
 var active = new FSM.State("active", operational).entry(engageHead).exit(disengageHead);
 var running = new FSM.State("running", active).entry(startMotor).exit(stopMotor);
 var paused = new FSM.State("paused", active);
-initial.To(operational).effect(disengageHead).effect(stopMotor);
-dhistory.To(stopped);
-stopped.To(running).when(function (command) {
+initial.to(operational).effect(disengageHead).effect(stopMotor);
+dhistory.to(stopped);
+stopped.to(running).when(function (command) {
     return command === "play";
 });
-active.To(stopped).when(function (command) {
+active.to(stopped).when(function (command) {
     return command === "stop";
 });
-running.To(paused).when(function (command) {
+running.to(paused).when(function (command) {
     return command === "pause";
 });
-paused.To(running).when(function (command) {
+paused.to(running).when(function (command) {
     return command === "play";
 });
-operational.To(flipped).when(function (command) {
+operational.to(flipped).when(function (command) {
     return command === "flip";
 });
-flipped.To(operational).when(function (command) {
+flipped.to(operational).when(function (command) {
     return command === "flip";
 });
-operational.To(final).when(function (command) {
+operational.to(final).when(function (command) {
     return command === "off";
 });
 var context = new FSM.Context();

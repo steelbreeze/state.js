@@ -11,194 +11,140 @@
 			
 			function compTest()
 			{
-                var machine = new Region("compTest");
-                var initial = new PseudoState("initial", PseudoStateKind.Initial, machine)
+                var machine = new FSM.StateMachine("compTest");
+                var initial = new FSM.PseudoState("initial", machine, FSM.PseudoStateKind.Initial)
 
-                var activity1 = new SimpleState("activity1", machine );
-				var activity2 = new CompositeState("activity2", machine);
-				var activity3 = new SimpleState("activity3", machine);
-				var junction1 = new PseudoState("junction1", PseudoStateKind.Junction, machine);
-				var junction2 = new PseudoState("junction2", PseudoStateKind.Junction, machine);
-				var end       = new FinalState("end", machine);
+                var activity1 = new FSM.State("activity1", machine );
+				var activity2 = new FSM.State("activity2", machine);
+				var activity3 = new FSM.State("activity3", machine);
+				var junction1 = new FSM.PseudoState("junction1", machine, FSM.PseudoStateKind.Junction);
+				var junction2 = new FSM.PseudoState("junction2", machine, FSM.PseudoStateKind.Junction);
+				var end       = new FSM.FinalState("end", machine);
 
-                var subInitial = new PseudoState("subInitial", PseudoStateKind.Initial, activity2);
-				var subEnd     = new FinalState("subEnd", activity2);
+                var subInitial = new FSM.PseudoState("subInitial", activity2, FSM.PseudoStateKind.Initial);
+				var subEnd     = new FSM.FinalState("subEnd", activity2);
 			
-				var t0 = new Transition( subInitial, subEnd);
-				var t1 = new Transition( initial,    activity1);
-				var t2 = new Transition( activity1,  activity2);
-				var t3 = new Transition( activity2,  junction1);
-				var t4 = new Transition( junction1,  junction2);
-				var t5 = new Transition( junction2,  activity3);
-				var t6 = new Transition( activity3,  end);
+                subInitial.to(subEnd);
+				initial.to(activity1);
+				activity1.to(activity2);
+				activity2.to(junction1);
+				junction1.to(junction2);
+				junction2.to(activity3);
+				activity3.to(end);
                 
-                var sms = {};
+                var sms = new FSM.Context();
 
 				machine.initialise( sms );
 								
 				result( "Completion Transitions: " + ( machine.isComplete( sms ) ? "passed" : "failed" ) );
 			}
 
-			function extTest()
-			{
-                var machine = new StateMachine( "external" ); 
-    
-                var region = new Region("reg", machine);
-                
-                var initial = new PseudoState( "initial", PseudoStateKind.Initial, region );
-                var composite = new CompositeState( "composite", region );
-                var orthogonal = new OrthogonalState( "orthogonal", region );
-                var end = new FinalState( "final", region);
-    
-                var c1 = new SimpleState( "c1", composite );
-                var c2 = new SimpleState( "c2", composite );
-            
-                var region1 = new Region( "region1", orthogonal );
-                var region2 = new Region( "region2", orthogonal );
-    
-                var o1 = new SimpleState( "o1", region1 );
-                var o2 = new SimpleState( "o2", region2 );
-    
-                var j1 = new PseudoState( "junction", PseudoStateKind.Junction, region2 );
-    
-                new Transition( initial, composite );
-                new Transition( new PseudoState( "initial", PseudoStateKind.Initial, composite ), c1 );
-                new Transition( c2, c1, function (state, command) {return command === "1";} );
-                new Transition( c1, j1, function (state, command) {return command === "2";} );
-                new Transition( j1, o1, function (state) {return state === "normal";} ); // should always be false
-                new Transition.Else( j1, o1 );
-                new Transition( o1, o2, function (state, command) {return command === "3";} );
-                new Transition( o2, c2, function (state, command) {return command === "4";} );
-                new Transition( composite, orthogonal, function (state, command) {return command === "5";} );
-                new Transition( composite, end, function (state, command) {return command === "x";} );
-    
-                new Transition( new PseudoState( "initial", PseudoStateKind.Initial, region1 ), o1 );
-                new Transition( new PseudoState( "initial", PseudoStateKind.Initial, region2 ), o2 );
-                
-				var sms = {};
-				
-				machine.initialise( sms );
-				
-				result( "External Transitions (1): " + machine.process( sms, "1" ) );
-				result( "External Transitions (2): " + machine.process( sms, "2" ) );
-				result( "External Transitions (3): " + machine.process( sms, "4" ) );
-				result( "External Transitions (4): " + machine.process( sms, "3" ) );
-				result( "External Transitions (5): " + machine.process( sms, "4" ) );
-				result( "External Transitions (6): " + machine.process( sms, "1" ) );
-				result( "External Transitions (7): " + machine.process( sms, "z" ) );
-				result( "External Transitions (8): " + machine.process( sms, "x" ) );
-				
-				result( "External Transitions: " + ( machine.isComplete( sms ) ? "passed" : "failed" ) );
-			}
-
 			function shallowTest()
 			{
-                var machine = new Region( "history" );
+                var machine = new FSM.StateMachine( "history" );
     
-                var initial = new PseudoState( "initial", PseudoStateKind.Initial, machine );
-                var shallow = new CompositeState( "shallow", machine );
-                var deep = new SimpleState( "deep", machine );
-                var end = new FinalState( "final", machine );
+                var initial = new FSM.PseudoState( "initial", machine, FSM.PseudoStateKind.Initial);
+                var shallow = new FSM.State( "shallow", machine );
+                var deep = new FSM.State( "deep", machine );
+                var end = new FSM.FinalState( "final", machine );
     
-                var s1 = new SimpleState( "s1", shallow );
-                var s2 = new SimpleState( "s2", shallow );
+                var s1 = new FSM.State( "s1", shallow );
+                var s2 = new FSM.State( "s2", shallow );
     
-                new Transition( initial, shallow );
-                new Transition( new PseudoState( "shallow", PseudoStateKind.ShallowHistory, shallow ), s1 );
-                new Transition( s1, s2, function(state, c) { return c === "move";} );
-                new Transition( shallow, deep, function(state, c) { return c === "go deep";} );
-                new Transition( deep, shallow, function(state, c) { return c === "go shallow";} );
-                new Transition( s2, end, function(state,c) { return c === "end"; } );
+                initial.to(shallow);
+                new FSM.PseudoState( "shallow", shallow, FSM.PseudoStateKind.ShallowHistory).to( s1 );
+                s1.to(s2).when(function(c) { return c === "move";} );
+                shallow.to(deep).when(function(c) { return c === "go deep";} );
+                deep.to(shallow).when(function(c) { return c === "go shallow";} );
+                s2.to(end).when(function(c) { return c === "end"; } );
 
-				var sms = {};
+                var sms = new FSM.Context();
 
 				machine.initialise( sms );
 
-				result( "Shallow History (1): " + machine.process( sms, "move" ) );
-				result( "Shallow History (2): " + machine.process( sms, "go deep" ) );
-				result( "Shallow History (3): " + machine.process( sms, "go shallow" ) );
-				result( "Shallow History (4): " + machine.process( sms, "end" ) );
+				result( "Shallow History (1): " + machine.evaluate( "move", sms ) );
+				result( "Shallow History (2): " + machine.evaluate( "go deep", sms ) );
+				result( "Shallow History (3): " + machine.evaluate( "go shallow", sms ) );
+				result( "Shallow History (4): " + machine.evaluate( "end", sms ) );
 			
 				result( "Shallow History: " + ( machine.isComplete( sms ) ? "passed" : "failed" ) );
 			}
 
             function muximise1() {
-                var main = new Region("muximise1");
+                var main = new FSM.StateMachine("muximise1");
 
-                var initial = new PseudoState("initial", PseudoStateKind.Initial, main);
-                var ortho = new OrthogonalState("ortho", main);
-                var simple = new SimpleState("simple", main);
-                var final = new FinalState("final", main);
+                var initial = new FSM.PseudoState("initial", main, FSM.PseudoStateKind.Initial);
+                var ortho = new FSM.State("ortho", main);
+                var simple = new FSM.State("simple", main);
+                var final = new FSM.FinalState("final", main);
 
-                var r1 = new Region("r1", ortho);
-                var r2 = new Region("r2", ortho);
+                var r1 = new FSM.Region("r1", ortho);
+                var r2 = new FSM.Region("r2", ortho);
 
-                var i1 = new PseudoState("initial", PseudoStateKind.ShallowHistory, r1);
-                var i2 = new PseudoState("initial", PseudoStateKind.ShallowHistory, r2);
+                var i1 = new FSM.PseudoState("initial", r1, FSM.PseudoStateKind.ShallowHistory);
+                var i2 = new FSM.PseudoState("initial", r2, FSM.PseudoStateKind.ShallowHistory);
 
-                var s1 = new SimpleState("s1", r1);
-                var s2 = new SimpleState("s2", r2);
+                var s1 = new FSM.State("s1", r1);
+                var s2 = new FSM.State("s2", r2);
 
-                var f1 = new FinalState("f1", r1);
-                var f2 = new FinalState("f2", r2);
+                var f1 = new FSM.FinalState("f1", r1);
+                var f2 = new FSM.FinalState("f2", r2);
 
-                new Transition(initial, ortho);
+                initial.to(ortho);
 
-                new Transition(i1, s1);
-                new Transition(i2, s2);
+                i1.to(s1);
+                i2.to(s2);
 
-                new Transition(ortho, final); // This should happen once all regions in ortho are complete?
+                ortho.to(final); // This should happen once all regions in ortho are complete?
 
-                new Transition(s1, f1, function(s, c) {
+                s1.to(f1).when(function(c) {
                     return c === "complete1";
                 });
 
-                new Transition(s2, f2, function(s, c) {
+                s2.to(f2).when(function(c) {
                     return c === "complete2";
                 });
 
-                new Transition(ortho, simple, function(s, c) {
+                ortho.to(simple).when(function(c) {
                     return c === "jump";
                 });
 
-                new Transition(simple, ortho, function(s, c) {
+                simple.to(ortho).when(function(c) {
                     return c === "back";
                 });
                 
-                var state = {};				
+                var state = new FSM.Context();				
 				main.initialise(state);
 
-                main.process(state, "complete1");
-                main.process(state, "complete2");
+                main.evaluate("complete1", state);
+                main.evaluate("complete2", state)
             
             	result("Muximuse test 1: " + (main.isComplete(state) ? "passed" : "failed"));
             }
             
             function brice1() {
-                var main = new Region("brice");
-                var initial1 = new PseudoState("initial", PseudoStateKind.Initial, main);
-                var myComposite1 = new CompositeState("MyComposite1", main);
-                var myComposite2 = new SimpleState("MyComposite2", main);
-                var initial2 = new PseudoState("initial", PseudoStateKind.Initial, myComposite1);
-                var state1 = new SimpleState("State1", myComposite1);
-                var state2 = new SimpleState("State1", myComposite1);
+                var main = new FSM.StateMachine("brice");
+                var initial1 = new FSM.PseudoState("initial", main, FSM.PseudoStateKind.Initial);
+                var myComposite1 = new FSM.State("MyComposite1", main);
+                var myComposite2 = new FSM.State("MyComposite2", main);
+                var initial2 = new FSM.PseudoState("initial", myComposite1, FSM.PseudoStateKind.Initial);
+                var state1 = new FSM.State("State1", myComposite1);
+                var state2 = new FSM.State("State1", myComposite1);
                 
-                new Transition(initial1, myComposite1);
-                new Transition(initial2, state1);
-                new Transition(myComposite1, myComposite2, function(s,c) { return c === "A";}).effect = [function() { result("Brice test1: failed"); }];
-                new Transition(state1, state2, function(s,c) { return c === "A";}).effect = [function() { result("Brice test1: passed"); }];
+                initial1.to(myComposite1);
+                initial2.to(state1);
+                myComposite1.to(myComposite2).when(function(c) { return c === "A";}).effect(function() { result("Brice test1: failed"); });
+                state1.to(state2).when(function(c) { return c === "A";}).effect(function() { result("Brice test1: passed"); });
                 
-                var state = {};				
+                var state = new FSM.Context();	
 				main.initialise(state);
 
-                main.process(state, "A");
-
+                main.evaluate("A", state);
             }
             
 			function run()
 			{
 				compTest();
-				extTest();
 				shallowTest();
                 muximise1();
                 brice1();

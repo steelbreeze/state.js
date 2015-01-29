@@ -46,31 +46,6 @@ module FSM {
     }
 
     /**
-     * Default working implementation of a state machine context class.
-     */
-    export class Context implements IContext {
-        public isTerminated: Boolean = false;
-
-        setCurrent(region: Region, value: State): void {            
-            this.element(region).last = value;        
-        }
-
-        getCurrent(region: Region): State {            
-            return this.element(region).last;
-        }
-        
-        private element(region: Region): any {
-            var ancestors = region.ancestors(), e = this;
-            
-            for (var i = 0, l = ancestors.length; i < l; i++) {
-                e = e[ancestors[i].name] || ( e[ancestors[i].name] = {} );
-            }
-            
-            return e;
-        }
-    }
-
-    /**
      * An abstract class that can be used as the base for any elmeent with a state machine.
      */
     export class Element {
@@ -80,6 +55,7 @@ module FSM {
         beginEnter: Behavior= [];
         endEnter: Behavior =[];
         enter: Behavior = [];
+        parent: () => Element; // NOTE: an apprach to an abstract method, implemented by both immediate subclasses
 
         constructor(public name: string, element: Element) {    
             if(element) {
@@ -87,9 +63,7 @@ module FSM {
                 this.root.clean = false;
             }
         }
-
-        parent(): Element { return; } // NOTE: this is really an abstract method...
-
+        
         ancestors(): Array<Element> {
             return (this.parent() ? this.parent().ancestors() : []).concat(this);
         }
@@ -113,7 +87,7 @@ module FSM {
             add(this.beginEnter);
         }
         
-         toString(): String {
+         toString(): string {
             return this.ancestors().map<string>((e)=> { return e.name; }).join(Element.namespaceSeperator); // NOTE: while this may look costly, only used at runtime rarely if ever
         }
     }
@@ -130,10 +104,8 @@ module FSM {
             super(name, state);
             
             state.regions.push(this);
-        }
-
-        parent(): Element {
-            return this.state;
+            
+            this.parent = () => { return this.state; };
         }
         
         isComplete(context: IContext): Boolean {
@@ -190,16 +162,13 @@ module FSM {
             }
             
             if (this.region) {
-                this.region.vertices.push(this);
-                
+                this.region.vertices.push(this);                
             }
-        }
-
-        parent(): Element {
-            return this.region;
+            
+            this.parent = () => { return this.region; };
         }
         
-        To(target?: Vertex): Transition {
+        to(target?: Vertex): Transition {
             var transition = new Transition(this, target);
 
             this.transitions.push(transition);
@@ -238,13 +207,13 @@ module FSM {
         evaluate(message: any, context: IContext): Boolean {
             var transition: Transition = this.selector(this.transitions, message, context);
             
-            if (transition) {
-                invoke(transition.traverse, message, context, false);
-                
-                return true;
-            } else {
-                return false
+            if (!transition) {
+                return false;
             }
+            
+            invoke(transition.traverse, message, context, false);
+                
+            return true;
         }
     }
 
@@ -363,7 +332,7 @@ module FSM {
 
         bootstrap(deepHistoryAbove: Boolean): void {
             for( var i:number = 0, l:number = this.regions.length; i < l; i++) {
-                var region: Region = this.regions[i];
+                var region: Region = this.regions[i]; // TODO: investigate need for this: why doesn't typescript help me more...
                 region.reset();
                 region.bootstrap(deepHistoryAbove);
 
@@ -394,10 +363,8 @@ module FSM {
             super.bootstrapEnter(add, next);
 
             for( var i:number = 0, l:number = this.regions.length; i < l; i++) {
-                var region: Region = this.regions[i];
-
-                if (region !== next) {
-                    add(region.enter);
+                if (this.regions[i] !== next) {
+                    add(this.regions[i].enter);
                 }
             }
         }
@@ -405,10 +372,8 @@ module FSM {
         evaluate(message: any, context: IContext): Boolean {
             var processed: Boolean = false;
             
-            for( var i:number = 0, l:number = this.regions.length; i < l; i++) {
-                var region: Region = this.regions[i];
-                
-                if(region.evaluate(message, context)) {
+            for( var i:number = 0, l:number = this.regions.length; i < l; i++) {                
+                if(this.regions[i].evaluate(message, context)) {
                     processed = true;
                 }
             }
@@ -417,7 +382,7 @@ module FSM {
                 processed = super.evaluate(message, context);
             }
             
-            if(processed === true) {
+            if(processed === true && message !== this) {
                 this.evaluateCompletions(this, context, false);
             }
             
@@ -441,7 +406,7 @@ module FSM {
     }
 
     /**
-     * An element within a state machine model that represents the root (ultimate parent) of the state machine model.
+     * An element within a state machine model that represents the root of the state machine model.
      */
     export class StateMachine extends State {
         clean: Boolean = true;
@@ -556,7 +521,7 @@ module FSM {
             }
         }
     }
-    
+
     function pseudoState(kind: PseudoStateKind): (transitions: Array<Transition>, message: any, context: IContext) => Transition {
         switch(kind) {
             
@@ -653,6 +618,27 @@ module FSM {
     function assert(condition: Boolean, error: string): void {
         if (!condition) {
             throw error;
+        }
+    }
+    
+    // private interface used within the Context
+    interface StateDictionary {
+        [index: string]: State;
+    }
+    
+    /**
+     * Default working implementation of a state machine context class.
+     */
+    export class Context implements IContext {
+        public isTerminated: Boolean = false;
+        private last: StateDictionary = {};
+
+        setCurrent(region: Region, value: State): void {            
+            this.last[region.toString()] = value;
+        }
+
+        getCurrent(region: Region): State {            
+            return this.last[region.toString()];
         }
     }
 }

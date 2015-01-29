@@ -34,15 +34,15 @@ var active = new FSM.State("active", operational).entry(engageHead).exit(disenga
 var running = new FSM.State("running", active).entry(startMotor).exit(stopMotor);
 var paused = new FSM.State("paused", active);
 
-initial.To(operational).effect(disengageHead).effect(stopMotor);
-dhistory.To(stopped);
-stopped.To(running).when<String>((command: String): Boolean => { return command === "play"; });
-active.To(stopped).when<String>((command: String): Boolean => { return command === "stop"; });
-running.To(paused).when<String>((command: String): Boolean => { return command === "pause"; });
-paused.To(running).when<String>((command: String): Boolean => { return command === "play"; });
-operational.To(flipped).when<string>((command: string): Boolean => { return command === "flip"; });
-flipped.To(operational).when<string>((command: string): Boolean => { return command === "flip"; });
-operational.To(final).when<String>((command: String): Boolean => { return command === "off"; });
+initial.to(operational).effect(disengageHead).effect(stopMotor);
+dhistory.to(stopped);
+stopped.to(running).when<String>((command: String): Boolean => { return command === "play"; });
+active.to(stopped).when<String>((command: String): Boolean => { return command === "stop"; });
+running.to(paused).when<String>((command: String): Boolean => { return command === "pause"; });
+paused.to(running).when<String>((command: String): Boolean => { return command === "play"; });
+operational.to(flipped).when<string>((command: string): Boolean => { return command === "flip"; });
+flipped.to(operational).when<string>((command: string): Boolean => { return command === "flip"; });
+operational.to(final).when<String>((command: String): Boolean => { return command === "off"; });
 
 var context = new FSM.Context();
 
@@ -52,4 +52,3 @@ model.evaluate("play", context);
 model.evaluate("pause", context);
 model.evaluate("flip", context);
 model.evaluate("flip", context);
-

@@ -24,29 +24,6 @@ var FSM;
     })(FSM.PseudoStateKind || (FSM.PseudoStateKind = {}));
     var PseudoStateKind = FSM.PseudoStateKind;
     /**
-     * Default working implementation of a state machine context class.
-     */
-    var Context = (function () {
-        function Context() {
-            this.isTerminated = false;
-        }
-        Context.prototype.setCurrent = function (region, value) {
-            this.element(region).last = value;
-        };
-        Context.prototype.getCurrent = function (region) {
-            return this.element(region).last;
-        };
-        Context.prototype.element = function (region) {
-            var ancestors = region.ancestors(), e = this;
-            for (var i = 0, l = ancestors.length; i < l; i++) {
-                e = e[ancestors[i].name] || (e[ancestors[i].name] = {});
-            }
-            return e;
-        };
-        return Context;
-    })();
-    FSM.Context = Context;
-    /**
      * An abstract class that can be used as the base for any elmeent with a state machine.
      */
     var Element = (function () {
@@ -61,9 +38,6 @@ var FSM;
                 this.root.clean = false;
             }
         }
-        Element.prototype.parent = function () {
-            return;
-        }; // NOTE: this is really an abstract method...
         Element.prototype.ancestors = function () {
             return (this.parent() ? this.parent().ancestors() : []).concat(this);
         };
@@ -102,14 +76,15 @@ var FSM;
     var Region = (function (_super) {
         __extends(Region, _super);
         function Region(name, state) {
+            var _this = this;
             _super.call(this, name, state);
             this.state = state;
             this.vertices = [];
             state.regions.push(this);
+            this.parent = function () {
+                return _this.state;
+            };
         }
-        Region.prototype.parent = function () {
-            return this.state;
-        };
         Region.prototype.isComplete = function (context) {
             return context.getCurrent(this).isFinal();
         };
@@ -157,6 +132,7 @@ var FSM;
     var Vertex = (function (_super) {
         __extends(Vertex, _super);
         function Vertex(name, element, selector) {
+            var _this = this;
             _super.call(this, name, element);
             this.transitions = [];
             this.selector = selector;
@@ -169,11 +145,11 @@ var FSM;
             if (this.region) {
                 this.region.vertices.push(this);
             }
+            this.parent = function () {
+                return _this.region;
+            };
         }
-        Vertex.prototype.parent = function () {
-            return this.region;
-        };
-        Vertex.prototype.To = function (target) {
+        Vertex.prototype.to = function (target) {
             var transition = new Transition(this, target);
             this.transitions.push(transition);
             this.root.clean = false;
@@ -205,13 +181,11 @@ var FSM;
         };
         Vertex.prototype.evaluate = function (message, context) {
             var transition = this.selector(this.transitions, message, context);
-            if (transition) {
-                invoke(transition.traverse, message, context, false);
-                return true;
-            }
-            else {
+            if (!transition) {
                 return false;
             }
+            invoke(transition.traverse, message, context, false);
+            return true;
         };
         return Vertex;
     })(Element);
@@ -305,7 +279,7 @@ var FSM;
         State.prototype.bootstrap = function (deepHistoryAbove) {
             var _this = this;
             for (var i = 0, l = this.regions.length; i < l; i++) {
-                var region = this.regions[i];
+                var region = this.regions[i]; // TODO: investigate need for this: why doesn't typescript help me more...
                 region.reset();
                 region.bootstrap(deepHistoryAbove);
                 this.leave.push(function (message, context, history) {
@@ -332,24 +306,22 @@ var FSM;
         State.prototype.bootstrapEnter = function (add, next) {
             _super.prototype.bootstrapEnter.call(this, add, next);
             for (var i = 0, l = this.regions.length; i < l; i++) {
-                var region = this.regions[i];
-                if (region !== next) {
-                    add(region.enter);
+                if (this.regions[i] !== next) {
+                    add(this.regions[i].enter);
                 }
             }
         };
         State.prototype.evaluate = function (message, context) {
             var processed = false;
             for (var i = 0, l = this.regions.length; i < l; i++) {
-                var region = this.regions[i];
-                if (region.evaluate(message, context)) {
+                if (this.regions[i].evaluate(message, context)) {
                     processed = true;
                 }
             }
             if (processed === false) {
                 processed = _super.prototype.evaluate.call(this, message, context);
             }
-            if (processed === true) {
+            if (processed === true && message !== this) {
                 this.evaluateCompletions(this, context, false);
             }
             return processed;
@@ -372,7 +344,7 @@ var FSM;
     })(State);
     FSM.FinalState = FinalState;
     /**
-     * An element within a state machine model that represents the root (ultimate parent) of the state machine model.
+     * An element within a state machine model that represents the root of the state machine model.
      */
     var StateMachine = (function (_super) {
         __extends(StateMachine, _super);
@@ -553,4 +525,21 @@ var FSM;
             throw error;
         }
     }
+    /**
+     * Default working implementation of a state machine context class.
+     */
+    var Context = (function () {
+        function Context() {
+            this.isTerminated = false;
+            this.last = {};
+        }
+        Context.prototype.setCurrent = function (region, value) {
+            this.last[region.toString()] = value;
+        };
+        Context.prototype.getCurrent = function (region) {
+            return this.last[region.toString()];
+        };
+        return Context;
+    })();
+    FSM.Context = Context;
 })(FSM || (FSM = {}));
