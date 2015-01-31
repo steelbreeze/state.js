@@ -78,7 +78,7 @@ declare module FSM {
      */
     class Vertex extends Element {
         region: Region;
-        transitions: Array<Transition>;
+        private transitions;
         private selector;
         constructor(name: string, element: Region, selector: (transitions: Array<Transition>, message: any, context: IContext) => Transition);
         constructor(name: string, element: State, selector: (transitions: Array<Transition>, message: any, context: IContext) => Transition);

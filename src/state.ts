@@ -145,7 +145,7 @@ module FSM {
      */
     export class Vertex extends Element {
         /* protected when I get IDE support */region: Region;
-        transitions: Array<Transition> = [];
+        private transitions: Array<Transition> = [];
         private selector: (transitions: Array<Transition>, message: any, context: IContext) => Transition;      
 
         constructor(name: string, element: Region, selector: (transitions: Array<Transition>, message: any, context: IContext) => Transition);
