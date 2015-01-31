@@ -76,9 +76,9 @@ module FSM {
         }
 
         bootstrap(deepHistoryAbove: Boolean): void {
-            // TODO: remove console.log on final release
-            this.leave.push((message: any, context: IContext) => { console.log(context + " leave " + this); });
-            this.beginEnter.push((message: any, context: IContext) => { console.log(context + " enter " + this); });
+            // Put these lines back for debugging
+            //this.leave.push((message: any, context: IContext) => { console.log(context + " leave " + this); });
+            //this.beginEnter.push((message: any, context: IContext) => { console.log(context + " enter " + this); });
 
             this.enter = this.beginEnter.concat(this.endEnter);
         }
@@ -96,9 +96,9 @@ module FSM {
      * An element within a state machine model that is a container of Vertices.
      */
     export class Region extends Element {
-        static defaultName: string = "default";
-        vertices: Array<Vertex> = [];
-        initial: PseudoState;
+        public static defaultName: string = "default";
+        public  vertices: Array<Vertex> = [];
+        public initial: PseudoState;
         
         constructor(name: string, public state: State) {
             super(name, state);
@@ -144,9 +144,9 @@ module FSM {
      * An element within a state machine model that can be the source or target of a transition.
      */
     export class Vertex extends Element {
-        region: Region;
+        /* protected when I get IDE support */region: Region;
         transitions: Array<Transition> = [];
-        selector: (transitions: Array<Transition>, message: any, context: IContext) => Transition;      
+        private selector: (transitions: Array<Transition>, message: any, context: IContext) => Transition;      
 
         constructor(name: string, element: Region, selector: (transitions: Array<Transition>, message: any, context: IContext) => Transition);
         constructor(name: string, element: State, selector: (transitions: Array<Transition>, message: any, context: IContext) => Transition);
@@ -272,7 +272,7 @@ module FSM {
             return result;
         }
         
-        regions: Array<Region> = [];
+        public regions: Array<Region> = [];
         private exitBehavior: Behavior = [];
         private entryBehavior: Behavior = [];
 
@@ -312,10 +312,6 @@ module FSM {
             this.root.clean = false;
 
             return this;
-        }
-
-        isFinal(): Boolean {
-            return false;
         }
 
         isSimple(): Boolean {
@@ -399,9 +395,9 @@ module FSM {
         constructor(name: string, element: any) {
             super(name, element);
         }
-
-        isFinal(): Boolean {
-            return true;
+        
+        to(target?: Vertex): Transition {
+            throw "A FinalState cannot be the source of a transition.";
         }
     }
 
@@ -447,9 +443,9 @@ module FSM {
     export class Transition {        
         static isElse: Guard = (message: any, context: IContext): Boolean => { return false; };
         
-        guard: Guard;
-        transitionBehavior: Behavior = [];
-        traverse: Behavior = [];
+        public guard: Guard;
+        private transitionBehavior: Behavior = [];
+        public traverse: Behavior = [];
 
         constructor(private source: Vertex, private target?: Vertex) {
             this.completion(); // default the transition to a completion transition
@@ -484,7 +480,7 @@ module FSM {
         bootstrap(): void {
             if (this.target === null) { // internal transitions: just the actions
                 this.traverse = this.transitionBehavior;
-            } else if (this.target.region === this.source.region) { // local transitions: exit and enter with no complexity
+            } else if (this.target.parent() === this.source.parent()) { // local transitions: exit and enter with no complexity
                 this.traverse = this.source.leave.concat(this.transitionBehavior).concat(this.target.enter);
             } else { // complex external transition
                 var sourceAncestors = this.source.ancestors();

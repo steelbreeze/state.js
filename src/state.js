@@ -48,14 +48,9 @@ var FSM;
             this.enter = [];
         };
         Element.prototype.bootstrap = function (deepHistoryAbove) {
-            var _this = this;
-            // TODO: remove console.log on final release
-            this.leave.push(function (message, context) {
-                console.log(context + " leave " + _this);
-            });
-            this.beginEnter.push(function (message, context) {
-                console.log(context + " enter " + _this);
-            });
+            // Put these lines back for debugging
+            //this.leave.push((message: any, context: IContext) => { console.log(context + " leave " + this); });
+            //this.beginEnter.push((message: any, context: IContext) => { console.log(context + " enter " + this); });
             this.enter = this.beginEnter.concat(this.endEnter);
         };
         Element.prototype.bootstrapEnter = function (add, next) {
@@ -264,9 +259,6 @@ var FSM;
             this.root.clean = false;
             return this;
         };
-        State.prototype.isFinal = function () {
-            return false;
-        };
         State.prototype.isSimple = function () {
             return this.regions.length === 0;
         };
@@ -337,8 +329,8 @@ var FSM;
         function FinalState(name, element) {
             _super.call(this, name, element);
         }
-        FinalState.prototype.isFinal = function () {
-            return true;
+        FinalState.prototype.to = function (target) {
+            throw "A FinalState cannot be the source of a transition.";
         };
         return FinalState;
     })(State);
@@ -410,7 +402,7 @@ var FSM;
             if (this.target === null) {
                 this.traverse = this.transitionBehavior;
             }
-            else if (this.target.region === this.source.region) {
+            else if (this.target.parent() === this.source.parent()) {
                 this.traverse = this.source.leave.concat(this.transitionBehavior).concat(this.target.enter);
             }
             else {

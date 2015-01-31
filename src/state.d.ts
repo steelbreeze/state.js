@@ -79,7 +79,7 @@ declare module FSM {
     class Vertex extends Element {
         region: Region;
         transitions: Array<Transition>;
-        selector: (transitions: Array<Transition>, message: any, context: IContext) => Transition;
+        private selector;
         constructor(name: string, element: Region, selector: (transitions: Array<Transition>, message: any, context: IContext) => Transition);
         constructor(name: string, element: State, selector: (transitions: Array<Transition>, message: any, context: IContext) => Transition);
         to(target?: Vertex): Transition;
@@ -114,7 +114,6 @@ declare module FSM {
         defaultRegion(): Region;
         exit<TMessage>(exitAction: Action): State;
         entry<TMessage>(entryAction: Action): State;
-        isFinal(): Boolean;
         isSimple(): Boolean;
         isComposite(): Boolean;
         isOrthogonal(): Boolean;
@@ -129,7 +128,7 @@ declare module FSM {
     class FinalState extends State {
         constructor(name: string, element: Region);
         constructor(name: string, element: State);
-        isFinal(): Boolean;
+        to(target?: Vertex): Transition;
     }
     /**
      * An element within a state machine model that represents the root of the state machine model.
@@ -149,7 +148,7 @@ declare module FSM {
         private target;
         static isElse: Guard;
         guard: Guard;
-        transitionBehavior: Behavior;
+        private transitionBehavior;
         traverse: Behavior;
         constructor(source: Vertex, target?: Vertex);
         completion(): Transition;
