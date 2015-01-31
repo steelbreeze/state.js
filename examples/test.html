@@ -1,94 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>state.js v4.1.0 test</title>
+        <title>state.js v5.0.0 test</title>
 		<script src="../src/state.js"></script>
         <script>
-            // create the state machine
-            var machine = new StateMachine("machine");
+            var machine = new FSM.StateMachine("player");
+            var initial = new FSM.PseudoState("initial", machine, FSM.PseudoStateKind.Initial);
+            var operational = new FSM.State("operational", machine);
+            var flipped = new FSM.State("flipped", machine);
+            var final = new FSM.FinalState("final", machine);
+            var dhistory = new FSM.PseudoState("history", operational, FSM.PseudoStateKind.DeepHistory);
+            var stopped = new FSM.State("stopped", operational);
+            var active = new FSM.State("active", operational).entry(engageHead).exit(disengageHead);
+            var running = new FSM.State("running", active).entry(startMotor).exit(stopMotor);
+            var paused = new FSM.State("paused", active);
+            initial.to(operational).effect(disengageHead).effect(stopMotor);
             
-            var controller = new Region("player", machine);
-
-            // create some states
-            var initial = new PseudoState("initial", PseudoStateKind.Initial, controller);
-            var operational = new CompositeState("operational", controller);
-            var flipped = new SimpleState("flipped", controller);
-            var final = new FinalState("final", controller);
-            var history1 = new PseudoState("history", PseudoStateKind.DeepHistory, operational);
-            var stopped = new SimpleState("stopped", operational);
-            var active = new CompositeState("active", operational);
-            var running = new SimpleState("running", active);
-            var paused = new SimpleState("paused", active);
+            dhistory.to(stopped);
+            stopped.to(running).when(function (command) { return command === "play"; });
+            active.to(stopped).when(function (command) { return command === "stop"; });
+            running.to(paused).when(function (command) { return command === "pause"; });
+            paused.to(running).when(function (command) { return command === "play"; });
+            operational.to(flipped).when(function (command) { return command === "flip"; });
+            flipped.to(operational).when(function (command) { return command === "flip"; });
+            operational.to(final).when(function (command) { return command === "off"; });            
             
-            // create transitions between states (one with transition behaviour)
-            var t0 = new Transition(initial, operational);
-            var t1 = new Transition(history1, stopped);
-            var t2 = new Transition(stopped, running, function (s, c) { return c === "play"; });
-            var t3 = new Transition(active, stopped, function (s, c) { return c === "stop"; });
-            var t4 = new Transition(running, paused, function (s, c) { return c === "pause"; });
-            var t5 = new Transition(paused, running, function (s, c) { return c === "play"; });
-            var t6 = new Transition(operational, flipped, function (s, c) { return c === "flip"; });
-            var t7 = new Transition(flipped, operational, function (s, c) { return c === "flip"; });
-            var t8 = new Transition(operational, final, function (s, c) { return s, c === "off"; });
-            
-            // add some behaviour
-            active.entry = [EngageHead];
-            active.exit = [DisengageHead];
-            running.entry = [StartMotor];
-            running.exit = [StopMotor];
-            t0.effect = [DisengageHead, StopMotor];
-                        
 			function init()
 			{
-				sms = { name: "state" };
+				sms = new FSM.Context();
 				machine.initialise( sms )
 			}
 
-			function EngageHead(context, message)
+			function engageHead(context, message)
 			{
 				document.getElementById("head").innerHTML = "Head: engaged";
 			}
 			
-			function DisengageHead(context, message)
+			function disengageHead(context, message)
 			{
 				document.getElementById("head").innerHTML = "Head: disengaged";
 			}
 			
-			function StartMotor(context, message)
+			function startMotor(context, message)
 			{
 				document.getElementById("motor").innerHTML = "Motor: running";
 			}
 			
-			function StopMotor(context, message)
+			function stopMotor(context, message)
 			{
 				document.getElementById("motor").innerHTML = "Motor: stopped";
 			}
 			
 			// add a little more behavior to adjust the graphic
-			stopped.entry = [ function() { UpdateGraphic( "controller_stopped.png" ); } ];
-			running.entry.push( function() { UpdateGraphic( "controller_running.png" ); } );
-			paused.entry = [ function() { UpdateGraphic( "controller_paused.png" ); } ];
-			operational.exit = [ function() { UpdateGraphic( "controller_final.png" ); } ];
-			flipped.entry = [ function() { UpdateGraphic( "controller_flipped.png" ); } ];
+			stopped.entry(function() { updateGraphic( "controller_stopped.png" ); });
+			running.entry(function() { updateGraphic( "controller_running.png" ); });
+			paused.entry(function() { updateGraphic( "controller_paused.png" ); });
+			operational.exit(function() { updateGraphic( "controller_final.png" ); });
+			flipped.entry(function() { updateGraphic( "controller_flipped.png" ); });
 			
-			function UpdateGraphic( uri )
+			function updateGraphic( uri )
 			{
 				document.getElementById( "diagram" ).src = uri;
 			}
         </script>
     </head>
 	<body onload="init()">
-        <h1>state.js v4.1.0 test</h1>
+        <h1>state.js v5.0.0 test</h1>
 		<p>This example implements a simple controller for a cassette player according to the model below:</p>
 		<p><img id="diagram" /></p>
 		<p>Press the buttons below to send events to the controller (check brower console for trace output):</p>
-		<button type="button" onclick="machine.process( sms, 'play' )">play</button>
-		<button type="button" onclick="machine.process( sms, 'pause' )">pause</button>
-		<button type="button" onclick="machine.process( sms, 'stop' )">stop</button>
-		<button type="button" onclick="machine.process( sms, 'flip' )">flip</button>
-		<button type="button" onclick="machine.process( sms, 'off' )">off</button>
+		<button type="button" onclick="machine.evaluate('play', sms)">play</button>
+		<button type="button" onclick="machine.evaluate('pause', sms)">pause</button>
+		<button type="button" onclick="machine.evaluate('stop', sms)">stop</button>
+		<button type="button" onclick="machine.evaluate('flip', sms)">flip</button>
+		<button type="button" onclick="machine.evaluate('off', sms)">off</button>
 		<button type="button" onclick="init()">reset</button>
-		<button type="button" onclick="console.log( JSON.stringify( machine.getCurrent( sms ) ) )">current</button>
+		<button type="button" onclick="console.log( JSON.stringify( machine.getCurrent(sms) ) )">current</button>
 		<p id="head">Head: </p>
 		<p id="motor">Motor: </p>
 	</body>

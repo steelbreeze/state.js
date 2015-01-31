@@ -279,7 +279,7 @@ var FSM;
         State.prototype.bootstrap = function (deepHistoryAbove) {
             var _this = this;
             for (var i = 0, l = this.regions.length; i < l; i++) {
-                var region = this.regions[i]; // TODO: investigate need for this: why doesn't typescript help me more...
+                var region = this.regions[i]; // regadless of TypeScript, still need this in this instance
                 region.reset();
                 region.bootstrap(deepHistoryAbove);
                 this.leave.push(function (message, context, history) {

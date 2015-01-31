@@ -49,8 +49,8 @@ module FSM {
      * An abstract class that can be used as the base for any elmeent with a state machine.
      */
     export class Element {
-        static namespaceSeperator = ".";
-        root: StateMachine;
+        public static namespaceSeperator = ".";
+        public root: StateMachine;
         leave: Behavior = [];
         beginEnter: Behavior= [];
         endEnter: Behavior =[];
@@ -104,7 +104,7 @@ module FSM {
             super(name, state);
             
             state.regions.push(this);
-            
+                        
             this.parent = () => { return this.state; };
         }
         
@@ -332,7 +332,7 @@ module FSM {
 
         bootstrap(deepHistoryAbove: Boolean): void {
             for( var i:number = 0, l:number = this.regions.length; i < l; i++) {
-                var region: Region = this.regions[i]; // TODO: investigate need for this: why doesn't typescript help me more...
+                var region: Region = this.regions[i]; // regadless of TypeScript, still need this in this instance
                 region.reset();
                 region.bootstrap(deepHistoryAbove);
 
