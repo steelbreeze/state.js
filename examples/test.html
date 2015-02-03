@@ -45,7 +45,7 @@
             var sms = new FSM.Context();
 
             /* pass button values to the state machine when clicked */
-            $("button").click(function(button) { player.evaluate( button.target.innerText, sms); });
+            $("button").click(function(button) { player.evaluate(button.target.innerHTML, sms); });
 
             /* initialise the machine */
             player.initialise(sms)
