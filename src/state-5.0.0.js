@@ -4,13 +4,13 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-/** State v5 finite state machine library
+/* State v5 finite state machine library
  * http://www.steelbreeze.net/state.js
  * Copyright (c) 2014-5 Steelbreeze Limited
  * Licensed under MIT and GPL v3 licences
  */
-var FSM;
-(function (FSM) {
+var state;
+(function (_state) {
     /**
      * Enumeration describing the various types of PseudoState allowed.
      */
@@ -21,8 +21,8 @@ var FSM;
         PseudoStateKind[PseudoStateKind["Junction"] = 3] = "Junction";
         PseudoStateKind[PseudoStateKind["ShallowHistory"] = 4] = "ShallowHistory";
         PseudoStateKind[PseudoStateKind["Terminate"] = 5] = "Terminate";
-    })(FSM.PseudoStateKind || (FSM.PseudoStateKind = {}));
-    var PseudoStateKind = FSM.PseudoStateKind;
+    })(_state.PseudoStateKind || (_state.PseudoStateKind = {}));
+    var PseudoStateKind = _state.PseudoStateKind;
     /**
      * An abstract class that can be used as the base for any elmeent with a state machine.
      */
@@ -64,7 +64,7 @@ var FSM;
         Element.namespaceSeperator = ".";
         return Element;
     })();
-    FSM.Element = Element;
+    _state.Element = Element;
     /**
      * An element within a state machine model that is a container of Vertices.
      */
@@ -120,7 +120,7 @@ var FSM;
         Region.defaultName = "default";
         return Region;
     })(Element);
-    FSM.Region = Region;
+    _state.Region = Region;
     /**
      * An element within a state machine model that can be the source or target of a transition.
      */
@@ -184,7 +184,7 @@ var FSM;
         };
         return Vertex;
     })(Element);
-    FSM.Vertex = Vertex;
+    _state.Vertex = Vertex;
     /**
      * An element within a state machine model that represents an transitory Vertex within the state machine model.
      */
@@ -213,7 +213,7 @@ var FSM;
         };
         return PseudoState;
     })(Vertex);
-    FSM.PseudoState = PseudoState;
+    _state.PseudoState = PseudoState;
     /**
      * An element within a state machine model that represents an invariant condition within the life of the state machine instance.
      */
@@ -320,7 +320,7 @@ var FSM;
         };
         return State;
     })(Vertex);
-    FSM.State = State;
+    _state.State = State;
     /**
      * An element within a state machine model that represents completion of the life of the containing Region within the state machine instance.
      */
@@ -334,7 +334,7 @@ var FSM;
         };
         return FinalState;
     })(State);
-    FSM.FinalState = FinalState;
+    _state.FinalState = FinalState;
     /**
      * An element within a state machine model that represents the root of the state machine model.
      */
@@ -365,7 +365,7 @@ var FSM;
         };
         return StateMachine;
     })(State);
-    FSM.StateMachine = StateMachine;
+    _state.StateMachine = StateMachine;
     /**
      * An element within a state machine model that represents a valid transition between vertices in response to a message.
      */
@@ -437,7 +437,7 @@ var FSM;
         };
         return Transition;
     })();
-    FSM.Transition = Transition;
+    _state.Transition = Transition;
     function pseudoState(kind) {
         switch (kind) {
             case 2 /* Initial */:
@@ -533,5 +533,5 @@ var FSM;
         };
         return Context;
     })();
-    FSM.Context = Context;
-})(FSM || (FSM = {}));
+    _state.Context = Context;
+})(state || (state = {}));

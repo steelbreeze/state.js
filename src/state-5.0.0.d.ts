@@ -1,9 +1,4 @@
-/** State v5 finite state machine library
- * http://www.steelbreeze.net/state.js
- * Copyright (c) 2014-5 Steelbreeze Limited
- * Licensed under MIT and GPL v3 licences
- */
-declare module FSM {
+declare module state {
     /**
      * Enumeration describing the various types of PseudoState allowed.
      */
@@ -153,7 +148,7 @@ declare module FSM {
         constructor(source: Vertex, target?: Vertex);
         completion(): Transition;
         else(): Transition;
-        when<TMessage>(guard: Guard): Transition;
+        when(guard: Guard): Transition;
         effect<TMessage>(transitionAction: Action): Transition;
         bootstrap(): void;
     }

@@ -17,11 +17,11 @@
 		<p id="motor">Motor: stopped</p>
     </body>
 
-    <!-- jQuery -->
+    <!-- import jQuery -->
     <script src="jquery-1.11.2.min.js"></script>
 
-    <!-- the state machine runtime -->
-    <script src="../src/state.js"></script>
+    <!-- import the state machine runtime -->
+    <script src="../src/state-5.0.0.min.js"></script>
 
     <!-- the core player code -->
     <script src="player.js"></script>
@@ -29,20 +29,20 @@
     <!-- script to wire the core player to the web page -->
     <script>               
         /* initialise the page */
-        $(document).ready(function() {				
+        $(document).ready(function() {
             /* add core behaviour to appropriate states and transitions in the player machine*/
             active.entry(function () { $("#head").text("Head: engaged"); }).exit(function () { $("#head").text("Head: disengaged"); });
-            running.entry(function () { $("#motor").text("Motor: running"); }).exit(function() { $("#motor").text("Motor: stopped"); });            
+            running.entry(function () { $("#motor").text("Motor: running"); }).exit(function() { $("#motor").text("Motor: stopped"); });
 
             /* add a little more behavior to states to adjust the graphic*/
             stopped.entry(function () { $("#diagram").attr("src", "controller_stopped.png"); });
             running.entry(function () { $("#diagram").attr("src", "controller_running.png"); });
             paused.entry(function () { $( "#diagram" ).attr("src", "controller_paused.png"); });
             finalState.entry(function () { $("#diagram").attr("src", "controller_final.png"); });
-            flipped.entry(function () { $("#diagram").attr("src", "controller_flipped.png"); });            
+            flipped.entry(function () { $("#diagram").attr("src", "controller_flipped.png"); });
 
             /* create the state machine context object */
-            var sms = new FSM.Context();
+            var sms = new state.Context();
 
             /* pass button values to the state machine when clicked */
             $("button").click(function(button) { player.evaluate(button.target.textContent, sms); });

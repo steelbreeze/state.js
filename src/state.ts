@@ -1,9 +1,9 @@
-/** State v5 finite state machine library
+/* State v5 finite state machine library
  * http://www.steelbreeze.net/state.js
  * Copyright (c) 2014-5 Steelbreeze Limited
  * Licensed under MIT and GPL v3 licences
  */
-module FSM {
+module state {
     /**
      * Enumeration describing the various types of PseudoState allowed.
      */
@@ -463,7 +463,7 @@ module FSM {
             return this;
         }
         
-        when<TMessage>(guard: Guard): Transition {
+        when(guard: Guard): Transition {
             this.guard = guard;
 
             return this;
