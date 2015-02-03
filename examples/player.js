@@ -13,7 +13,7 @@ var stopped = new FSM.State("stopped", operational);
 var active = new FSM.State("active", operational);
 var running = new FSM.State("running", active);
 var paused = new FSM.State("paused", active);
-var initialise = initial.to(operational); // NOTE: the example web page will add a transition effect
+initial.to(operational); // NOTE: the example web page will add a transition effect
 deepHistory.to(stopped);
 stopped.to(running).when(function (command) {
     return command === "play";

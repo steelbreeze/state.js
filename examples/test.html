@@ -2,46 +2,6 @@
 <html lang="en">
     <head>
         <title>state.js v5.0.0 example</title>
-        <script src="jquery-1.11.2.min.js"></script>
-        
-        <!-- the state machine runtime -->
-		<script src="../src/state.js"></script>
-
-        <!-- the core player code -->
-        <script src="player.js"></script>
-        
-        <!-- script to wire the core player to the web page -->
-        <script>               
-            /* initialise the page */
-            $(function() {
-				
-                /* a few common functions */
-                function engageHead() { $("#head").text("Head: engaged"); }
-                function disengageHead() { $("#head").text("Head: disengaged"); }
-                function startMotor() { $("#motor").text("Motor: running"); }
-                function stopMotor() { $("#motor").text("Motor: stopped"); }
-
-                /* add core behaviour to appropriate states and transitions in the player machine*/
-                initialise.effect(disengageHead).effect(stopMotor)
-                active.entry(engageHead).exit(disengageHead);
-                running.entry(startMotor).exit(stopMotor);            
-
-                /* add a little more behavior to adjust the graphic*/
-                stopped.entry(function() { $("#diagram").attr("src", "controller_stopped.png"); });
-                running.entry(function() { $("#diagram").attr("src", "controller_running.png"); });
-                paused.entry(function() { $( "#diagram" ).attr("src", "controller_paused.png"); });
-                operational.exit(function() { $( "#diagram" ).attr("src", "controller_final.png"); });
-                flipped.entry(function() { $( "#diagram" ).attr("src", "controller_flipped.png"); });            
-                
-                var sms = new FSM.Context();
-
-                /* pass button values to the state machine when clicked */
-                $("button").click(function(button) { player.evaluate( button.target.innerText, sms); });
-
-                /* initialise the machine */
-				player.initialise(sms)
-            });
-        </script>
     </head>
 	<body>
         <h1>state.js v5.0.0 example</h1>
@@ -53,7 +13,42 @@
 		<button type="button">stop</button>
 		<button type="button" >flip</button>
 		<button type="button" >off</button>
-		<p id="head">Head: </p>
-		<p id="motor">Motor: </p>
-	</body>
+		<p id="head">Head: disengaged</p>
+		<p id="motor">Motor: stopped</p>
+    </body>
+
+    <!-- jQuery -->
+    <script src="jquery-1.11.2.min.js"></script>
+
+    <!-- the state machine runtime -->
+    <script src="../src/state.js"></script>
+
+    <!-- the core player code -->
+    <script src="player.js"></script>
+
+    <!-- script to wire the core player to the web page -->
+    <script>               
+        /* initialise the page */
+        $(document).ready(function() {				
+            /* add core behaviour to appropriate states and transitions in the player machine*/
+            active.entry(function () { $("#head").text("Head: engaged"); }).exit(function () { $("#head").text("Head: disengaged"); });
+            running.entry(function () { $("#motor").text("Motor: running"); }).exit(function() { $("#motor").text("Motor: stopped"); });            
+
+            /* add a little more behavior to states to adjust the graphic*/
+            stopped.entry(function () { $("#diagram").attr("src", "controller_stopped.png"); });
+            running.entry(function () { $("#diagram").attr("src", "controller_running.png"); });
+            paused.entry(function () { $( "#diagram" ).attr("src", "controller_paused.png"); });
+            finalState.entry(function () { $("#diagram").attr("src", "controller_final.png"); });
+            flipped.entry(function () { $("#diagram").attr("src", "controller_flipped.png"); });            
+
+            /* create the state machine context object */
+            var sms = new FSM.Context();
+
+            /* pass button values to the state machine when clicked */
+            $("button").click(function(button) { player.evaluate( button.target.innerText, sms); });
+
+            /* initialise the machine */
+            player.initialise(sms)
+        });
+    </script>
 </html>
