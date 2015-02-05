@@ -3,31 +3,53 @@
  * Copyright (c) 2014-5 Steelbreeze Limited
  * Licensed under MIT and GPL v3 licences
  */
+
+/**
+ * Finite state machine classes
+ */
 module state {
     /**
      * Enumeration describing the various types of PseudoState allowed.
      */
     export enum PseudoStateKind {
+        /** Semantic free vertex used to chain transitions together; if multiple outbound transitions guards evaluate true, an arbitary one is chosen. */
         Choice,
+        
+        /** The initial vertex selected when the parent region is enterd for the first time, then triggers entry of the last known state for subsiquent entries; history cascades through all child hierarchy. */
         DeepHistory,
+
+        /** The initial vertex selected when the parent region is enterd. */
         Initial,
+
+        /** Semantic free vertex used to chain transitions together; if multiple outbound transitions guards evaluate true, an exception is thrown. */
         Junction,
+
+        /** The initial vertex selected when the parent region is enterd for the first time, then triggers entry of the last known state for subsiquent entries. */
         ShallowHistory,
+        
+        /** Terminates the execution of the containing state machine; the machine will not evaluate any further messages. */
         Terminate
     }
 
     /**
      * Type signature for guard conditions used by Transitions.
+     * @param message {any} The message injected into the state machine for evaluation
+     * @param context {IContext} The object representing a particualr state machine instance
+     * @returns {boolean}
      */
     export interface Guard {
-        (message: any, context: IContext): Boolean;
+        (message: any, context: IContext): boolean;
     }
 
     /**
      * Type signature for an action performed durin Transitions.
+     * @param message {any} The message injected into the state machine for evaluation
+     * @param context {IContext} The object representing a particualr state machine instance
+     * @param history {boolean} For internal use only. 
+     * @returns {any} Note that the any return type is used to indicate that the state machine runtime does not care what the return type of actions are.
      */
     export interface Action {
-        (message: any, context: IContext, history: Boolean): any;
+        (message: any, context: IContext, history: boolean): any;
     }
 
     /**
@@ -40,8 +62,23 @@ module state {
      * Interface for the state machine context; an object used as each instance of a state machine (as the classes in this library describe a state machine model).
      */
     export interface IContext {
-        isTerminated: Boolean;
-        setCurrent(region: Region, value: State): void;
+        /**
+         * Indicates that the state machine instance has reached a terminate pseudo state and therfore will no longer evaluate messages.
+         */
+        isTerminated: boolean;
+        
+        /**
+         * Updates the last known state for a given region.
+         * @param region {Region} The region to update the last known state for.
+         * @param state {State} The last known state for the given region.
+         */
+        setCurrent(region: Region, state: State): void;
+        
+        /**
+         * Returns the last known state for a given region.
+         * @param region {Region} The region to update the last known state for.
+         * @returns {State} The last known state for the given region.
+         */
         getCurrent(region: Region): State;
     }
 
@@ -49,15 +86,33 @@ module state {
      * An abstract class that can be used as the base for any elmeent with a state machine.
      */
     export class Element {
+        /**
+         * The symbol used to seperate element names within a fully qualified name.
+         */
         public static namespaceSeperator = ".";
+        
+        /**
+         * The parent state machine that ultimately owns this element.
+         */
         public root: StateMachine;
+        
+        /**
+         * The immediate parent element of this element.
+         * @returns {Element}
+         */
+        parent: () => Element; // NOTE: an apprach to an abstract method, implemented by both immediate subclasses
+
         leave: Behavior = [];
         beginEnter: Behavior= [];
         endEnter: Behavior =[];
         enter: Behavior = [];
-        parent: () => Element; // NOTE: an apprach to an abstract method, implemented by both immediate subclasses
 
-        constructor(public name: string, element: Element) {    
+        /**
+         * Creates an new instance of an Element.
+         * @param name {string} The name of the element.
+         * @param element {Element} the parent element of this element.
+         */
+        constructor(public name: string, element?: Element) {    
             if(element) {
                 this.root = element.root;
                 this.root.clean = false;
@@ -75,7 +130,7 @@ module state {
             this.enter = [];
         }
 
-        bootstrap(deepHistoryAbove: Boolean): void {
+        bootstrap(deepHistoryAbove: boolean): void {
             // Put these lines back for debugging
             //this.leave.push((message: any, context: IContext) => { console.log(context + " leave " + this); });
             //this.beginEnter.push((message: any, context: IContext) => { console.log(context + " enter " + this); });
@@ -108,20 +163,20 @@ module state {
             this.parent = () => { return this.state; };
         }
         
-        isComplete(context: IContext): Boolean {
+        isComplete(context: IContext): boolean {
             return context.getCurrent(this).isFinal();
         }
 
-        bootstrap(deepHistoryAbove: Boolean): void {
+        bootstrap(deepHistoryAbove: boolean): void {
             for( var i:number = 0, l:number = this.vertices.length; i < l; i++) {
                 this.vertices[i].reset();
                 this.vertices[i].bootstrap(deepHistoryAbove || (this.initial && this.initial.kind === PseudoStateKind.DeepHistory));
             }
 
-            this.leave.push((message: any, context: IContext, history: Boolean) => { var current = context.getCurrent(this); if (current.leave) { invoke(current.leave, message, context, history); } });
+            this.leave.push((message: any, context: IContext, history: boolean) => { var current = context.getCurrent(this); if (current.leave) { invoke(current.leave, message, context, history); } });
 
             if (deepHistoryAbove || !this.initial || this.initial.isHistory()) {
-                this.endEnter.push((message: any, context: IContext, history: Boolean) => { var ini:Vertex = this.initial; if (history || this.initial.isHistory()) {ini = context.getCurrent(this) || this.initial;} invoke(ini.enter, message, context, history || (this.initial.kind === PseudoStateKind.DeepHistory)); });
+                this.endEnter.push((message: any, context: IContext, history: boolean) => { var ini:Vertex = this.initial; if (history || this.initial.isHistory()) {ini = context.getCurrent(this) || this.initial;} invoke(ini.enter, message, context, history || (this.initial.kind === PseudoStateKind.DeepHistory)); });
             } else {
                 this.endEnter = this.endEnter.concat(this.initial.enter);
             }
@@ -135,7 +190,7 @@ module state {
             }
         }
         
-        evaluate(message: any, context: IContext): Boolean {
+        evaluate(message: any, context: IContext): boolean {
             return context.getCurrent(this).evaluate(message, context);
         }
     }
@@ -177,10 +232,10 @@ module state {
             return transition;
         }
 
-        bootstrap(deepHistoryAbove: Boolean): void {
+        bootstrap(deepHistoryAbove: boolean): void {
             super.bootstrap(deepHistoryAbove);
 
-            this.endEnter.push((message: any, context: IContext, history: Boolean) => { this.evaluateCompletions(message, context, history); });
+            this.endEnter.push((message: any, context: IContext, history: boolean) => { this.evaluateCompletions(message, context, history); });
             this.enter = this.beginEnter.concat(this.endEnter);
         }
 
@@ -190,21 +245,21 @@ module state {
             }
         }
 
-        evaluateCompletions(message: any, context: IContext, history: Boolean) {
+        evaluateCompletions(message: any, context: IContext, history: boolean) {
             if (this.isComplete(context)) {
                 this.evaluate(this, context);
             }
         }
 
-        isFinal(): Boolean {
+        isFinal(): boolean {
             return this.transitions.length === 0;
         }
         
-        isComplete(context: IContext): Boolean {
+        isComplete(context: IContext): boolean {
             return true;
         }
 
-        evaluate(message: any, context: IContext): Boolean {
+        evaluate(message: any, context: IContext): boolean {
             var transition: Transition = this.selector(this.transitions, message, context);
             
             if (!transition) {
@@ -235,19 +290,19 @@ module state {
             }
         }
 
-        isHistory(): Boolean {
+        isHistory(): boolean {
             return this.kind === PseudoStateKind.DeepHistory || this.kind === PseudoStateKind.ShallowHistory;
         }
 
-        isInitial(): Boolean {
+        isInitial(): boolean {
             return this.kind === PseudoStateKind.Initial || this.isHistory();
         }
 
-        bootstrap(deepHistoryAbove: Boolean): void {
+        bootstrap(deepHistoryAbove: boolean): void {
             super.bootstrap(deepHistoryAbove);
 
             if (this.kind === PseudoStateKind.Terminate) {
-                this.enter.push((message: any, context: IContext, history: Boolean) => { context.isTerminated = true; });
+                this.enter.push((message: any, context: IContext, history: boolean) => { context.isTerminated = true; });
             }
         }
     }
@@ -314,25 +369,25 @@ module state {
             return this;
         }
 
-        isSimple(): Boolean {
+        isSimple(): boolean {
             return this.regions.length === 0;
         }
 
-        isComposite(): Boolean {
+        isComposite(): boolean {
             return this.regions.length > 0;
         }
 
-        isOrthogonal(): Boolean {
+        isOrthogonal(): boolean {
             return this.regions.length > 1;
         }
 
-        bootstrap(deepHistoryAbove: Boolean): void {
+        bootstrap(deepHistoryAbove: boolean): void {
             for( var i:number = 0, l:number = this.regions.length; i < l; i++) {
                 var region: Region = this.regions[i]; // regadless of TypeScript, still need this in this instance
                 region.reset();
                 region.bootstrap(deepHistoryAbove);
 
-                this.leave.push((message: any, context: IContext, history: Boolean) => { invoke(region.leave, message, context, history); });
+                this.leave.push((message: any, context: IContext, history: boolean) => { invoke(region.leave, message, context, history); });
 
                 this.endEnter = this.endEnter.concat(region.enter);
             }
@@ -342,7 +397,7 @@ module state {
             this.leave = this.leave.concat(this.exitBehavior);
             this.beginEnter = this.beginEnter.concat(this.entryBehavior);
 
-            this.beginEnter.push((message: any, context: IContext, history: Boolean) => { if (this.region) { context.setCurrent(this.region, this); } });
+            this.beginEnter.push((message: any, context: IContext, history: boolean) => { if (this.region) { context.setCurrent(this.region, this); } });
 
             this.enter = this.beginEnter.concat(this.endEnter);
         }
@@ -365,8 +420,8 @@ module state {
             }
         }
         
-        evaluate(message: any, context: IContext): Boolean {
-            var processed: Boolean = false;
+        evaluate(message: any, context: IContext): boolean {
+            var processed: boolean = false;
             
             for( var i:number = 0, l:number = this.regions.length; i < l; i++) {                
                 if(this.regions[i].evaluate(message, context)) {
@@ -405,7 +460,7 @@ module state {
      * An element within a state machine model that represents the root of the state machine model.
      */
     export class StateMachine extends State {
-        clean: Boolean = true;
+        clean: boolean = true;
 
         constructor(name: string) {
             super(name, undefined);
@@ -413,7 +468,7 @@ module state {
             this.root = this;
         }
 
-        bootstrap(deepHistoryAbove: Boolean): void {
+        bootstrap(deepHistoryAbove: boolean): void {
             super.bootstrap(deepHistoryAbove);
             super.bootstrapTransitions();
 
@@ -428,7 +483,7 @@ module state {
             invoke(this.enter, undefined, context, false);
         }
         
-        evaluate(message: any, context: IContext): Boolean {
+        evaluate(message: any, context: IContext): boolean {
             if (context.isTerminated) {
                 return false;
             }
@@ -441,7 +496,7 @@ module state {
      * An element within a state machine model that represents a valid transition between vertices in response to a message.
      */
     export class Transition {        
-        static isElse: Guard = (message: any, context: IContext): Boolean => { return false; };
+        static isElse: Guard = (message: any, context: IContext): boolean => { return false; };
         
         public guard: Guard;
         private transitionBehavior: Behavior = [];
@@ -452,7 +507,7 @@ module state {
         }
 
         completion(): Transition {
-            this.guard = (message: any, context: IContext): Boolean => { return message === this.source; };
+            this.guard = (message: any, context: IContext): boolean => { return message === this.source; };
 
             return this;
         }
@@ -478,11 +533,16 @@ module state {
         }
 
         bootstrap(): void {
-            if (this.target === null) { // internal transitions: just the actions
+            // internal transitions: just perform the actions; no exiting or entering states
+            if (this.target === null) {
                 this.traverse = this.transitionBehavior;
-            } else if (this.target.parent() === this.source.parent()) { // local transitions: exit and enter with no complexity
+                
+            // local transtions (within the same parent region): simple exit, transition and entry
+            } else if (this.target.parent() === this.source.parent()) {
                 this.traverse = this.source.leave.concat(this.transitionBehavior).concat(this.target.enter);
-            } else { // complex external transition
+                
+            // external transitions (crossing region boundaries): exit to the LCA, transition, enter from the LCA
+            } else {
                 var sourceAncestors = this.source.ancestors();
                 var targetAncestors = this.target.ancestors();
                 var sourceAncestorsLength = sourceAncestors.length;
@@ -605,13 +665,13 @@ module state {
         return;
     }
         
-    function invoke(behavior: Behavior, message: any, context: IContext, history: Boolean): void {
+    function invoke(behavior: Behavior, message: any, context: IContext, history: boolean): void {
         for (var i = 0, l = behavior.length; i < l; i++) {
             behavior[i](message, context, history);
         }
     }
       
-    function assert(condition: Boolean, error: string): void {
+    function assert(condition: boolean, error: string): void {
         if (!condition) {
             throw error;
         }
@@ -626,11 +686,11 @@ module state {
      * Default working implementation of a state machine context class.
      */
     export class Context implements IContext {
-        public isTerminated: Boolean = false;
+        public isTerminated: boolean = false;
         private last: StateDictionary = {};
 
-        setCurrent(region: Region, value: State): void {            
-            this.last[region.toString()] = value;
+        setCurrent(region: Region, state: State): void {            
+            this.last[region.toString()] = state;
         }
 
         getCurrent(region: Region): State {            

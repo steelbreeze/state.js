@@ -1,13 +1,16 @@
+/* State v5 finite state machine library
+ * http://www.steelbreeze.net/state.js
+ * Copyright (c) 2014-5 Steelbreeze Limited
+ * Licensed under MIT and GPL v3 licences
+ */
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-/* State v5 finite state machine library
- * http://www.steelbreeze.net/state.js
- * Copyright (c) 2014-5 Steelbreeze Limited
- * Licensed under MIT and GPL v3 licences
+/**
+ * Finite state machine classes
  */
 var state;
 (function (_state) {
@@ -15,11 +18,17 @@ var state;
      * Enumeration describing the various types of PseudoState allowed.
      */
     (function (PseudoStateKind) {
+        /** Semantic free vertex used to chain transitions together; if multiple outbound transitions guards evaluate true, an arbitary one is chosen. */
         PseudoStateKind[PseudoStateKind["Choice"] = 0] = "Choice";
+        /** The initial vertex selected when the parent region is enterd for the first time, then triggers entry of the last known state for subsiquent entries; history cascades through all child hierarchy. */
         PseudoStateKind[PseudoStateKind["DeepHistory"] = 1] = "DeepHistory";
+        /** The initial vertex selected when the parent region is enterd. */
         PseudoStateKind[PseudoStateKind["Initial"] = 2] = "Initial";
+        /** Semantic free vertex used to chain transitions together; if multiple outbound transitions guards evaluate true, an exception is thrown. */
         PseudoStateKind[PseudoStateKind["Junction"] = 3] = "Junction";
+        /** The initial vertex selected when the parent region is enterd for the first time, then triggers entry of the last known state for subsiquent entries. */
         PseudoStateKind[PseudoStateKind["ShallowHistory"] = 4] = "ShallowHistory";
+        /** Terminates the execution of the containing state machine; the machine will not evaluate any further messages. */
         PseudoStateKind[PseudoStateKind["Terminate"] = 5] = "Terminate";
     })(_state.PseudoStateKind || (_state.PseudoStateKind = {}));
     var PseudoStateKind = _state.PseudoStateKind;
@@ -27,6 +36,11 @@ var state;
      * An abstract class that can be used as the base for any elmeent with a state machine.
      */
     var Element = (function () {
+        /**
+         * Creates an new instance of an Element.
+         * @param name {string} The name of the element.
+         * @param element {Element} the parent element of this element.
+         */
         function Element(name, element) {
             this.name = name;
             this.leave = [];
@@ -61,6 +75,9 @@ var state;
                 return e.name;
             }).join(Element.namespaceSeperator); // NOTE: while this may look costly, only used at runtime rarely if ever
         };
+        /**
+         * The symbol used to seperate element names within a fully qualified name.
+         */
         Element.namespaceSeperator = ".";
         return Element;
     })();
@@ -399,6 +416,7 @@ var state;
         };
         Transition.prototype.bootstrap = function () {
             var _this = this;
+            // internal transitions: just perform the actions; no exiting or entering states
             if (this.target === null) {
                 this.traverse = this.transitionBehavior;
             }
@@ -525,8 +543,8 @@ var state;
             this.isTerminated = false;
             this.last = {};
         }
-        Context.prototype.setCurrent = function (region, value) {
-            this.last[region.toString()] = value;
+        Context.prototype.setCurrent = function (region, state) {
+            this.last[region.toString()] = state;
         };
         Context.prototype.getCurrent = function (region) {
             return this.last[region.toString()];
