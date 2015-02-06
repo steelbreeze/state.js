@@ -279,7 +279,7 @@ module state {
          * @param element {Region|State} The parent element that owns the vertex.
          * @param selector {Selector} The method used to select a transition for a given message.
          */
-        constructor(name: string, element: Element, selector: Selector) {
+        constructor(name: string, element: any, selector: Selector) {
             super(name);
 
             this.selector = selector;
@@ -454,12 +454,36 @@ module state {
             return result;
         }
         
+        /**
+         * The child regions that belong to this State.
+         */
         public regions: Array<Region> = [];
+        
         private exitBehavior: Behavior = [];
         private entryBehavior: Behavior = [];
 
-        constructor(name: string, element: Region);
-        constructor(name: string, element: State);
+        /** 
+         * Creates a new instance of the State class.
+         * @constructor
+         * @param name {string} The name of the state.
+         * @param region {Region} The parent region that owns the state.
+         */
+        constructor(name: string, region: Region);
+        
+        /** 
+         * Creates a new instance of the State class.
+         * @constructor
+         * @param name {string} The name of the state.
+         * @param state {State} The parent state that owns the state.
+         */
+        constructor(name: string, state: State);
+
+        /** 
+         * Creates a new instance of the State class.
+         * @constructor
+         * @param name {string} The name of the state.
+         * @param element {Region|State} The element region that owns the state.
+         */
         constructor(name: string, element: any) {
             super(name, element, State.selector);
         }
@@ -480,6 +504,31 @@ module state {
             return region;
         }
         
+        /**
+         * True if the state is a simple state, one that has no child regions.
+         */
+        isSimple(): boolean {
+            return this.regions.length === 0;
+        }
+
+        /**
+         * True if the state is a composite state, one that child regions.
+         */
+        isComposite(): boolean {
+            return this.regions.length > 0;
+        }
+
+        /**
+         * True if the state is a simple state, one that has more than one child region.
+         */
+        isOrthogonal(): boolean {
+            return this.regions.length > 1;
+        }
+
+        /**
+         * Adds behaviour to a state that is executed each time the state is exited.
+         * @returns {State}
+         */
         exit<TMessage>(exitAction: Action): State {
             this.exitBehavior.push(exitAction);
 
@@ -488,24 +537,16 @@ module state {
             return this;
         }
 
+        /**
+         * Adds behaviour to a state that is executed each time the state is entered.
+         * @returns {State}
+         */
         entry<TMessage>(entryAction: Action): State {
             this.entryBehavior.push(entryAction);
 
             this.root().clean = false;
 
             return this;
-        }
-
-        isSimple(): boolean {
-            return this.regions.length === 0;
-        }
-
-        isComposite(): boolean {
-            return this.regions.length > 0;
-        }
-
-        isOrthogonal(): boolean {
-            return this.regions.length > 1;
         }
 
         bootstrap(deepHistoryAbove: boolean): void {
@@ -572,12 +613,36 @@ module state {
      * An element within a state machine model that represents completion of the life of the containing Region within the state machine instance.
      */
     export class FinalState extends State {
-        constructor(name: string, element: Region);
-        constructor(name: string, element: State);
+        /** 
+         * Creates a new instance of the FinalState class.
+         * @constructor
+         * @param name {string} The name of the final state.
+         * @param region {Region} The parent region that owns the final state.
+         */
+        constructor(name: string, region: Region);
+        
+        /** 
+         * Creates a new instance of the FinalState class.
+         * @constructor
+         * @param name {string} The name of the final state.
+         * @param state {State} The parent state that owns the final state.
+         */
+        constructor(name: string, state: State);
+        
+        /** 
+         * Creates a new instance of the FinalState class.
+         * @constructor
+         * @param name {string} The name of the final state.
+         * @param element {Region|State} The parent element that owns the final state.
+         */
         constructor(name: string, element: any) {
             super(name, element);
         }
         
+        /**
+         * Override to ensure final states cannot have outbound transitions.
+         * @returns {Transition}
+         */
         to(target?: Vertex): Transition {
             throw "A FinalState cannot be the source of a transition.";
         }

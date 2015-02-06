@@ -311,8 +311,17 @@ var state;
      */
     var State = (function (_super) {
         __extends(State, _super);
+        /**
+         * Creates a new instance of the State class.
+         * @constructor
+         * @param name {string} The name of the state.
+         * @param element {Region|State} The element region that owns the state.
+         */
         function State(name, element) {
             _super.call(this, name, element, State.selector);
+            /**
+             * The child regions that belong to this State.
+             */
             this.regions = [];
             this.exitBehavior = [];
             this.entryBehavior = [];
@@ -341,24 +350,41 @@ var state;
             }
             return region;
         };
+        /**
+         * True if the state is a simple state, one that has no child regions.
+         */
+        State.prototype.isSimple = function () {
+            return this.regions.length === 0;
+        };
+        /**
+         * True if the state is a composite state, one that child regions.
+         */
+        State.prototype.isComposite = function () {
+            return this.regions.length > 0;
+        };
+        /**
+         * True if the state is a simple state, one that has more than one child region.
+         */
+        State.prototype.isOrthogonal = function () {
+            return this.regions.length > 1;
+        };
+        /**
+         * Adds behaviour to a state that is executed each time the state is exited.
+         * @returns {State}
+         */
         State.prototype.exit = function (exitAction) {
             this.exitBehavior.push(exitAction);
             this.root().clean = false;
             return this;
         };
+        /**
+         * Adds behaviour to a state that is executed each time the state is entered.
+         * @returns {State}
+         */
         State.prototype.entry = function (entryAction) {
             this.entryBehavior.push(entryAction);
             this.root().clean = false;
             return this;
-        };
-        State.prototype.isSimple = function () {
-            return this.regions.length === 0;
-        };
-        State.prototype.isComposite = function () {
-            return this.regions.length > 0;
-        };
-        State.prototype.isOrthogonal = function () {
-            return this.regions.length > 1;
         };
         State.prototype.bootstrap = function (deepHistoryAbove) {
             var _this = this;
@@ -418,9 +444,19 @@ var state;
      */
     var FinalState = (function (_super) {
         __extends(FinalState, _super);
+        /**
+         * Creates a new instance of the FinalState class.
+         * @constructor
+         * @param name {string} The name of the final state.
+         * @param element {Region|State} The parent element that owns the final state.
+         */
         function FinalState(name, element) {
             _super.call(this, name, element);
         }
+        /**
+         * Override to ensure final states cannot have outbound transitions.
+         * @returns {Transition}
+         */
         FinalState.prototype.to = function (target) {
             throw "A FinalState cannot be the source of a transition.";
         };

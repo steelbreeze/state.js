@@ -245,17 +245,49 @@ declare module state {
      */
     class State extends Vertex {
         private static selector(transitions, message, context);
+        /**
+         * The child regions that belong to this State.
+         */
         regions: Array<Region>;
         private exitBehavior;
         private entryBehavior;
-        constructor(name: string, element: Region);
-        constructor(name: string, element: State);
+        /**
+         * Creates a new instance of the State class.
+         * @constructor
+         * @param name {string} The name of the state.
+         * @param region {Region} The parent region that owns the state.
+         */
+        constructor(name: string, region: Region);
+        /**
+         * Creates a new instance of the State class.
+         * @constructor
+         * @param name {string} The name of the state.
+         * @param state {State} The parent state that owns the state.
+         */
+        constructor(name: string, state: State);
         defaultRegion(): Region;
-        exit<TMessage>(exitAction: Action): State;
-        entry<TMessage>(entryAction: Action): State;
+        /**
+         * True if the state is a simple state, one that has no child regions.
+         */
         isSimple(): boolean;
+        /**
+         * True if the state is a composite state, one that child regions.
+         */
         isComposite(): boolean;
+        /**
+         * True if the state is a simple state, one that has more than one child region.
+         */
         isOrthogonal(): boolean;
+        /**
+         * Adds behaviour to a state that is executed each time the state is exited.
+         * @returns {State}
+         */
+        exit<TMessage>(exitAction: Action): State;
+        /**
+         * Adds behaviour to a state that is executed each time the state is entered.
+         * @returns {State}
+         */
+        entry<TMessage>(entryAction: Action): State;
         bootstrap(deepHistoryAbove: boolean): void;
         bootstrapTransitions(): void;
         bootstrapEnter(add: (additional: Behavior) => void, next: Element): void;
@@ -265,8 +297,24 @@ declare module state {
      * An element within a state machine model that represents completion of the life of the containing Region within the state machine instance.
      */
     class FinalState extends State {
-        constructor(name: string, element: Region);
-        constructor(name: string, element: State);
+        /**
+         * Creates a new instance of the FinalState class.
+         * @constructor
+         * @param name {string} The name of the final state.
+         * @param region {Region} The parent region that owns the final state.
+         */
+        constructor(name: string, region: Region);
+        /**
+         * Creates a new instance of the FinalState class.
+         * @constructor
+         * @param name {string} The name of the final state.
+         * @param state {State} The parent state that owns the final state.
+         */
+        constructor(name: string, state: State);
+        /**
+         * Override to ensure final states cannot have outbound transitions.
+         * @returns {Transition}
+         */
         to(target?: Vertex): Transition;
     }
     /**
