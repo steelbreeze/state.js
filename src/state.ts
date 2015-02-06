@@ -33,8 +33,8 @@ module state {
 
     /**
      * Type signature for guard conditions used by Transitions.
-     * @param message {any} The message injected into the state machine for evaluation
-     * @param context {IContext} The object representing a particualr state machine instance
+     * @param message {any} The message injected into the state machine for evaluation.
+     * @param context {IContext} The object representing a particualr state machine instance.
      * @returns {boolean}
      */
     export interface Guard {
@@ -42,9 +42,19 @@ module state {
     }
 
     /**
+     * Type signature for methods used to select the outbound transition from a given type of vertex.
+     * @param transitions {Array<Transition>} The set of transitions to evaluage.
+     * @param message {any} The message injected into the state machine for evaluation.
+     * @param context {IContext} The object representing a particualr state machine instance.
+     */
+    export interface Selector {
+        (transitions: Array<Transition>, message: any, context: IContext): Transition;
+    }
+
+    /**
      * Type signature for an action performed durin Transitions.
-     * @param message {any} The message injected into the state machine for evaluation
-     * @param context {IContext} The object representing a particualr state machine instance
+     * @param message {any} The message injected into the state machine for evaluation.
+     * @param context {IContext} The object representing a particualr state machine instance.
      * @param history {boolean} For internal use only. 
      * @returns {any} Note that the any return type is used to indicate that the state machine runtime does not care what the return type of actions are.
      */
@@ -90,17 +100,6 @@ module state {
          * The symbol used to seperate element names within a fully qualified name.
          */
         public static namespaceSeperator = ".";
-        
-        /**
-         * The parent state machine that ultimately owns this element.
-         */
-        public root: StateMachine;
-        
-        /**
-         * The immediate parent element of this element.
-         * @returns {Element}
-         */
-        parent: () => Element; // NOTE: an apprach to an abstract method, implemented by both immediate subclasses
 
         leave: Behavior = [];
         beginEnter: Behavior= [];
@@ -112,13 +111,29 @@ module state {
          * @param name {string} The name of the element.
          * @param element {Element} the parent element of this element.
          */
-        constructor(public name: string, element?: Element) {    
-            if(element) {
-                this.root = element.root;
-                this.root.clean = false;
-            }
+        constructor(public name: string) {         
         }
         
+        /**
+         * Returns the elements immediate parent element.
+         * @returns {Element}
+         */
+        parent(): Element {
+            return;
+        }
+        
+        /**
+         * Returns the state machine that this element forms a part of.
+         * @returns {StateMachine}
+         */
+        root(): StateMachine {
+            return this.parent().root();
+        }
+        
+        /**
+         * Returns the ancestry of elements from the root state machine this element.
+         * @returns {Array<Element}}
+         */
         ancestors(): Array<Element> {
             return (this.parent() ? this.parent().ancestors() : []).concat(this);
         }
@@ -130,7 +145,7 @@ module state {
             this.enter = [];
         }
 
-        bootstrap(deepHistoryAbove: boolean): void {
+        bootstrap(deepHistoryAbove: boolean): void { // TODO: remove this method call
             // Put these lines back for debugging
             //this.leave.push((message: any, context: IContext) => { console.log(context + " leave " + this); });
             //this.beginEnter.push((message: any, context: IContext) => { console.log(context + " enter " + this); });
@@ -141,7 +156,10 @@ module state {
         bootstrapEnter(add: (additional: Behavior) => void, next: Element) {
             add(this.beginEnter);
         }
-        
+
+        /**
+         * Returns a the element name as a fully qualified namespace.
+         */
          toString(): string {
             return this.ancestors().map<string>((e)=> { return e.name; }).join(Element.namespaceSeperator); // NOTE: while this may look costly, only used at runtime rarely if ever
         }
@@ -151,16 +169,36 @@ module state {
      * An element within a state machine model that is a container of Vertices.
      */
     export class Region extends Element {
+        /**
+         * Name given to regions thare are created automatically when a state is passed as a vertex's parent.
+         */
         public static defaultName: string = "default";
-        public  vertices: Array<Vertex> = [];
-        public initial: PseudoState;
         
+        /**
+         * The set of child vertices under this region.
+         */
+        public  vertices: Array<Vertex> = [];
+        
+        /**
+         * The pseudo state used as the initial stating vertex when entering the region.
+         */
+        public initial: PseudoState;
+
+        /**
+         * Creates a new instance of the region class.
+         * @param name {string} The name of the region.
+         * @param state {State} The parent state that the new region is a part of.
+        */
         constructor(name: string, public state: State) {
-            super(name, state);
+            super(name);
             
             state.regions.push(this);
-                        
-            this.parent = () => { return this.state; };
+            
+            state.root().clean = false;
+        }
+        
+        parent(): Element {
+            return this.state;
         }
         
         isComplete(context: IContext): boolean {
@@ -194,19 +232,19 @@ module state {
             return context.getCurrent(this).evaluate(message, context);
         }
     }
-
+    
     /**
      * An element within a state machine model that can be the source or target of a transition.
      */
     export class Vertex extends Element {
-        /* protected when I get IDE support */region: Region;
+        region: Region;
         private transitions: Array<Transition> = [];
-        private selector: (transitions: Array<Transition>, message: any, context: IContext) => Transition;      
+        private selector: Selector;      
 
-        constructor(name: string, element: Region, selector: (transitions: Array<Transition>, message: any, context: IContext) => Transition);
-        constructor(name: string, element: State, selector: (transitions: Array<Transition>, message: any, context: IContext) => Transition);
-        constructor(name: string, element: any, selector: (transitions: Array<Transition>, message: any, context: IContext) => Transition) {
-            super(name, element);
+        constructor(name: string, element: Region, selector: Selector);
+        constructor(name: string, element: State, selector: Selector);
+        constructor(name: string, element: Element, selector: Selector) {
+            super(name);
 
             this.selector = selector;
             
@@ -217,17 +255,20 @@ module state {
             }
             
             if (this.region) {
-                this.region.vertices.push(this);                
-            }
-            
-            this.parent = () => { return this.region; };
+                this.region.vertices.push(this);
+                this.region.root().clean = false;
+            }            
+        }
+        
+        parent(): Element {
+            return this.region;
         }
         
         to(target?: Vertex): Transition {
             var transition = new Transition(this, target);
 
             this.transitions.push(transition);
-            this.root.clean = false;
+            this.root().clean = false;
 
             return transition;
         }
@@ -356,7 +397,7 @@ module state {
         exit<TMessage>(exitAction: Action): State {
             this.exitBehavior.push(exitAction);
 
-            this.root.clean = false;
+            this.root().clean = false;
 
             return this;
         }
@@ -364,7 +405,7 @@ module state {
         entry<TMessage>(entryAction: Action): State {
             this.entryBehavior.push(entryAction);
 
-            this.root.clean = false;
+            this.root().clean = false;
 
             return this;
         }
@@ -464,8 +505,10 @@ module state {
 
         constructor(name: string) {
             super(name, undefined);
+        }
 
-            this.root = this;
+        root(): StateMachine {
+            return this;
         }
 
         bootstrap(deepHistoryAbove: boolean): void {
@@ -527,7 +570,7 @@ module state {
         effect<TMessage>(transitionAction: Action): Transition {
             this.transitionBehavior.push(transitionAction);
 
-            this.source.root.clean = false;
+            this.source.root().clean = false;
 
             return this;
         }

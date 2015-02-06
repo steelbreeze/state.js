@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<title>state.js v5.0.0 tests</title>
-		<script src="../src/state.js"></script>
+    <script src="../src/state-5.0.0.min.js"></script>
 		<script>
 			function result( text ) {
 				document.getElementById("results").appendChild(document.createTextNode( text ));
@@ -11,18 +11,18 @@
 			
 			function compTest()
 			{
-                var machine = new FSM.StateMachine("compTest");
-                var initial = new FSM.PseudoState("initial", machine, FSM.PseudoStateKind.Initial)
+                var machine = new state.StateMachine("compTest");
+                var initial = new state.PseudoState("initial", machine, state.PseudoStateKind.Initial)
 
-                var activity1 = new FSM.State("activity1", machine );
-				var activity2 = new FSM.State("activity2", machine);
-				var activity3 = new FSM.State("activity3", machine);
-				var junction1 = new FSM.PseudoState("junction1", machine, FSM.PseudoStateKind.Junction);
-				var junction2 = new FSM.PseudoState("junction2", machine, FSM.PseudoStateKind.Junction);
-				var end       = new FSM.FinalState("end", machine);
+                var activity1 = new state.State("activity1", machine );
+				var activity2 = new state.State("activity2", machine);
+				var activity3 = new state.State("activity3", machine);
+				var junction1 = new state.PseudoState("junction1", machine, state.PseudoStateKind.Junction);
+				var junction2 = new state.PseudoState("junction2", machine, state.PseudoStateKind.Junction);
+				var end       = new state.FinalState("end", machine);
 
-                var subInitial = new FSM.PseudoState("subInitial", activity2, FSM.PseudoStateKind.Initial);
-				var subEnd     = new FSM.FinalState("subEnd", activity2);
+                var subInitial = new state.PseudoState("subInitial", activity2, state.PseudoStateKind.Initial);
+				var subEnd     = new state.FinalState("subEnd", activity2);
 			
                 subInitial.to(subEnd);
 				initial.to(activity1);
@@ -32,7 +32,7 @@
 				junction2.to(activity3);
 				activity3.to(end);
                 
-                var sms = new FSM.Context();
+                var sms = new state.Context();
 
 				machine.initialise( sms );
 								
@@ -41,24 +41,24 @@
 
 			function shallowTest()
 			{
-                var machine = new FSM.StateMachine( "history" );
+                var machine = new state.StateMachine( "history" );
     
-                var initial = new FSM.PseudoState( "initial", machine, FSM.PseudoStateKind.Initial);
-                var shallow = new FSM.State( "shallow", machine );
-                var deep = new FSM.State( "deep", machine );
-                var end = new FSM.FinalState( "final", machine );
+                var initial = new state.PseudoState( "initial", machine, state.PseudoStateKind.Initial);
+                var shallow = new state.State( "shallow", machine );
+                var deep = new state.State( "deep", machine );
+                var end = new state.FinalState( "final", machine );
     
-                var s1 = new FSM.State( "s1", shallow );
-                var s2 = new FSM.State( "s2", shallow );
+                var s1 = new state.State( "s1", shallow );
+                var s2 = new state.State( "s2", shallow );
     
                 initial.to(shallow);
-                new FSM.PseudoState( "shallow", shallow, FSM.PseudoStateKind.ShallowHistory).to( s1 );
+                new state.PseudoState( "shallow", shallow, state.PseudoStateKind.ShallowHistory).to( s1 );
                 s1.to(s2).when(function(c) { return c === "move";} );
                 shallow.to(deep).when(function(c) { return c === "go deep";} );
                 deep.to(shallow).when(function(c) { return c === "go shallow";} );
                 s2.to(end).when(function(c) { return c === "end"; } );
 
-                var sms = new FSM.Context();
+                var sms = new state.Context();
 
 				machine.initialise( sms );
 
@@ -71,24 +71,24 @@
 			}
 
             function muximise1() {
-                var main = new FSM.StateMachine("muximise1");
+                var main = new state.StateMachine( "mux" );
 
-                var initial = new FSM.PseudoState("initial", main, FSM.PseudoStateKind.Initial);
-                var ortho = new FSM.State("ortho", main);
-                var simple = new FSM.State("simple", main);
-                var final = new FSM.FinalState("final", main);
+                var initial = new state.PseudoState("initial", main, state.PseudoStateKind.Initial);
+                var ortho = new state.State("ortho", main);
+                var simple = new state.State("simple", main);
+                var final = new state.FinalState("final", main);
 
-                var r1 = new FSM.Region("r1", ortho);
-                var r2 = new FSM.Region("r2", ortho);
+                var r1 = new state.Region("r1", ortho);
+                var r2 = new state.Region("r2", ortho);
 
-                var i1 = new FSM.PseudoState("initial", r1, FSM.PseudoStateKind.ShallowHistory);
-                var i2 = new FSM.PseudoState("initial", r2, FSM.PseudoStateKind.ShallowHistory);
+                var i1 = new state.PseudoState("initial", r1, state.PseudoStateKind.ShallowHistory);
+                var i2 = new state.PseudoState("initial", r2, state.PseudoStateKind.ShallowHistory);
 
-                var s1 = new FSM.State("s1", r1);
-                var s2 = new FSM.State("s2", r2);
+                var s1 = new state.State("s1", r1);
+                var s2 = new state.State("s2", r2);
 
-                var f1 = new FSM.FinalState("f1", r1);
-                var f2 = new FSM.FinalState("f2", r2);
+                var f1 = new state.FinalState("f1", r1);
+                var f2 = new state.FinalState("f2", r2);
 
                 initial.to(ortho);
 
@@ -113,33 +113,33 @@
                     return c === "back";
                 });
                 
-                var state = new FSM.Context();				
-				main.initialise(state);
+                var sms = new state.Context();				
+				main.initialise(sms);
 
-                main.evaluate("complete1", state);
-                main.evaluate("complete2", state)
+                main.evaluate("complete1", sms);
+                main.evaluate("complete2", sms)
             
             	result("Muximuse test 1: " + (main.isComplete(state) ? "passed" : "failed"));
             }
             
             function brice1() {
-                var main = new FSM.StateMachine("brice");
-                var initial1 = new FSM.PseudoState("initial", main, FSM.PseudoStateKind.Initial);
-                var myComposite1 = new FSM.State("MyComposite1", main);
-                var myComposite2 = new FSM.State("MyComposite2", main);
-                var initial2 = new FSM.PseudoState("initial", myComposite1, FSM.PseudoStateKind.Initial);
-                var state1 = new FSM.State("State1", myComposite1);
-                var state2 = new FSM.State("State1", myComposite1);
+                var main = new state.StateMachine("brice");
+                var initial1 = new state.PseudoState("initial", main, state.PseudoStateKind.Initial);
+                var myComposite1 = new state.State("MyComposite1", main);
+                var myComposite2 = new state.State("MyComposite2", main);
+                var initial2 = new state.PseudoState("initial", myComposite1, state.PseudoStateKind.Initial);
+                var state1 = new state.State("State1", myComposite1);
+                var state2 = new state.State("State1", myComposite1);
                 
                 initial1.to(myComposite1);
                 initial2.to(state1);
                 myComposite1.to(myComposite2).when(function(c) { return c === "A";}).effect(function() { result("Brice test1: failed"); });
                 state1.to(state2).when(function(c) { return c === "A";}).effect(function() { result("Brice test1: passed"); });
                 
-                var state = new FSM.Context();	
-				main.initialise(state);
+                var sms = new state.Context();	
+				main.initialise(sms);
 
-                main.evaluate("A", state);
+                main.evaluate("A", sms);
             }
             
 			function run()

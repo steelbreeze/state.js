@@ -41,17 +41,31 @@ var state;
          * @param name {string} The name of the element.
          * @param element {Element} the parent element of this element.
          */
-        function Element(name, element) {
+        function Element(name) {
             this.name = name;
             this.leave = [];
             this.beginEnter = [];
             this.endEnter = [];
             this.enter = [];
-            if (element) {
-                this.root = element.root;
-                this.root.clean = false;
-            }
         }
+        /**
+         * Returns the elements immediate parent element.
+         * @returns {Element}
+         */
+        Element.prototype.parent = function () {
+            return;
+        };
+        /**
+         * Returns the state machine that this element forms a part of.
+         * @returns {StateMachine}
+         */
+        Element.prototype.root = function () {
+            return this.parent().root();
+        };
+        /**
+         * Returns the ancestry of elements from the root state machine this element.
+         * @returns {Array<Element}}
+         */
         Element.prototype.ancestors = function () {
             return (this.parent() ? this.parent().ancestors() : []).concat(this);
         };
@@ -70,6 +84,9 @@ var state;
         Element.prototype.bootstrapEnter = function (add, next) {
             add(this.beginEnter);
         };
+        /**
+         * Returns a the element name as a fully qualified namespace.
+         */
         Element.prototype.toString = function () {
             return this.ancestors().map(function (e) {
                 return e.name;
@@ -87,16 +104,24 @@ var state;
      */
     var Region = (function (_super) {
         __extends(Region, _super);
+        /**
+         * Creates a new instance of the region class.
+         * @param name {string} The name of the region.
+         * @param state {State} The parent state that the new region is a part of.
+        */
         function Region(name, state) {
-            var _this = this;
-            _super.call(this, name, state);
+            _super.call(this, name);
             this.state = state;
+            /**
+             * The set of child vertices under this region.
+             */
             this.vertices = [];
             state.regions.push(this);
-            this.parent = function () {
-                return _this.state;
-            };
+            state.root().clean = false;
         }
+        Region.prototype.parent = function () {
+            return this.state;
+        };
         Region.prototype.isComplete = function (context) {
             return context.getCurrent(this).isFinal();
         };
@@ -134,6 +159,9 @@ var state;
         Region.prototype.evaluate = function (message, context) {
             return context.getCurrent(this).evaluate(message, context);
         };
+        /**
+         * Name given to regions thare are created automatically when a state is passed as a vertex's parent.
+         */
         Region.defaultName = "default";
         return Region;
     })(Element);
@@ -144,8 +172,7 @@ var state;
     var Vertex = (function (_super) {
         __extends(Vertex, _super);
         function Vertex(name, element, selector) {
-            var _this = this;
-            _super.call(this, name, element);
+            _super.call(this, name);
             this.transitions = [];
             this.selector = selector;
             if (element instanceof Region) {
@@ -156,15 +183,16 @@ var state;
             }
             if (this.region) {
                 this.region.vertices.push(this);
+                this.region.root().clean = false;
             }
-            this.parent = function () {
-                return _this.region;
-            };
         }
+        Vertex.prototype.parent = function () {
+            return this.region;
+        };
         Vertex.prototype.to = function (target) {
             var transition = new Transition(this, target);
             this.transitions.push(transition);
-            this.root.clean = false;
+            this.root().clean = false;
             return transition;
         };
         Vertex.prototype.bootstrap = function (deepHistoryAbove) {
@@ -268,12 +296,12 @@ var state;
         };
         State.prototype.exit = function (exitAction) {
             this.exitBehavior.push(exitAction);
-            this.root.clean = false;
+            this.root().clean = false;
             return this;
         };
         State.prototype.entry = function (entryAction) {
             this.entryBehavior.push(entryAction);
-            this.root.clean = false;
+            this.root().clean = false;
             return this;
         };
         State.prototype.isSimple = function () {
@@ -360,8 +388,10 @@ var state;
         function StateMachine(name) {
             _super.call(this, name, undefined);
             this.clean = true;
-            this.root = this;
         }
+        StateMachine.prototype.root = function () {
+            return this;
+        };
         StateMachine.prototype.bootstrap = function (deepHistoryAbove) {
             _super.prototype.bootstrap.call(this, deepHistoryAbove);
             _super.prototype.bootstrapTransitions.call(this);
@@ -411,7 +441,7 @@ var state;
         };
         Transition.prototype.effect = function (transitionAction) {
             this.transitionBehavior.push(transitionAction);
-            this.source.root.clean = false;
+            this.source.root().clean = false;
             return this;
         };
         Transition.prototype.bootstrap = function () {

@@ -21,17 +21,26 @@ declare module state {
     }
     /**
      * Type signature for guard conditions used by Transitions.
-     * @param message {any} The message injected into the state machine for evaluation
-     * @param context {IContext} The object representing a particualr state machine instance
+     * @param message {any} The message injected into the state machine for evaluation.
+     * @param context {IContext} The object representing a particualr state machine instance.
      * @returns {boolean}
      */
     interface Guard {
         (message: any, context: IContext): boolean;
     }
     /**
+     * Type signature for methods used to select the outbound transition from a given type of vertex.
+     * @param transitions {Array<Transition>} The set of transitions to evaluage.
+     * @param message {any} The message injected into the state machine for evaluation.
+     * @param context {IContext} The object representing a particualr state machine instance.
+     */
+    interface Selector {
+        (transitions: Array<Transition>, message: any, context: IContext): Transition;
+    }
+    /**
      * Type signature for an action performed durin Transitions.
-     * @param message {any} The message injected into the state machine for evaluation
-     * @param context {IContext} The object representing a particualr state machine instance
+     * @param message {any} The message injected into the state machine for evaluation.
+     * @param context {IContext} The object representing a particualr state machine instance.
      * @param history {boolean} For internal use only.
      * @returns {any} Note that the any return type is used to indicate that the state machine runtime does not care what the return type of actions are.
      */
@@ -73,15 +82,6 @@ declare module state {
          * The symbol used to seperate element names within a fully qualified name.
          */
         static namespaceSeperator: string;
-        /**
-         * The parent state machine that ultimately owns this element.
-         */
-        root: StateMachine;
-        /**
-         * The immediate parent element of this element.
-         * @returns {Element}
-         */
-        parent: () => Element;
         leave: Behavior;
         beginEnter: Behavior;
         endEnter: Behavior;
@@ -91,11 +91,28 @@ declare module state {
          * @param name {string} The name of the element.
          * @param element {Element} the parent element of this element.
          */
-        constructor(name: string, element?: Element);
+        constructor(name: string);
+        /**
+         * Returns the elements immediate parent element.
+         * @returns {Element}
+         */
+        parent(): Element;
+        /**
+         * Returns the state machine that this element forms a part of.
+         * @returns {StateMachine}
+         */
+        root(): StateMachine;
+        /**
+         * Returns the ancestry of elements from the root state machine this element.
+         * @returns {Array<Element}}
+         */
         ancestors(): Array<Element>;
         reset(): void;
         bootstrap(deepHistoryAbove: boolean): void;
         bootstrapEnter(add: (additional: Behavior) => void, next: Element): void;
+        /**
+         * Returns a the element name as a fully qualified namespace.
+         */
         toString(): string;
     }
     /**
@@ -103,10 +120,25 @@ declare module state {
      */
     class Region extends Element {
         state: State;
+        /**
+         * Name given to regions thare are created automatically when a state is passed as a vertex's parent.
+         */
         static defaultName: string;
+        /**
+         * The set of child vertices under this region.
+         */
         vertices: Array<Vertex>;
+        /**
+         * The pseudo state used as the initial stating vertex when entering the region.
+         */
         initial: PseudoState;
+        /**
+         * Creates a new instance of the region class.
+         * @param name {string} The name of the region.
+         * @param state {State} The parent state that the new region is a part of.
+        */
         constructor(name: string, state: State);
+        parent(): Element;
         isComplete(context: IContext): boolean;
         bootstrap(deepHistoryAbove: boolean): void;
         bootstrapTransitions(): void;
@@ -119,8 +151,9 @@ declare module state {
         region: Region;
         private transitions;
         private selector;
-        constructor(name: string, element: Region, selector: (transitions: Array<Transition>, message: any, context: IContext) => Transition);
-        constructor(name: string, element: State, selector: (transitions: Array<Transition>, message: any, context: IContext) => Transition);
+        constructor(name: string, element: Region, selector: Selector);
+        constructor(name: string, element: State, selector: Selector);
+        parent(): Element;
         to(target?: Vertex): Transition;
         bootstrap(deepHistoryAbove: boolean): void;
         bootstrapTransitions(): void;
@@ -175,6 +208,7 @@ declare module state {
     class StateMachine extends State {
         clean: boolean;
         constructor(name: string);
+        root(): StateMachine;
         bootstrap(deepHistoryAbove: boolean): void;
         initialise(context: IContext, autoBootstrap?: boolean): void;
         evaluate(message: any, context: IContext): boolean;
