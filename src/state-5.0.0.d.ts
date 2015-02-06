@@ -138,7 +138,16 @@ declare module state {
          * @param state {State} The parent state that the new region is a part of.
         */
         constructor(name: string, state: State);
+        /**
+         * Returns the elements immediate parent element.
+         * @returns {Element}
+         */
         parent(): Element;
+        /**
+         * True if the region is complete; a region is deemed to be complete if its current state is final (having on outbound transitions).
+         * @param context {IContext} The object representing a particualr state machine instance.
+         * @returns {boolean}
+         */
         isComplete(context: IContext): boolean;
         bootstrap(deepHistoryAbove: boolean): void;
         bootstrapTransitions(): void;
@@ -148,28 +157,86 @@ declare module state {
      * An element within a state machine model that can be the source or target of a transition.
      */
     class Vertex extends Element {
+        /**
+         * The parent region that this vertex belongs to.
+         */
         region: Region;
         private transitions;
         private selector;
-        constructor(name: string, element: Region, selector: Selector);
-        constructor(name: string, element: State, selector: Selector);
+        /**
+         * Creates a new instance of the Vertex class.
+         * @constructor
+         * @param name {string} The name of the vertex.
+         * @param region {Region} The parent region that owns the vertex.
+         * @param selector {Selector} The method used to select a transition for a given message.
+         */
+        constructor(name: string, region: Region, selector: Selector);
+        /**
+         * Creates a new instance of the Vertex class.
+         * @constructor
+         * @param name {string} The name of the vertex.
+         * @param state {State} The parent state that owns the vertex.
+         * @param selector {Selector} The method used to select a transition for a given message.
+         */
+        constructor(name: string, state: State, selector: Selector);
+        /**
+         * Returns the elements immediate parent element.
+         * @returns {Element}
+         */
         parent(): Element;
+        /**
+         * True if the vertex is a final vertex that has no outbound transitions.
+         * @returns {boolean}
+         */
+        isFinal(): boolean;
+        /**
+         * True of the vertex is deemed to be complete; always true for pseuso states and simple states, true for composite states whose child regions all are complete.
+         */
+        isComplete(context: IContext): boolean;
+        /**
+         * Creates a new transtion from this vertex to the target vertex.
+         * @param target {Vertex} The destination of the transition; omit for internal transitions.
+         * @returns {Transition}
+         */
         to(target?: Vertex): Transition;
         bootstrap(deepHistoryAbove: boolean): void;
         bootstrapTransitions(): void;
         evaluateCompletions(message: any, context: IContext, history: boolean): void;
-        isFinal(): boolean;
-        isComplete(context: IContext): boolean;
         evaluate(message: any, context: IContext): boolean;
     }
     /**
      * An element within a state machine model that represents an transitory Vertex within the state machine model.
      */
     class PseudoState extends Vertex {
+        /**
+         * The specific kind of the pesudo state that drives its behaviour.
+         */
         kind: PseudoStateKind;
-        constructor(name: string, element: Region, kind: PseudoStateKind);
-        constructor(name: string, element: State, kind: PseudoStateKind);
+        /**
+         * Creates a new instance of the PseudoState class.
+         * @constructor
+         * @param name {string} The name of the pseudo state.
+         * @param region {Region} The parent region that owns the pseudo state.
+         * @param kind {PseudoStateKind} The specific kind of the pesudo state that drives its behaviour.
+         */
+        constructor(name: string, region: Region, kind: PseudoStateKind);
+        /**
+         * Creates a new instance of the PseudoState class.
+         * @constructor
+         * @param name {string} The name of the pseudo state.
+         * @param state {State} The parent state that owns the pseudo state.
+         * @param kind {PseudoStateKind} The specific kind of the pesudo state that drives its behaviour.
+         */
+        constructor(name: string, state: State, kind: PseudoStateKind);
+        /**
+         * True if the pseudo state is one of the history kinds (DeepHistory or ShallowHistory).
+         * @returns {boolean}
+         */
         isHistory(): boolean;
+        /**
+         * True if the pseudo state is one of the initial kinds (Initial, DeepHistory or ShallowHistory).
+         * @returns {boolean}
+         */
         isInitial(): boolean;
         bootstrap(deepHistoryAbove: boolean): void;
     }
@@ -208,6 +275,10 @@ declare module state {
     class StateMachine extends State {
         clean: boolean;
         constructor(name: string);
+        /**
+         * Returns the state machine that this element forms a part of.
+         * @returns {StateMachine}
+         */
         root(): StateMachine;
         bootstrap(deepHistoryAbove: boolean): void;
         initialise(context: IContext, autoBootstrap?: boolean): void;

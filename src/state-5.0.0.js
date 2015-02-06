@@ -119,9 +119,18 @@ var state;
             state.regions.push(this);
             state.root().clean = false;
         }
+        /**
+         * Returns the elements immediate parent element.
+         * @returns {Element}
+         */
         Region.prototype.parent = function () {
             return this.state;
         };
+        /**
+         * True if the region is complete; a region is deemed to be complete if its current state is final (having on outbound transitions).
+         * @param context {IContext} The object representing a particualr state machine instance.
+         * @returns {boolean}
+         */
         Region.prototype.isComplete = function (context) {
             return context.getCurrent(this).isFinal();
         };
@@ -171,6 +180,13 @@ var state;
      */
     var Vertex = (function (_super) {
         __extends(Vertex, _super);
+        /**
+         * Creates a new instance of the Vertex class.
+         * @constructor
+         * @param name {string} The name of the vertex.
+         * @param element {Region|State} The parent element that owns the vertex.
+         * @param selector {Selector} The method used to select a transition for a given message.
+         */
         function Vertex(name, element, selector) {
             _super.call(this, name);
             this.transitions = [];
@@ -186,9 +202,31 @@ var state;
                 this.region.root().clean = false;
             }
         }
+        /**
+         * Returns the elements immediate parent element.
+         * @returns {Element}
+         */
         Vertex.prototype.parent = function () {
             return this.region;
         };
+        /**
+         * True if the vertex is a final vertex that has no outbound transitions.
+         * @returns {boolean}
+         */
+        Vertex.prototype.isFinal = function () {
+            return this.transitions.length === 0;
+        };
+        /**
+         * True of the vertex is deemed to be complete; always true for pseuso states and simple states, true for composite states whose child regions all are complete.
+         */
+        Vertex.prototype.isComplete = function (context) {
+            return true;
+        };
+        /**
+         * Creates a new transtion from this vertex to the target vertex.
+         * @param target {Vertex} The destination of the transition; omit for internal transitions.
+         * @returns {Transition}
+         */
         Vertex.prototype.to = function (target) {
             var transition = new Transition(this, target);
             this.transitions.push(transition);
@@ -213,12 +251,6 @@ var state;
                 this.evaluate(this, context);
             }
         };
-        Vertex.prototype.isFinal = function () {
-            return this.transitions.length === 0;
-        };
-        Vertex.prototype.isComplete = function (context) {
-            return true;
-        };
         Vertex.prototype.evaluate = function (message, context) {
             var transition = this.selector(this.transitions, message, context);
             if (!transition) {
@@ -235,6 +267,13 @@ var state;
      */
     var PseudoState = (function (_super) {
         __extends(PseudoState, _super);
+        /**
+         * Creates a new instance of the PseudoState class.
+         * @constructor
+         * @param name {string} The name of the pseudo state.
+         * @param element {Region|State} The parent element that owns the pseudo state.
+         * @param kind {PseudoStateKind} The specific kind of the pesudo state that drives its behaviour.
+         */
         function PseudoState(name, element, kind) {
             _super.call(this, name, element, pseudoState(kind));
             this.kind = kind;
@@ -242,9 +281,17 @@ var state;
                 this.region.initial = this;
             }
         }
+        /**
+         * True if the pseudo state is one of the history kinds (DeepHistory or ShallowHistory).
+         * @returns {boolean}
+         */
         PseudoState.prototype.isHistory = function () {
             return this.kind === 1 /* DeepHistory */ || this.kind === 4 /* ShallowHistory */;
         };
+        /**
+         * True if the pseudo state is one of the initial kinds (Initial, DeepHistory or ShallowHistory).
+         * @returns {boolean}
+         */
         PseudoState.prototype.isInitial = function () {
             return this.kind === 2 /* Initial */ || this.isHistory();
         };
@@ -389,6 +436,10 @@ var state;
             _super.call(this, name, undefined);
             this.clean = true;
         }
+        /**
+         * Returns the state machine that this element forms a part of.
+         * @returns {StateMachine}
+         */
         StateMachine.prototype.root = function () {
             return this;
         };
