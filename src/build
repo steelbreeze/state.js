@@ -1,2 +1,3 @@
 tsc -d --noImplicitAny --out state-5.0.0.js state.ts
 minify state-5.0.0.js
+jsdox --output ../docs state-5.0.0.js

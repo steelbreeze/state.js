@@ -1,8 +1,3 @@
-/* State v5 finite state machine library
- * http://www.steelbreeze.net/state.js
- * Copyright (c) 2014-5 Steelbreeze Limited
- * Licensed under MIT and GPL v3 licences
- */
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -10,37 +5,29 @@ var __extends = this.__extends || function (d, b) {
     d.prototype = new __();
 };
 /**
- * Finite state machine classes
+ * state.js version 5 finite state machine.
+ * @module state
  */
 var state;
 (function (_state) {
     /**
-     * Enumeration describing the various types of PseudoState allowed.
+     * An enumeration that dictates the precise behaviour of the PseudoState objects.
+     * @enum PseudoStateKind
      */
     (function (PseudoStateKind) {
-        /** Semantic free vertex used to chain transitions together; if multiple outbound transitions guards evaluate true, an arbitary one is chosen. */
         PseudoStateKind[PseudoStateKind["Choice"] = 0] = "Choice";
-        /** The initial vertex selected when the parent region is enterd for the first time, then triggers entry of the last known state for subsiquent entries; history cascades through all child hierarchy. */
         PseudoStateKind[PseudoStateKind["DeepHistory"] = 1] = "DeepHistory";
-        /** The initial vertex selected when the parent region is enterd. */
         PseudoStateKind[PseudoStateKind["Initial"] = 2] = "Initial";
-        /** Semantic free vertex used to chain transitions together; if multiple outbound transitions guards evaluate true, an exception is thrown. */
         PseudoStateKind[PseudoStateKind["Junction"] = 3] = "Junction";
-        /** The initial vertex selected when the parent region is enterd for the first time, then triggers entry of the last known state for subsiquent entries. */
         PseudoStateKind[PseudoStateKind["ShallowHistory"] = 4] = "ShallowHistory";
-        /** Terminates the execution of the containing state machine; the machine will not evaluate any further messages. */
         PseudoStateKind[PseudoStateKind["Terminate"] = 5] = "Terminate";
     })(_state.PseudoStateKind || (_state.PseudoStateKind = {}));
     var PseudoStateKind = _state.PseudoStateKind;
     /**
-     * An abstract class that can be used as the base for any elmeent with a state machine.
+     * An abstract class used as the base for regions and vertices (states and pseudo states) with a state machine model.
+     * @class Element
      */
     var Element = (function () {
-        /**
-         * Creates an new instance of an Element.
-         * @param name {string} The name of the element.
-         * @param element {Element} the parent element of this element.
-         */
         function Element(name) {
             this.name = name;
             this.leave = [];
@@ -48,24 +35,12 @@ var state;
             this.endEnter = [];
             this.enter = [];
         }
-        /**
-         * Returns the elements immediate parent element.
-         * @returns {Element}
-         */
         Element.prototype.parent = function () {
             return;
         };
-        /**
-         * Returns the state machine that this element forms a part of.
-         * @returns {StateMachine}
-         */
         Element.prototype.root = function () {
             return this.parent().root();
         };
-        /**
-         * Returns the ancestry of elements from the root state machine this element.
-         * @returns {Array<Element}}
-         */
         Element.prototype.ancestors = function () {
             return (this.parent() ? this.parent().ancestors() : []).concat(this);
         };
@@ -85,7 +60,9 @@ var state;
             add(this.beginEnter);
         };
         /**
+         * @method toString
          * Returns a the element name as a fully qualified namespace.
+         * @returns {string}
          */
         Element.prototype.toString = function () {
             return this.ancestors().map(function (e) {
@@ -93,13 +70,14 @@ var state;
             }).join(Element.namespaceSeperator); // NOTE: while this may look costly, only used at runtime rarely if ever
         };
         /**
-         * The symbol used to seperate element names within a fully qualified name.
+         * @member {string} namespaceSeperator The symbol used to seperate element names within a fully qualified name.
          */
         Element.namespaceSeperator = ".";
         return Element;
     })();
     _state.Element = Element;
     /**
+     * @class Region
      * An element within a state machine model that is a container of Vertices.
      */
     var Region = (function (_super) {
@@ -112,21 +90,15 @@ var state;
         function Region(name, state) {
             _super.call(this, name);
             this.state = state;
-            /**
-             * The set of child vertices under this region.
-             */
             this.vertices = [];
             state.regions.push(this);
             state.root().clean = false;
         }
-        /**
-         * Returns the elements immediate parent element.
-         * @returns {Element}
-         */
         Region.prototype.parent = function () {
             return this.state;
         };
         /**
+         * @method isComplete
          * True if the region is complete; a region is deemed to be complete if its current state is final (having on outbound transitions).
          * @param context {IContext} The object representing a particualr state machine instance.
          * @returns {boolean}
@@ -169,24 +141,18 @@ var state;
             return context.getCurrent(this).evaluate(message, context);
         };
         /**
-         * Name given to regions thare are created automatically when a state is passed as a vertex's parent.
+         * @member {string} defaultName The name given to regions thare are created automatically when a state is passed as a vertex's parent.
          */
         Region.defaultName = "default";
         return Region;
     })(Element);
     _state.Region = Region;
     /**
+     * @class Vertex
      * An element within a state machine model that can be the source or target of a transition.
      */
     var Vertex = (function (_super) {
         __extends(Vertex, _super);
-        /**
-         * Creates a new instance of the Vertex class.
-         * @constructor
-         * @param name {string} The name of the vertex.
-         * @param element {Region|State} The parent element that owns the vertex.
-         * @param selector {Selector} The method used to select a transition for a given message.
-         */
         function Vertex(name, element, selector) {
             _super.call(this, name);
             this.transitions = [];
@@ -202,27 +168,27 @@ var state;
                 this.region.root().clean = false;
             }
         }
-        /**
-         * Returns the elements immediate parent element.
-         * @returns {Element}
-         */
         Vertex.prototype.parent = function () {
             return this.region;
         };
         /**
-         * True if the vertex is a final vertex that has no outbound transitions.
+         * @method isFinal
+         * Tests the vertex to see if it is a final vertex that has no outbound transitions.
          * @returns {boolean}
          */
         Vertex.prototype.isFinal = function () {
             return this.transitions.length === 0;
         };
         /**
+         @method isComplete
          * True of the vertex is deemed to be complete; always true for pseuso states and simple states, true for composite states whose child regions all are complete.
+         * @returns {boolean}
          */
         Vertex.prototype.isComplete = function (context) {
             return true;
         };
         /**
+         * @method to
          * Creates a new transtion from this vertex to the target vertex.
          * @param target {Vertex} The destination of the transition; omit for internal transitions.
          * @returns {Transition}
@@ -263,13 +229,13 @@ var state;
     })(Element);
     _state.Vertex = Vertex;
     /**
+     * @class PseudoState
      * An element within a state machine model that represents an transitory Vertex within the state machine model.
      */
     var PseudoState = (function (_super) {
         __extends(PseudoState, _super);
         /**
          * Creates a new instance of the PseudoState class.
-         * @constructor
          * @param name {string} The name of the pseudo state.
          * @param element {Region|State} The parent element that owns the pseudo state.
          * @param kind {PseudoStateKind} The specific kind of the pesudo state that drives its behaviour.
@@ -281,17 +247,9 @@ var state;
                 this.region.initial = this;
             }
         }
-        /**
-         * True if the pseudo state is one of the history kinds (DeepHistory or ShallowHistory).
-         * @returns {boolean}
-         */
         PseudoState.prototype.isHistory = function () {
             return this.kind === 1 /* DeepHistory */ || this.kind === 4 /* ShallowHistory */;
         };
-        /**
-         * True if the pseudo state is one of the initial kinds (Initial, DeepHistory or ShallowHistory).
-         * @returns {boolean}
-         */
         PseudoState.prototype.isInitial = function () {
             return this.kind === 2 /* Initial */ || this.isHistory();
         };
@@ -307,21 +265,18 @@ var state;
     })(Vertex);
     _state.PseudoState = PseudoState;
     /**
+     * @class State
      * An element within a state machine model that represents an invariant condition within the life of the state machine instance.
      */
     var State = (function (_super) {
         __extends(State, _super);
         /**
          * Creates a new instance of the State class.
-         * @constructor
          * @param name {string} The name of the state.
          * @param element {Region|State} The element region that owns the state.
          */
         function State(name, element) {
             _super.call(this, name, element, State.selector);
-            /**
-             * The child regions that belong to this State.
-             */
             this.regions = [];
             this.exitBehavior = [];
             this.entryBehavior = [];
@@ -351,24 +306,31 @@ var state;
             return region;
         };
         /**
+         * @method isSimple
          * True if the state is a simple state, one that has no child regions.
+         * @returns {boolean}
          */
         State.prototype.isSimple = function () {
             return this.regions.length === 0;
         };
         /**
+         * @method isComposite
          * True if the state is a composite state, one that child regions.
+         * @returns {boolean}
          */
         State.prototype.isComposite = function () {
             return this.regions.length > 0;
         };
         /**
+         * @method isOrthogonal
          * True if the state is a simple state, one that has more than one child region.
+         * @returns {boolean}
          */
         State.prototype.isOrthogonal = function () {
             return this.regions.length > 1;
         };
         /**
+         * @method exit
          * Adds behaviour to a state that is executed each time the state is exited.
          * @returns {State}
          */
@@ -378,6 +340,7 @@ var state;
             return this;
         };
         /**
+         * @method entry
          * Adds behaviour to a state that is executed each time the state is entered.
          * @returns {State}
          */
@@ -440,23 +403,19 @@ var state;
     })(Vertex);
     _state.State = State;
     /**
+     * @class FinalState
      * An element within a state machine model that represents completion of the life of the containing Region within the state machine instance.
      */
     var FinalState = (function (_super) {
         __extends(FinalState, _super);
         /**
          * Creates a new instance of the FinalState class.
-         * @constructor
          * @param name {string} The name of the final state.
          * @param element {Region|State} The parent element that owns the final state.
          */
         function FinalState(name, element) {
             _super.call(this, name, element);
         }
-        /**
-         * Override to ensure final states cannot have outbound transitions.
-         * @returns {Transition}
-         */
         FinalState.prototype.to = function (target) {
             throw "A FinalState cannot be the source of a transition.";
         };
@@ -464,26 +423,39 @@ var state;
     })(State);
     _state.FinalState = FinalState;
     /**
+     * @class StateMachine
      * An element within a state machine model that represents the root of the state machine model.
      */
     var StateMachine = (function (_super) {
         __extends(StateMachine, _super);
+        /**
+         * Creates a new instance of the StateMachine class.
+         * @param name {string} The name of the state machine.
+         */
         function StateMachine(name) {
             _super.call(this, name, undefined);
             this.clean = true;
         }
-        /**
-         * Returns the state machine that this element forms a part of.
-         * @returns {StateMachine}
-         */
         StateMachine.prototype.root = function () {
             return this;
         };
+        /**
+         * @method bootstrap
+         * Bootstraps the state machine model; precompiles the actions to take during transition traversal.
+         * @param deepHistoryAbove {boolean} Internal use only.
+         */
         StateMachine.prototype.bootstrap = function (deepHistoryAbove) {
+            _super.prototype.reset.call(this);
+            this.clean = true;
             _super.prototype.bootstrap.call(this, deepHistoryAbove);
             _super.prototype.bootstrapTransitions.call(this);
-            this.clean = true;
         };
+        /**
+         * @method initialise
+         * Initialises an instance of the state machine and enters its initial steady state.
+         * @param context {IContext} The object representing a particualr state machine instance.
+         * @param autoBootstrap {boolean} Set to false to manually control when bootstrapping occurs.
+         */
         StateMachine.prototype.initialise = function (context, autoBootstrap) {
             if (autoBootstrap === void 0) { autoBootstrap = true; }
             if (autoBootstrap && this.clean === false) {
@@ -491,7 +463,19 @@ var state;
             }
             invoke(this.enter, undefined, context, false);
         };
-        StateMachine.prototype.evaluate = function (message, context) {
+        /**
+         * @method evaluate
+         * Passes a message to a state machine instance for evaluation.
+         * @param message {any} A message to pass to a state machine instance for evaluation that may cause a state transition.
+         * @param context {IContext} The object representing a particualr state machine instance.
+         * @param autoBootstrap {boolean} Set to false to manually control when bootstrapping occurs.
+         * @returns {boolean} True if the method caused a state transition.
+         */
+        StateMachine.prototype.evaluate = function (message, context, autoBootstrap) {
+            if (autoBootstrap === void 0) { autoBootstrap = true; }
+            if (autoBootstrap && this.clean === false) {
+                this.bootstrap(false);
+            }
             if (context.isTerminated) {
                 return false;
             }
@@ -501,9 +485,15 @@ var state;
     })(State);
     _state.StateMachine = StateMachine;
     /**
-     * An element within a state machine model that represents a valid transition between vertices in response to a message.
+     * @class Transition
+     * A transition between vertices (states or pseudo states) that may be traversed in response to a message.
      */
     var Transition = (function () {
+        /**
+         * Creates a new instance of the Transition class.
+         * @param source {Vertex} The source of the transtion.
+         * @param target {Vertex} The target of the transtion; omit for internal transitions.
+         */
         function Transition(source, target) {
             this.source = source;
             this.target = target;
@@ -511,6 +501,11 @@ var state;
             this.traverse = [];
             this.completion(); // default the transition to a completion transition
         }
+        /**
+        * @method completion
+         * Turns a transtion into a completion transition.
+         * @returns {Transition}
+         */
         Transition.prototype.completion = function () {
             var _this = this;
             this.guard = function (message, context) {
@@ -518,14 +513,31 @@ var state;
             };
             return this;
         };
+        /**
+         * @method else
+         * Turns a transition into an else transition.
+         * @returns {Transition}
+         */
         Transition.prototype.else = function () {
             this.guard = Transition.isElse;
             return this;
         };
+        /**
+         * @method when
+         * Defines the guard condition for the transition.
+         * @param guard {Guard} The guard condition that must evaluate true for the transition to be traversed.
+         * @returns {Transition}
+         */
         Transition.prototype.when = function (guard) {
             this.guard = guard;
             return this;
         };
+        /**
+         * @method effect
+         * Add behaviour to a transition.
+         * @param transitionAction {Action} The bahaviour to add to the transition.
+         * @returns {Transition}
+         */
         Transition.prototype.effect = function (transitionAction) {
             this.transitionBehavior.push(transitionAction);
             this.source.root().clean = false;
@@ -653,6 +665,7 @@ var state;
         }
     }
     /**
+     * @class Context
      * Default working implementation of a state machine context class.
      */
     var Context = (function () {
@@ -660,9 +673,21 @@ var state;
             this.isTerminated = false;
             this.last = {};
         }
+        /**
+         * @method setCurrent
+         * Updates the last known state for a given region.
+         * @param region {Region} The region to update the last known state for.
+         * @param state {State} The last known state for the given region.
+         */
         Context.prototype.setCurrent = function (region, state) {
             this.last[region.toString()] = state;
         };
+        /**
+         * @method getCurrent
+         * Returns the last known state for a given region.
+         * @param region {Region} The region to update the last known state for.
+         * @returns {State} The last known state for the given region.
+         */
         Context.prototype.getCurrent = function (region) {
             return this.last[region.toString()];
         };
