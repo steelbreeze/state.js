@@ -2,7 +2,7 @@
 
 The current stable release is 4.1.8
 
-Version 5 is currently under development on the v5-dev branch; this is still very much a work in progress...
+Version 5 is currently under development on the v5-dev branch and nearing completion...
 
 If you're using state.js I'd love to hear about it; please e-mail me at mesmo@steelbreeze.net
 
