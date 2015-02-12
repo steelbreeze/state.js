@@ -1,5 +1,9 @@
 /**
- * state.js version 5 finite state machine.
+ * State v5 finite state machine library
+ *
+ * http://www.steelbreeze.net/state.cs
+ * @copyright (c) 2014-5 Steelbreeze Limited
+ * @license MIT and GPL v3 licences
  * @module state
  */
 module state {
@@ -19,8 +23,8 @@ module state {
     /**
      * Type signature for guard conditions used by Transitions.
      * @interface Guard
-     * @param message {any} The message injected into the state machine for evaluation.
-     * @param context {IContext} The object representing a particualr state machine instance.
+     * @param {any} message The message injected into the state machine for evaluation.
+     * @param {IContext}context The object representing a particualr state machine instance.
      * @returns {boolean}
      */
     export interface Guard {
@@ -30,9 +34,9 @@ module state {
     /**
      * Type signature for an action performed durin Transitions.
      * @interface Action
-     * @param message {any} The message injected into the state machine for evaluation.
-     * @param context {IContext} The object representing a particualr state machine instance.
-     * @param history {boolean} For internal use only. 
+     * @param {any} message The message injected into the state machine for evaluation.
+     * @param {IContext} context The object representing a particualr state machine instance.
+     * @param  {boolean} history For internal use only; indicates that history semantics are in operation when the action is called.
      * @returns {any} Note that the any return type is used to indicate that the state machine runtime does not care what the return type of actions are.
      */
     export interface Action {
@@ -61,17 +65,17 @@ module state {
         isTerminated: boolean;
         
         /**
-         * @method setCurrent
          * Updates the last known state for a given region.
-         * @param region {Region} The region to update the last known state for.
-         * @param state {State} The last known state for the given region.
+         * @method setCurrent
+         * @param {Region} region The region to update the last known state for.
+         * @param {State} state The last known state for the given region.
          */
         setCurrent(region: Region, state: State): void;
         
         /**
-         * @method getCurrent
          * Returns the last known state for a given region.
-         * @param region {Region} The region to update the last known state for.
+         * @method getCurrent
+         * @param {Region} region The region to update the last known state for.
          * @returns {State} The last known state for the given region.
          */
         getCurrent(region: Region): State;
@@ -127,8 +131,8 @@ module state {
         }
 
         /**
-         * @method toString
          * Returns a the element name as a fully qualified namespace.
+         * @method toString
          * @returns {string}
          */
          toString(): string {
@@ -137,23 +141,22 @@ module state {
     }
 
     /**
-     * @class Region
      * An element within a state machine model that is a container of Vertices.
+     * @class Region
+     * @augments Element
      */
     export class Region extends Element {
-        /**
-         * @member {string} defaultName The name given to regions thare are created automatically when a state is passed as a vertex's parent.
-         */
+        /** @member {string} defaultName The name given to regions thare are created automatically when a state is passed as a vertex's parent. */
         public static defaultName: string = "default";
         
         vertices: Array<Vertex> = [];
         initial: PseudoState;
 
         /**
-         * Creates a new instance of the region class.
-         * @param name {string} The name of the region.
-         * @param state {State} The parent state that the new region is a part of.
-        */
+         * Creates a new instance of the Region class.
+         * @param {string} name The name of the region.
+         * @param {State} state The parent state that this region will be a child of.
+         */
         constructor(name: string, public state: State) {
             super(name);
             
@@ -167,9 +170,9 @@ module state {
         }
         
         /**
-         * @method isComplete
          * True if the region is complete; a region is deemed to be complete if its current state is final (having on outbound transitions).
-         * @param context {IContext} The object representing a particualr state machine instance.
+         * @method isComplete
+         * @param {IContext} context The object representing a particualr state machine instance.
          * @returns {boolean}
          */
         isComplete(context: IContext): boolean {
@@ -205,14 +208,15 @@ module state {
     }
     
     /**
+     * An abstract element within a state machine model that can be the source or target of a transition.
      * @class Vertex
-     * An element within a state machine model that can be the source or target of a transition.
+     * @augments Element
      */
     export class Vertex extends Element {
         region: Region;
 
-        private transitions: Array<Transition> = [];
-        private selector: Selector;      
+        transitions: Array<Transition> = [];
+        selector: Selector;      
 
         constructor(name: string, region: Region, selector: Selector);
         constructor(name: string, state: State, selector: Selector);
@@ -238,17 +242,9 @@ module state {
         }
         
         /**
-         * @method isFinal
-         * Tests the vertex to see if it is a final vertex that has no outbound transitions.
-         * @returns {boolean}
-         */
-        isFinal(): boolean {
-            return this.transitions.length === 0;
-        }
-        
-        /**
-         @method isComplete
          * True of the vertex is deemed to be complete; always true for pseuso states and simple states, true for composite states whose child regions all are complete.
+         * @method isComplete
+         * @param {IContext} context The object representing a particualr state machine instance.
          * @returns {boolean}
          */
         isComplete(context: IContext): boolean {
@@ -256,9 +252,9 @@ module state {
         }
 
         /**
-         * @method to
          * Creates a new transtion from this vertex to the target vertex.
-         * @param target {Vertex} The destination of the transition; omit for internal transitions.
+         * @method to
+         * @param {Vertex} target The destination of the transition; omit for internal transitions.
          * @returns {Transition}
          */
         to(target?: Vertex): Transition {
@@ -303,8 +299,9 @@ module state {
     }
 
     /**
-     * @class PseudoState
      * An element within a state machine model that represents an transitory Vertex within the state machine model.
+     * @class PseudoState
+     * @augments Vertex
      */
     export class PseudoState extends Vertex {
         /**
@@ -312,27 +309,12 @@ module state {
          */
         kind: PseudoStateKind;
         
-        /** 
-         * Creates a new instance of the PseudoState class.
-         * @param name {string} The name of the pseudo state.
-         * @param region {Region} The parent region that owns the pseudo state.
-         * @param kind {PseudoStateKind} The specific kind of the pesudo state that drives its behaviour.
-         */
         constructor(name: string, region: Region, kind: PseudoStateKind);
-
-        /** 
-         * Creates a new instance of the PseudoState class.
-         * @param name {string} The name of the pseudo state.
-         * @param state {State} The parent state that owns the pseudo state.
-         * @param kind {PseudoStateKind} The specific kind of the pesudo state that drives its behaviour.
-         */
         constructor(name: string, state: State, kind: PseudoStateKind);
-
-        /** 
+        /**
          * Creates a new instance of the PseudoState class.
-         * @param name {string} The name of the pseudo state.
-         * @param element {Region|State} The parent element that owns the pseudo state.
-         * @param kind {PseudoStateKind} The specific kind of the pesudo state that drives its behaviour.
+         * @param {string} name The name of the pseudo state.
+         * @param {Element} state The parent element that this pseudo state will be a child of.
          */
         constructor(name: string, element: any, kind: PseudoStateKind) {
             super(name, element, pseudoState(kind));
@@ -362,8 +344,9 @@ module state {
     }
 
     /**
-     * @class State
      * An element within a state machine model that represents an invariant condition within the life of the state machine instance.
+     * @class State
+     * @augments Vertex
      */
     export class State extends Vertex {
         private static selector(transitions: Array<Transition>, message: any, context: IContext): Transition {
@@ -388,23 +371,18 @@ module state {
 
         /** 
          * Creates a new instance of the State class.
-         * @param name {string} The name of the state.
-         * @param region {Region} The parent region that owns the state.
+         * @param {string} name The name of the state.
+         * @param {Region} region The parent region that owns the state.
          */
         constructor(name: string, region: Region);
         
         /** 
          * Creates a new instance of the State class.
-         * @param name {string} The name of the state.
-         * @param state {State} The parent state that owns the state.
+         * @param {string} name The name of the state.
+         * @param {State} state The parent state that owns the state.
          */
         constructor(name: string, state: State);
 
-        /** 
-         * Creates a new instance of the State class.
-         * @param name {string} The name of the state.
-         * @param element {Region|State} The element region that owns the state.
-         */
         constructor(name: string, element: any) {
             super(name, element, State.selector);
         }
@@ -426,8 +404,18 @@ module state {
         }
         
         /**
-         * @method isSimple
+         * Tests the state to see if it is a final state that has no outbound transitions.
+         * @method isFinal
+         * @returns {boolean}
+         */
+        isFinal(): boolean {
+            return this.transitions.length === 0;
+        }
+        
+
+        /**
          * True if the state is a simple state, one that has no child regions.
+         * @method isSimple
          * @returns {boolean}
          */
         isSimple(): boolean {
@@ -435,8 +423,8 @@ module state {
         }
 
         /**
-         * @method isComposite
          * True if the state is a composite state, one that child regions.
+         * @method isComposite
          * @returns {boolean}
          */
         isComposite(): boolean {
@@ -444,8 +432,8 @@ module state {
         }
 
         /**
-         * @method isOrthogonal
          * True if the state is a simple state, one that has more than one child region.
+         * @method isOrthogonal
          * @returns {boolean}
          */
         isOrthogonal(): boolean {
@@ -453,8 +441,9 @@ module state {
         }
 
         /**
-         * @method exit
          * Adds behaviour to a state that is executed each time the state is exited.
+         * @method exit
+         * @param {Action} exitAction The action to add to the state's exit behaviour.
          * @returns {State}
          */
         exit<TMessage>(exitAction: Action): State {
@@ -466,8 +455,9 @@ module state {
         }
 
         /**
-         * @method entry
          * Adds behaviour to a state that is executed each time the state is entered.
+         * @method entry
+         * @param {Action} entryAction The action to add to the state's entry behaviour.
          * @returns {State}
          */
         entry<TMessage>(entryAction: Action): State {
@@ -539,29 +529,13 @@ module state {
     }
 
     /**
-     * @class FinalState
      * An element within a state machine model that represents completion of the life of the containing Region within the state machine instance.
+     * @class FinalState
+     * @augments State
      */
     export class FinalState extends State {
-        /** 
-         * Creates a new instance of the FinalState class.
-         * @param name {string} The name of the final state.
-         * @param region {Region} The parent region that owns the final state.
-         */
         constructor(name: string, region: Region);
-        
-        /** 
-         * Creates a new instance of the FinalState class.
-         * @param name {string} The name of the final state.
-         * @param state {State} The parent state that owns the final state.
-         */
         constructor(name: string, state: State);
-        
-        /** 
-         * Creates a new instance of the FinalState class.
-         * @param name {string} The name of the final state.
-         * @param element {Region|State} The parent element that owns the final state.
-         */
         constructor(name: string, element: any) {
             super(name, element);
         }
@@ -573,16 +547,13 @@ module state {
     }
 
     /**
-     * @class StateMachine
      * An element within a state machine model that represents the root of the state machine model.
+     * @class StateMachine
+     * @augments State
      */
     export class StateMachine extends State {
         clean: boolean = true;
 
-        /**
-         * Creates a new instance of the StateMachine class.
-         * @param name {string} The name of the state machine.
-         */
         constructor(name: string) {
             super(name, undefined);
         }
@@ -592,9 +563,8 @@ module state {
         }
 
         /**
-         * @method bootstrap
          * Bootstraps the state machine model; precompiles the actions to take during transition traversal.
-         * @param deepHistoryAbove {boolean} Internal use only.
+         * @method bootstrap
          */
         bootstrap(deepHistoryAbove: boolean): void {
             super.reset();
@@ -605,10 +575,10 @@ module state {
         }
 
         /**
-         * @method initialise
          * Initialises an instance of the state machine and enters its initial steady state.
-         * @param context {IContext} The object representing a particualr state machine instance.
-         * @param autoBootstrap {boolean} Set to false to manually control when bootstrapping occurs.
+         * @method initialise
+         * @param {IContext} context The object representing a particualr state machine instance.
+         * @param {boolean} autoBootstrap Set to false to manually control when bootstrapping occurs.
          */
         initialise(context: IContext, autoBootstrap: boolean = true): void {
             if (autoBootstrap && this.clean === false) {
@@ -619,11 +589,11 @@ module state {
         }
 
         /**
-         * @method evaluate
          * Passes a message to a state machine instance for evaluation.
-         * @param message {any} A message to pass to a state machine instance for evaluation that may cause a state transition.
-         * @param context {IContext} The object representing a particualr state machine instance.
-         * @param autoBootstrap {boolean} Set to false to manually control when bootstrapping occurs.
+         * @method evaluate
+         * @param {any} message A message to pass to a state machine instance for evaluation that may cause a state transition.
+         * @param {IContext} context The object representing a particualr state machine instance.
+         * @param {boolean} autoBootstrap Set to false to manually control when bootstrapping occurs.
          * @returns {boolean} True if the method caused a state transition.
          */
         evaluate(message: any, context: IContext, autoBootstrap: boolean = true): boolean {
@@ -640,8 +610,8 @@ module state {
     }
 
     /**
-     * @class Transition
      * A transition between vertices (states or pseudo states) that may be traversed in response to a message.
+     * @class Transition
      */
     export class Transition {        
         static isElse: Guard = (message: any, context: IContext): boolean => { return false; };
@@ -650,18 +620,13 @@ module state {
         private transitionBehavior: Behavior = [];
         traverse: Behavior = [];
 
-        /**
-         * Creates a new instance of the Transition class.
-         * @param source {Vertex} The source of the transtion.
-         * @param target {Vertex} The target of the transtion; omit for internal transitions.
-         */
         constructor(private source: Vertex, private target?: Vertex) {
             this.completion(); // default the transition to a completion transition
         }
 
         /**
-        * @method completion
          * Turns a transtion into a completion transition.
+        * @method completion
          * @returns {Transition}
          */
         completion(): Transition {
@@ -671,8 +636,8 @@ module state {
         }
 
         /**
-         * @method else
          * Turns a transition into an else transition.
+         * @method else
          * @returns {Transition}
          */
         else(): Transition {
@@ -682,9 +647,9 @@ module state {
         }
 
         /**
-         * @method when
          * Defines the guard condition for the transition.
-         * @param guard {Guard} The guard condition that must evaluate true for the transition to be traversed. 
+         * @method when
+         * @param {Guard} guard The guard condition that must evaluate true for the transition to be traversed. 
          * @returns {Transition}
          */
         when(guard: Guard): Transition {
@@ -694,9 +659,9 @@ module state {
         }
 
         /**
-         * @method effect
          * Add behaviour to a transition.
-         * @param transitionAction {Action} The bahaviour to add to the transition.
+         * @method effect
+         * @param {Action} transitionAction The action to add to the transitions traversal behaviour.
          * @returns {Transition}
          */
         effect<TMessage>(transitionAction: Action): Transition {
@@ -852,33 +817,33 @@ module state {
         }
     }
     
-    // private interface used within the Context
     interface StateDictionary {
         [index: string]: State;
     }
     
     /**
-     * @class Context
      * Default working implementation of a state machine context class.
+     * @class Context
+     * @implements IContext
      */
     export class Context implements IContext {
         public isTerminated: boolean = false;
         private last: StateDictionary = {};
 
         /**
-         * @method setCurrent
          * Updates the last known state for a given region.
-         * @param region {Region} The region to update the last known state for.
-         * @param state {State} The last known state for the given region.
+         * @method setCurrent
+         * @param {Region} region The region to update the last known state for.
+         * @param {State} state The last known state for the given region.
          */
         setCurrent(region: Region, state: State): void {            
             this.last[region.toString()] = state;
         }
 
         /**
-         * @method getCurrent
          * Returns the last known state for a given region.
-         * @param region {Region} The region to update the last known state for.
+         * @method getCurrent
+         * @param {Region} region The region to update the last known state for.
          * @returns {State} The last known state for the given region.
          */
         getCurrent(region: Region): State {            
