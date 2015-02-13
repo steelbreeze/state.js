@@ -42,7 +42,7 @@
             flipped.entry(function () { $("#diagram").attr("src", "controller_flipped.png"); });
 
             /* create the state machine context object */
-            var sms = new state.Context();
+            var sms = new fsm.Context();
 
             /* pass button values to the state machine when clicked */
             $("button").click(function(button) { player.evaluate(button.target.textContent, sms); });
