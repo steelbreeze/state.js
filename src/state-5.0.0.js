@@ -17,19 +17,6 @@ var __extends = this.__extends || function (d, b) {
 var fsm;
 (function (fsm) {
     /**
-     * An enumeration that dictates the precise behaviour of the PseudoState objects.
-     * @enum PseudoStateKind
-     */
-    (function (PseudoStateKind) {
-        PseudoStateKind[PseudoStateKind["Choice"] = 0] = "Choice";
-        PseudoStateKind[PseudoStateKind["DeepHistory"] = 1] = "DeepHistory";
-        PseudoStateKind[PseudoStateKind["Initial"] = 2] = "Initial";
-        PseudoStateKind[PseudoStateKind["Junction"] = 3] = "Junction";
-        PseudoStateKind[PseudoStateKind["ShallowHistory"] = 4] = "ShallowHistory";
-        PseudoStateKind[PseudoStateKind["Terminate"] = 5] = "Terminate";
-    })(fsm.PseudoStateKind || (fsm.PseudoStateKind = {}));
-    var PseudoStateKind = fsm.PseudoStateKind;
-    /**
      * An abstract class used as the base for the Region and Vertex classess.
      * An element is any part of the tree structure that represents a composite state machine model.
      * @class Element
@@ -126,7 +113,7 @@ var fsm;
             var _this = this;
             for (var i = 0, l = this.vertices.length; i < l; i++) {
                 this.vertices[i].reset();
-                this.vertices[i].bootstrap(deepHistoryAbove || (this.initial && this.initial.kind === 1 /* DeepHistory */));
+                this.vertices[i].bootstrap(deepHistoryAbove || (this.initial && this.initial.kind === 4 /* DeepHistory */));
             }
             this.leave.push(function (message, context, history) {
                 var current = context.getCurrent(_this);
@@ -140,7 +127,7 @@ var fsm;
                     if (history || _this.initial.isHistory()) {
                         ini = context.getCurrent(_this) || _this.initial;
                     }
-                    invoke(ini.enter, message, context, history || (_this.initial.kind === 1 /* DeepHistory */));
+                    invoke(ini.enter, message, context, history || (_this.initial.kind === 4 /* DeepHistory */));
                 });
             }
             else {
@@ -248,6 +235,33 @@ var fsm;
     })(Element);
     fsm.Vertex = Vertex;
     /**
+     * An enumeration of static constants that dictates the precise behaviour of pseudo states.
+     *
+     * Use these constants as the `kind` parameter when creating new `PseudoState` instances.
+     * @class PseudoStateKind
+     */
+    (function (PseudoStateKind) {
+        PseudoStateKind[PseudoStateKind["Choice"] = 0] = "Choice";
+        /**
+         * Used for psuedo states that are always the staring point when entering their parent region.
+         * @member {number} Initial
+         */
+        PseudoStateKind[PseudoStateKind["Initial"] = 1] = "Initial";
+        PseudoStateKind[PseudoStateKind["Junction"] = 2] = "Junction";
+        /**
+         * Used for psuedo states that are the the starting point when entering their parent region for the first time; subsiquent entries will start at the last known state.
+         * @member {number} ShallowHistory
+         */
+        PseudoStateKind[PseudoStateKind["ShallowHistory"] = 3] = "ShallowHistory";
+        /**
+         * As per `ShallowHistory` but the history semantic cascades through all child regions irrespective of their initial pseudo state kind.
+         * @member {number} DeepHistory
+         */
+        PseudoStateKind[PseudoStateKind["DeepHistory"] = 4] = "DeepHistory";
+        PseudoStateKind[PseudoStateKind["Terminate"] = 5] = "Terminate";
+    })(fsm.PseudoStateKind || (fsm.PseudoStateKind = {}));
+    var PseudoStateKind = fsm.PseudoStateKind;
+    /**
      * An element within a state machine model that represents an transitory Vertex within the state machine model.
      *
      * Pseudo states are required in all state machine models; at the very least, an `Initial` pseudo state is the default stating state when the parent region is entered.
@@ -274,10 +288,10 @@ var fsm;
             }
         }
         PseudoState.prototype.isHistory = function () {
-            return this.kind === 1 /* DeepHistory */ || this.kind === 4 /* ShallowHistory */;
+            return this.kind === 4 /* DeepHistory */ || this.kind === 3 /* ShallowHistory */;
         };
         PseudoState.prototype.isInitial = function () {
-            return this.kind === 2 /* Initial */ || this.isHistory();
+            return this.kind === 1 /* Initial */ || this.isHistory();
         };
         PseudoState.prototype.bootstrap = function (deepHistoryAbove) {
             _super.prototype.bootstrap.call(this, deepHistoryAbove);
@@ -658,11 +672,11 @@ var fsm;
     fsm.Transition = Transition;
     function pseudoState(kind) {
         switch (kind) {
-            case 2 /* Initial */:
-            case 1 /* DeepHistory */:
-            case 4 /* ShallowHistory */:
+            case 1 /* Initial */:
+            case 4 /* DeepHistory */:
+            case 3 /* ShallowHistory */:
                 return initial;
-            case 3 /* Junction */:
+            case 2 /* Junction */:
                 return junction;
             case 0 /* Choice */:
                 return choice;
@@ -737,6 +751,9 @@ var fsm;
     }
     /**
      * Default working implementation of a state machine context class.
+     *
+     * Implements the `IContext` interface.
+     * It is possible to create other custom context classes to manage state machine state in any way (e.g. as serializable JSON); just implement the same members and methods as this class.
      * @class Context
      * @implements IContext
      */

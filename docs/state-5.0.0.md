@@ -83,6 +83,15 @@ Transtiions can be converted to be event trigered by adding a guard condition vi
 **Returns**: `Transition`, The new transition object.
 
 
+## Class: PseudoStateKind
+An enumeration of static constants that dictates the precise behaviour of pseudo states.
+
+Use these constants as the `kind` parameter when creating new `PseudoState` instances.
+
+**Initial**: `number` , Used for psuedo states that are always the staring point when entering their parent region.
+**ShallowHistory**: `number` , Used for psuedo states that are the the starting point when entering their parent region for the first time; subsiquent entries will start at the last known state.
+**DeepHistory**: `number` , As per `ShallowHistory` but the history semantic cascades through all child regions irrespective of their initial pseudo state kind.
+
 ## Class: PseudoState
 An element within a state machine model that represents an transitory Vertex within the state machine model.
 
@@ -305,6 +314,9 @@ Add behaviour to a transition.
 
 ## Class: Context
 Default working implementation of a state machine context class.
+
+Implements the `IContext` interface.
+It is possible to create other custom context classes to manage state machine state in any way (e.g. as serializable JSON); just implement the same members and methods as this class.
 
 ### fsm.Context.setCurrent(region, state) 
 

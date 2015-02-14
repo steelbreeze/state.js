@@ -5,11 +5,11 @@
  */
 /// <reference path="../src/state-5.0.0.d.ts" />
 var player = new fsm.StateMachine("player");
-var initial = new fsm.PseudoState("initial", player, 2 /* Initial */);
+var initial = new fsm.PseudoState("initial", player, 1 /* Initial */);
 var operational = new fsm.State("operational", player);
 var flipped = new fsm.State("flipped", player);
 var finalState = new fsm.FinalState("final", player);
-var deepHistory = new fsm.PseudoState("history", operational, 1 /* DeepHistory */);
+var deepHistory = new fsm.PseudoState("history", operational, 4 /* DeepHistory */);
 var stopped = new fsm.State("stopped", operational);
 var active = new fsm.State("active", operational);
 var running = new fsm.State("running", active);

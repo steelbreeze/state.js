@@ -11,19 +11,6 @@
  */
 module fsm {
     /**
-     * An enumeration that dictates the precise behaviour of the PseudoState objects.
-     * @enum PseudoStateKind
-     */
-    export enum PseudoStateKind {
-        Choice,
-        DeepHistory,
-        Initial,
-        Junction,
-        ShallowHistory,
-        Terminate
-    }
-
-    /**
      * Type signature for guard conditions used by Transitions.
      * @interface Guard
      * @param {any} message The message injected into the state machine for evaluation.
@@ -319,6 +306,38 @@ module fsm {
                 
             return true;
         }
+    }
+
+    /**
+     * An enumeration of static constants that dictates the precise behaviour of pseudo states.
+     *
+     * Use these constants as the `kind` parameter when creating new `PseudoState` instances.
+     * @class PseudoStateKind
+     */
+    export enum PseudoStateKind {
+        Choice,
+        
+        /**
+         * Used for psuedo states that are always the staring point when entering their parent region.
+         * @member {number} Initial
+         */
+        Initial,
+        
+        Junction,
+        
+        /**
+         * Used for psuedo states that are the the starting point when entering their parent region for the first time; subsiquent entries will start at the last known state.
+         * @member {number} ShallowHistory
+         */
+        ShallowHistory,
+        
+        /**
+         * As per `ShallowHistory` but the history semantic cascades through all child regions irrespective of their initial pseudo state kind.
+         * @member {number} DeepHistory
+         */
+        DeepHistory,
+        
+        Terminate
     }
 
     /**
@@ -931,6 +950,9 @@ module fsm {
     
     /**
      * Default working implementation of a state machine context class.
+     *
+     * Implements the `IContext` interface.
+     * It is possible to create other custom context classes to manage state machine state in any way (e.g. as serializable JSON); just implement the same members and methods as this class.
      * @class Context
      * @implements IContext
      */

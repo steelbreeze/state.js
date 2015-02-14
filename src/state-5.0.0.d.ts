@@ -10,18 +10,6 @@
  */
 declare module fsm {
     /**
-     * An enumeration that dictates the precise behaviour of the PseudoState objects.
-     * @enum PseudoStateKind
-     */
-    enum PseudoStateKind {
-        Choice = 0,
-        DeepHistory = 1,
-        Initial = 2,
-        Junction = 3,
-        ShallowHistory = 4,
-        Terminate = 5,
-    }
-    /**
      * Type signature for guard conditions used by Transitions.
      * @interface Guard
      * @param {any} message The message injected into the state machine for evaluation.
@@ -182,6 +170,32 @@ declare module fsm {
         bootstrapTransitions(): void;
         evaluateCompletions(message: any, context: IContext, history: boolean): void;
         evaluate(message: any, context: IContext): boolean;
+    }
+    /**
+     * An enumeration of static constants that dictates the precise behaviour of pseudo states.
+     *
+     * Use these constants as the `kind` parameter when creating new `PseudoState` instances.
+     * @class PseudoStateKind
+     */
+    enum PseudoStateKind {
+        Choice = 0,
+        /**
+         * Used for psuedo states that are always the staring point when entering their parent region.
+         * @member {number} Initial
+         */
+        Initial = 1,
+        Junction = 2,
+        /**
+         * Used for psuedo states that are the the starting point when entering their parent region for the first time; subsiquent entries will start at the last known state.
+         * @member {number} ShallowHistory
+         */
+        ShallowHistory = 3,
+        /**
+         * As per `ShallowHistory` but the history semantic cascades through all child regions irrespective of their initial pseudo state kind.
+         * @member {number} DeepHistory
+         */
+        DeepHistory = 4,
+        Terminate = 5,
     }
     /**
      * An element within a state machine model that represents an transitory Vertex within the state machine model.
@@ -418,6 +432,9 @@ declare module fsm {
     }
     /**
      * Default working implementation of a state machine context class.
+     *
+     * Implements the `IContext` interface.
+     * It is possible to create other custom context classes to manage state machine state in any way (e.g. as serializable JSON); just implement the same members and methods as this class.
      * @class Context
      * @implements IContext
      */
