@@ -1,8 +1,11 @@
 /**
- * state v5 finite state machine library
+ * @title state v5 finite state machine library
  * @author http://www.steelbreeze.net/state.cs
  * @copyright (c) 2014-5 Steelbreeze Limited
  * @license MIT and GPL v3 licences
+ */
+/**
+ * Default namespace for the state.js classes.
  * @module fsm
  */
 declare module fsm {

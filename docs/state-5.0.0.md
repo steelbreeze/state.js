@@ -1,6 +1,6 @@
 # fsm
 
-state v5 finite state machine library
+Default namespace for the state.js classes.
 
 
 
