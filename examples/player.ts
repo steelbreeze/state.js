@@ -20,7 +20,7 @@ var active = new fsm.State("active", operational);
 var running = new fsm.State("running", active);
 var paused = new fsm.State("paused", active);
 
-initial.to(operational); // NOTE: the example web page will add a transition effect
+initial.to(operational);
 deepHistory.to(stopped);
 stopped.to(running).when((s: string): boolean => { return s === "play"; });
 active.to(stopped).when((s: string ): boolean => { return s === "stop"; });
