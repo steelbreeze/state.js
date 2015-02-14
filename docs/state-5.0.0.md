@@ -22,7 +22,7 @@ Returns a the element name as a fully qualified namespace.
 ## Class: Region
 An element within a state machine model that is a container of Vertices.
 
-Regions are implicitly inserted into composite state machines as a containner for vertices.
+Regions are implicitly inserted into composite state machines as a container for vertices.
 They only need to be explicitly defined if orthogonal states are required.
 
 Region extends the Element class and inherits its public interface.
