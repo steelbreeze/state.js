@@ -3,6 +3,8 @@
 The current stable release is 4.1.8 on the master branch.
 This is the version 5 development branch and currently nearing completion.
 
+To see the example code in action, click [here](https://cdn.rawgit.com/steelbreeze/state.js/v5-dev/examples/test.html).
+
 If you're using state.js I'd love to hear about it; please e-mail me at mesmo@steelbreeze.net
 
 ## Version 5
@@ -15,8 +17,6 @@ Version 5 is a complete re-write from version 4.x.x:
 State.js is a JavaScript implementation of a state machine library that supports most of the UML 2 state machine semantics.
 
 State.js provides a hierarchical state machine capable of managing orthogonal regions; a variety of pseudo state kinds are implemented including initial, shallow & deep history, choice, junction and terminate.
-
-See it working [here](https://cdn.rawgit.com/steelbreeze/state.js/v5-dev/examples/test.html)
 
 ## Versioning
 The versions are in the form {major}.{minor}.{build}
