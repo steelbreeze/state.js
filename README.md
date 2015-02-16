@@ -3,7 +3,7 @@
 This is the version 5.0.0.
 The previous stable release was 4.1.8.
 
-To see the example code in action, click [here](https://cdn.rawgit.com/steelbreeze/state.js/v5-dev/examples/test.html).
+To see the example code in action, click [here](https://cdn.rawgit.com/steelbreeze/state.js/master/examples/test.html).
 
 If you're using state.js I'd love to hear about it; please e-mail me at mesmo@steelbreeze.net
 
