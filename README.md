@@ -1,7 +1,7 @@
 # Welcome to state.js
 
-The current stable release is 4.1.8 on the master branch.
-This is the version 5 development branch and currently nearing completion.
+This is the version 5.0.0.
+The previous stable release was 4.1.8.
 
 To see the example code in action, click [here](https://cdn.rawgit.com/steelbreeze/state.js/v5-dev/examples/test.html).
 
