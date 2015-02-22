@@ -26,7 +26,6 @@ module fsm {
      * @interface Action
      * @param {any} message The message injected into the state machine for evaluation.
      * @param {IContext} context The object representing a particular state machine instance.
-     * @param  {boolean} history For internal use only; indicates that history semantics are in operation when the action is called.
      * @returns {any} Note that the any return type is used to indicate that the state machine runtime does not care what the return type of actions are.
      */
     export interface Action {
