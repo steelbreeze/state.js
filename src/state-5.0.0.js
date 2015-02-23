@@ -710,7 +710,7 @@ var fsm;
     function junction(transitions, message, context) {
         var result, i, l = transitions.length;
         for (i = 0; i < l; i++) {
-            if (transitions[i].guard(message, context) === true) {
+            if (transitions[i].guard(message, context)) {
                 if (result) {
                     throw "Multiple outbound transitions evaluated true";
                 }
@@ -732,7 +732,7 @@ var fsm;
     function choice(transitions, message, context) {
         var results = [], result, i, l = transitions.length;
         for (i = 0; i < l; i++) {
-            if (transitions[i].guard(message, context) === true) {
+            if (transitions[i].guard(message, context)) {
                 results.push(transitions[i]);
             }
         }

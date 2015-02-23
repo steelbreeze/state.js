@@ -881,7 +881,7 @@ module fsm {
         var result: Transition, i: number, l: number = transitions.length;
         
         for(i = 0; i < l; i++) {
-            if(transitions[i].guard(message, context) === true) {
+            if(transitions[i].guard(message, context)) {
                 if(result) {
                         throw "Multiple outbound transitions evaluated true";
                 }
@@ -909,7 +909,7 @@ module fsm {
         var results: Array<Transition> = [], result: Transition, i: number, l: number = transitions.length;
                 
         for(i = 0; i < l; i++) {
-            if(transitions[i].guard(message, context) === true) {
+            if(transitions[i].guard(message, context)) {
                 results.push(transitions[i]);
             }
         }
