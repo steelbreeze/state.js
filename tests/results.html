@@ -125,21 +125,21 @@
             function brice1() {
                 var main = new fsm.StateMachine("brice");
                 var initial1 = new fsm.PseudoState("initial", main, fsm.PseudoStateKind.Initial);
-                var myComposite1 = new fsm.State("MyComposite1", main);
-                var myComposite2 = new fsm.State("MyComposite2", main);
+                var myComposite1 = new fsm.State("composite1", main);
+                var state3 = new fsm.State("state3", main);
                 var initial2 = new fsm.PseudoState("initial", myComposite1, fsm.PseudoStateKind.Initial);
-                var state1 = new fsm.State("State1", myComposite1);
-                var state2 = new fsm.State("State1", myComposite1);
+                var state1 = new fsm.State("state1", myComposite1);
+                var state2 = new fsm.State("state2", myComposite1);
                 
                 initial1.to(myComposite1);
                 initial2.to(state1);
-                myComposite1.to(myComposite2).when(function(c) { return c === "A";}).effect(function() { result("Brice test1: failed"); });
-                state1.to(state2).when(function(c) { return c === "A";}).effect(function() { result("Brice test1: passed"); });
+                myComposite1.to(state3).when(function(c) { return c === "a";}).effect(function() { result("Brice test1: failed"); });
+                state1.to(state2).when(function(c) { return c === "a";}).effect(function() { result("Brice test1: passed"); });
                 
                 var sms = new fsm.Context();	
 				main.initialise(sms);
 
-                main.evaluate("A", sms);
+                main.evaluate("a", sms);
             }
             
 			function run()

@@ -1,6 +1,6 @@
 # Welcome to state.js
 
-This is the version 5.0.0.
+This is the version 5.0.1.
 The previous stable release was 4.1.8.
 
 To see the example code in action, click [here](https://cdn.rawgit.com/steelbreeze/state.js/master/examples/test.html).
@@ -25,7 +25,7 @@ The versions are in the form {major}.{minor}.{build}
 * Build changes can introduce features, though usually are fixes and performance enhancements; these will never break the public API.
 
 ## Documentation
-Documentation for the public API can be found [here](https://github.com/steelbreeze/state.js/blob/master/docs/state-5.0.0.md).
+Documentation for the public API can be found [here](https://github.com/steelbreeze/state.js/blob/development/docs/state-5.0.1.md).
 
 ## Building state.js
 There is no build, download a copy of state.js and use it in your site or project.
