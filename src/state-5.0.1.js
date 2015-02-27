@@ -39,6 +39,9 @@ var fsm;
         Element.prototype.ancestors = function () {
             return (this.getParent() ? this.getParent().ancestors() : []).concat(this);
         };
+        Element.prototype.isActive = function (context) {
+            return this.getParent().isActive(context);
+        };
         Element.prototype.reset = function () {
             this.leave = [];
             this.beginEnter = [];
@@ -373,6 +376,9 @@ var fsm;
             }
             return region;
         };
+        State.prototype.isActive = function (context) {
+            return _super.prototype.isActive.call(this, context) && context.getCurrent(this.region) === this;
+        };
         /**
          * Tests the state to see if it is a final state;
          * a final state is one that has no outbound transitions.
@@ -469,8 +475,10 @@ var fsm;
         State.prototype.evaluate = function (message, context) {
             var processed = false;
             for (var i = 0, l = this.regions.length; i < l; i++) {
-                if (this.regions[i].evaluate(message, context)) {
-                    processed = true;
+                if (this.isActive(context) === true) {
+                    if (this.regions[i].evaluate(message, context)) {
+                        processed = true;
+                    }
                 }
             }
             if (processed === false) {
@@ -529,6 +537,9 @@ var fsm;
         }
         StateMachine.prototype.root = function () {
             return this;
+        };
+        StateMachine.prototype.isActive = function (context) {
+            return true;
         };
         /**
          * Bootstraps the state machine model; precompiles the actions to take during transition traversal.

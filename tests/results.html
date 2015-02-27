@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>state.js v5.0.0 tests</title>
-    <script src="../src/state-5.0.0.min.js"></script>
+		<title>state.js v5.0.1 tests</title>
+    <script src="../src/state-5.0.1.min.js"></script>
 		<script>
 			function result( text ) {
 				document.getElementById("results").appendChild(document.createTextNode( text ));
@@ -122,7 +122,7 @@
             	result("Muximuse test 1: " + (main.isComplete(main) ? "passed" : "failed"));
             }
             
-            function brice1() {
+            function brice1 () {
                 var main = new fsm.StateMachine("brice");
                 var initial1 = new fsm.PseudoState("initial", main, fsm.PseudoStateKind.Initial);
                 var myComposite1 = new fsm.State("composite1", main);
@@ -142,17 +142,60 @@
                 main.evaluate("a", sms);
             }
             
-			function run()
+            function p3pp3r() {
+                var main = new fsm.StateMachine("p3pp3r");
+                var initial = new fsm.PseudoState("initial", main, fsm.PseudoStateKind.Initial); 
+                var state1 = new fsm.State("state1", main);
+                var state2 = new fsm.State("state2", main);
+                
+                var regionA = new fsm.Region("regionA", state1);
+                var initialA = new fsm.PseudoState("initialA", regionA, fsm.PseudoStateKind.Initial); 
+                var state3 = new fsm.State("state3", regionA);
+                var state8 = new fsm.State("state8", regionA);
+
+                var regionB = new fsm.Region("regionB", state1);
+                var initialB = new fsm.PseudoState("initialB", regionB, fsm.PseudoStateKind.Initial); 
+                var state4 = new fsm.State("state4", regionB);
+                var state5 = new fsm.State("state5", regionB);
+
+                var regionBa = new fsm.Region("regionBa", state4);
+                var initialBa = new fsm.PseudoState("initialBa", regionBa, fsm.PseudoStateKind.Initial); 
+                var state6 = new fsm.State("state6", regionBa);
+
+                var regionBb = new fsm.Region("regionBb", state4);
+                var initialBb = new fsm.PseudoState("initialBb", regionBb, fsm.PseudoStateKind.Initial); 
+                var state7 = new fsm.State("state7", regionBb);
+                
+                initial.to(state1);
+                initialA.to(state3);
+                initialB.to(state4);
+                initialBa.to(state6);
+                initialBb.to(state7);
+                
+                state3.to(state2).when(function (c) { return c === "event2"; }).effect(function () { result("p3pp3r test passed"); });
+                state3.to(state8).when(function (c) { return c === "event1"; });
+                
+                state7.to(state5).when(function (c) { return c === "event2"; }).effect(function () { result("p3pp3r test also failed"); });
+                state7.to(state5).when(function (c) { return c === "event1"; });
+                
+                var sms = new fsm.Context();
+                main.initialise(sms);
+                
+                main.evaluate("event2", sms);
+            }
+            
+			function run ()
 			{
 				compTest();
 				shallowTest();
                 muximise1();
                 brice1();
+                p3pp3r();
 			}			
 		</script>
 	</head>
 	<body onload="run()">
-        <h1>state.js v5.0.0 tests</h1>
+        <h1>state.js v5.0.1 tests</h1>
 		<div id="results"/>
 	</body>
 </html>

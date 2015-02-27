@@ -84,6 +84,7 @@ declare module fsm {
         getParent(): Element;
         root(): StateMachine;
         ancestors(): Array<Element>;
+        isActive(context: IContext): boolean;
         reset(): void;
         bootstrap(deepHistoryAbove: boolean): void;
         bootstrapEnter(add: (additional: Behavior) => void, next: Element): void;
@@ -275,6 +276,7 @@ declare module fsm {
          */
         constructor(name: string, parent: State);
         defaultRegion(): Region;
+        isActive(context: IContext): boolean;
         /**
          * Tests the state to see if it is a final state;
          * a final state is one that has no outbound transitions.
@@ -361,6 +363,7 @@ declare module fsm {
          */
         constructor(name: string);
         root(): StateMachine;
+        isActive(context: IContext): boolean;
         /**
          * Bootstraps the state machine model; precompiles the actions to take during transition traversal.
          *

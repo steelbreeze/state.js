@@ -105,6 +105,10 @@ module fsm {
             return (this.getParent() ? this.getParent().ancestors() : []).concat(this);
         }
 
+        isActive(context: IContext): boolean {
+            return this.getParent().isActive(context);
+        }
+        
         reset(): void {
             this.leave = [];
             this.beginEnter = [];
@@ -491,6 +495,10 @@ module fsm {
             return region;
         }
         
+        isActive(context: IContext): boolean {
+            return super.isActive(context) && context.getCurrent(this.region) === this;
+        }
+
         /**
          * Tests the state to see if it is a final state;
          * a final state is one that has no outbound transitions.
@@ -601,10 +609,12 @@ module fsm {
         evaluate(message: any, context: IContext): boolean {
             var processed: boolean = false;
             
-            for( var i:number = 0, l:number = this.regions.length; i < l; i++) {                
-                if(this.regions[i].evaluate(message, context)) {
-                    processed = true;
-                }
+            for( var i:number = 0, l:number = this.regions.length; i < l; i++) {
+                if(this.isActive(context) === true) {
+                    if(this.regions[i].evaluate(message, context)) {
+                        processed = true;
+                    }
+                }  
             }
             
             if(processed === false) {
@@ -679,6 +689,10 @@ module fsm {
 
         root(): StateMachine {
             return this;
+        }
+
+        isActive(context: IContext): boolean {
+            return true;
         }
 
         /**
