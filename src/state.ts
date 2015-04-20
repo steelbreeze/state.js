@@ -261,7 +261,7 @@ module fsm {
          * @returns {boolean} True if the vertex is deemed to be complete.
          */
         isComplete(context: IContext): boolean {
-            return true;
+            return;
         }
 
         /**
@@ -406,6 +406,18 @@ module fsm {
             }
         }
 
+		/**
+         * Tests the vertex to determine if it is deemed to be complete.
+         * Pseudo states and simple states are always deemed to be complete.
+         * Composite states are deemed to be complete when all its child regions all are complete.
+         * @method isComplete
+         * @param {IContext} context The object representing a particular state machine instance.
+         * @returns {boolean} True if the vertex is deemed to be complete.
+         */
+        isComplete(context: IContext): boolean {
+            return true;
+        }
+
         isHistory(): boolean {
             return this.kind === PseudoStateKind.DeepHistory || this.kind === PseudoStateKind.ShallowHistory;
         }
@@ -539,6 +551,23 @@ module fsm {
             return this.regions.length > 1;
         }
 
+        /**
+         * Tests a region to determine if it is deemed to be complete.
+         * A region is complete if its current state is final (a state having on outbound transitions).
+         * @method isComplete
+         * @param {IContext} context The object representing a particular state machine instance.
+         * @returns {boolean} True if the region is deemed to be complete.
+         */
+		isComplete(context: IContext): boolean {
+			for (var i = 0, l = this.regions.length; i < l; i++) {
+				if (this.regions[i].isComplete(context) === false) {
+					return false;
+				}
+			}
+
+			return true;
+		}
+		
         /**
          * Adds behaviour to a state that is executed each time the state is exited.
          * @method exit
