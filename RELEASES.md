@@ -9,6 +9,8 @@ Added an optional name parameter to the StateMachineInstance constructor and a t
 
 Cache the fully qualified element name during the bootstrap process (as its used in the StateMachineInstance class).
 
+Simplify transition bootstrap logic by inlining bootstrapEnter.
+
 ## Version 5.0.1
 Fix bug relating to external transitions and orthogonal regions that could result in an invalid current active state.
 

@@ -127,10 +127,6 @@ module fsm {
             this.enter = this.beginEnter.concat(this.endEnter);
         }
 
-        bootstrapEnter(add: (additional: Behavior) => void, next: Element) {
-            add(this.beginEnter);
-        }
-
         /**
          * Returns a the element name as a fully qualified namespace.
          * @method toString
@@ -627,16 +623,6 @@ module fsm {
 
             super.bootstrapTransitions();
         }
-
-        bootstrapEnter(add: (additional: Behavior) => void, next: Element) {
-            super.bootstrapEnter(add, next);
-
-            for( var i:number = 0, l:number = this.regions.length; i < l; i++) {
-                if (this.regions[i] !== next) {
-                    add(this.regions[i].enter);
-                }
-            }
-        }
         
         evaluate(message: any, instance: IActiveStateConfiguration): boolean {
             var processed: boolean = false;
@@ -887,7 +873,24 @@ module fsm {
                                 
                 // enter the target ancestry
                 while(i < targetAncestorsLength) {
-                    targetAncestors[i++].bootstrapEnter((additional: Behavior) => { this.traverse = this.traverse.concat(additional); }, targetAncestors[i]);
+					var element = targetAncestors[i++];
+					var next = i < targetAncestorsLength ? targetAncestors[i] : undefined;
+
+					this.traverse = this.traverse.concat(element.beginEnter);
+					
+					if (element instanceof State) {
+						var state = <State>element;
+						
+						if (state.isOrthogonal()) {
+							for (var ii = 0, ll = state.regions.length; ii < ll; ii++) {
+								var region = state.regions[ii];
+								
+								if (region !== next) {
+									this.traverse = this.traverse.concat(region.enter);
+								}
+							}
+						}
+					}
                 }
 
                 // trigger cascade

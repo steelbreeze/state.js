@@ -41,14 +41,14 @@ Creates a new instance of the Region class.
 **parent**: `State`, The parent state that this region will be a child of.
 
 
-### fsm.Region.isComplete(context) 
+### fsm.Region.isComplete(instance) 
 
 Tests a region to determine if it is deemed to be complete.
 A region is complete if its current state is final (a state having on outbound transitions).
 
 **Parameters**
 
-**context**: `IContext`, The object representing a particular state machine instance.
+**instance**: `IActiveStateConfiguration`, The object representing a particular state machine instance.
 
 **Returns**: `boolean`, True if the region is deemed to be complete.
 
@@ -58,7 +58,7 @@ An abstract element within a state machine model that can be the source or targe
 
 Vertex extends the Element class and inherits its public interface.
 
-### fsm.Vertex.isComplete(context) 
+### fsm.Vertex.isComplete(instance) 
 
 Tests the vertex to determine if it is deemed to be complete.
 Pseudo states and simple states are always deemed to be complete.
@@ -66,7 +66,7 @@ Composite states are deemed to be complete when all its child regions all are co
 
 **Parameters**
 
-**context**: `IContext`, The object representing a particular state machine instance.
+**instance**: `IActiveStateConfiguration`, The object representing a particular state machine instance.
 
 **Returns**: `boolean`, True if the vertex is deemed to be complete.
 
@@ -124,7 +124,7 @@ Creates a new instance of the PseudoState class.
 **kind**: `PseudoStateKind`, Determines the behaviour of the PseudoState.
 
 
-### fsm.PseudoState.isComplete(context) 
+### fsm.PseudoState.isComplete(instance) 
 
 Tests the vertex to determine if it is deemed to be complete.
 Pseudo states and simple states are always deemed to be complete.
@@ -132,7 +132,7 @@ Composite states are deemed to be complete when all its child regions all are co
 
 **Parameters**
 
-**context**: `IContext`, The object representing a particular state machine instance.
+**instance**: `IActiveStateConfiguration`, The object representing a particular state machine instance.
 
 **Returns**: `boolean`, True if the vertex is deemed to be complete.
 
@@ -184,14 +184,14 @@ an orthogonal state is one that has two or more child regions.
 
 **Returns**: `boolean`, True if the state is an orthogonal state.
 
-### fsm.State.isComplete(context) 
+### fsm.State.isComplete(instance) 
 
 Tests a region to determine if it is deemed to be complete.
 A region is complete if its current state is final (a state having on outbound transitions).
 
 **Parameters**
 
-**context**: `IContext`, The object representing a particular state machine instance.
+**instance**: `IActiveStateConfiguration`, The object representing a particular state machine instance.
 
 **Returns**: `boolean`, True if the region is deemed to be complete.
 
@@ -259,19 +259,19 @@ The actions will exit all states as appropriate, perform transition behaviour, e
 This is only required if you are dynamically changing the state machine model and want to manually control when the model is bootstrapped.
 
 
-### fsm.StateMachine.initialise(context, autoBootstrap) 
+### fsm.StateMachine.initialise(instance, autoBootstrap) 
 
 Initialises an instance of the state machine and enters its initial pseudo state.
 Entering the initial pseudo state may cause a chain of other completion transitions.
 
 **Parameters**
 
-**context**: `IContext`, The object representing a particular state machine instance.
+**instance**: `IActiveStateConfiguration`, The object representing a particular state machine instance.
 
 **autoBootstrap**: `boolean`, Set to false to manually control when bootstrapping occurs.
 
 
-### fsm.StateMachine.evaluate(message, context, autoBootstrap) 
+### fsm.StateMachine.evaluate(message, instance, autoBootstrap) 
 
 Passes a message to a state machine instance for evaluation.
 
@@ -282,7 +282,7 @@ Transition traversal may cause a chain of transitions to be traversed.
 
 **message**: `any`, A message to pass to a state machine instance for evaluation that may cause a state transition.
 
-**context**: `IContext`, The object representing a particular state machine instance.
+**instance**: `IActiveStateConfiguration`, The object representing a particular state machine instance.
 
 **autoBootstrap**: `boolean`, Set to false to manually control when bootstrapping occurs.
 
@@ -340,10 +340,10 @@ Add behaviour to a transition.
 
 
 ## Class: Context
-Default working implementation of a state machine context class.
+Default working implementation of a state machine instance class.
 
-Implements the `IContext` interface.
-It is possible to create other custom context classes to manage state machine state in any way (e.g. as serialisable JSON); just implement the same members and methods as this class.
+Implements the `IActiveStateConfiguration` interface.
+It is possible to create other custom instance classes to manage state machine state in any way (e.g. as serialisable JSON); just implement the same members and methods as this class.
 
 ### fsm.Context.setCurrent(region, state) 
 

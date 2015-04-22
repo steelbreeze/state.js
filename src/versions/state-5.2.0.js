@@ -57,6 +57,9 @@ var fsm;
             //this.beginEnter.push((message: any, instance: IActiveStateConfiguration) => { console.log(instance + " enter " + this); });
             this.enter = this.beginEnter.concat(this.endEnter);
         };
+        Element.prototype.bootstrapEnter = function (add, next) {
+            add(this.beginEnter);
+        };
         /**
          * Returns a the element name as a fully qualified namespace.
          * @method toString
@@ -488,6 +491,14 @@ var fsm;
             }
             _super.prototype.bootstrapTransitions.call(this);
         };
+        State.prototype.bootstrapEnter = function (add, next) {
+            _super.prototype.bootstrapEnter.call(this, add, next);
+            for (var i = 0, l = this.regions.length; i < l; i++) {
+                if (this.regions[i] !== next) {
+                    add(this.regions[i].enter);
+                }
+            }
+        };
         State.prototype.evaluate = function (message, instance) {
             var processed = false;
             for (var i = 0, l = this.regions.length; i < l; i++) {
@@ -671,6 +682,7 @@ var fsm;
             return this;
         };
         Transition.prototype.bootstrap = function () {
+            var _this = this;
             // internal transitions: just perform the actions; no exiting or entering states
             if (this.target === null) {
                 this.traverse = this.transitionBehavior;
@@ -697,20 +709,9 @@ var fsm;
                     this.traverse = this.traverse.concat(this.target.beginEnter);
                 }
                 while (i < targetAncestorsLength) {
-                    var element = targetAncestors[i++];
-                    var next = i < targetAncestorsLength ? targetAncestors[i] : undefined;
-                    this.traverse = this.traverse.concat(element.beginEnter);
-                    if (element instanceof State) {
-                        var state = element;
-                        if (state.isOrthogonal()) {
-                            for (var ii = 0, ll = state.regions.length; ii < ll; ii++) {
-                                var region = state.regions[ii];
-                                if (region !== next) {
-                                    this.traverse = this.traverse.concat(region.enter);
-                                }
-                            }
-                        }
-                    }
+                    targetAncestors[i++].bootstrapEnter(function (additional) {
+                        _this.traverse = _this.traverse.concat(additional);
+                    }, targetAncestors[i]);
                 }
                 // trigger cascade
                 this.traverse = this.traverse.concat(this.target.endEnter);

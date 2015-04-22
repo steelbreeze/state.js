@@ -1,3 +1,7 @@
 tsc -d --noImplicitAny state.ts
 minify state.js
 jsdox --output ../docs state.js
+
+cp state.d.ts versions/state-5.2.0.d.ts
+cp state.js versions/state-5.2.0.js
+cp state.min.js versions/state-5.2.0.min.js

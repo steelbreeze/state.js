@@ -88,6 +88,7 @@ declare module fsm {
         isActive(instance: IActiveStateConfiguration): boolean;
         reset(): void;
         bootstrap(deepHistoryAbove: boolean): void;
+        bootstrapEnter(add: (additional: Behavior) => void, next: Element): void;
         /**
          * Returns a the element name as a fully qualified namespace.
          * @method toString
@@ -338,6 +339,7 @@ declare module fsm {
         entry<TMessage>(entryAction: Action): State;
         bootstrap(deepHistoryAbove: boolean): void;
         bootstrapTransitions(): void;
+        bootstrapEnter(add: (additional: Behavior) => void, next: Element): void;
         evaluate(message: any, instance: IActiveStateConfiguration): boolean;
     }
     /**
