@@ -358,7 +358,6 @@ var fsm;
             _super.call(this, name, parent, State.selector);
             this.exitBehavior = [];
             this.entryBehavior = [];
-            // NOTE: would like an equivalent of internal or package-private
             this.regions = [];
         }
         State.selector = function (transitions, message, instance) {
@@ -464,7 +463,7 @@ var fsm;
         State.prototype.bootstrap = function (deepHistoryAbove) {
             var _this = this;
             for (var i = 0, l = this.regions.length; i < l; i++) {
-                var region = this.regions[i]; // regadless of TypeScript, still need this in this instance
+                var region = this.regions[i];
                 region.reset();
                 region.bootstrap(deepHistoryAbove);
                 this.leave.push(function (message, instance, history) {
@@ -745,8 +744,8 @@ var fsm;
         }
     }
     function junction(transitions, message, instance) {
-        var result, i, l = transitions.length;
-        for (i = 0; i < l; i++) {
+        var result;
+        for (var i = 0, l = transitions.length; i < l; i++) {
             if (transitions[i].guard(message, instance)) {
                 if (result) {
                     throw "Multiple outbound transitions evaluated true";
@@ -767,8 +766,8 @@ var fsm;
         return result;
     }
     function choice(transitions, message, instance) {
-        var results = [], result, i, l = transitions.length;
-        for (i = 0; i < l; i++) {
+        var results = [], result;
+        for (var i = 0, l = transitions.length; i < l; i++) {
             if (transitions[i].guard(message, instance)) {
                 results.push(transitions[i]);
             }
@@ -791,9 +790,9 @@ var fsm;
     function terminate(transitions, message, instance) {
         return;
     }
-    function invoke(behavior, message, instance, history) {
-        for (var i = 0, l = behavior.length; i < l; i++) {
-            behavior[i](message, instance, history);
+    function invoke(actions, message, instance, history) {
+        for (var i = 0, l = actions.length; i < l; i++) {
+            actions[i](message, instance, history);
         }
     }
     function assert(condition, error) {

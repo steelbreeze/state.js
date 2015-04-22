@@ -30,12 +30,6 @@ declare module fsm {
     interface Action {
         (message: any, instance: IActiveStateConfiguration, history: boolean): any;
     }
-    /**
-     * Type signature for a set of actions performed during Transitions.
-     * @interface Behavior
-     */
-    interface Behavior extends Array<Action> {
-    }
     interface Selector {
         (transitions: Array<Transition>, message: any, instance: IActiveStateConfiguration): Transition;
     }
@@ -77,10 +71,10 @@ declare module fsm {
          */
         static namespaceSeparator: string;
         qualifiedName: string;
-        leave: Behavior;
-        beginEnter: Behavior;
-        endEnter: Behavior;
-        enter: Behavior;
+        leave: Array<Action>;
+        beginEnter: Array<Action>;
+        endEnter: Array<Action>;
+        enter: Array<Action>;
         constructor(name: string);
         getParent(): Element;
         root(): StateMachine;
@@ -88,7 +82,6 @@ declare module fsm {
         isActive(instance: IActiveStateConfiguration): boolean;
         reset(): void;
         bootstrap(deepHistoryAbove: boolean): void;
-        bootstrapEnter(add: (additional: Behavior) => void, next: Element): void;
         /**
          * Returns a the element name as a fully qualified namespace.
          * @method toString
@@ -270,8 +263,8 @@ declare module fsm {
      */
     class State extends Vertex {
         private static selector(transitions, message, instance);
-        private exitBehavior;
-        private entryBehavior;
+        exitBehavior: Array<Action>;
+        entryBehavior: Array<Action>;
         regions: Array<Region>;
         /**
          * Creates a new instance of the State class.
@@ -339,7 +332,6 @@ declare module fsm {
         entry<TMessage>(entryAction: Action): State;
         bootstrap(deepHistoryAbove: boolean): void;
         bootstrapTransitions(): void;
-        bootstrapEnter(add: (additional: Behavior) => void, next: Element): void;
         evaluate(message: any, instance: IActiveStateConfiguration): boolean;
     }
     /**
@@ -429,8 +421,8 @@ declare module fsm {
         private target;
         static isElse: Guard;
         guard: Guard;
-        private transitionBehavior;
-        traverse: Behavior;
+        transitionBehavior: Array<Action>;
+        traverse: Array<Action>;
         /**
          * Creates a new instance of the Transition class.
          * @param {Vertex} source The source of the transition.

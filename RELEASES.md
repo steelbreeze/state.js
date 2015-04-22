@@ -11,6 +11,10 @@ Cache the fully qualified element name during the bootstrap process (as its used
 
 Simplify transition bootstrap logic by inlining bootstrapEnter.
 
+Removed explicit var typing where implicit is sufficient.
+
+Removed Behaviour type and just used Array of Action in place.
+
 ## Version 5.0.1
 Fix bug relating to external transitions and orthogonal regions that could result in an invalid current active state.
 

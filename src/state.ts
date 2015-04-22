@@ -33,13 +33,6 @@ module fsm {
         (message: any, instance: IActiveStateConfiguration, history: boolean): any;
     }
 
-    /**
-     * Type signature for a set of actions performed during Transitions.
-     * @interface Behavior
-     */
-    export interface Behavior extends Array<Action> {
-    }
-
     export interface Selector {
         (transitions: Array<Transition>, message: any, instance: IActiveStateConfiguration): Transition;
     }
@@ -86,10 +79,10 @@ module fsm {
 		public qualifiedName: string;
 
         // NOTE: would like an equivalent of internal or package-private
-        leave: Behavior = [];
-        beginEnter: Behavior= [];
-        endEnter: Behavior =[];
-        enter: Behavior = [];
+        leave: Array<Action> = [];
+        beginEnter: Array<Action> = [];
+        endEnter: Array<Action> =[];
+        enter: Array<Action> = [];
 
         constructor(public name: string) { 
         }
@@ -189,7 +182,7 @@ module fsm {
         }
 
         bootstrap(deepHistoryAbove: boolean): void {
-            for( var i:number = 0, l:number = this.vertices.length; i < l; i++) {
+            for( var i = 0, l = this.vertices.length; i < l; i++) {
                 this.vertices[i].reset();
                 this.vertices[i].bootstrap(deepHistoryAbove || (this.initial && this.initial.kind === PseudoStateKind.DeepHistory));
             }
@@ -197,7 +190,7 @@ module fsm {
             this.leave.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { var current = instance.getCurrent(this); if (current.leave) { invoke(current.leave, message, instance, history); } });
 
             if (deepHistoryAbove || !this.initial || this.initial.isHistory()) {
-                this.endEnter.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { var ini:Vertex = this.initial; if (history || this.initial.isHistory()) {ini = instance.getCurrent(this) || this.initial;} invoke(ini.enter, message, instance, history || (this.initial.kind === PseudoStateKind.DeepHistory)); });
+                this.endEnter.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { var ini: Vertex = this.initial; if (history || this.initial.isHistory()) {ini = instance.getCurrent(this) || this.initial;} invoke(ini.enter, message, instance, history || (this.initial.kind === PseudoStateKind.DeepHistory)); });
             } else {
                 this.endEnter = this.endEnter.concat(this.initial.enter);
             }
@@ -206,7 +199,7 @@ module fsm {
         }
 
         bootstrapTransitions(): void {
-            for( var i:number = 0, l:number = this.vertices.length; i < l; i++) {
+            for( var i = 0, l = this.vertices.length; i < l; i++) {
                 this.vertices[i].bootstrapTransitions();
             }
         }
@@ -288,7 +281,7 @@ module fsm {
         }
 
         bootstrapTransitions(): void {
-            for(var i:number = 0, l:number = this.transitions.length; i < l; i++) {
+            for(var i = 0, l = this.transitions.length; i < l; i++) {
                 this.transitions[i].bootstrap();
             }
         }
@@ -300,7 +293,7 @@ module fsm {
         }
 
         evaluate(message: any, instance: IActiveStateConfiguration): boolean {
-            var transition: Transition = this.selector(this.transitions, message, instance);
+            var transition = this.selector(this.transitions, message, instance);
             
             if (!transition) {
                 return false;
@@ -448,7 +441,7 @@ module fsm {
         private static selector(transitions: Array<Transition>, message: any, instance: IActiveStateConfiguration): Transition {
             var result: Transition;
                 
-            for (var i:number = 0, l:number = transitions.length; i < l; i++) {
+            for (var i = 0, l = transitions.length; i < l; i++) {
                 if(transitions[i].guard(message, instance)) {
                     if(result) {
                         throw "Multiple outbound transitions evaluated true";
@@ -461,10 +454,8 @@ module fsm {
             return result;
         }
         
-        private exitBehavior: Behavior = [];
-        private entryBehavior: Behavior = [];
-
-        // NOTE: would like an equivalent of internal or package-private
+        exitBehavior: Array<Action> = [];
+        entryBehavior: Array<Action> = [];
         regions: Array<Region> = [];        
 
         /** 
@@ -596,8 +587,8 @@ module fsm {
         }
 
         bootstrap(deepHistoryAbove: boolean): void {
-            for( var i:number = 0, l:number = this.regions.length; i < l; i++) {
-                var region: Region = this.regions[i]; // regadless of TypeScript, still need this in this instance
+            for( var i = 0, l = this.regions.length; i < l; i++) {
+                var region = this.regions[i];
                 region.reset();
                 region.bootstrap(deepHistoryAbove);
 
@@ -617,7 +608,7 @@ module fsm {
         }
 
         bootstrapTransitions(): void {
-            for( var i:number = 0, l:number = this.regions.length; i < l; i++) {
+            for( var i = 0, l = this.regions.length; i < l; i++) {
                 this.regions[i].bootstrapTransitions();
             }
 
@@ -625,9 +616,9 @@ module fsm {
         }
         
         evaluate(message: any, instance: IActiveStateConfiguration): boolean {
-            var processed: boolean = false;
+            var processed = false;
             
-            for( var i:number = 0, l:number = this.regions.length; i < l; i++) {
+            for( var i = 0, l = this.regions.length; i < l; i++) {
                 if(this.isActive(instance) === true) {
                     if(this.regions[i].evaluate(message, instance)) {
                         processed = true;
@@ -695,7 +686,7 @@ module fsm {
      */
     export class StateMachine extends State {
         // NOTE: would like an equivalent of internal or package-private
-        clean: boolean = true;
+        clean = true;
 
         /** 
          * Creates a new instance of the StateMachine class.
@@ -783,9 +774,9 @@ module fsm {
     export class Transition {        
         static isElse: Guard = (message: any, instance: IActiveStateConfiguration): boolean => { return false; };
         
-        public guard: Guard;                
-        private transitionBehavior: Behavior = [];
-        traverse: Behavior = [];
+        guard: Guard;                
+        transitionBehavior: Array<Action> = [];
+        traverse: Array<Action> = [];
 
         /** 
          * Creates a new instance of the Transition class.
@@ -927,9 +918,9 @@ module fsm {
     }
     
     function junction(transitions: Array<Transition>, message: any, instance: IActiveStateConfiguration): Transition {
-        var result: Transition, i: number, l: number = transitions.length;
+        var result: Transition;
         
-        for(i = 0; i < l; i++) {
+        for(var i = 0, l = transitions.length; i < l; i++) {
             if(transitions[i].guard(message, instance)) {
                 if(result) {
                         throw "Multiple outbound transitions evaluated true";
@@ -955,9 +946,9 @@ module fsm {
     }
     
     function choice(transitions: Array<Transition>, message: any, instance: IActiveStateConfiguration): Transition {
-        var results: Array<Transition> = [], result: Transition, i: number, l: number = transitions.length;
+        var results: Array<Transition> = [], result: Transition;
                 
-        for(i = 0; i < l; i++) {
+        for(var i = 0, l = transitions.length; i < l; i++) {
             if(transitions[i].guard(message, instance)) {
                 results.push(transitions[i]);
             }
@@ -986,9 +977,9 @@ module fsm {
         return;
     }
         
-    function invoke(behavior: Behavior, message: any, instance: IActiveStateConfiguration, history: boolean): void {
-        for (var i = 0, l = behavior.length; i < l; i++) {
-            behavior[i](message, instance, history);
+    function invoke(actions: Array<Action>, message: any, instance: IActiveStateConfiguration, history: boolean): void {
+        for (var i = 0, l = actions.length; i < l; i++) {
+            actions[i](message, instance, history);
         }
     }
       
