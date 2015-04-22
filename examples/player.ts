@@ -4,7 +4,7 @@
  * Licensed under MIT and GPL v3 licences
  */
 
-/// <reference path="../src/state-5.0.1.d.ts" />
+/// <reference path="../src/state.d.ts" />
 
 var player = new fsm.StateMachine("player");
 

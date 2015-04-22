@@ -1,17 +1,10 @@
 # Welcome to state.js
 
-This is the version 5.0.1.
-The previous stable release was 4.1.8.
+This is the version 5.2.0.
 
 To see the example code in action, click [here](https://cdn.rawgit.com/steelbreeze/state.js/master/examples/test.html).
 
 If you're using state.js I'd love to hear about it; please e-mail me at mesmo@steelbreeze.net
-
-## Version 5
-Version 5 is a complete re-write from version 4.x.x:
-- Much better performance by pre-computing all steps required during a state change. A clean/diry state is maintained  and re-computing possible if the machine strucutre changes.
-- The API has changed to a fluent style enabling transitions to be defined in a more natural way.
-- The code is authored in TypeScript; this hopefully will lead to better quality code. State machines using state.js can be authored in JavaScript of TypeScript.
 
 ## Introduction
 State.js is a JavaScript implementation of a state machine library that supports most of the UML 2 state machine semantics.
@@ -25,7 +18,7 @@ The versions are in the form {major}.{minor}.{build}
 * Build changes can introduce features, though usually are fixes and performance enhancements; these will never break the public API.
 
 ## Documentation
-Documentation for the public API can be found [here](https://github.com/steelbreeze/state.js/blob/master/docs/state-5.0.1.md).
+Documentation for the public API can be found [here](https://github.com/steelbreeze/state.js/blob/master/docs/state.md).
 
 ## Building state.js
 There is no build, download a copy of state.js and use it in your site or project.

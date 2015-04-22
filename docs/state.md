@@ -89,22 +89,17 @@ An enumeration of static constants that dictates the precise behaviour of pseudo
 Use these constants as the `kind` parameter when creating new `PseudoState` instances.
 
 **Initial**: `number` , Used for pseudo states that are always the staring point when entering their parent region.
-
 **ShallowHistory**: `number` , Used for pseudo states that are the the starting point when entering their parent region for the first time; subsequent entries will start at the last known state.
-
 **DeepHistory**: `number` , As per `ShallowHistory` but the history semantic cascades through all child regions irrespective of their initial pseudo state kind.
-
 **Choice**: `number` , Enables a dynamic conditional branches; within a compound transition.
 All outbound transition guards from a Choice are evaluated upon entering the PseudoState:
 if a single transition is found, it will be traversed;
 if many transitions are found, an arbitary one will be selected and traversed;
 if none evaluate true, and there is no 'else transition' defined, the machine is deemed illformed and an exception will be thrown.
-
 **Junction**: `number` , Enables a static conditional branches; within a compound transition.
 All outbound transition guards from a Choice are evaluated upon entering the PseudoState:
 if a single transition is found, it will be traversed;
 if many or none evaluate true, and there is no 'else transition' defined, the machine is deemed illformed and an exception will be thrown.
-
 **Terminate**: `number` , Entering a terminate `PseudoState` implies that the execution of this state machine by means of its state object is terminated.
 
 ## Class: PseudoState
@@ -128,6 +123,18 @@ Creates a new instance of the PseudoState class.
 
 **kind**: `PseudoStateKind`, Determines the behaviour of the PseudoState.
 
+
+### fsm.PseudoState.isComplete(context) 
+
+Tests the vertex to determine if it is deemed to be complete.
+Pseudo states and simple states are always deemed to be complete.
+Composite states are deemed to be complete when all its child regions all are complete.
+
+**Parameters**
+
+**context**: `IContext`, The object representing a particular state machine instance.
+
+**Returns**: `boolean`, True if the vertex is deemed to be complete.
 
 
 ## Class: State
@@ -176,6 +183,17 @@ Tests the state to see if it is an orthogonal state;
 an orthogonal state is one that has two or more child regions.
 
 **Returns**: `boolean`, True if the state is an orthogonal state.
+
+### fsm.State.isComplete(context) 
+
+Tests a region to determine if it is deemed to be complete.
+A region is complete if its current state is final (a state having on outbound transitions).
+
+**Parameters**
+
+**context**: `IContext`, The object representing a particular state machine instance.
+
+**Returns**: `boolean`, True if the region is deemed to be complete.
 
 ### fsm.State.exit(exitAction) 
 

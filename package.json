@@ -3,7 +3,7 @@
     "version": "5.0.1",
     "author": "Steelbreeze <mesmo@steelbreeze.net>",
     "description": "Hierarchical finite state machine library for JavaScript",
-    "main": "./src/state-5.0.1.min",
+    "main": "./src/state.min",
     "repository" : {
         "type" : "git",
         "url" : "https://github.com/steelbreeze/state.js"

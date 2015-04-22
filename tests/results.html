@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>state.js v5.0.1 tests</title>
-    <script src="../src/state-5.0.1.min.js"></script>
+		<title>state.js v5.2.0 tests</title>
+    <script src="../src/state.js"></script>
 		<script>
 			function result( text ) {
 				document.getElementById("results").appendChild(document.createTextNode( text ));
@@ -32,7 +32,7 @@
 				junction2.to(activity3);
 				activity3.to(end);
                 
-                var sms = new fsm.Context();
+                var sms = new fsm.StateMachineInstance();
 
 				machine.initialise(sms);
 								
@@ -58,7 +58,7 @@
                 deep.to(shallow).when(function(c) { return c === "go shallow";} );
                 s2.to(end).when(function(c) { return c === "end"; } );
 
-                var sms = new fsm.Context();
+                var sms = new fsm.StateMachineInstance();
 
 				machine.initialise(sms);
 
@@ -113,7 +113,7 @@
                     return c === "back";
                 });
                 
-                var sms = new fsm.Context();				
+                var sms = new fsm.StateMachineInstance();				
 				main.initialise(sms);
 
                 main.evaluate("complete1", sms);
@@ -136,7 +136,7 @@
                 myComposite1.to(state3).when(function(c) { return c === "a";}).effect(function() { result("Brice test1: failed"); });
                 state1.to(state2).when(function(c) { return c === "a";}).effect(function() { result("Brice test1: passed"); });
                 
-                var sms = new fsm.Context();	
+                var sms = new fsm.StateMachineInstance();	
 				main.initialise(sms);
 
                 main.evaluate("a", sms);
@@ -178,7 +178,7 @@
                 state7.to(state5).when(function (c) { return c === "event2"; }).effect(function () { result("p3pp3r test also failed"); });
                 state7.to(state5).when(function (c) { return c === "event1"; });
                 
-                var sms = new fsm.Context();
+                var sms = new fsm.StateMachineInstance();
                 main.initialise(sms);
                 
                 main.evaluate("event2", sms);
@@ -195,7 +195,7 @@
 		</script>
 	</head>
 	<body onload="run()">
-        <h1>state.js v5.0.1 tests</h1>
+        <h1>state.js v5.2.0 tests</h1>
 		<div id="results"/>
 	</body>
 </html>

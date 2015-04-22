@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>state.js v5.0.1 example</title>
+        <title>state.js v5.2.0 example</title>
     </head>
 	<body>
-        <h1>state.js v5.0.1 example</h1>
+        <h1>state.js v5.2.0 example</h1>
 		<p>This example implements a simple controller for a cassette player according to the model below:</p>
 		<p><img id="diagram" /></p>
 		<p>Press the buttons below to send events to the controller (check brower console for trace output):</p>
@@ -21,7 +21,7 @@
     <script src="jquery-1.11.2.min.js"></script>
 
     <!-- import the state machine runtime -->
-    <script src="../src/state-5.0.1.min.js"></script>
+    <script src="../src/state.js"></script>
 
     <!-- the core player code -->
     <script src="player.js"></script>
@@ -42,7 +42,7 @@
             flipped.entry(function () { $("#diagram").attr("src", "controller_flipped.png"); });
 
             /* create the state machine context object */
-            var sms = new fsm.Context();
+            var sms = new fsm.StateMachineInstance("player");
 
             /* pass button values to the state machine when clicked */
             $("button").click(function(button) { player.evaluate(button.target.textContent, sms); });
