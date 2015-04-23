@@ -24,7 +24,6 @@ var fsm;
     var Element = (function () {
         function Element(name) {
             this.name = name;
-            // NOTE: would like an equivalent of internal or package-private
             this.leave = [];
             this.beginEnter = [];
             this.endEnter = [];
@@ -165,10 +164,9 @@ var fsm;
      */
     var Vertex = (function (_super) {
         __extends(Vertex, _super);
-        function Vertex(name, parent, selector) {
+        function Vertex(name, parent) {
             _super.call(this, name);
             this.transitions = [];
-            this.selector = selector;
             if (parent instanceof Region) {
                 this.region = parent;
             }
@@ -226,8 +224,11 @@ var fsm;
                 this.evaluate(this, instance);
             }
         };
+        Vertex.prototype.select = function (message, instance) {
+            return; // NOTE: abstract method
+        };
         Vertex.prototype.evaluate = function (message, instance) {
-            var transition = this.selector(this.transitions, message, instance);
+            var transition = this.select(message, instance);
             if (!transition) {
                 return false;
             }
@@ -303,7 +304,7 @@ var fsm;
          * @param {PseudoStateKind} kind Determines the behaviour of the PseudoState.
          */
         function PseudoState(name, parent, kind) {
-            _super.call(this, name, parent, pseudoState(kind));
+            _super.call(this, name, parent);
             this.kind = kind;
             if (this.isInitial()) {
                 this.region.initial = this;
@@ -334,6 +335,52 @@ var fsm;
                 });
             }
         };
+        PseudoState.prototype.select = function (message, instance) {
+            switch (this.kind) {
+                case 0 /* Initial */:
+                case 2 /* DeepHistory */:
+                case 1 /* ShallowHistory */:
+                    if (this.transitions.length === 1) {
+                        return this.transitions[0];
+                    }
+                    else {
+                        throw "Initial transition must have a single outbound transition from " + this.qualifiedName;
+                    }
+                case 4 /* Junction */:
+                    var result, elseResult;
+                    for (var i = 0, l = this.transitions.length; i < l; i++) {
+                        if (this.transitions[i].guard === Transition.isElse) {
+                            if (elseResult) {
+                                throw "Multiple outbound transitions evaluated true";
+                            }
+                            elseResult = this.transitions[i];
+                        }
+                        else if (this.transitions[i].guard(message, instance)) {
+                            if (result) {
+                                throw "Multiple outbound transitions evaluated true";
+                            }
+                            result = this.transitions[i];
+                        }
+                    }
+                    return result || elseResult;
+                case 3 /* Choice */:
+                    var results = [];
+                    for (var i = 0, l = this.transitions.length; i < l; i++) {
+                        if (this.transitions[i].guard === Transition.isElse) {
+                            if (elseResult) {
+                                throw "Multiple outbound else transitions found at " + this + " for " + message;
+                            }
+                            elseResult = this.transitions[i];
+                        }
+                        else if (this.transitions[i].guard(message, instance)) {
+                            results.push(this.transitions[i]);
+                        }
+                    }
+                    return results.length !== 0 ? results[Math.round((results.length - 1) * Math.random())] : elseResult;
+                default:
+                    return null;
+            }
+        };
         return PseudoState;
     })(Vertex);
     fsm.PseudoState = PseudoState;
@@ -355,23 +402,11 @@ var fsm;
          * @param {Element} parent The parent state that owns the state.
          */
         function State(name, parent) {
-            _super.call(this, name, parent, State.selector);
+            _super.call(this, name, parent);
             this.exitBehavior = [];
             this.entryBehavior = [];
             this.regions = [];
         }
-        State.selector = function (transitions, message, instance) {
-            var result;
-            for (var i = 0, l = transitions.length; i < l; i++) {
-                if (transitions[i].guard(message, instance)) {
-                    if (result) {
-                        throw "Multiple outbound transitions evaluated true";
-                    }
-                    result = transitions[i];
-                }
-            }
-            return result;
-        };
         State.prototype.defaultRegion = function () {
             var region;
             for (var i = 0, l = this.regions.length; i < l; i++) {
@@ -486,6 +521,18 @@ var fsm;
                 this.regions[i].bootstrapTransitions();
             }
             _super.prototype.bootstrapTransitions.call(this);
+        };
+        State.prototype.select = function (message, instance) {
+            var result;
+            for (var i = 0, l = this.transitions.length; i < l; i++) {
+                if (this.transitions[i].guard(message, instance)) {
+                    if (result) {
+                        throw "Multiple outbound transitions evaluated true";
+                    }
+                    result = this.transitions[i];
+                }
+            }
+            return result;
         };
         State.prototype.evaluate = function (message, instance) {
             var processed = false;
@@ -721,75 +768,6 @@ var fsm;
         return Transition;
     })();
     fsm.Transition = Transition;
-    function pseudoState(kind) {
-        switch (kind) {
-            case 0 /* Initial */:
-            case 2 /* DeepHistory */:
-            case 1 /* ShallowHistory */:
-                return initial;
-            case 4 /* Junction */:
-                return junction;
-            case 3 /* Choice */:
-                return choice;
-            case 5 /* Terminate */:
-                return terminate;
-        }
-    }
-    function initial(transitions, message, instance) {
-        if (transitions.length === 1) {
-            return transitions[0];
-        }
-        else {
-            throw "Initial transition must have a single outbound transition";
-        }
-    }
-    function junction(transitions, message, instance) {
-        var result;
-        for (var i = 0, l = transitions.length; i < l; i++) {
-            if (transitions[i].guard(message, instance)) {
-                if (result) {
-                    throw "Multiple outbound transitions evaluated true";
-                }
-                result = transitions[i];
-            }
-        }
-        if (!result) {
-            for (i = 0; i < l; i++) {
-                if (transitions[i].guard === Transition.isElse) {
-                    if (result) {
-                        throw "Multiple outbound transitions evaluated true";
-                    }
-                    result = transitions[i];
-                }
-            }
-        }
-        return result;
-    }
-    function choice(transitions, message, instance) {
-        var results = [], result;
-        for (var i = 0, l = transitions.length; i < l; i++) {
-            if (transitions[i].guard(message, instance)) {
-                results.push(transitions[i]);
-            }
-        }
-        if (results.length !== 0) {
-            result = results[Math.round((results.length - 1) * Math.random())];
-        }
-        if (!result) {
-            for (i = 0; i < l; i++) {
-                if (transitions[i].guard === Transition.isElse) {
-                    if (result) {
-                        throw "Multiple outbound transitions evaluated true";
-                    }
-                    result = transitions[i];
-                }
-            }
-        }
-        return result;
-    }
-    function terminate(transitions, message, instance) {
-        return;
-    }
     function invoke(actions, message, instance, history) {
         for (var i = 0, l = actions.length; i < l; i++) {
             actions[i](message, instance, history);

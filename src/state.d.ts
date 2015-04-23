@@ -30,9 +30,6 @@ declare module fsm {
     interface Action {
         (message: any, instance: IActiveStateConfiguration, history: boolean): any;
     }
-    interface Selector {
-        (transitions: Array<Transition>, message: any, instance: IActiveStateConfiguration): Transition;
-    }
     /**
      * Interface for the state machine instance; an object used as each instance of a state machine (as the classes in this library describe a state machine model).
      * @interface IActiveStateConfiguration
@@ -100,7 +97,7 @@ declare module fsm {
      * @augments Element
      */
     class Region extends Element {
-        private parent;
+        parent: State;
         /**
          * The name given to regions that are are created automatically when a state is passed as a vertex's parent.
          * Regions are automatically inserted into state machine models as the composite structure is built; they are named using this static member.
@@ -139,9 +136,8 @@ declare module fsm {
     class Vertex extends Element {
         region: Region;
         transitions: Array<Transition>;
-        private selector;
-        constructor(name: string, parent: Region, selector: Selector);
-        constructor(name: string, parent: State, selector: Selector);
+        constructor(name: string, parent: Region);
+        constructor(name: string, parent: State);
         getParent(): Element;
         /**
          * Tests the vertex to determine if it is deemed to be complete.
@@ -164,6 +160,7 @@ declare module fsm {
         bootstrap(deepHistoryAbove: boolean): void;
         bootstrapTransitions(): void;
         evaluateCompletions(message: any, instance: IActiveStateConfiguration, history: boolean): void;
+        select(message: any, instance: IActiveStateConfiguration): Transition;
         evaluate(message: any, instance: IActiveStateConfiguration): boolean;
     }
     /**
@@ -250,6 +247,7 @@ declare module fsm {
         isHistory(): boolean;
         isInitial(): boolean;
         bootstrap(deepHistoryAbove: boolean): void;
+        select(message: any, instance: IActiveStateConfiguration): Transition;
     }
     /**
      * An element within a state machine model that represents an invariant condition within the life of the state machine instance.
@@ -262,7 +260,6 @@ declare module fsm {
      * @augments Vertex
      */
     class State extends Vertex {
-        private static selector(transitions, message, instance);
         exitBehavior: Array<Action>;
         entryBehavior: Array<Action>;
         regions: Array<Region>;
@@ -332,6 +329,7 @@ declare module fsm {
         entry<TMessage>(entryAction: Action): State;
         bootstrap(deepHistoryAbove: boolean): void;
         bootstrapTransitions(): void;
+        select(message: any, instance: IActiveStateConfiguration): Transition;
         evaluate(message: any, instance: IActiveStateConfiguration): boolean;
     }
     /**
@@ -417,8 +415,8 @@ declare module fsm {
      * @class Transition
      */
     class Transition {
-        private source;
-        private target;
+        source: Vertex;
+        target: Vertex;
         static isElse: Guard;
         guard: Guard;
         transitionBehavior: Array<Action>;
