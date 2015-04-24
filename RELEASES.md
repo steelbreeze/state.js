@@ -15,6 +15,10 @@ Removed explicit var typing where implicit is sufficient.
 
 Removed Behaviour type and just used Array of Action in place.
 
+Remove Selector type and functions; replace with virtual methods on Vertex subtypes.
+
+Remove Action and Guard types.
+
 ## Version 5.0.1
 Fix bug relating to external transitions and orthogonal regions that could result in an invalid current active state.
 

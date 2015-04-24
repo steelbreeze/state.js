@@ -476,7 +476,7 @@ var fsm;
         /**
          * Adds behaviour to a state that is executed each time the state is exited.
          * @method exit
-         * @param {Action} exitAction The action to add to the state's exit behaviour.
+         * @param {(message: any, instance: IActiveStateConfiguration, history: boolean) => any} exitAction The action to add to the state's exit behaviour.
          * @returns {State} Returns the state to allow a fluent style API.
          */
         State.prototype.exit = function (exitAction) {
@@ -487,7 +487,7 @@ var fsm;
         /**
          * Adds behaviour to a state that is executed each time the state is entered.
          * @method entry
-         * @param {Action} entryAction The action to add to the state's entry behaviour.
+         * @param {(message: any, instance: IActiveStateConfiguration, history: boolean) => any} entryAction The action to add to the state's entry behaviour.
          * @returns {State} Returns the state to allow a fluent style API.
          */
         State.prototype.entry = function (entryAction) {
@@ -698,7 +698,7 @@ var fsm;
         /**
          * Defines the guard condition for the transition.
          * @method when
-         * @param {Guard} guard The guard condition that must evaluate true for the transition to be traversed.
+         * @param {(message: any, instance: IActiveStateConfiguration) => boolean} guard The guard condition that must evaluate true for the transition to be traversed.
          * @returns {Transition} Returns the transition object to enable the fluent API.
          */
         Transition.prototype.when = function (guard) {
@@ -708,7 +708,7 @@ var fsm;
         /**
          * Add behaviour to a transition.
          * @method effect
-         * @param {Action} transitionAction The action to add to the transitions traversal behaviour.
+         * @param {(message: any, instance: IActiveStateConfiguration, history: boolean) => any} transitionAction The action to add to the transitions traversal behaviour.
          * @returns {Transition} Returns the transition object to enable the fluent API.
          */
         Transition.prototype.effect = function (transitionAction) {

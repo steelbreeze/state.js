@@ -10,30 +10,6 @@
  */
 declare module fsm {
     /**
-     * Type signature for guard conditions used by Transitions.
-     * @interface Guard
-     * @param {any} message The message injected into the state machine for evaluation.
-     * @param {IActiveStateConfiguration}instance The object representing a particular state machine instance.
-     * @returns {boolean}
-     */
-    interface Guard {
-        (message: any, instance: IActiveStateConfiguration): boolean;
-    }
-    /**
-     * Type signature for an action performed durin Transitions.
-     * @interface Action
-     * @param {any} message The message injected into the state machine for evaluation.
-     * @param {IActiveStateConfiguration} instance The object representing a particular state machine instance.
-     * @param  {boolean} history For internal use only; indicates that history semantics are in operation when the action is called.
-     * @returns {any} Note that the any return type is used to indicate that the state machine runtime does not care what the return type of actions are.
-     */
-    interface Action {
-        (message: any, instance: IActiveStateConfiguration, history: boolean): any;
-    }
-    interface Selector {
-        (transitions: Array<Transition>, message: any, instance: IActiveStateConfiguration): Transition;
-    }
-    /**
      * Interface for the state machine instance; an object used as each instance of a state machine (as the classes in this library describe a state machine model).
      * @interface IActiveStateConfiguration
      */
@@ -71,10 +47,10 @@ declare module fsm {
          */
         static namespaceSeparator: string;
         qualifiedName: string;
-        leave: Array<Action>;
-        beginEnter: Array<Action>;
-        endEnter: Array<Action>;
-        enter: Array<Action>;
+        leave: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any>;
+        beginEnter: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any>;
+        endEnter: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any>;
+        enter: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any>;
         constructor(name: string);
         getParent(): Element;
         root(): StateMachine;
@@ -100,7 +76,7 @@ declare module fsm {
      * @augments Element
      */
     class Region extends Element {
-        private parent;
+        parent: State;
         /**
          * The name given to regions that are are created automatically when a state is passed as a vertex's parent.
          * Regions are automatically inserted into state machine models as the composite structure is built; they are named using this static member.
@@ -139,9 +115,8 @@ declare module fsm {
     class Vertex extends Element {
         region: Region;
         transitions: Array<Transition>;
-        private selector;
-        constructor(name: string, parent: Region, selector: Selector);
-        constructor(name: string, parent: State, selector: Selector);
+        constructor(name: string, parent: Region);
+        constructor(name: string, parent: State);
         getParent(): Element;
         /**
          * Tests the vertex to determine if it is deemed to be complete.
@@ -164,6 +139,7 @@ declare module fsm {
         bootstrap(deepHistoryAbove: boolean): void;
         bootstrapTransitions(): void;
         evaluateCompletions(message: any, instance: IActiveStateConfiguration, history: boolean): void;
+        select(message: any, instance: IActiveStateConfiguration): Transition;
         evaluate(message: any, instance: IActiveStateConfiguration): boolean;
     }
     /**
@@ -250,6 +226,7 @@ declare module fsm {
         isHistory(): boolean;
         isInitial(): boolean;
         bootstrap(deepHistoryAbove: boolean): void;
+        select(message: any, instance: IActiveStateConfiguration): Transition;
     }
     /**
      * An element within a state machine model that represents an invariant condition within the life of the state machine instance.
@@ -262,9 +239,8 @@ declare module fsm {
      * @augments Vertex
      */
     class State extends Vertex {
-        private static selector(transitions, message, instance);
-        exitBehavior: Array<Action>;
-        entryBehavior: Array<Action>;
+        exitBehavior: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any>;
+        entryBehavior: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any>;
         regions: Array<Region>;
         /**
          * Creates a new instance of the State class.
@@ -319,19 +295,20 @@ declare module fsm {
         /**
          * Adds behaviour to a state that is executed each time the state is exited.
          * @method exit
-         * @param {Action} exitAction The action to add to the state's exit behaviour.
+         * @param {(message: any, instance: IActiveStateConfiguration, history: boolean) => any} exitAction The action to add to the state's exit behaviour.
          * @returns {State} Returns the state to allow a fluent style API.
          */
-        exit<TMessage>(exitAction: Action): State;
+        exit<TMessage>(exitAction: (message: any, instance: IActiveStateConfiguration, history: boolean) => any): State;
         /**
          * Adds behaviour to a state that is executed each time the state is entered.
          * @method entry
-         * @param {Action} entryAction The action to add to the state's entry behaviour.
+         * @param {(message: any, instance: IActiveStateConfiguration, history: boolean) => any} entryAction The action to add to the state's entry behaviour.
          * @returns {State} Returns the state to allow a fluent style API.
          */
-        entry<TMessage>(entryAction: Action): State;
+        entry<TMessage>(entryAction: (message: any, instance: IActiveStateConfiguration, history: boolean) => any): State;
         bootstrap(deepHistoryAbove: boolean): void;
         bootstrapTransitions(): void;
+        select(message: any, instance: IActiveStateConfiguration): Transition;
         evaluate(message: any, instance: IActiveStateConfiguration): boolean;
     }
     /**
@@ -417,12 +394,12 @@ declare module fsm {
      * @class Transition
      */
     class Transition {
-        private source;
-        private target;
-        static isElse: Guard;
-        guard: Guard;
-        transitionBehavior: Array<Action>;
-        traverse: Array<Action>;
+        source: Vertex;
+        target: Vertex;
+        static isElse: (message: any, instance: IActiveStateConfiguration) => boolean;
+        guard: (message: any, instance: IActiveStateConfiguration) => boolean;
+        transitionBehavior: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any>;
+        traverse: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any>;
         /**
          * Creates a new instance of the Transition class.
          * @param {Vertex} source The source of the transition.
@@ -440,17 +417,17 @@ declare module fsm {
         /**
          * Defines the guard condition for the transition.
          * @method when
-         * @param {Guard} guard The guard condition that must evaluate true for the transition to be traversed.
+         * @param {(message: any, instance: IActiveStateConfiguration) => boolean} guard The guard condition that must evaluate true for the transition to be traversed.
          * @returns {Transition} Returns the transition object to enable the fluent API.
          */
-        when(guard: Guard): Transition;
+        when(guard: (message: any, instance: IActiveStateConfiguration) => boolean): Transition;
         /**
          * Add behaviour to a transition.
          * @method effect
-         * @param {Action} transitionAction The action to add to the transitions traversal behaviour.
+         * @param {(message: any, instance: IActiveStateConfiguration, history: boolean) => any} transitionAction The action to add to the transitions traversal behaviour.
          * @returns {Transition} Returns the transition object to enable the fluent API.
          */
-        effect<TMessage>(transitionAction: Action): Transition;
+        effect<TMessage>(transitionAction: (message: any, instance: IActiveStateConfiguration, history: boolean) => any): Transition;
         bootstrap(): void;
     }
     /**
