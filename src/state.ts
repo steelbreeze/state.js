@@ -45,47 +45,47 @@ module fsm {
         getCurrent(region: Region): State;
     }
 		
-	export class Visitor<TParam> {
-		visitElement(element: Element, param: TParam) {
+	export class Visitor<TArg> {
+		visitElement(element: Element, arg: TArg) {
 		}
 		
-		visitRegion(region: Region, param: TParam) {
-			this.visitElement(region, param);
+		visitRegion(region: Region, arg: TArg) {
+			this.visitElement(region, arg);
 			
 			for (var i = 0, l = region.vertices.length; i < l; i++) {
-				region.vertices[i].accept(this, param);
+				region.vertices[i].accept(this, arg);
 			}
 		}
 		
-		visitVertex(vertex: Vertex, param: TParam) {
-			this.visitElement(vertex, param);
+		visitVertex(vertex: Vertex, arg: TArg) {
+			this.visitElement(vertex, arg);
 			
 			for (var i = 0, l = vertex.transitions.length; i < l; i++) {
-				vertex.transitions[i].accept(this, param);
+				vertex.transitions[i].accept(this, arg);
 			}			
 		}
 		
-		visitPseudoState(pseudoState: PseudoState, param: TParam) {
-			this.visitVertex(pseudoState, param);
+		visitPseudoState(pseudoState: PseudoState, arg: TArg) {
+			this.visitVertex(pseudoState, arg);
 		}
 		
-		visitState(state: State, param: TParam) {
-			this.visitVertex(state, param);
+		visitState(state: State, arg: TArg) {
+			this.visitVertex(state, arg);
 
 			for (var i = 0, l = state.regions.length; i < l; i++) {
-				state.regions[i].accept(this, param);
+				state.regions[i].accept(this, arg);
 			}			
 		}
 		
-		visitFinalState(finalState: FinalState, param: TParam) {
-			this.visitState(finalState, param);
+		visitFinalState(finalState: FinalState, arg: TArg) {
+			this.visitState(finalState, arg);
 		}
 		
-		visitStateMachine(stateMachine: StateMachine, param: TParam) {
-			this.visitState(stateMachine, param);
+		visitStateMachine(stateMachine: StateMachine, arg: TArg) {
+			this.visitState(stateMachine, arg);
 		}
 		
-		visitTransition(transition: Transition, param: TParam) {
+		visitTransition(transition: Transition, arg: TArg) {
 		}
 	}
 
@@ -163,8 +163,73 @@ module fsm {
 			// TODO: complete
 			return;
 		}
+
+		visitElement(element: Element, deepHistoryAbove: boolean) {
+			element.qualifiedName = element.ancestors().map<string>((e)=> { return e.name; }).join(Element.namespaceSeparator);
+
+            // Put these lines back for debugging
+            element.leave.push((message: any, instance: IActiveStateConfiguration) => { console.log(instance + " leave " + element); });
+            element.beginEnter.push((message: any, instance: IActiveStateConfiguration) => { console.log(instance + " enter " + element); });
+
+            element.enter = element.beginEnter.concat(element.endEnter);
+		}
+
+		visitRegion(region: Region, deepHistoryAbove: boolean) {
+            for( var i = 0, l = region.vertices.length; i < l; i++) {
+                region.vertices[i].reset();
+                region.vertices[i].accept(this, deepHistoryAbove || (region.initial && region.initial.kind === PseudoStateKind.DeepHistory));
+            }
+
+            region.leave.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { var current = instance.getCurrent(region); if (current.leave) { invoke(current.leave, message, instance, history); } });
+
+            if (deepHistoryAbove || !region.initial || region.initial.isHistory()) {
+                region.endEnter.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { var ini: Vertex = region.initial; if (history || region.initial.isHistory()) {ini = instance.getCurrent(region) || region.initial;} invoke(ini.enter, message, instance, history || (region.initial.kind === PseudoStateKind.DeepHistory)); });
+            } else {
+                region.endEnter = region.endEnter.concat(region.initial.enter);
+            }
+
+            this.visitElement(region, deepHistoryAbove);
+		}
+
+		visitVertex(vertex: Vertex, deepHistoryAbove: boolean) {
+            this.visitElement(vertex, deepHistoryAbove);
+
+            vertex.endEnter.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { vertex.evaluateCompletions(message, instance, history); });
+            vertex.enter = vertex.beginEnter.concat(vertex.endEnter);
+		}
+
+		visitPseudoState(pseudoState: PseudoState, deepHistoryAbove: boolean) {			
+            this.visitVertex(pseudoState, deepHistoryAbove);
+
+            if (pseudoState.kind === PseudoStateKind.Terminate) {
+                pseudoState.enter.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { instance.isTerminated = true; });
+            }
+		}
+		
+		visitState(state: State, deepHistoryAbove: boolean) {
+            for( var i = 0, l = state.regions.length; i < l; i++) {
+                var region = state.regions[i];
+                region.reset();
+                region.accept(this, deepHistoryAbove);
+
+                state.leave.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { invoke(region.leave, message, instance, history); });
+
+                state.endEnter = state.endEnter.concat(region.enter);
+            }
+
+            this.visitVertex(state, deepHistoryAbove);
+
+            state.leave = state.leave.concat(state.exitBehavior);
+            state.beginEnter = state.beginEnter.concat(state.entryBehavior);
+
+            state.beginEnter.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { if (state.region) { instance.setCurrent(state.region, state); } });
+
+            state.enter = state.beginEnter.concat(state.endEnter);
+		}
 		
 		visitStateMachine(stateMachine: StateMachine, deepHistoryAbove: boolean) {
+			this.visitState(stateMachine, deepHistoryAbove);
+			
 			stateMachine.accept(Bootstrap.bootstrapTransitions, this.elementBehaviour);
 		}
 	}
@@ -214,17 +279,7 @@ module fsm {
             this.enter = [];
         }
 
-        bootstrap(deepHistoryAbove: boolean): void {
-			this.qualifiedName = this.ancestors().map<string>((e)=> { return e.name; }).join(Element.namespaceSeparator);
-
-            // Put these lines back for debugging
-            //this.leave.push((message: any, instance: IActiveStateConfiguration) => { console.log(instance + " leave " + this); });
-            //this.beginEnter.push((message: any, instance: IActiveStateConfiguration) => { console.log(instance + " enter " + this); });
-
-            this.enter = this.beginEnter.concat(this.endEnter);
-        }
-
-        /**
+		/**
          * Returns a the element name as a fully qualified namespace.
          * @method toString
          * @returns {string}
@@ -284,30 +339,13 @@ module fsm {
         isComplete(instance: IActiveStateConfiguration): boolean {
             return instance.getCurrent(this).isFinal();
         }
-
-        bootstrap(deepHistoryAbove: boolean): void {
-            for( var i = 0, l = this.vertices.length; i < l; i++) {
-                this.vertices[i].reset();
-                this.vertices[i].bootstrap(deepHistoryAbove || (this.initial && this.initial.kind === PseudoStateKind.DeepHistory));
-            }
-
-            this.leave.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { var current = instance.getCurrent(this); if (current.leave) { invoke(current.leave, message, instance, history); } });
-
-            if (deepHistoryAbove || !this.initial || this.initial.isHistory()) {
-                this.endEnter.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { var ini: Vertex = this.initial; if (history || this.initial.isHistory()) {ini = instance.getCurrent(this) || this.initial;} invoke(ini.enter, message, instance, history || (this.initial.kind === PseudoStateKind.DeepHistory)); });
-            } else {
-                this.endEnter = this.endEnter.concat(this.initial.enter);
-            }
-
-            super.bootstrap(deepHistoryAbove);
-        }
         
         evaluate(message: any, instance: IActiveStateConfiguration): boolean {
             return instance.getCurrent(this).evaluate(message, instance);
         }
 		
-		accept<TParam>(visitor: Visitor<TParam>, param: TParam) {
-			visitor.visitRegion(this, param);
+		accept<TArg>(visitor: Visitor<TArg>, arg: TArg) {
+			visitor.visitRegion(this, arg);
 		}
     }
     
@@ -372,13 +410,6 @@ module fsm {
             return transition;
         }
 
-        bootstrap(deepHistoryAbove: boolean): void {
-            super.bootstrap(deepHistoryAbove);
-
-            this.endEnter.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { this.evaluateCompletions(message, instance, history); });
-            this.enter = this.beginEnter.concat(this.endEnter);
-        }
-
         evaluateCompletions(message: any, instance: IActiveStateConfiguration, history: boolean) {
             if (this.isComplete(instance)) {
                 this.evaluate(this, instance);
@@ -401,7 +432,7 @@ module fsm {
             return true;
         }
 
-		accept<TParam>(visitor: Visitor<TParam>, param: TParam) {
+		accept<TArg>(visitor: Visitor<TArg>, arg: TArg) {
 			// NOTE: abstract method
 		}
     }
@@ -518,14 +549,6 @@ module fsm {
         isInitial(): boolean {
             return this.kind === PseudoStateKind.Initial || this.isHistory();
         }
-
-        bootstrap(deepHistoryAbove: boolean): void {
-            super.bootstrap(deepHistoryAbove);
-
-            if (this.kind === PseudoStateKind.Terminate) {
-                this.enter.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { instance.isTerminated = true; });
-            }
-        }
 		
 		select(message: any, instance: IActiveStateConfiguration): Transition {
 			switch(this.kind) {
@@ -581,8 +604,8 @@ module fsm {
 			}
 		}
 		
-		accept<TParam>(visitor: Visitor<TParam>, param: TParam) {
-			visitor.visitPseudoState(this, param);
+		accept<TArg>(visitor: Visitor<TArg>, arg: TArg) {
+			visitor.visitPseudoState(this, arg);
 		}
     }
 
@@ -728,27 +751,6 @@ module fsm {
 
             return this;
         }
-
-        bootstrap(deepHistoryAbove: boolean): void {
-            for( var i = 0, l = this.regions.length; i < l; i++) {
-                var region = this.regions[i];
-                region.reset();
-                region.bootstrap(deepHistoryAbove);
-
-                this.leave.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { invoke(region.leave, message, instance, history); });
-
-                this.endEnter = this.endEnter.concat(region.enter);
-            }
-
-            super.bootstrap(deepHistoryAbove);
-
-            this.leave = this.leave.concat(this.exitBehavior);
-            this.beginEnter = this.beginEnter.concat(this.entryBehavior);
-
-            this.beginEnter.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { if (this.region) { instance.setCurrent(this.region, this); } });
-
-            this.enter = this.beginEnter.concat(this.endEnter);
-        }
         
 		select(message: any, instance: IActiveStateConfiguration): Transition {
 			var result: Transition;
@@ -788,8 +790,8 @@ module fsm {
             return processed;
         }
 		
-		accept<TParam>(visitor: Visitor<TParam>, param: TParam) {
-			visitor.visitState(this, param);
+		accept<TArg>(visitor: Visitor<TArg>, arg: TArg) {
+			visitor.visitState(this, arg);
 		}
     }
 
@@ -831,8 +833,8 @@ module fsm {
             throw "A FinalState cannot be the source of a transition.";
         }
 		
-		accept<TParam>(visitor: Visitor<TParam>, param: TParam) {
-			visitor.visitFinalState(this, param);
+		accept<TArg>(visitor: Visitor<TArg>, arg: TArg) {
+			visitor.visitFinalState(this, arg);
 		}
     }
 
@@ -874,11 +876,9 @@ module fsm {
          * This is only required if you are dynamically changing the state machine model and want to manually control when the model is bootstrapped.
          * @method bootstrap
          */
-        bootstrap(deepHistoryAbove: boolean): void {
+        initialiseModel(): void {
             super.reset();
             this.clean = true;
-
-            super.bootstrap(deepHistoryAbove);
 			
 			this.accept(StateMachine.bootstrap, false);
         }
@@ -892,7 +892,7 @@ module fsm {
          */
         initialise(instance: IActiveStateConfiguration, autoBootstrap: boolean = true): void {
             if (autoBootstrap && this.clean === false) {
-                this.bootstrap(false);
+                this.initialiseModel();
             }
 
             invoke(this.enter, undefined, instance, false);
@@ -911,7 +911,7 @@ module fsm {
          */
         evaluate(message: any, instance: IActiveStateConfiguration, autoBootstrap: boolean = true): boolean {
             if (autoBootstrap && this.clean === false) {
-                this.bootstrap(false);
+                this.initialiseModel();
             }
 
             if (instance.isTerminated) {
@@ -921,8 +921,8 @@ module fsm {
             return super.evaluate(message, instance);
         }
 		
-		accept<TParam>(visitor: Visitor<TParam>, param: TParam) {
-			visitor.visitStateMachine(this, param);
+		accept<TArg>(visitor: Visitor<TArg>, arg: TArg) {
+			visitor.visitStateMachine(this, arg);
 		}
     }
 
@@ -993,8 +993,8 @@ module fsm {
             return this;
         }
 		
-		accept<TParam>(visitor: Visitor<TParam>, param: TParam) {
-			visitor.visitTransition(this, param);
+		accept<TArg>(visitor: Visitor<TArg>, arg: TArg) {
+			visitor.visitTransition(this, arg);
 		}
     }
                	

@@ -19,36 +19,36 @@ var fsm;
     var Visitor = (function () {
         function Visitor() {
         }
-        Visitor.prototype.visitElement = function (element, param) {
+        Visitor.prototype.visitElement = function (element, arg) {
         };
-        Visitor.prototype.visitRegion = function (region, param) {
-            this.visitElement(region, param);
+        Visitor.prototype.visitRegion = function (region, arg) {
+            this.visitElement(region, arg);
             for (var i = 0, l = region.vertices.length; i < l; i++) {
-                region.vertices[i].accept(this, param);
+                region.vertices[i].accept(this, arg);
             }
         };
-        Visitor.prototype.visitVertex = function (vertex, param) {
-            this.visitElement(vertex, param);
+        Visitor.prototype.visitVertex = function (vertex, arg) {
+            this.visitElement(vertex, arg);
             for (var i = 0, l = vertex.transitions.length; i < l; i++) {
-                vertex.transitions[i].accept(this, param);
+                vertex.transitions[i].accept(this, arg);
             }
         };
-        Visitor.prototype.visitPseudoState = function (pseudoState, param) {
-            this.visitVertex(pseudoState, param);
+        Visitor.prototype.visitPseudoState = function (pseudoState, arg) {
+            this.visitVertex(pseudoState, arg);
         };
-        Visitor.prototype.visitState = function (state, param) {
-            this.visitVertex(state, param);
+        Visitor.prototype.visitState = function (state, arg) {
+            this.visitVertex(state, arg);
             for (var i = 0, l = state.regions.length; i < l; i++) {
-                state.regions[i].accept(this, param);
+                state.regions[i].accept(this, arg);
             }
         };
-        Visitor.prototype.visitFinalState = function (finalState, param) {
-            this.visitState(finalState, param);
+        Visitor.prototype.visitFinalState = function (finalState, arg) {
+            this.visitState(finalState, arg);
         };
-        Visitor.prototype.visitStateMachine = function (stateMachine, param) {
-            this.visitState(stateMachine, param);
+        Visitor.prototype.visitStateMachine = function (stateMachine, arg) {
+            this.visitState(stateMachine, arg);
         };
-        Visitor.prototype.visitTransition = function (transition, param) {
+        Visitor.prototype.visitTransition = function (transition, arg) {
         };
         return Visitor;
     })();
@@ -120,7 +120,81 @@ var fsm;
             // TODO: complete
             return;
         };
+        Bootstrap.prototype.visitElement = function (element, deepHistoryAbove) {
+            element.qualifiedName = element.ancestors().map(function (e) {
+                return e.name;
+            }).join(Element.namespaceSeparator);
+            // Put these lines back for debugging
+            element.leave.push(function (message, instance) {
+                console.log(instance + " leave " + element);
+            });
+            element.beginEnter.push(function (message, instance) {
+                console.log(instance + " enter " + element);
+            });
+            element.enter = element.beginEnter.concat(element.endEnter);
+        };
+        Bootstrap.prototype.visitRegion = function (region, deepHistoryAbove) {
+            for (var i = 0, l = region.vertices.length; i < l; i++) {
+                region.vertices[i].reset();
+                region.vertices[i].accept(this, deepHistoryAbove || (region.initial && region.initial.kind === 2 /* DeepHistory */));
+            }
+            region.leave.push(function (message, instance, history) {
+                var current = instance.getCurrent(region);
+                if (current.leave) {
+                    invoke(current.leave, message, instance, history);
+                }
+            });
+            if (deepHistoryAbove || !region.initial || region.initial.isHistory()) {
+                region.endEnter.push(function (message, instance, history) {
+                    var ini = region.initial;
+                    if (history || region.initial.isHistory()) {
+                        ini = instance.getCurrent(region) || region.initial;
+                    }
+                    invoke(ini.enter, message, instance, history || (region.initial.kind === 2 /* DeepHistory */));
+                });
+            }
+            else {
+                region.endEnter = region.endEnter.concat(region.initial.enter);
+            }
+            this.visitElement(region, deepHistoryAbove);
+        };
+        Bootstrap.prototype.visitVertex = function (vertex, deepHistoryAbove) {
+            this.visitElement(vertex, deepHistoryAbove);
+            vertex.endEnter.push(function (message, instance, history) {
+                vertex.evaluateCompletions(message, instance, history);
+            });
+            vertex.enter = vertex.beginEnter.concat(vertex.endEnter);
+        };
+        Bootstrap.prototype.visitPseudoState = function (pseudoState, deepHistoryAbove) {
+            this.visitVertex(pseudoState, deepHistoryAbove);
+            if (pseudoState.kind === 5 /* Terminate */) {
+                pseudoState.enter.push(function (message, instance, history) {
+                    instance.isTerminated = true;
+                });
+            }
+        };
+        Bootstrap.prototype.visitState = function (state, deepHistoryAbove) {
+            for (var i = 0, l = state.regions.length; i < l; i++) {
+                var region = state.regions[i];
+                region.reset();
+                region.accept(this, deepHistoryAbove);
+                state.leave.push(function (message, instance, history) {
+                    invoke(region.leave, message, instance, history);
+                });
+                state.endEnter = state.endEnter.concat(region.enter);
+            }
+            this.visitVertex(state, deepHistoryAbove);
+            state.leave = state.leave.concat(state.exitBehavior);
+            state.beginEnter = state.beginEnter.concat(state.entryBehavior);
+            state.beginEnter.push(function (message, instance, history) {
+                if (state.region) {
+                    instance.setCurrent(state.region, state);
+                }
+            });
+            state.enter = state.beginEnter.concat(state.endEnter);
+        };
         Bootstrap.prototype.visitStateMachine = function (stateMachine, deepHistoryAbove) {
+            this.visitState(stateMachine, deepHistoryAbove);
             stateMachine.accept(Bootstrap.bootstrapTransitions, this.elementBehaviour);
         };
         Bootstrap.bootstrapTransitions = new BootstrapTransitions();
@@ -156,15 +230,6 @@ var fsm;
             this.beginEnter = [];
             this.endEnter = [];
             this.enter = [];
-        };
-        Element.prototype.bootstrap = function (deepHistoryAbove) {
-            this.qualifiedName = this.ancestors().map(function (e) {
-                return e.name;
-            }).join(Element.namespaceSeparator);
-            // Put these lines back for debugging
-            //this.leave.push((message: any, instance: IActiveStateConfiguration) => { console.log(instance + " leave " + this); });
-            //this.beginEnter.push((message: any, instance: IActiveStateConfiguration) => { console.log(instance + " enter " + this); });
-            this.enter = this.beginEnter.concat(this.endEnter);
         };
         /**
          * Returns a the element name as a fully qualified namespace.
@@ -221,37 +286,11 @@ var fsm;
         Region.prototype.isComplete = function (instance) {
             return instance.getCurrent(this).isFinal();
         };
-        Region.prototype.bootstrap = function (deepHistoryAbove) {
-            var _this = this;
-            for (var i = 0, l = this.vertices.length; i < l; i++) {
-                this.vertices[i].reset();
-                this.vertices[i].bootstrap(deepHistoryAbove || (this.initial && this.initial.kind === 2 /* DeepHistory */));
-            }
-            this.leave.push(function (message, instance, history) {
-                var current = instance.getCurrent(_this);
-                if (current.leave) {
-                    invoke(current.leave, message, instance, history);
-                }
-            });
-            if (deepHistoryAbove || !this.initial || this.initial.isHistory()) {
-                this.endEnter.push(function (message, instance, history) {
-                    var ini = _this.initial;
-                    if (history || _this.initial.isHistory()) {
-                        ini = instance.getCurrent(_this) || _this.initial;
-                    }
-                    invoke(ini.enter, message, instance, history || (_this.initial.kind === 2 /* DeepHistory */));
-                });
-            }
-            else {
-                this.endEnter = this.endEnter.concat(this.initial.enter);
-            }
-            _super.prototype.bootstrap.call(this, deepHistoryAbove);
-        };
         Region.prototype.evaluate = function (message, instance) {
             return instance.getCurrent(this).evaluate(message, instance);
         };
-        Region.prototype.accept = function (visitor, param) {
-            visitor.visitRegion(this, param);
+        Region.prototype.accept = function (visitor, arg) {
+            visitor.visitRegion(this, arg);
         };
         /**
          * The name given to regions that are are created automatically when a state is passed as a vertex's parent.
@@ -314,14 +353,6 @@ var fsm;
             this.root().clean = false;
             return transition;
         };
-        Vertex.prototype.bootstrap = function (deepHistoryAbove) {
-            var _this = this;
-            _super.prototype.bootstrap.call(this, deepHistoryAbove);
-            this.endEnter.push(function (message, instance, history) {
-                _this.evaluateCompletions(message, instance, history);
-            });
-            this.enter = this.beginEnter.concat(this.endEnter);
-        };
         Vertex.prototype.evaluateCompletions = function (message, instance, history) {
             if (this.isComplete(instance)) {
                 this.evaluate(this, instance);
@@ -338,7 +369,7 @@ var fsm;
             invoke(transition.traverse, message, instance, false);
             return true;
         };
-        Vertex.prototype.accept = function (visitor, param) {
+        Vertex.prototype.accept = function (visitor, arg) {
             // NOTE: abstract method
         };
         return Vertex;
@@ -433,14 +464,6 @@ var fsm;
         PseudoState.prototype.isInitial = function () {
             return this.kind === 0 /* Initial */ || this.isHistory();
         };
-        PseudoState.prototype.bootstrap = function (deepHistoryAbove) {
-            _super.prototype.bootstrap.call(this, deepHistoryAbove);
-            if (this.kind === 5 /* Terminate */) {
-                this.enter.push(function (message, instance, history) {
-                    instance.isTerminated = true;
-                });
-            }
-        };
         PseudoState.prototype.select = function (message, instance) {
             switch (this.kind) {
                 case 0 /* Initial */:
@@ -487,8 +510,8 @@ var fsm;
                     return null;
             }
         };
-        PseudoState.prototype.accept = function (visitor, param) {
-            visitor.visitPseudoState(this, param);
+        PseudoState.prototype.accept = function (visitor, arg) {
+            visitor.visitPseudoState(this, arg);
         };
         return PseudoState;
     })(Vertex);
@@ -604,27 +627,6 @@ var fsm;
             this.root().clean = false;
             return this;
         };
-        State.prototype.bootstrap = function (deepHistoryAbove) {
-            var _this = this;
-            for (var i = 0, l = this.regions.length; i < l; i++) {
-                var region = this.regions[i];
-                region.reset();
-                region.bootstrap(deepHistoryAbove);
-                this.leave.push(function (message, instance, history) {
-                    invoke(region.leave, message, instance, history);
-                });
-                this.endEnter = this.endEnter.concat(region.enter);
-            }
-            _super.prototype.bootstrap.call(this, deepHistoryAbove);
-            this.leave = this.leave.concat(this.exitBehavior);
-            this.beginEnter = this.beginEnter.concat(this.entryBehavior);
-            this.beginEnter.push(function (message, instance, history) {
-                if (_this.region) {
-                    instance.setCurrent(_this.region, _this);
-                }
-            });
-            this.enter = this.beginEnter.concat(this.endEnter);
-        };
         State.prototype.select = function (message, instance) {
             var result;
             for (var i = 0, l = this.transitions.length; i < l; i++) {
@@ -654,8 +656,8 @@ var fsm;
             }
             return processed;
         };
-        State.prototype.accept = function (visitor, param) {
-            visitor.visitState(this, param);
+        State.prototype.accept = function (visitor, arg) {
+            visitor.visitState(this, arg);
         };
         return State;
     })(Vertex);
@@ -682,8 +684,8 @@ var fsm;
         FinalState.prototype.to = function (target) {
             throw "A FinalState cannot be the source of a transition.";
         };
-        FinalState.prototype.accept = function (visitor, param) {
-            visitor.visitFinalState(this, param);
+        FinalState.prototype.accept = function (visitor, arg) {
+            visitor.visitFinalState(this, arg);
         };
         return FinalState;
     })(State);
@@ -721,10 +723,9 @@ var fsm;
          * This is only required if you are dynamically changing the state machine model and want to manually control when the model is bootstrapped.
          * @method bootstrap
          */
-        StateMachine.prototype.bootstrap = function (deepHistoryAbove) {
+        StateMachine.prototype.initialiseModel = function () {
             _super.prototype.reset.call(this);
             this.clean = true;
-            _super.prototype.bootstrap.call(this, deepHistoryAbove);
             this.accept(StateMachine.bootstrap, false);
         };
         /**
@@ -737,7 +738,7 @@ var fsm;
         StateMachine.prototype.initialise = function (instance, autoBootstrap) {
             if (autoBootstrap === void 0) { autoBootstrap = true; }
             if (autoBootstrap && this.clean === false) {
-                this.bootstrap(false);
+                this.initialiseModel();
             }
             invoke(this.enter, undefined, instance, false);
         };
@@ -755,15 +756,15 @@ var fsm;
         StateMachine.prototype.evaluate = function (message, instance, autoBootstrap) {
             if (autoBootstrap === void 0) { autoBootstrap = true; }
             if (autoBootstrap && this.clean === false) {
-                this.bootstrap(false);
+                this.initialiseModel();
             }
             if (instance.isTerminated) {
                 return false;
             }
             return _super.prototype.evaluate.call(this, message, instance);
         };
-        StateMachine.prototype.accept = function (visitor, param) {
-            visitor.visitStateMachine(this, param);
+        StateMachine.prototype.accept = function (visitor, arg) {
+            visitor.visitStateMachine(this, arg);
         };
         StateMachine.bootstrap = new Bootstrap();
         return StateMachine;
@@ -829,8 +830,8 @@ var fsm;
             this.source.root().clean = false;
             return this;
         };
-        Transition.prototype.accept = function (visitor, param) {
-            visitor.visitTransition(this, param);
+        Transition.prototype.accept = function (visitor, arg) {
+            visitor.visitTransition(this, arg);
         };
         Transition.isElse = function (message, instance) {
             return false;

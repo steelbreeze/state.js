@@ -39,15 +39,15 @@ declare module fsm {
          */
         getCurrent(region: Region): State;
     }
-    class Visitor<TParam> {
-        visitElement(element: Element, param: TParam): void;
-        visitRegion(region: Region, param: TParam): void;
-        visitVertex(vertex: Vertex, param: TParam): void;
-        visitPseudoState(pseudoState: PseudoState, param: TParam): void;
-        visitState(state: State, param: TParam): void;
-        visitFinalState(finalState: FinalState, param: TParam): void;
-        visitStateMachine(stateMachine: StateMachine, param: TParam): void;
-        visitTransition(transition: Transition, param: TParam): void;
+    class Visitor<TArg> {
+        visitElement(element: Element, arg: TArg): void;
+        visitRegion(region: Region, arg: TArg): void;
+        visitVertex(vertex: Vertex, arg: TArg): void;
+        visitPseudoState(pseudoState: PseudoState, arg: TArg): void;
+        visitState(state: State, arg: TArg): void;
+        visitFinalState(finalState: FinalState, arg: TArg): void;
+        visitStateMachine(stateMachine: StateMachine, arg: TArg): void;
+        visitTransition(transition: Transition, arg: TArg): void;
     }
     /**
      * An abstract class used as the base for the Region and Vertex classes.
@@ -73,7 +73,6 @@ declare module fsm {
         ancestors(): Array<Element>;
         isActive(instance: IActiveStateConfiguration): boolean;
         reset(): void;
-        bootstrap(deepHistoryAbove: boolean): void;
         /**
          * Returns a the element name as a fully qualified namespace.
          * @method toString
@@ -117,9 +116,8 @@ declare module fsm {
          * @returns {boolean} True if the region is deemed to be complete.
          */
         isComplete(instance: IActiveStateConfiguration): boolean;
-        bootstrap(deepHistoryAbove: boolean): void;
         evaluate(message: any, instance: IActiveStateConfiguration): boolean;
-        accept<TParam>(visitor: Visitor<TParam>, param: TParam): void;
+        accept<TArg>(visitor: Visitor<TArg>, arg: TArg): void;
     }
     /**
      * An abstract element within a state machine model that can be the source or target of a transition (states and pseudo states).
@@ -152,11 +150,10 @@ declare module fsm {
          * @returns {Transition} The new transition object.
          */
         to(target?: Vertex): Transition;
-        bootstrap(deepHistoryAbove: boolean): void;
         evaluateCompletions(message: any, instance: IActiveStateConfiguration, history: boolean): void;
         select(message: any, instance: IActiveStateConfiguration): Transition;
         evaluate(message: any, instance: IActiveStateConfiguration): boolean;
-        accept<TParam>(visitor: Visitor<TParam>, param: TParam): void;
+        accept<TArg>(visitor: Visitor<TArg>, arg: TArg): void;
     }
     /**
      * An enumeration of static constants that dictates the precise behaviour of pseudo states.
@@ -241,9 +238,8 @@ declare module fsm {
         isComplete(instance: IActiveStateConfiguration): boolean;
         isHistory(): boolean;
         isInitial(): boolean;
-        bootstrap(deepHistoryAbove: boolean): void;
         select(message: any, instance: IActiveStateConfiguration): Transition;
-        accept<TParam>(visitor: Visitor<TParam>, param: TParam): void;
+        accept<TArg>(visitor: Visitor<TArg>, arg: TArg): void;
     }
     /**
      * An element within a state machine model that represents an invariant condition within the life of the state machine instance.
@@ -323,10 +319,9 @@ declare module fsm {
          * @returns {State} Returns the state to allow a fluent style API.
          */
         entry<TMessage>(entryAction: Action): State;
-        bootstrap(deepHistoryAbove: boolean): void;
         select(message: any, instance: IActiveStateConfiguration): Transition;
         evaluate(message: any, instance: IActiveStateConfiguration): boolean;
-        accept<TParam>(visitor: Visitor<TParam>, param: TParam): void;
+        accept<TArg>(visitor: Visitor<TArg>, arg: TArg): void;
     }
     /**
      * An element within a state machine model that represents completion of the life of the containing Region within the state machine instance.
@@ -351,7 +346,7 @@ declare module fsm {
          */
         constructor(name: string, parent: State);
         to(target?: Vertex): Transition;
-        accept<TParam>(visitor: Visitor<TParam>, param: TParam): void;
+        accept<TArg>(visitor: Visitor<TArg>, arg: TArg): void;
     }
     /**
      * An element within a state machine model that represents the root of the state machine model.
@@ -379,7 +374,7 @@ declare module fsm {
          * This is only required if you are dynamically changing the state machine model and want to manually control when the model is bootstrapped.
          * @method bootstrap
          */
-        bootstrap(deepHistoryAbove: boolean): void;
+        initialiseModel(): void;
         /**
          * Initialises an instance of the state machine and enters its initial pseudo state.
          * Entering the initial pseudo state may cause a chain of other completion transitions.
@@ -400,7 +395,7 @@ declare module fsm {
          * @returns {boolean} True if the method caused a state transition.
          */
         evaluate(message: any, instance: IActiveStateConfiguration, autoBootstrap?: boolean): boolean;
-        accept<TParam>(visitor: Visitor<TParam>, param: TParam): void;
+        accept<TArg>(visitor: Visitor<TArg>, arg: TArg): void;
     }
     /**
      * A transition between vertices (states or pseudo states) that may be traversed in response to a message.
@@ -448,7 +443,7 @@ declare module fsm {
          * @returns {Transition} Returns the transition object to enable the fluent API.
          */
         effect<TMessage>(transitionAction: Action): Transition;
-        accept<TParam>(visitor: Visitor<TParam>, param: TParam): void;
+        accept<TArg>(visitor: Visitor<TArg>, arg: TArg): void;
     }
     /**
      * Default working implementation of a state machine instance class.
