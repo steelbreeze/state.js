@@ -9,6 +9,12 @@
  * @module fsm
  */
 declare module fsm {
+    interface Guard {
+        (message: any, instance: IActiveStateConfiguration): boolean;
+    }
+    interface Action {
+        (message: any, instance: IActiveStateConfiguration, history: boolean): any;
+    }
     /**
      * Interface for the state machine instance; an object used as each instance of a state machine (as the classes in this library describe a state machine model).
      * @interface IActiveStateConfiguration
@@ -33,6 +39,16 @@ declare module fsm {
          */
         getCurrent(region: Region): State;
     }
+    class Visitor<TParam> {
+        visitElement(element: Element, param: TParam): void;
+        visitRegion(region: Region, param: TParam): void;
+        visitVertex(vertex: Vertex, param: TParam): void;
+        visitPseudoState(pseudoState: PseudoState, param: TParam): void;
+        visitState(state: State, param: TParam): void;
+        visitFinalState(finalState: FinalState, param: TParam): void;
+        visitStateMachine(stateMachine: StateMachine, param: TParam): void;
+        visitTransition(transition: Transition, param: TParam): void;
+    }
     /**
      * An abstract class used as the base for the Region and Vertex classes.
      * An element is any part of the tree structure that represents a composite state machine model.
@@ -47,10 +63,10 @@ declare module fsm {
          */
         static namespaceSeparator: string;
         qualifiedName: string;
-        leave: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any>;
-        beginEnter: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any>;
-        endEnter: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any>;
-        enter: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any>;
+        leave: Array<Action>;
+        beginEnter: Array<Action>;
+        endEnter: Array<Action>;
+        enter: Array<Action>;
         constructor(name: string);
         getParent(): Element;
         root(): StateMachine;
@@ -102,8 +118,8 @@ declare module fsm {
          */
         isComplete(instance: IActiveStateConfiguration): boolean;
         bootstrap(deepHistoryAbove: boolean): void;
-        bootstrapTransitions(): void;
         evaluate(message: any, instance: IActiveStateConfiguration): boolean;
+        accept<TParam>(visitor: Visitor<TParam>, param: TParam): void;
     }
     /**
      * An abstract element within a state machine model that can be the source or target of a transition (states and pseudo states).
@@ -137,10 +153,10 @@ declare module fsm {
          */
         to(target?: Vertex): Transition;
         bootstrap(deepHistoryAbove: boolean): void;
-        bootstrapTransitions(): void;
         evaluateCompletions(message: any, instance: IActiveStateConfiguration, history: boolean): void;
         select(message: any, instance: IActiveStateConfiguration): Transition;
         evaluate(message: any, instance: IActiveStateConfiguration): boolean;
+        accept<TParam>(visitor: Visitor<TParam>, param: TParam): void;
     }
     /**
      * An enumeration of static constants that dictates the precise behaviour of pseudo states.
@@ -227,6 +243,7 @@ declare module fsm {
         isInitial(): boolean;
         bootstrap(deepHistoryAbove: boolean): void;
         select(message: any, instance: IActiveStateConfiguration): Transition;
+        accept<TParam>(visitor: Visitor<TParam>, param: TParam): void;
     }
     /**
      * An element within a state machine model that represents an invariant condition within the life of the state machine instance.
@@ -239,8 +256,8 @@ declare module fsm {
      * @augments Vertex
      */
     class State extends Vertex {
-        exitBehavior: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any>;
-        entryBehavior: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any>;
+        exitBehavior: Array<Action>;
+        entryBehavior: Array<Action>;
         regions: Array<Region>;
         /**
          * Creates a new instance of the State class.
@@ -298,18 +315,18 @@ declare module fsm {
          * @param {(message: any, instance: IActiveStateConfiguration, history: boolean) => any} exitAction The action to add to the state's exit behaviour.
          * @returns {State} Returns the state to allow a fluent style API.
          */
-        exit<TMessage>(exitAction: (message: any, instance: IActiveStateConfiguration, history: boolean) => any): State;
+        exit<TMessage>(exitAction: Action): State;
         /**
          * Adds behaviour to a state that is executed each time the state is entered.
          * @method entry
          * @param {(message: any, instance: IActiveStateConfiguration, history: boolean) => any} entryAction The action to add to the state's entry behaviour.
          * @returns {State} Returns the state to allow a fluent style API.
          */
-        entry<TMessage>(entryAction: (message: any, instance: IActiveStateConfiguration, history: boolean) => any): State;
+        entry<TMessage>(entryAction: Action): State;
         bootstrap(deepHistoryAbove: boolean): void;
-        bootstrapTransitions(): void;
         select(message: any, instance: IActiveStateConfiguration): Transition;
         evaluate(message: any, instance: IActiveStateConfiguration): boolean;
+        accept<TParam>(visitor: Visitor<TParam>, param: TParam): void;
     }
     /**
      * An element within a state machine model that represents completion of the life of the containing Region within the state machine instance.
@@ -334,6 +351,7 @@ declare module fsm {
          */
         constructor(name: string, parent: State);
         to(target?: Vertex): Transition;
+        accept<TParam>(visitor: Visitor<TParam>, param: TParam): void;
     }
     /**
      * An element within a state machine model that represents the root of the state machine model.
@@ -343,6 +361,7 @@ declare module fsm {
      * @augments State
      */
     class StateMachine extends State {
+        private static bootstrap;
         clean: boolean;
         /**
          * Creates a new instance of the StateMachine class.
@@ -381,6 +400,7 @@ declare module fsm {
          * @returns {boolean} True if the method caused a state transition.
          */
         evaluate(message: any, instance: IActiveStateConfiguration, autoBootstrap?: boolean): boolean;
+        accept<TParam>(visitor: Visitor<TParam>, param: TParam): void;
     }
     /**
      * A transition between vertices (states or pseudo states) that may be traversed in response to a message.
@@ -397,7 +417,7 @@ declare module fsm {
         source: Vertex;
         target: Vertex;
         static isElse: (message: any, instance: IActiveStateConfiguration) => boolean;
-        guard: (message: any, instance: IActiveStateConfiguration) => boolean;
+        guard: Guard;
         transitionBehavior: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any>;
         traverse: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any>;
         /**
@@ -420,15 +440,15 @@ declare module fsm {
          * @param {(message: any, instance: IActiveStateConfiguration) => boolean} guard The guard condition that must evaluate true for the transition to be traversed.
          * @returns {Transition} Returns the transition object to enable the fluent API.
          */
-        when(guard: (message: any, instance: IActiveStateConfiguration) => boolean): Transition;
+        when(guard: Guard): Transition;
         /**
          * Add behaviour to a transition.
          * @method effect
          * @param {(message: any, instance: IActiveStateConfiguration, history: boolean) => any} transitionAction The action to add to the transitions traversal behaviour.
          * @returns {Transition} Returns the transition object to enable the fluent API.
          */
-        effect<TMessage>(transitionAction: (message: any, instance: IActiveStateConfiguration, history: boolean) => any): Transition;
-        bootstrap(): void;
+        effect<TMessage>(transitionAction: Action): Transition;
+        accept<TParam>(visitor: Visitor<TParam>, param: TParam): void;
     }
     /**
      * Default working implementation of a state machine instance class.

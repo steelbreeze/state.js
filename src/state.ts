@@ -10,6 +10,14 @@
  * @module fsm
  */
 module fsm {
+	export interface Guard {
+		(message: any, instance: IActiveStateConfiguration): boolean;
+	}
+	
+	export interface Action {
+		(message: any, instance: IActiveStateConfiguration, history: boolean): any;
+	}
+	
     /**
      * Interface for the state machine instance; an object used as each instance of a state machine (as the classes in this library describe a state machine model).
      * @interface IActiveStateConfiguration
@@ -36,7 +44,131 @@ module fsm {
          */
         getCurrent(region: Region): State;
     }
+		
+	export class Visitor<TParam> {
+		visitElement(element: Element, param: TParam) {
+		}
+		
+		visitRegion(region: Region, param: TParam) {
+			this.visitElement(region, param);
+			
+			for (var i = 0, l = region.vertices.length; i < l; i++) {
+				region.vertices[i].accept(this, param);
+			}
+		}
+		
+		visitVertex(vertex: Vertex, param: TParam) {
+			this.visitElement(vertex, param);
+			
+			for (var i = 0, l = vertex.transitions.length; i < l; i++) {
+				vertex.transitions[i].accept(this, param);
+			}			
+		}
+		
+		visitPseudoState(pseudoState: PseudoState, param: TParam) {
+			this.visitVertex(pseudoState, param);
+		}
+		
+		visitState(state: State, param: TParam) {
+			this.visitVertex(state, param);
 
+			for (var i = 0, l = state.regions.length; i < l; i++) {
+				state.regions[i].accept(this, param);
+			}			
+		}
+		
+		visitFinalState(finalState: FinalState, param: TParam) {
+			this.visitState(finalState, param);
+		}
+		
+		visitStateMachine(stateMachine: StateMachine, param: TParam) {
+			this.visitState(stateMachine, param);
+		}
+		
+		visitTransition(transition: Transition, param: TParam) {
+		}
+	}
+
+	class Behaviour {
+	}
+	
+	class BootstrapTransitions extends Visitor<(element: Element) => Behaviour> {
+		visitTransition(transition: Transition, elementBehaviour: (element: Element) => Behaviour) {
+			// internal transitions: just perform the actions; no exiting or entering states
+            if (transition.target === null) {
+                transition.traverse = transition.transitionBehavior;
+                
+            // local transtions (within the same parent region): simple exit, transition and entry
+            } else if (transition.target.getParent() === transition.source.getParent()) {
+                transition.traverse = transition.source.leave.concat(transition.transitionBehavior).concat(transition.target.enter);
+                
+            // external transitions (crossing region boundaries): exit to the LCA, transition, enter from the LCA
+            } else {
+                var sourceAncestors = transition.source.ancestors();
+                var targetAncestors = transition.target.ancestors();
+                var sourceAncestorsLength = sourceAncestors.length;
+                var targetAncestorsLength = targetAncestors.length;
+                var i = 0, l = Math.min(sourceAncestorsLength, targetAncestorsLength);
+
+                // find the index of the first uncommon ancestor
+                while((i < l) && (sourceAncestors[i] === targetAncestors[i])) {
+                    i++;
+                }
+
+                // validate transition does not cross sibling regions boundaries
+                assert(!(sourceAncestors[i] instanceof Region), "Transitions may not cross sibling orthogonal region boundaries");
+
+                // leave the first uncommon ancestor
+                transition.traverse = (i < sourceAncestorsLength ? sourceAncestors[i] : transition.source).leave.slice(0);
+
+                // perform the transition action
+                transition.traverse = transition.traverse.concat(transition.transitionBehavior);
+
+                if (i >= targetAncestorsLength ) {
+                    transition.traverse = transition.traverse.concat(transition.target.beginEnter);
+                }
+                                
+                // enter the target ancestry
+                while(i < targetAncestorsLength) {
+					var element = targetAncestors[i++];
+					var next = i < targetAncestorsLength ? targetAncestors[i] : undefined;
+
+					transition.traverse = transition.traverse.concat(element.beginEnter);
+					
+					if (element instanceof State) {
+						var state = <State>element;
+						
+						if (state.isOrthogonal()) {
+							for (var ii = 0, ll = state.regions.length; ii < ll; ii++) {
+								var region = state.regions[ii];
+								
+								if (region !== next) {
+									transition.traverse = transition.traverse.concat(region.enter);
+								}
+							}
+						}
+					}
+                }
+
+                // trigger cascade
+                transition.traverse = transition.traverse.concat(transition.target.endEnter);
+            }
+		}	
+	}
+
+	class Bootstrap extends Visitor<boolean> {
+		private static bootstrapTransitions = new BootstrapTransitions();
+		
+		private elementBehaviour(element: Element): Behaviour {
+			// TODO: complete
+			return;
+		}
+		
+		visitStateMachine(stateMachine: StateMachine, deepHistoryAbove: boolean) {
+			stateMachine.accept(Bootstrap.bootstrapTransitions, this.elementBehaviour);
+		}
+	}
+	
     /**
      * An abstract class used as the base for the Region and Vertex classes.
      * An element is any part of the tree structure that represents a composite state machine model.
@@ -51,10 +183,10 @@ module fsm {
         static namespaceSeparator = ".";
 		qualifiedName: string;
 
-        leave: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any> = [];
-        beginEnter: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any> = [];
-        endEnter: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any> =[];
-        enter: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any> = [];
+        leave: Array<Action> = [];
+        beginEnter: Array<Action> = [];
+        endEnter: Array<Action> =[];
+        enter: Array<Action> = [];
 
         constructor(public name: string) { 
         }
@@ -169,16 +301,14 @@ module fsm {
 
             super.bootstrap(deepHistoryAbove);
         }
-
-        bootstrapTransitions(): void {
-            for( var i = 0, l = this.vertices.length; i < l; i++) {
-                this.vertices[i].bootstrapTransitions();
-            }
-        }
         
         evaluate(message: any, instance: IActiveStateConfiguration): boolean {
             return instance.getCurrent(this).evaluate(message, instance);
         }
+		
+		accept<TParam>(visitor: Visitor<TParam>, param: TParam) {
+			visitor.visitRegion(this, param);
+		}
     }
     
     /**
@@ -249,12 +379,6 @@ module fsm {
             this.enter = this.beginEnter.concat(this.endEnter);
         }
 
-        bootstrapTransitions(): void {
-            for(var i = 0, l = this.transitions.length; i < l; i++) {
-                this.transitions[i].bootstrap();
-            }
-        }
-
         evaluateCompletions(message: any, instance: IActiveStateConfiguration, history: boolean) {
             if (this.isComplete(instance)) {
                 this.evaluate(this, instance);
@@ -276,6 +400,10 @@ module fsm {
                 
             return true;
         }
+
+		accept<TParam>(visitor: Visitor<TParam>, param: TParam) {
+			// NOTE: abstract method
+		}
     }
 
     /**
@@ -452,6 +580,10 @@ module fsm {
 					return null;
 			}
 		}
+		
+		accept<TParam>(visitor: Visitor<TParam>, param: TParam) {
+			visitor.visitPseudoState(this, param);
+		}
     }
 
     /**
@@ -465,8 +597,8 @@ module fsm {
      * @augments Vertex
      */
     export class State extends Vertex {        
-        exitBehavior: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any> = [];
-        entryBehavior: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any> = [];
+        exitBehavior: Array<Action> = [];
+        entryBehavior: Array<Action> = [];
         regions: Array<Region> = [];        
 
         /** 
@@ -575,7 +707,7 @@ module fsm {
          * @param {(message: any, instance: IActiveStateConfiguration, history: boolean) => any} exitAction The action to add to the state's exit behaviour.
          * @returns {State} Returns the state to allow a fluent style API.
          */
-        exit<TMessage>(exitAction: (message: any, instance: IActiveStateConfiguration, history: boolean) => any): State {
+        exit<TMessage>(exitAction: Action): State {
             this.exitBehavior.push(exitAction);
 
             this.root().clean = false;
@@ -589,7 +721,7 @@ module fsm {
          * @param {(message: any, instance: IActiveStateConfiguration, history: boolean) => any} entryAction The action to add to the state's entry behaviour.
          * @returns {State} Returns the state to allow a fluent style API.
          */
-        entry<TMessage>(entryAction: (message: any, instance: IActiveStateConfiguration, history: boolean) => any): State {
+        entry<TMessage>(entryAction: Action): State {
             this.entryBehavior.push(entryAction);
 
             this.root().clean = false;
@@ -616,14 +748,6 @@ module fsm {
             this.beginEnter.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { if (this.region) { instance.setCurrent(this.region, this); } });
 
             this.enter = this.beginEnter.concat(this.endEnter);
-        }
-
-        bootstrapTransitions(): void {
-            for( var i = 0, l = this.regions.length; i < l; i++) {
-                this.regions[i].bootstrapTransitions();
-            }
-
-            super.bootstrapTransitions();
         }
         
 		select(message: any, instance: IActiveStateConfiguration): Transition {
@@ -663,6 +787,10 @@ module fsm {
             
             return processed;
         }
+		
+		accept<TParam>(visitor: Visitor<TParam>, param: TParam) {
+			visitor.visitState(this, param);
+		}
     }
 
     /**
@@ -702,6 +830,10 @@ module fsm {
             // ensure FinalStates will satisfy the isFinal check
             throw "A FinalState cannot be the source of a transition.";
         }
+		
+		accept<TParam>(visitor: Visitor<TParam>, param: TParam) {
+			visitor.visitFinalState(this, param);
+		}
     }
 
     /**
@@ -712,6 +844,8 @@ module fsm {
      * @augments State
      */
     export class StateMachine extends State {
+		private static bootstrap = new Bootstrap();
+		
         // NOTE: would like an equivalent of internal or package-private
         clean = true;
 
@@ -745,7 +879,8 @@ module fsm {
             this.clean = true;
 
             super.bootstrap(deepHistoryAbove);
-            super.bootstrapTransitions();
+			
+			this.accept(StateMachine.bootstrap, false);
         }
 
         /**
@@ -785,6 +920,10 @@ module fsm {
             
             return super.evaluate(message, instance);
         }
+		
+		accept<TParam>(visitor: Visitor<TParam>, param: TParam) {
+			visitor.visitStateMachine(this, param);
+		}
     }
 
     /**
@@ -801,7 +940,7 @@ module fsm {
     export class Transition {        
         static isElse = (message: any, instance: IActiveStateConfiguration): boolean => { return false; };
         
-        guard: (message: any, instance: IActiveStateConfiguration) => boolean;                
+        guard: Guard;                
         transitionBehavior: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any> = [];
         traverse: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any> = [];
 
@@ -834,7 +973,7 @@ module fsm {
          * @param {(message: any, instance: IActiveStateConfiguration) => boolean} guard The guard condition that must evaluate true for the transition to be traversed. 
          * @returns {Transition} Returns the transition object to enable the fluent API.
          */
-        when(guard: (message: any, instance: IActiveStateConfiguration) => boolean): Transition {
+        when(guard: Guard ): Transition {
             this.guard = guard;
 
             return this;
@@ -846,77 +985,19 @@ module fsm {
          * @param {(message: any, instance: IActiveStateConfiguration, history: boolean) => any} transitionAction The action to add to the transitions traversal behaviour.
          * @returns {Transition} Returns the transition object to enable the fluent API.
          */
-        effect<TMessage>(transitionAction: (message: any, instance: IActiveStateConfiguration, history: boolean) => any): Transition {
+        effect<TMessage>(transitionAction: Action): Transition {
             this.transitionBehavior.push(transitionAction);
 
             this.source.root().clean = false;
  
             return this;
         }
-
-        bootstrap(): void {
-            // internal transitions: just perform the actions; no exiting or entering states
-            if (this.target === null) {
-                this.traverse = this.transitionBehavior;
-                
-            // local transtions (within the same parent region): simple exit, transition and entry
-            } else if (this.target.getParent() === this.source.getParent()) {
-                this.traverse = this.source.leave.concat(this.transitionBehavior).concat(this.target.enter);
-                
-            // external transitions (crossing region boundaries): exit to the LCA, transition, enter from the LCA
-            } else {
-                var sourceAncestors = this.source.ancestors();
-                var targetAncestors = this.target.ancestors();
-                var sourceAncestorsLength = sourceAncestors.length;
-                var targetAncestorsLength = targetAncestors.length;
-                var i = 0, l = Math.min(sourceAncestorsLength, targetAncestorsLength);
-
-                // find the index of the first uncommon ancestor
-                while((i < l) && (sourceAncestors[i] === targetAncestors[i])) {
-                    i++;
-                }
-
-                // validate transition does not cross sibling regions boundaries
-                assert(!(sourceAncestors[i] instanceof Region), "Transitions may not cross sibling orthogonal region boundaries");
-
-                // leave the first uncommon ancestor
-                this.traverse = (i < sourceAncestorsLength ? sourceAncestors[i] : this.source).leave.slice(0);
-
-                // perform the transition action
-                this.traverse = this.traverse.concat(this.transitionBehavior);
-
-                if (i >= targetAncestorsLength ) {
-                    this.traverse = this.traverse.concat(this.target.beginEnter);
-                }
-                                
-                // enter the target ancestry
-                while(i < targetAncestorsLength) {
-					var element = targetAncestors[i++];
-					var next = i < targetAncestorsLength ? targetAncestors[i] : undefined;
-
-					this.traverse = this.traverse.concat(element.beginEnter);
-					
-					if (element instanceof State) {
-						var state = <State>element;
-						
-						if (state.isOrthogonal()) {
-							for (var ii = 0, ll = state.regions.length; ii < ll; ii++) {
-								var region = state.regions[ii];
-								
-								if (region !== next) {
-									this.traverse = this.traverse.concat(region.enter);
-								}
-							}
-						}
-					}
-                }
-
-                // trigger cascade
-                this.traverse = this.traverse.concat(this.target.endEnter);
-            }
-        }
+		
+		accept<TParam>(visitor: Visitor<TParam>, param: TParam) {
+			visitor.visitTransition(this, param);
+		}
     }
-                
+               	
     function invoke(actions: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any>, message: any, instance: IActiveStateConfiguration, history: boolean): void {
         for (var i = 0, l = actions.length; i < l; i++) {
             actions[i](message, instance, history);
