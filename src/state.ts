@@ -10,7 +10,12 @@
  * @module fsm
  */
 module fsm {
-	export interface Guard {
+	interface Dictionary<TValue> {
+        [index: string]: TValue;
+    }
+    
+
+export interface Guard {
 		(message: any, instance: IActiveStateConfiguration): boolean;
 	}
 	
@@ -1010,10 +1015,6 @@ module fsm {
         }
     }
     
-    interface StateDictionary {
-        [index: string]: State;
-    }
-    
     /**
      * Default working implementation of a state machine instance class.
      *
@@ -1024,7 +1025,7 @@ module fsm {
      */
     export class StateMachineInstance implements IActiveStateConfiguration {
         isTerminated: boolean = false;
-        private last: StateDictionary = {};
+        private last: Dictionary<State> = {};
 
 		constructor (public name: string = "unnamed") { }
 		
