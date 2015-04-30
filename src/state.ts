@@ -13,16 +13,15 @@ module fsm {
 	interface Dictionary<TValue> {
         [index: string]: TValue;
     }
-    
 
-export interface Guard {
+    export interface Guard {
 		(message: any, instance: IActiveStateConfiguration): boolean;
 	}
-	
+
 	export interface Action {
 		(message: any, instance: IActiveStateConfiguration, history: boolean): any;
 	}
-	
+    
     /**
      * Interface for the state machine instance; an object used as each instance of a state machine (as the classes in this library describe a state machine model).
      * @interface IActiveStateConfiguration
@@ -49,65 +48,69 @@ export interface Guard {
          */
         getCurrent(region: Region): State;
     }
-		
+
 	export class Visitor<TArg> {
 		visitElement(element: Element, arg: TArg) {
 		}
-		
+
 		visitRegion(region: Region, arg: TArg) {
 			this.visitElement(region, arg);
-			
+
 			for (var i = 0, l = region.vertices.length; i < l; i++) {
 				region.vertices[i].accept(this, arg);
 			}
 		}
-		
+
 		visitVertex(vertex: Vertex, arg: TArg) {
 			this.visitElement(vertex, arg);
-			
+
 			for (var i = 0, l = vertex.transitions.length; i < l; i++) {
 				vertex.transitions[i].accept(this, arg);
-			}			
+			}
 		}
-		
+
 		visitPseudoState(pseudoState: PseudoState, arg: TArg) {
 			this.visitVertex(pseudoState, arg);
 		}
-		
+
 		visitState(state: State, arg: TArg) {
 			this.visitVertex(state, arg);
 
 			for (var i = 0, l = state.regions.length; i < l; i++) {
 				state.regions[i].accept(this, arg);
-			}			
+			}
 		}
-		
+
 		visitFinalState(finalState: FinalState, arg: TArg) {
 			this.visitState(finalState, arg);
 		}
-		
+
 		visitStateMachine(stateMachine: StateMachine, arg: TArg) {
 			this.visitState(stateMachine, arg);
 		}
-		
+
 		visitTransition(transition: Transition, arg: TArg) {
 		}
 	}
 
 	class Behaviour {
+        leave: Array<Action> = [];
+        beginEnter: Array<Action> = [];
+        endEnter: Array<Action> = [];
+        enter: Array<Action> = [];
 	}
-	
+
 	class BootstrapTransitions extends Visitor<(element: Element) => Behaviour> {
 		visitTransition(transition: Transition, elementBehaviour: (element: Element) => Behaviour) {
 			// internal transitions: just perform the actions; no exiting or entering states
             if (transition.target === null) {
                 transition.traverse = transition.transitionBehavior;
                 
-            // local transtions (within the same parent region): simple exit, transition and entry
+				// local transtions (within the same parent region): simple exit, transition and entry
             } else if (transition.target.getParent() === transition.source.getParent()) {
-                transition.traverse = transition.source.leave.concat(transition.transitionBehavior).concat(transition.target.enter);
+                transition.traverse = transition.source.behaviour.leave.concat(transition.transitionBehavior).concat(transition.target.behaviour.enter);
                 
-            // external transitions (crossing region boundaries): exit to the LCA, transition, enter from the LCA
+				// external transitions (crossing region boundaries): exit to the LCA, transition, enter from the LCA
             } else {
                 var sourceAncestors = transition.source.ancestors();
                 var targetAncestors = transition.target.ancestors();
@@ -116,7 +119,7 @@ export interface Guard {
                 var i = 0, l = Math.min(sourceAncestorsLength, targetAncestorsLength);
 
                 // find the index of the first uncommon ancestor
-                while((i < l) && (sourceAncestors[i] === targetAncestors[i])) {
+                while ((i < l) && (sourceAncestors[i] === targetAncestors[i])) {
                     i++;
                 }
 
@@ -124,31 +127,31 @@ export interface Guard {
                 assert(!(sourceAncestors[i] instanceof Region), "Transitions may not cross sibling orthogonal region boundaries");
 
                 // leave the first uncommon ancestor
-                transition.traverse = (i < sourceAncestorsLength ? sourceAncestors[i] : transition.source).leave.slice(0);
+                transition.traverse = (i < sourceAncestorsLength ? sourceAncestors[i] : transition.source).behaviour.leave.slice(0);
 
                 // perform the transition action
                 transition.traverse = transition.traverse.concat(transition.transitionBehavior);
 
-                if (i >= targetAncestorsLength ) {
-                    transition.traverse = transition.traverse.concat(transition.target.beginEnter);
+                if (i >= targetAncestorsLength) {
+                    transition.traverse = transition.traverse.concat(transition.target.behaviour.beginEnter);
                 }
                                 
                 // enter the target ancestry
-                while(i < targetAncestorsLength) {
+                while (i < targetAncestorsLength) {
 					var element = targetAncestors[i++];
 					var next = i < targetAncestorsLength ? targetAncestors[i] : undefined;
 
-					transition.traverse = transition.traverse.concat(element.beginEnter);
-					
+					transition.traverse = transition.traverse.concat(element.behaviour.beginEnter);
+
 					if (element instanceof State) {
 						var state = <State>element;
-						
+
 						if (state.isOrthogonal()) {
 							for (var ii = 0, ll = state.regions.length; ii < ll; ii++) {
 								var region = state.regions[ii];
-								
+
 								if (region !== next) {
-									transition.traverse = transition.traverse.concat(region.enter);
+									transition.traverse = transition.traverse.concat(region.behaviour.enter);
 								}
 							}
 						}
@@ -156,41 +159,41 @@ export interface Guard {
                 }
 
                 // trigger cascade
-                transition.traverse = transition.traverse.concat(transition.target.endEnter);
+                transition.traverse = transition.traverse.concat(transition.target.behaviour.endEnter);
             }
-		}	
+		}
 	}
 
 	class Bootstrap extends Visitor<boolean> {
 		private static bootstrapTransitions = new BootstrapTransitions();
-		
+
 		private elementBehaviour(element: Element): Behaviour {
 			// TODO: complete
 			return;
 		}
 
 		visitElement(element: Element, deepHistoryAbove: boolean) {
-			element.qualifiedName = element.ancestors().map<string>((e)=> { return e.name; }).join(Element.namespaceSeparator);
+			element.qualifiedName = element.ancestors().map<string>((e) => { return e.name; }).join(Element.namespaceSeparator);
 
             // Put these lines back for debugging
-            element.leave.push((message: any, instance: IActiveStateConfiguration) => { console.log(instance + " leave " + element); });
-            element.beginEnter.push((message: any, instance: IActiveStateConfiguration) => { console.log(instance + " enter " + element); });
+            element.behaviour.leave.push((message: any, instance: IActiveStateConfiguration) => { console.log(instance + " leave " + element); });
+            element.behaviour.beginEnter.push((message: any, instance: IActiveStateConfiguration) => { console.log(instance + " enter " + element); });
 
-            element.enter = element.beginEnter.concat(element.endEnter);
+            element.behaviour.enter = element.behaviour.beginEnter.concat(element.behaviour.endEnter);
 		}
 
 		visitRegion(region: Region, deepHistoryAbove: boolean) {
-            for( var i = 0, l = region.vertices.length; i < l; i++) {
+            for (var i = 0, l = region.vertices.length; i < l; i++) {
                 region.vertices[i].reset();
                 region.vertices[i].accept(this, deepHistoryAbove || (region.initial && region.initial.kind === PseudoStateKind.DeepHistory));
             }
 
-            region.leave.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { var current = instance.getCurrent(region); if (current.leave) { invoke(current.leave, message, instance, history); } });
+            region.behaviour.leave.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { var current = instance.getCurrent(region); if (current.behaviour.leave) { invoke(current.behaviour.leave, message, instance, history); } });
 
             if (deepHistoryAbove || !region.initial || region.initial.isHistory()) {
-                region.endEnter.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { var ini: Vertex = region.initial; if (history || region.initial.isHistory()) {ini = instance.getCurrent(region) || region.initial;} invoke(ini.enter, message, instance, history || (region.initial.kind === PseudoStateKind.DeepHistory)); });
+                region.behaviour.endEnter.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { var ini: Vertex = region.initial; if (history || region.initial.isHistory()) { ini = instance.getCurrent(region) || region.initial; } invoke(ini.behaviour.enter, message, instance, history || (region.initial.kind === PseudoStateKind.DeepHistory)); });
             } else {
-                region.endEnter = region.endEnter.concat(region.initial.enter);
+                region.behaviour.endEnter = region.behaviour.endEnter.concat(region.initial.behaviour.enter);
             }
 
             this.visitElement(region, deepHistoryAbove);
@@ -199,43 +202,45 @@ export interface Guard {
 		visitVertex(vertex: Vertex, deepHistoryAbove: boolean) {
             this.visitElement(vertex, deepHistoryAbove);
 
-            vertex.endEnter.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { vertex.evaluateCompletions(message, instance, history); });
-            vertex.enter = vertex.beginEnter.concat(vertex.endEnter);
+            vertex.behaviour.endEnter.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { vertex.evaluateCompletions(message, instance, history); });
+            vertex.behaviour.enter = vertex.behaviour.beginEnter.concat(vertex.behaviour.endEnter);
 		}
 
-		visitPseudoState(pseudoState: PseudoState, deepHistoryAbove: boolean) {			
+		visitPseudoState(pseudoState: PseudoState, deepHistoryAbove: boolean) {
             this.visitVertex(pseudoState, deepHistoryAbove);
 
             if (pseudoState.kind === PseudoStateKind.Terminate) {
-                pseudoState.enter.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { instance.isTerminated = true; });
+                pseudoState.behaviour.enter.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { instance.isTerminated = true; });
             }
 		}
-		
+
 		visitState(state: State, deepHistoryAbove: boolean) {
-            for( var i = 0, l = state.regions.length; i < l; i++) {
+            for (var i = 0, l = state.regions.length; i < l; i++) {
                 var region = state.regions[i];
                 region.reset();
                 region.accept(this, deepHistoryAbove);
 
-                state.leave.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { invoke(region.leave, message, instance, history); });
+                state.behaviour.leave.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { invoke(region.behaviour.leave, message, instance, history); });
 
-                state.endEnter = state.endEnter.concat(region.enter);
+                state.behaviour.endEnter = state.behaviour.endEnter.concat(region.behaviour.enter);
             }
 
             this.visitVertex(state, deepHistoryAbove);
 
-            state.leave = state.leave.concat(state.exitBehavior);
-            state.beginEnter = state.beginEnter.concat(state.entryBehavior);
+            state.behaviour.leave = state.behaviour.leave.concat(state.exitBehavior);
+            state.behaviour.beginEnter = state.behaviour.beginEnter.concat(state.entryBehavior);
 
-            state.beginEnter.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { if (state.region) { instance.setCurrent(state.region, state); } });
+            state.behaviour.beginEnter.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { if (state.region) { instance.setCurrent(state.region, state); } });
 
-            state.enter = state.beginEnter.concat(state.endEnter);
+            state.behaviour.enter = state.behaviour.beginEnter.concat(state.behaviour.endEnter);
 		}
-		
+
 		visitStateMachine(stateMachine: StateMachine, deepHistoryAbove: boolean) {
 			this.visitState(stateMachine, deepHistoryAbove);
-			
+
 			stateMachine.accept(Bootstrap.bootstrapTransitions, this.elementBehaviour);
+
+            stateMachine.init = stateMachine.behaviour.enter;
 		}
 	}
 	
@@ -252,23 +257,19 @@ export interface Guard {
          */
         static namespaceSeparator = ".";
 		qualifiedName: string;
+		behaviour: Behaviour;
 
-        leave: Array<Action> = [];
-        beginEnter: Array<Action> = [];
-        endEnter: Array<Action> =[];
-        enter: Array<Action> = [];
-
-        constructor(public name: string) { 
+        constructor(public name: string) {
         }
-        
+
         getParent(): Element {
             return;
         }
-        
+
         root(): StateMachine {
             return this.getParent().root();
         }
-        
+
         ancestors(): Array<Element> {
             return (this.getParent() ? this.getParent().ancestors() : []).concat(this);
         }
@@ -276,12 +277,9 @@ export interface Guard {
         isActive(instance: IActiveStateConfiguration): boolean {
             return this.getParent().isActive(instance);
         }
-        
+
         reset(): void {
-            this.leave = [];
-            this.beginEnter = [];
-            this.endEnter = [];
-            this.enter = [];
+			this.behaviour = new Behaviour();
         }
 
 		/**
@@ -289,8 +287,8 @@ export interface Guard {
          * @method toString
          * @returns {string}
          */
-         toString(): string { 
-			 return this.qualifiedName;
+		toString(): string {
+			return this.qualifiedName;
         }
     }
 
@@ -324,12 +322,12 @@ export interface Guard {
          */
         constructor(name: string, public parent: State) {
             super(name);
-            
+
             parent.regions.push(this);
-            
+
             parent.root().clean = false;
         }
-        
+
         getParent(): Element {
             return this.parent;
         }
@@ -344,11 +342,11 @@ export interface Guard {
         isComplete(instance: IActiveStateConfiguration): boolean {
             return instance.getCurrent(this).isFinal();
         }
-        
+
         evaluate(message: any, instance: IActiveStateConfiguration): boolean {
             return instance.getCurrent(this).evaluate(message, instance);
         }
-		
+
 		accept<TArg>(visitor: Visitor<TArg>, arg: TArg) {
 			visitor.visitRegion(this, arg);
 		}
@@ -369,19 +367,19 @@ export interface Guard {
         constructor(name: string, parent: State);
         constructor(name: string, parent: any) {
             super(name);
-            
-            if (parent instanceof Region) {                
+
+            if (parent instanceof Region) {
                 this.region = <Region>parent;
             } else if (parent instanceof State) {
                 this.region = (<State>parent).defaultRegion();
             }
-            
+
             if (this.region) {
                 this.region.vertices.push(this);
                 this.region.root().clean = false;
-            }            
+            }
         }
-        
+
         getParent(): Element {
             return this.region;
         }
@@ -424,16 +422,16 @@ export interface Guard {
 		select(message: any, instance: IActiveStateConfiguration): Transition {
 			return; // NOTE: abstract method
 		}
-		
+
         evaluate(message: any, instance: IActiveStateConfiguration): boolean {
             var transition = this.select(message, instance);
-            
+
             if (!transition) {
                 return false;
             }
-            
+
             invoke(transition.traverse, message, instance, false);
-                
+
             return true;
         }
 
@@ -529,7 +527,7 @@ export interface Guard {
          */
         constructor(name: string, parent: any, public kind: PseudoStateKind) {
             super(name, parent/*, pseudoState(kind)*/);
-            
+
             if (this.isInitial()) {
                 this.region.initial = this;
             }
@@ -554,13 +552,13 @@ export interface Guard {
         isInitial(): boolean {
             return this.kind === PseudoStateKind.Initial || this.isHistory();
         }
-		
+
 		select(message: any, instance: IActiveStateConfiguration): Transition {
-			switch(this.kind) {
+			switch (this.kind) {
 				case PseudoStateKind.Initial:
 				case PseudoStateKind.DeepHistory:
 				case PseudoStateKind.ShallowHistory:
-					if(this.transitions.length === 1) {
+					if (this.transitions.length === 1) {
 						return this.transitions[0];
 					} else {
 						throw "Initial transition must have a single outbound transition from " + this.qualifiedName;
@@ -569,46 +567,46 @@ export interface Guard {
 				case PseudoStateKind.Junction:
 					var result: Transition, elseResult: Transition;
 
-					for(var i = 0, l = this.transitions.length; i < l; i++) {
-						if(this.transitions[i].guard === Transition.isElse) {
-							if(elseResult) {
+					for (var i = 0, l = this.transitions.length; i < l; i++) {
+						if (this.transitions[i].guard === Transition.isElse) {
+							if (elseResult) {
 								throw "Multiple outbound transitions evaluated true";
 							}
 
 							elseResult = this.transitions[i];
-							} else if(this.transitions[i].guard(message, instance)) {
-								if(result) {
-									throw "Multiple outbound transitions evaluated true";
+						} else if (this.transitions[i].guard(message, instance)) {
+							if (result) {
+								throw "Multiple outbound transitions evaluated true";
 							}
 
 							result = this.transitions[i];
 						}
 					}
-											
+
 					return result || elseResult;
-	
+
 				case PseudoStateKind.Choice:
 					var results: Array<Transition> = [];
 
-					for(var i = 0, l = this.transitions.length; i < l; i++) {
-						if(this.transitions[i].guard === Transition.isElse) {
-							if(elseResult) {
-									throw "Multiple outbound else transitions found at " + this + " for " + message;
+					for (var i = 0, l = this.transitions.length; i < l; i++) {
+						if (this.transitions[i].guard === Transition.isElse) {
+							if (elseResult) {
+								throw "Multiple outbound else transitions found at " + this + " for " + message;
 							}
 
 							elseResult = this.transitions[i];
-						} else if(this.transitions[i].guard(message, instance)) {
+						} else if (this.transitions[i].guard(message, instance)) {
 							results.push(this.transitions[i]);
 						}
 					}
 
 					return results.length !== 0 ? results[Math.round((results.length - 1) * Math.random())] : elseResult;
 
-			default:
+				default:
 					return null;
 			}
 		}
-		
+
 		accept<TArg>(visitor: Visitor<TArg>, arg: TArg) {
 			visitor.visitPseudoState(this, arg);
 		}
@@ -624,7 +622,7 @@ export interface Guard {
      * @class State
      * @augments Vertex
      */
-    export class State extends Vertex {        
+    export class State extends Vertex {
         exitBehavior: Array<Action> = [];
         entryBehavior: Array<Action> = [];
         regions: Array<Region> = [];        
@@ -653,21 +651,21 @@ export interface Guard {
         }
 
         defaultRegion(): Region {
-            var region: Region;            
-            
+            var region: Region;
+
             for (var i = 0, l = this.regions.length; i < l; i++) {
                 if (this.regions[i].name === Region.defaultName) {
                     region = this.regions[i];
                 }
             }
-            
+
             if (!region) {
                 region = new Region(Region.defaultName, this);
             }
-            
+
             return region;
         }
-        
+
         isActive(instance: IActiveStateConfiguration): boolean {
             return super.isActive(instance) && instance.getCurrent(this.region) === this;
         }
@@ -756,45 +754,45 @@ export interface Guard {
 
             return this;
         }
-        
+
 		select(message: any, instance: IActiveStateConfiguration): Transition {
 			var result: Transition;
-                
+
             for (var i = 0, l = this.transitions.length; i < l; i++) {
-                if(this.transitions[i].guard(message, instance)) {
-                    if(result) {
+                if (this.transitions[i].guard(message, instance)) {
+                    if (result) {
                         throw "Multiple outbound transitions evaluated true";
                     }
 
                     result = this.transitions[i];
                 }
             }
-        
+
             return result;
 		}
-		
+
         evaluate(message: any, instance: IActiveStateConfiguration): boolean {
             var processed = false;
-            
-            for( var i = 0, l = this.regions.length; i < l; i++) {
-                if(this.isActive(instance) === true) {
-                    if(this.regions[i].evaluate(message, instance)) {
+
+            for (var i = 0, l = this.regions.length; i < l; i++) {
+                if (this.isActive(instance) === true) {
+                    if (this.regions[i].evaluate(message, instance)) {
                         processed = true;
                     }
-                }  
+                }
             }
-            
-            if(processed === false) {
+
+            if (processed === false) {
                 processed = super.evaluate(message, instance);
             }
-            
-            if(processed === true && message !== this) {
+
+            if (processed === true && message !== this) {
                 this.evaluateCompletions(this, instance, false);
             }
-            
+
             return processed;
         }
-		
+
 		accept<TArg>(visitor: Visitor<TArg>, arg: TArg) {
 			visitor.visitState(this, arg);
 		}
@@ -832,12 +830,12 @@ export interface Guard {
         constructor(name: string, parent: any) {
             super(name, parent);
         }
-        
+
         to(target?: Vertex): Transition {
             // ensure FinalStates will satisfy the isFinal check
             throw "A FinalState cannot be the source of a transition.";
         }
-		
+
 		accept<TArg>(visitor: Visitor<TArg>, arg: TArg) {
 			visitor.visitFinalState(this, arg);
 		}
@@ -852,6 +850,7 @@ export interface Guard {
      */
     export class StateMachine extends State {
 		private static bootstrap = new Bootstrap();
+        init: Array<Action>;
 		
         // NOTE: would like an equivalent of internal or package-private
         clean = true;
@@ -884,7 +883,7 @@ export interface Guard {
         initialiseModel(): void {
             super.reset();
             this.clean = true;
-			
+
 			this.accept(StateMachine.bootstrap, false);
         }
 
@@ -900,7 +899,7 @@ export interface Guard {
                 this.initialiseModel();
             }
 
-            invoke(this.enter, undefined, instance, false);
+            invoke(this.init, undefined, instance, false);
         }
 
         /**
@@ -922,10 +921,10 @@ export interface Guard {
             if (instance.isTerminated) {
                 return false;
             }
-            
+
             return super.evaluate(message, instance);
         }
-		
+
 		accept<TArg>(visitor: Visitor<TArg>, arg: TArg) {
 			visitor.visitStateMachine(this, arg);
 		}
@@ -942,10 +941,10 @@ export interface Guard {
      * Entering a composite state will cause the entry of the child regions within the composite state; this in turn may trigger more transitions.
      * @class Transition
      */
-    export class Transition {        
+    export class Transition {
         static isElse = (message: any, instance: IActiveStateConfiguration): boolean => { return false; };
-        
-        guard: Guard;                
+
+        guard: Guard;
         transitionBehavior: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any> = [];
         traverse: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any> = [];
 
@@ -968,7 +967,7 @@ export interface Guard {
          */
         else(): Transition {
             this.guard = Transition.isElse;
-            
+
             return this;
         }
 
@@ -978,7 +977,7 @@ export interface Guard {
          * @param {(message: any, instance: IActiveStateConfiguration) => boolean} guard The guard condition that must evaluate true for the transition to be traversed. 
          * @returns {Transition} Returns the transition object to enable the fluent API.
          */
-        when(guard: Guard ): Transition {
+        when(guard: Guard): Transition {
             this.guard = guard;
 
             return this;
@@ -994,21 +993,21 @@ export interface Guard {
             this.transitionBehavior.push(transitionAction);
 
             this.source.root().clean = false;
- 
+
             return this;
         }
-		
+
 		accept<TArg>(visitor: Visitor<TArg>, arg: TArg) {
 			visitor.visitTransition(this, arg);
 		}
     }
-               	
+
     function invoke(actions: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any>, message: any, instance: IActiveStateConfiguration, history: boolean): void {
         for (var i = 0, l = actions.length; i < l; i++) {
             actions[i](message, instance, history);
         }
     }
-      
+
     function assert(condition: boolean, error: string): void {
         if (!condition) {
             throw error;
@@ -1027,7 +1026,7 @@ export interface Guard {
         isTerminated: boolean = false;
         private last: Dictionary<State> = {};
 
-		constructor (public name: string = "unnamed") { }
+		constructor(public name: string = "unnamed") { }
 		
         /**
          * Updates the last known state for a given region.
@@ -1035,7 +1034,7 @@ export interface Guard {
          * @param {Region} region The region to update the last known state for.
          * @param {State} state The last known state for the given region.
          */
-        setCurrent(region: Region, state: State): void {            
+        setCurrent(region: Region, state: State): void {
             this.last[region.qualifiedName] = state;
         }
 
@@ -1045,10 +1044,10 @@ export interface Guard {
          * @param {Region} region The region to update the last known state for.
          * @returns {State} The last known state for the given region.
          */
-        getCurrent(region: Region): State {            
+        getCurrent(region: Region): State {
             return this.last[region.qualifiedName];
         }
-		
+
 		toString(): string {
 			return this.name;
 		}

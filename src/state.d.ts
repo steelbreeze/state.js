@@ -357,6 +357,7 @@ declare module fsm {
      */
     class StateMachine extends State {
         private static bootstrap;
+        init: Array<Action>;
         clean: boolean;
         /**
          * Creates a new instance of the StateMachine class.
