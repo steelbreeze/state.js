@@ -12,7 +12,7 @@
 			function compTest()
 			{
                 var machine = new fsm.StateMachine("compTest");
-                var initial = new fsm.PseudoState("initial", machine, fsm.PseudoStateKind.Initial)
+                var initial = new fsm.PseudoState("initial", machine, fsm.PseudoStateKind.Initial);
 
                 var activity1 = new fsm.State("activity1", machine );
 				var activity2 = new fsm.State("activity2", machine);
@@ -117,7 +117,7 @@
 				main.initialise(sms);
 
                 main.evaluate("complete1", sms);
-                main.evaluate("complete2", sms)
+                main.evaluate("complete2", sms);
             
             	result("Muximuse test 1: " + (main.isComplete(sms) ? "passed" : "failed"));
             }

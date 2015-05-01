@@ -10,11 +10,12 @@
  * @module fsm
  */
 module fsm {
+	/* String keyed dictionary type for internal use only */
 	interface Dictionary<TValue> {
-        [index: string]: TValue;
-    }
+		[index: string]: TValue;
+	}
 
-    export interface Guard {
+	export interface Guard {
 		(message: any, instance: IActiveStateConfiguration): boolean;
 	}
 
@@ -93,7 +94,7 @@ module fsm {
 		}
 	}
 
-	class Behaviour {
+	export class Behaviour {
         leave: Array<Action> = [];
         beginEnter: Array<Action> = [];
         endEnter: Array<Action> = [];
@@ -101,14 +102,14 @@ module fsm {
 	}
 
 	class BootstrapTransitions extends Visitor<(element: Element) => Behaviour> {
-		visitTransition(transition: Transition, elementBehaviour: (element: Element) => Behaviour) {
+		visitTransition(transition: Transition, behaviour: (element: Element) => Behaviour) {
 			// internal transitions: just perform the actions; no exiting or entering states
-            if (transition.target === null) {
+            if (!transition.target) {
                 transition.traverse = transition.transitionBehavior;
                 
 				// local transtions (within the same parent region): simple exit, transition and entry
             } else if (transition.target.getParent() === transition.source.getParent()) {
-                transition.traverse = transition.source.behaviour.leave.concat(transition.transitionBehavior).concat(transition.target.behaviour.enter);
+                transition.traverse = behaviour(transition.source).leave.concat(transition.transitionBehavior).concat(behaviour(transition.target).enter);
                 
 				// external transitions (crossing region boundaries): exit to the LCA, transition, enter from the LCA
             } else {
@@ -127,13 +128,13 @@ module fsm {
                 assert(!(sourceAncestors[i] instanceof Region), "Transitions may not cross sibling orthogonal region boundaries");
 
                 // leave the first uncommon ancestor
-                transition.traverse = (i < sourceAncestorsLength ? sourceAncestors[i] : transition.source).behaviour.leave.slice(0);
+                transition.traverse = behaviour(i < sourceAncestorsLength ? sourceAncestors[i] : transition.source).leave.slice(0);
 
                 // perform the transition action
                 transition.traverse = transition.traverse.concat(transition.transitionBehavior);
 
                 if (i >= targetAncestorsLength) {
-                    transition.traverse = transition.traverse.concat(transition.target.behaviour.beginEnter);
+                    transition.traverse = transition.traverse.concat(behaviour(transition.target).beginEnter);
                 }
                                 
                 // enter the target ancestry
@@ -141,7 +142,7 @@ module fsm {
 					var element = targetAncestors[i++];
 					var next = i < targetAncestorsLength ? targetAncestors[i] : undefined;
 
-					transition.traverse = transition.traverse.concat(element.behaviour.beginEnter);
+					transition.traverse = transition.traverse.concat(behaviour(element).beginEnter);
 
 					if (element instanceof State) {
 						var state = <State>element;
@@ -151,7 +152,7 @@ module fsm {
 								var region = state.regions[ii];
 
 								if (region !== next) {
-									transition.traverse = transition.traverse.concat(region.behaviour.enter);
+									transition.traverse = transition.traverse.concat(behaviour(region).enter);
 								}
 							}
 						}
@@ -159,7 +160,7 @@ module fsm {
                 }
 
                 // trigger cascade
-                transition.traverse = transition.traverse.concat(transition.target.behaviour.endEnter);
+                transition.traverse = transition.traverse.concat(behaviour(transition.target).endEnter);
             }
 		}
 	}
@@ -167,33 +168,42 @@ module fsm {
 	class Bootstrap extends Visitor<boolean> {
 		private static bootstrapTransitions = new BootstrapTransitions();
 
-		private elementBehaviour(element: Element): Behaviour {
-			// TODO: complete
-			return;
+		private behaviour(element: Element): Behaviour {
+			return element.behaviours;
 		}
 
 		visitElement(element: Element, deepHistoryAbove: boolean) {
 			element.qualifiedName = element.ancestors().map<string>((e) => { return e.name; }).join(Element.namespaceSeparator);
 
             // Put these lines back for debugging
-            element.behaviour.leave.push((message: any, instance: IActiveStateConfiguration) => { console.log(instance + " leave " + element); });
-            element.behaviour.beginEnter.push((message: any, instance: IActiveStateConfiguration) => { console.log(instance + " enter " + element); });
+            this.behaviour(element).leave.push((message, instance) => { console.log(instance + " leave " + element); });
+            this.behaviour(element).beginEnter.push((message, instance) => { console.log(instance + " enter " + element); });
 
-            element.behaviour.enter = element.behaviour.beginEnter.concat(element.behaviour.endEnter);
+            this.behaviour(element).enter = this.behaviour(element).beginEnter.concat(this.behaviour(element).endEnter);
 		}
 
 		visitRegion(region: Region, deepHistoryAbove: boolean) {
             for (var i = 0, l = region.vertices.length; i < l; i++) {
-                region.vertices[i].reset();
-                region.vertices[i].accept(this, deepHistoryAbove || (region.initial && region.initial.kind === PseudoStateKind.DeepHistory));
+				var vertex = region.vertices[i];
+                vertex.reset();
+                vertex.accept(this, deepHistoryAbove || (region.initial && region.initial.kind === PseudoStateKind.DeepHistory));
             }
 
-            region.behaviour.leave.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { var current = instance.getCurrent(region); if (current.behaviour.leave) { invoke(current.behaviour.leave, message, instance, history); } });
+            this.behaviour(region).leave.push((message, instance, history) => {
+				invoke(this.behaviour(instance.getCurrent(region)).leave, message, instance, history);
+			});
 
             if (deepHistoryAbove || !region.initial || region.initial.isHistory()) {
-                region.behaviour.endEnter.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { var ini: Vertex = region.initial; if (history || region.initial.isHistory()) { ini = instance.getCurrent(region) || region.initial; } invoke(ini.behaviour.enter, message, instance, history || (region.initial.kind === PseudoStateKind.DeepHistory)); });
+                this.behaviour(region).endEnter.push((message, instance, history) => {
+					var initial: Vertex = region.initial;
+					
+					if (history || region.initial.isHistory()) {
+						initial = instance.getCurrent(region) || region.initial;
+					}
+					
+					invoke(this.behaviour(initial).enter, message, instance, history || (region.initial.kind === PseudoStateKind.DeepHistory)); });
             } else {
-                region.behaviour.endEnter = region.behaviour.endEnter.concat(region.initial.behaviour.enter);
+                this.behaviour(region).endEnter = this.behaviour(region).endEnter.concat(this.behaviour(region.initial).enter);
             }
 
             this.visitElement(region, deepHistoryAbove);
@@ -202,15 +212,20 @@ module fsm {
 		visitVertex(vertex: Vertex, deepHistoryAbove: boolean) {
             this.visitElement(vertex, deepHistoryAbove);
 
-            vertex.behaviour.endEnter.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { vertex.evaluateCompletions(message, instance, history); });
-            vertex.behaviour.enter = vertex.behaviour.beginEnter.concat(vertex.behaviour.endEnter);
+            this.behaviour(vertex).endEnter.push((message, instance, history) => {
+				vertex.evaluateCompletions(message, instance, history);
+			});
+				
+            this.behaviour(vertex).enter = this.behaviour(vertex).beginEnter.concat(this.behaviour(vertex).endEnter);
 		}
 
 		visitPseudoState(pseudoState: PseudoState, deepHistoryAbove: boolean) {
             this.visitVertex(pseudoState, deepHistoryAbove);
 
             if (pseudoState.kind === PseudoStateKind.Terminate) {
-                pseudoState.behaviour.enter.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { instance.isTerminated = true; });
+                this.behaviour(pseudoState).enter.push((message, instance, history) => {
+					instance.isTerminated = true;
+				});
             }
 		}
 
@@ -220,27 +235,33 @@ module fsm {
                 region.reset();
                 region.accept(this, deepHistoryAbove);
 
-                state.behaviour.leave.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { invoke(region.behaviour.leave, message, instance, history); });
+                this.behaviour(state).leave.push((message, instance, history) => {
+					invoke(this.behaviour(region).leave, message, instance, history);
+				});
 
-                state.behaviour.endEnter = state.behaviour.endEnter.concat(region.behaviour.enter);
+                this.behaviour(state).endEnter = this.behaviour(state).endEnter.concat(this.behaviour(region).enter);
             }
 
             this.visitVertex(state, deepHistoryAbove);
 
-            state.behaviour.leave = state.behaviour.leave.concat(state.exitBehavior);
-            state.behaviour.beginEnter = state.behaviour.beginEnter.concat(state.entryBehavior);
+            this.behaviour(state).leave = this.behaviour(state).leave.concat(state.exitBehavior);
+            this.behaviour(state).beginEnter = this.behaviour(state).beginEnter.concat(state.entryBehavior);
 
-            state.behaviour.beginEnter.push((message: any, instance: IActiveStateConfiguration, history: boolean) => { if (state.region) { instance.setCurrent(state.region, state); } });
+            this.behaviour(state).beginEnter.push((message, instance, history) => {
+				if (state.region) {
+					instance.setCurrent(state.region, state);
+					}
+				});
 
-            state.behaviour.enter = state.behaviour.beginEnter.concat(state.behaviour.endEnter);
+            this.behaviour(state).enter = this.behaviour(state).beginEnter.concat(this.behaviour(state).endEnter);
 		}
 
 		visitStateMachine(stateMachine: StateMachine, deepHistoryAbove: boolean) {
 			this.visitState(stateMachine, deepHistoryAbove);
 
-			stateMachine.accept(Bootstrap.bootstrapTransitions, this.elementBehaviour);
+			stateMachine.accept(Bootstrap.bootstrapTransitions, (element) => { return this.behaviour(element); });
 
-            stateMachine.init = stateMachine.behaviour.enter;
+            stateMachine.init = this.behaviour(stateMachine).enter;
 		}
 	}
 	
@@ -257,7 +278,7 @@ module fsm {
          */
         static namespaceSeparator = ".";
 		qualifiedName: string;
-		behaviour: Behaviour;
+		behaviours: Behaviour;
 
         constructor(public name: string) {
         }
@@ -279,7 +300,7 @@ module fsm {
         }
 
         reset(): void {
-			this.behaviour = new Behaviour();
+			this.behaviours = new Behaviour();
         }
 
 		/**

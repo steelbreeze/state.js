@@ -49,6 +49,12 @@ declare module fsm {
         visitStateMachine(stateMachine: StateMachine, arg: TArg): void;
         visitTransition(transition: Transition, arg: TArg): void;
     }
+    class Behaviour {
+        leave: Array<Action>;
+        beginEnter: Array<Action>;
+        endEnter: Array<Action>;
+        enter: Array<Action>;
+    }
     /**
      * An abstract class used as the base for the Region and Vertex classes.
      * An element is any part of the tree structure that represents a composite state machine model.
@@ -63,10 +69,7 @@ declare module fsm {
          */
         static namespaceSeparator: string;
         qualifiedName: string;
-        leave: Array<Action>;
-        beginEnter: Array<Action>;
-        endEnter: Array<Action>;
-        enter: Array<Action>;
+        behaviours: Behaviour;
         constructor(name: string);
         getParent(): Element;
         root(): StateMachine;

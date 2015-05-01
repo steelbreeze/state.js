@@ -62,18 +62,19 @@ var fsm;
         }
         return Behaviour;
     })();
+    fsm.Behaviour = Behaviour;
     var BootstrapTransitions = (function (_super) {
         __extends(BootstrapTransitions, _super);
         function BootstrapTransitions() {
             _super.apply(this, arguments);
         }
-        BootstrapTransitions.prototype.visitTransition = function (transition, elementBehaviour) {
+        BootstrapTransitions.prototype.visitTransition = function (transition, behaviour) {
             // internal transitions: just perform the actions; no exiting or entering states
-            if (transition.target === null) {
+            if (!transition.target) {
                 transition.traverse = transition.transitionBehavior;
             }
             else if (transition.target.getParent() === transition.source.getParent()) {
-                transition.traverse = transition.source.behaviour.leave.concat(transition.transitionBehavior).concat(transition.target.behaviour.enter);
+                transition.traverse = behaviour(transition.source).leave.concat(transition.transitionBehavior).concat(behaviour(transition.target).enter);
             }
             else {
                 var sourceAncestors = transition.source.ancestors();
@@ -87,30 +88,30 @@ var fsm;
                 // validate transition does not cross sibling regions boundaries
                 assert(!(sourceAncestors[i] instanceof Region), "Transitions may not cross sibling orthogonal region boundaries");
                 // leave the first uncommon ancestor
-                transition.traverse = (i < sourceAncestorsLength ? sourceAncestors[i] : transition.source).behaviour.leave.slice(0);
+                transition.traverse = behaviour(i < sourceAncestorsLength ? sourceAncestors[i] : transition.source).leave.slice(0);
                 // perform the transition action
                 transition.traverse = transition.traverse.concat(transition.transitionBehavior);
                 if (i >= targetAncestorsLength) {
-                    transition.traverse = transition.traverse.concat(transition.target.behaviour.beginEnter);
+                    transition.traverse = transition.traverse.concat(behaviour(transition.target).beginEnter);
                 }
                 while (i < targetAncestorsLength) {
                     var element = targetAncestors[i++];
                     var next = i < targetAncestorsLength ? targetAncestors[i] : undefined;
-                    transition.traverse = transition.traverse.concat(element.behaviour.beginEnter);
+                    transition.traverse = transition.traverse.concat(behaviour(element).beginEnter);
                     if (element instanceof State) {
                         var state = element;
                         if (state.isOrthogonal()) {
                             for (var ii = 0, ll = state.regions.length; ii < ll; ii++) {
                                 var region = state.regions[ii];
                                 if (region !== next) {
-                                    transition.traverse = transition.traverse.concat(region.behaviour.enter);
+                                    transition.traverse = transition.traverse.concat(behaviour(region).enter);
                                 }
                             }
                         }
                     }
                 }
                 // trigger cascade
-                transition.traverse = transition.traverse.concat(transition.target.behaviour.endEnter);
+                transition.traverse = transition.traverse.concat(behaviour(transition.target).endEnter);
             }
         };
         return BootstrapTransitions;
@@ -120,87 +121,89 @@ var fsm;
         function Bootstrap() {
             _super.apply(this, arguments);
         }
-        Bootstrap.prototype.elementBehaviour = function (element) {
-            // TODO: complete
-            return;
+        Bootstrap.prototype.behaviour = function (element) {
+            return element.behaviours;
         };
         Bootstrap.prototype.visitElement = function (element, deepHistoryAbove) {
             element.qualifiedName = element.ancestors().map(function (e) {
                 return e.name;
             }).join(Element.namespaceSeparator);
             // Put these lines back for debugging
-            element.behaviour.leave.push(function (message, instance) {
+            this.behaviour(element).leave.push(function (message, instance) {
                 console.log(instance + " leave " + element);
             });
-            element.behaviour.beginEnter.push(function (message, instance) {
+            this.behaviour(element).beginEnter.push(function (message, instance) {
                 console.log(instance + " enter " + element);
             });
-            element.behaviour.enter = element.behaviour.beginEnter.concat(element.behaviour.endEnter);
+            this.behaviour(element).enter = this.behaviour(element).beginEnter.concat(this.behaviour(element).endEnter);
         };
         Bootstrap.prototype.visitRegion = function (region, deepHistoryAbove) {
+            var _this = this;
             for (var i = 0, l = region.vertices.length; i < l; i++) {
-                region.vertices[i].reset();
-                region.vertices[i].accept(this, deepHistoryAbove || (region.initial && region.initial.kind === 2 /* DeepHistory */));
+                var vertex = region.vertices[i];
+                vertex.reset();
+                vertex.accept(this, deepHistoryAbove || (region.initial && region.initial.kind === 2 /* DeepHistory */));
             }
-            region.behaviour.leave.push(function (message, instance, history) {
-                var current = instance.getCurrent(region);
-                if (current.behaviour.leave) {
-                    invoke(current.behaviour.leave, message, instance, history);
-                }
+            this.behaviour(region).leave.push(function (message, instance, history) {
+                invoke(_this.behaviour(instance.getCurrent(region)).leave, message, instance, history);
             });
             if (deepHistoryAbove || !region.initial || region.initial.isHistory()) {
-                region.behaviour.endEnter.push(function (message, instance, history) {
-                    var ini = region.initial;
+                this.behaviour(region).endEnter.push(function (message, instance, history) {
+                    var initial = region.initial;
                     if (history || region.initial.isHistory()) {
-                        ini = instance.getCurrent(region) || region.initial;
+                        initial = instance.getCurrent(region) || region.initial;
                     }
-                    invoke(ini.behaviour.enter, message, instance, history || (region.initial.kind === 2 /* DeepHistory */));
+                    invoke(_this.behaviour(initial).enter, message, instance, history || (region.initial.kind === 2 /* DeepHistory */));
                 });
             }
             else {
-                region.behaviour.endEnter = region.behaviour.endEnter.concat(region.initial.behaviour.enter);
+                this.behaviour(region).endEnter = this.behaviour(region).endEnter.concat(this.behaviour(region.initial).enter);
             }
             this.visitElement(region, deepHistoryAbove);
         };
         Bootstrap.prototype.visitVertex = function (vertex, deepHistoryAbove) {
             this.visitElement(vertex, deepHistoryAbove);
-            vertex.behaviour.endEnter.push(function (message, instance, history) {
+            this.behaviour(vertex).endEnter.push(function (message, instance, history) {
                 vertex.evaluateCompletions(message, instance, history);
             });
-            vertex.behaviour.enter = vertex.behaviour.beginEnter.concat(vertex.behaviour.endEnter);
+            this.behaviour(vertex).enter = this.behaviour(vertex).beginEnter.concat(this.behaviour(vertex).endEnter);
         };
         Bootstrap.prototype.visitPseudoState = function (pseudoState, deepHistoryAbove) {
             this.visitVertex(pseudoState, deepHistoryAbove);
             if (pseudoState.kind === 5 /* Terminate */) {
-                pseudoState.behaviour.enter.push(function (message, instance, history) {
+                this.behaviour(pseudoState).enter.push(function (message, instance, history) {
                     instance.isTerminated = true;
                 });
             }
         };
         Bootstrap.prototype.visitState = function (state, deepHistoryAbove) {
+            var _this = this;
             for (var i = 0, l = state.regions.length; i < l; i++) {
                 var region = state.regions[i];
                 region.reset();
                 region.accept(this, deepHistoryAbove);
-                state.behaviour.leave.push(function (message, instance, history) {
-                    invoke(region.behaviour.leave, message, instance, history);
+                this.behaviour(state).leave.push(function (message, instance, history) {
+                    invoke(_this.behaviour(region).leave, message, instance, history);
                 });
-                state.behaviour.endEnter = state.behaviour.endEnter.concat(region.behaviour.enter);
+                this.behaviour(state).endEnter = this.behaviour(state).endEnter.concat(this.behaviour(region).enter);
             }
             this.visitVertex(state, deepHistoryAbove);
-            state.behaviour.leave = state.behaviour.leave.concat(state.exitBehavior);
-            state.behaviour.beginEnter = state.behaviour.beginEnter.concat(state.entryBehavior);
-            state.behaviour.beginEnter.push(function (message, instance, history) {
+            this.behaviour(state).leave = this.behaviour(state).leave.concat(state.exitBehavior);
+            this.behaviour(state).beginEnter = this.behaviour(state).beginEnter.concat(state.entryBehavior);
+            this.behaviour(state).beginEnter.push(function (message, instance, history) {
                 if (state.region) {
                     instance.setCurrent(state.region, state);
                 }
             });
-            state.behaviour.enter = state.behaviour.beginEnter.concat(state.behaviour.endEnter);
+            this.behaviour(state).enter = this.behaviour(state).beginEnter.concat(this.behaviour(state).endEnter);
         };
         Bootstrap.prototype.visitStateMachine = function (stateMachine, deepHistoryAbove) {
+            var _this = this;
             this.visitState(stateMachine, deepHistoryAbove);
-            stateMachine.accept(Bootstrap.bootstrapTransitions, this.elementBehaviour);
-            stateMachine.init = stateMachine.behaviour.enter;
+            stateMachine.accept(Bootstrap.bootstrapTransitions, function (element) {
+                return _this.behaviour(element);
+            });
+            stateMachine.init = this.behaviour(stateMachine).enter;
         };
         Bootstrap.bootstrapTransitions = new BootstrapTransitions();
         return Bootstrap;
@@ -227,7 +230,7 @@ var fsm;
             return this.getParent().isActive(instance);
         };
         Element.prototype.reset = function () {
-            this.behaviour = new Behaviour();
+            this.behaviours = new Behaviour();
         };
         /**
          * Returns a the element name as a fully qualified namespace.
