@@ -68,14 +68,16 @@ declare module fsm {
          * @member {string}
          */
         static namespaceSeparator: string;
+        /**
+         * The fully qualified name of the element.
+         * @member {string}
+         */
         qualifiedName: string;
-        behaviours: Behaviour;
         constructor(name: string);
         getParent(): Element;
         root(): StateMachine;
         ancestors(): Array<Element>;
         isActive(instance: IActiveStateConfiguration): boolean;
-        reset(): void;
         /**
          * Returns a the element name as a fully qualified namespace.
          * @method toString

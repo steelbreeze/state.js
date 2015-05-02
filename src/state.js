@@ -122,13 +122,17 @@ var fsm;
             _super.apply(this, arguments);
         }
         Bootstrap.prototype.behaviour = function (element) {
-            return element.behaviours;
+            if (!element.qualifiedName) {
+                element.qualifiedName = element.ancestors().map(function (e) {
+                    return e.name;
+                }).join(Element.namespaceSeparator);
+            }
+            if (!(element.qualifiedName in this.behaviours)) {
+                this.behaviours[element.qualifiedName] = new Behaviour();
+            }
+            return this.behaviours[element.qualifiedName];
         };
         Bootstrap.prototype.visitElement = function (element, deepHistoryAbove) {
-            element.qualifiedName = element.ancestors().map(function (e) {
-                return e.name;
-            }).join(Element.namespaceSeparator);
-            // Put these lines back for debugging
             this.behaviour(element).leave.push(function (message, instance) {
                 console.log(instance + " leave " + element);
             });
@@ -141,7 +145,6 @@ var fsm;
             var _this = this;
             for (var i = 0, l = region.vertices.length; i < l; i++) {
                 var vertex = region.vertices[i];
-                vertex.reset();
                 vertex.accept(this, deepHistoryAbove || (region.initial && region.initial.kind === 2 /* DeepHistory */));
             }
             this.behaviour(region).leave.push(function (message, instance, history) {
@@ -163,10 +166,11 @@ var fsm;
         };
         Bootstrap.prototype.visitVertex = function (vertex, deepHistoryAbove) {
             this.visitElement(vertex, deepHistoryAbove);
-            this.behaviour(vertex).endEnter.push(function (message, instance, history) {
+            var vb = this.behaviour((vertex));
+            vb.endEnter.push(function (message, instance, history) {
                 vertex.evaluateCompletions(message, instance, history);
             });
-            this.behaviour(vertex).enter = this.behaviour(vertex).beginEnter.concat(this.behaviour(vertex).endEnter);
+            vb.enter = vb.beginEnter.concat(vb.endEnter);
         };
         Bootstrap.prototype.visitPseudoState = function (pseudoState, deepHistoryAbove) {
             this.visitVertex(pseudoState, deepHistoryAbove);
@@ -180,7 +184,6 @@ var fsm;
             var _this = this;
             for (var i = 0, l = state.regions.length; i < l; i++) {
                 var region = state.regions[i];
-                region.reset();
                 region.accept(this, deepHistoryAbove);
                 this.behaviour(state).leave.push(function (message, instance, history) {
                     invoke(_this.behaviour(region).leave, message, instance, history);
@@ -199,6 +202,7 @@ var fsm;
         };
         Bootstrap.prototype.visitStateMachine = function (stateMachine, deepHistoryAbove) {
             var _this = this;
+            this.behaviours = {};
             this.visitState(stateMachine, deepHistoryAbove);
             stateMachine.accept(Bootstrap.bootstrapTransitions, function (element) {
                 return _this.behaviour(element);
@@ -228,9 +232,6 @@ var fsm;
         };
         Element.prototype.isActive = function (instance) {
             return this.getParent().isActive(instance);
-        };
-        Element.prototype.reset = function () {
-            this.behaviours = new Behaviour();
         };
         /**
          * Returns a the element name as a fully qualified namespace.
@@ -725,7 +726,6 @@ var fsm;
          * @method bootstrap
          */
         StateMachine.prototype.initialiseModel = function () {
-            _super.prototype.reset.call(this);
             this.clean = true;
             this.accept(StateMachine.bootstrap, false);
         };
