@@ -272,7 +272,7 @@ module fsm {
 			
 			this.visitState(stateMachine, deepHistoryAbove);
 
-			stateMachine.accept(Bootstrap.bootstrapTransitions, (element) => { return this.behaviour(element); });
+			stateMachine.accept(Bootstrap.bootstrapTransitions, (element: Element) => { return this.behaviour(element); });
 
             stateMachine.init = this.behaviour(stateMachine).enter;
 		}
@@ -771,7 +771,7 @@ module fsm {
         /**
          * Adds behaviour to a state that is executed each time the state is exited.
          * @method exit
-         * @param {(message: any, instance: IActiveStateConfiguration, history: boolean) => any} exitAction The action to add to the state's exit behaviour.
+         * @param {Action} exitAction The action to add to the state's exit behaviour.
          * @returns {State} Returns the state to allow a fluent style API.
          */
         exit<TMessage>(exitAction: Action): State {
@@ -785,7 +785,7 @@ module fsm {
         /**
          * Adds behaviour to a state that is executed each time the state is entered.
          * @method entry
-         * @param {(message: any, instance: IActiveStateConfiguration, history: boolean) => any} entryAction The action to add to the state's entry behaviour.
+         * @param {Action} entryAction The action to add to the state's entry behaviour.
          * @returns {State} Returns the state to allow a fluent style API.
          */
         entry<TMessage>(entryAction: Action): State {
@@ -995,7 +995,7 @@ module fsm {
          */
         constructor(public source: Vertex, public target?: Vertex) {
             // transitions are initially completion transitions, where the message is the source state itself
-            this.guard = (message: any, instance: IActiveStateConfiguration): boolean => { return message === this.source; };
+            this.guard = (message, instance): boolean => { return message === this.source; };
         }
 
         /**
@@ -1014,7 +1014,7 @@ module fsm {
         /**
          * Defines the guard condition for the transition.
          * @method when
-         * @param {(message: any, instance: IActiveStateConfiguration) => boolean} guard The guard condition that must evaluate true for the transition to be traversed. 
+         * @param {Guard} guard The guard condition that must evaluate true for the transition to be traversed. 
          * @returns {Transition} Returns the transition object to enable the fluent API.
          */
         when(guard: Guard): Transition {
@@ -1026,7 +1026,7 @@ module fsm {
         /**
          * Add behaviour to a transition.
          * @method effect
-         * @param {(message: any, instance: IActiveStateConfiguration, history: boolean) => any} transitionAction The action to add to the transitions traversal behaviour.
+         * @param {Action} transitionAction The action to add to the transitions traversal behaviour.
          * @returns {Transition} Returns the transition object to enable the fluent API.
          */
         effect<TMessage>(transitionAction: Action): Transition {
@@ -1042,7 +1042,7 @@ module fsm {
 		}
     }
 
-    function invoke(actions: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any>, message: any, instance: IActiveStateConfiguration, history: boolean): void {
+    function invoke(actions: Array<Action>, message: any, instance: IActiveStateConfiguration, history: boolean): void {
         for (var i = 0, l = actions.length; i < l; i++) {
             actions[i](message, instance, history);
         }
