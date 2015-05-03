@@ -53,6 +53,7 @@ var fsm;
         return Visitor;
     })();
     fsm.Visitor = Visitor;
+    /* Temporary structure to hold element behaviour during the bootstrap process */
     var Behaviour = (function () {
         function Behaviour() {
             this.leave = [];
@@ -62,7 +63,7 @@ var fsm;
         }
         return Behaviour;
     })();
-    fsm.Behaviour = Behaviour;
+    /* Bootstraps transitions after all elements have been bootstrapped */
     var BootstrapTransitions = (function (_super) {
         __extends(BootstrapTransitions, _super);
         function BootstrapTransitions() {
@@ -127,31 +128,29 @@ var fsm;
                     return e.name;
                 }).join(Element.namespaceSeparator);
             }
-            if (!(element.qualifiedName in this.behaviours)) {
-                this.behaviours[element.qualifiedName] = new Behaviour();
-            }
-            return this.behaviours[element.qualifiedName];
+            return this.behaviours[element.qualifiedName] || (this.behaviours[element.qualifiedName] = new Behaviour());
         };
         Bootstrap.prototype.visitElement = function (element, deepHistoryAbove) {
-            this.behaviour(element).leave.push(function (message, instance) {
+            var elementBehaviour = this.behaviour(element);
+            elementBehaviour.leave.push(function (message, instance) {
                 console.log(instance + " leave " + element);
             });
-            this.behaviour(element).beginEnter.push(function (message, instance) {
+            elementBehaviour.beginEnter.push(function (message, instance) {
                 console.log(instance + " enter " + element);
             });
-            this.behaviour(element).enter = this.behaviour(element).beginEnter.concat(this.behaviour(element).endEnter);
+            elementBehaviour.enter = elementBehaviour.beginEnter.concat(elementBehaviour.endEnter);
         };
         Bootstrap.prototype.visitRegion = function (region, deepHistoryAbove) {
             var _this = this;
+            var regionBehaviour = this.behaviour(region);
             for (var i = 0, l = region.vertices.length; i < l; i++) {
-                var vertex = region.vertices[i];
-                vertex.accept(this, deepHistoryAbove || (region.initial && region.initial.kind === 2 /* DeepHistory */));
+                region.vertices[i].accept(this, deepHistoryAbove || (region.initial && region.initial.kind === 2 /* DeepHistory */));
             }
-            this.behaviour(region).leave.push(function (message, instance, history) {
+            regionBehaviour.leave.push(function (message, instance, history) {
                 invoke(_this.behaviour(instance.getCurrent(region)).leave, message, instance, history);
             });
             if (deepHistoryAbove || !region.initial || region.initial.isHistory()) {
-                this.behaviour(region).endEnter.push(function (message, instance, history) {
+                regionBehaviour.endEnter.push(function (message, instance, history) {
                     var initial = region.initial;
                     if (history || region.initial.isHistory()) {
                         initial = instance.getCurrent(region) || region.initial;
@@ -160,17 +159,17 @@ var fsm;
                 });
             }
             else {
-                this.behaviour(region).endEnter = this.behaviour(region).endEnter.concat(this.behaviour(region.initial).enter);
+                regionBehaviour.endEnter = regionBehaviour.endEnter.concat(this.behaviour(region.initial).enter);
             }
             this.visitElement(region, deepHistoryAbove);
         };
         Bootstrap.prototype.visitVertex = function (vertex, deepHistoryAbove) {
             this.visitElement(vertex, deepHistoryAbove);
-            var vb = this.behaviour((vertex));
-            vb.endEnter.push(function (message, instance, history) {
+            var vertexBehaviour = this.behaviour((vertex));
+            vertexBehaviour.endEnter.push(function (message, instance, history) {
                 vertex.evaluateCompletions(message, instance, history);
             });
-            vb.enter = vb.beginEnter.concat(vb.endEnter);
+            vertexBehaviour.enter = vertexBehaviour.beginEnter.concat(vertexBehaviour.endEnter);
         };
         Bootstrap.prototype.visitPseudoState = function (pseudoState, deepHistoryAbove) {
             this.visitVertex(pseudoState, deepHistoryAbove);
@@ -181,24 +180,25 @@ var fsm;
             }
         };
         Bootstrap.prototype.visitState = function (state, deepHistoryAbove) {
-            var _this = this;
+            var stateBehaviour = this.behaviour(state);
             for (var i = 0, l = state.regions.length; i < l; i++) {
                 var region = state.regions[i];
+                var regionBehaviour = this.behaviour(region);
                 region.accept(this, deepHistoryAbove);
-                this.behaviour(state).leave.push(function (message, instance, history) {
-                    invoke(_this.behaviour(region).leave, message, instance, history);
+                stateBehaviour.leave.push(function (message, instance, history) {
+                    invoke(regionBehaviour.leave, message, instance, history);
                 });
-                this.behaviour(state).endEnter = this.behaviour(state).endEnter.concat(this.behaviour(region).enter);
+                stateBehaviour.endEnter = stateBehaviour.endEnter.concat(regionBehaviour.enter);
             }
             this.visitVertex(state, deepHistoryAbove);
-            this.behaviour(state).leave = this.behaviour(state).leave.concat(state.exitBehavior);
-            this.behaviour(state).beginEnter = this.behaviour(state).beginEnter.concat(state.entryBehavior);
-            this.behaviour(state).beginEnter.push(function (message, instance, history) {
+            stateBehaviour.leave = stateBehaviour.leave.concat(state.exitBehavior);
+            stateBehaviour.beginEnter = stateBehaviour.beginEnter.concat(state.entryBehavior);
+            stateBehaviour.beginEnter.push(function (message, instance, history) {
                 if (state.region) {
                     instance.setCurrent(state.region, state);
                 }
             });
-            this.behaviour(state).enter = this.behaviour(state).beginEnter.concat(this.behaviour(state).endEnter);
+            stateBehaviour.enter = stateBehaviour.beginEnter.concat(stateBehaviour.endEnter);
         };
         Bootstrap.prototype.visitStateMachine = function (stateMachine, deepHistoryAbove) {
             var _this = this;
@@ -218,11 +218,12 @@ var fsm;
      * @class Element
      */
     var Element = (function () {
+        // creates a new instance of the Element class; note this is for internal use only
         function Element(name) {
             this.name = name;
         }
         Element.prototype.getParent = function () {
-            return;
+            return; // note this is an abstract method
         };
         Element.prototype.root = function () {
             return this.getParent().root();
@@ -270,7 +271,6 @@ var fsm;
         function Region(name, parent) {
             _super.call(this, name);
             this.parent = parent;
-            // NOTE: would like an equivalent of internal or package-private
             this.vertices = [];
             parent.regions.push(this);
             parent.root().clean = false;

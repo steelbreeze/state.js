@@ -94,13 +94,15 @@ module fsm {
 		}
 	}
 
-	export class Behaviour {
+	/* Temporary structure to hold element behaviour during the bootstrap process */
+	class Behaviour {
         leave: Array<Action> = [];
         beginEnter: Array<Action> = [];
         endEnter: Array<Action> = [];
         enter: Array<Action> = [];
 	}
 
+	/* Bootstraps transitions after all elements have been bootstrapped */
 	class BootstrapTransitions extends Visitor<(element: Element) => Behaviour> {
 		visitTransition(transition: Transition, behaviour: (element: Element) => Behaviour) {
 			// internal transitions: just perform the actions; no exiting or entering states
@@ -173,34 +175,32 @@ module fsm {
 			if (!element.qualifiedName) {
 				element.qualifiedName = element.ancestors().map<string>((e) => { return e.name; }).join(Element.namespaceSeparator);
 			}
-			
-			if (!(element.qualifiedName in this.behaviours)) {
-				this.behaviours[element.qualifiedName] = new Behaviour();
-			}
-			
-			return this.behaviours[element.qualifiedName];
+						
+			return this.behaviours[element.qualifiedName] || (this.behaviours[element.qualifiedName] = new Behaviour());
 		}
 
 		visitElement(element: Element, deepHistoryAbove: boolean) {
-			this.behaviour(element).leave.push((message, instance) => { console.log(instance + " leave " + element); });
-			this.behaviour(element).beginEnter.push((message, instance) => { console.log(instance + " enter " + element); });
+			var elementBehaviour = this.behaviour(element);
+			
+			elementBehaviour.leave.push((message, instance) => { console.log(instance + " leave " + element); });
+			elementBehaviour.beginEnter.push((message, instance) => { console.log(instance + " enter " + element); });
 
-			this.behaviour(element).enter = this.behaviour(element).beginEnter.concat(this.behaviour(element).endEnter);
+			elementBehaviour.enter = elementBehaviour.beginEnter.concat(elementBehaviour.endEnter);
 		}
 
 		visitRegion(region: Region, deepHistoryAbove: boolean) {
+			var regionBehaviour = this.behaviour(region);
+			
             for (var i = 0, l = region.vertices.length; i < l; i++) {
-				var vertex = region.vertices[i];
-
-                vertex.accept(this, deepHistoryAbove || (region.initial && region.initial.kind === PseudoStateKind.DeepHistory));
+				region.vertices[i].accept(this, deepHistoryAbove || (region.initial && region.initial.kind === PseudoStateKind.DeepHistory));
             }
 
-            this.behaviour(region).leave.push((message, instance, history) => {
+            regionBehaviour.leave.push((message, instance, history) => {
 				invoke(this.behaviour(instance.getCurrent(region)).leave, message, instance, history);
 			});
 
             if (deepHistoryAbove || !region.initial || region.initial.isHistory()) {
-                this.behaviour(region).endEnter.push((message, instance, history) => {
+                regionBehaviour.endEnter.push((message, instance, history) => {
 					var initial: Vertex = region.initial;
 					
 					if (history || region.initial.isHistory()) {
@@ -209,7 +209,7 @@ module fsm {
 					
 					invoke(this.behaviour(initial).enter, message, instance, history || (region.initial.kind === PseudoStateKind.DeepHistory)); });
             } else {
-                this.behaviour(region).endEnter = this.behaviour(region).endEnter.concat(this.behaviour(region.initial).enter);
+                regionBehaviour.endEnter = regionBehaviour.endEnter.concat(this.behaviour(region.initial).enter);
             }
 
             this.visitElement(region, deepHistoryAbove);
@@ -218,13 +218,13 @@ module fsm {
 		visitVertex(vertex: Vertex, deepHistoryAbove: boolean) {
             this.visitElement(vertex, deepHistoryAbove);
 
-			var vb = this.behaviour((vertex));
+			var vertexBehaviour = this.behaviour((vertex));
 
-            vb.endEnter.push((message, instance, history) => {
+            vertexBehaviour.endEnter.push((message, instance, history) => {
 				vertex.evaluateCompletions(message, instance, history);
 			});
 				
-            vb.enter = vb.beginEnter.concat(vb.endEnter);
+            vertexBehaviour.enter = vertexBehaviour.beginEnter.concat(vertexBehaviour.endEnter);
 		}
 
 		visitPseudoState(pseudoState: PseudoState, deepHistoryAbove: boolean) {
@@ -238,30 +238,33 @@ module fsm {
 		}
 
 		visitState(state: State, deepHistoryAbove: boolean) {
+			var stateBehaviour = this.behaviour(state);
+			
             for (var i = 0, l = state.regions.length; i < l; i++) {
                 var region = state.regions[i];
+				var regionBehaviour = this.behaviour(region);
 
                 region.accept(this, deepHistoryAbove);
 
-                this.behaviour(state).leave.push((message, instance, history) => {
-					invoke(this.behaviour(region).leave, message, instance, history);
+                stateBehaviour.leave.push((message, instance, history) => {
+					invoke(regionBehaviour.leave, message, instance, history);
 				});
 
-                this.behaviour(state).endEnter = this.behaviour(state).endEnter.concat(this.behaviour(region).enter);
+                stateBehaviour.endEnter = stateBehaviour.endEnter.concat(regionBehaviour.enter);
             }
 
             this.visitVertex(state, deepHistoryAbove);
 
-            this.behaviour(state).leave = this.behaviour(state).leave.concat(state.exitBehavior);
-            this.behaviour(state).beginEnter = this.behaviour(state).beginEnter.concat(state.entryBehavior);
+            stateBehaviour.leave = stateBehaviour.leave.concat(state.exitBehavior);
+            stateBehaviour.beginEnter = stateBehaviour.beginEnter.concat(state.entryBehavior);
 
-            this.behaviour(state).beginEnter.push((message, instance, history) => {
+            stateBehaviour.beginEnter.push((message, instance, history) => {
 				if (state.region) {
 					instance.setCurrent(state.region, state);
 					}
 				});
 
-            this.behaviour(state).enter = this.behaviour(state).beginEnter.concat(this.behaviour(state).endEnter);
+            stateBehaviour.enter = stateBehaviour.beginEnter.concat(stateBehaviour.endEnter);
 		}
 
 		visitStateMachine(stateMachine: StateMachine, deepHistoryAbove: boolean) {
@@ -269,7 +272,7 @@ module fsm {
 			
 			this.visitState(stateMachine, deepHistoryAbove);
 
-			stateMachine.accept(Bootstrap.bootstrapTransitions, (element: Element) => { return this.behaviour(element); });
+			stateMachine.accept(Bootstrap.bootstrapTransitions, (element) => { return this.behaviour(element); });
 
             stateMachine.init = this.behaviour(stateMachine).enter;
 		}
@@ -289,16 +292,24 @@ module fsm {
 		static namespaceSeparator = ".";
 		
 		/**
+		 * The name of the element.
+		 * @member {string}
+		 */
+		name: string;
+		
+		/**
 		 * The fully qualified name of the element.
 		 * @member {string}
 		 */
 		qualifiedName: string;
 
-        constructor(public name: string) {
+		// creates a new instance of the Element class; note this is for internal use only
+        constructor(name: string) {
+			this.name = name;
         }
 
         getParent(): Element {
-            return;
+            return; // note this is an abstract method
         }
 
         root(): StateMachine {
@@ -342,7 +353,6 @@ module fsm {
          */
         public static defaultName: string = "default";
         
-        // NOTE: would like an equivalent of internal or package-private
         vertices: Array<Vertex> = [];
         initial: PseudoState;
 
