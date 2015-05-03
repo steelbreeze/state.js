@@ -1,9 +1,3 @@
-/**
- * state v5 finite state machine library
- * http://www.steelbreeze.net/state.cs
- * Copyright (c) 2014-5 Steelbreeze Limited
- * Licensed under the MIT and GPL v3 licences
- */
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -11,7 +5,13 @@ var __extends = this.__extends || function (d, b) {
     d.prototype = new __();
 };
 /**
- * Default namespace for the state.js classes.
+ * Finite state machine library
+ *
+ * Copyright (c) 2014-5 Steelbreeze Limited
+ *
+ * Licensed under the MIT and GPL v3 licences
+ *
+ * http://www.steelbreeze.net/state.cs
  * @module fsm
  */
 var fsm;
