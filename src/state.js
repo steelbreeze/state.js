@@ -31,35 +31,40 @@ var fsm;
          * @returns {any} Any value may be returned when visiting an element.
          */
         Visitor.prototype.visitElement = function (element, arg) {
+            return;
         };
         Visitor.prototype.visitRegion = function (region, arg) {
-            this.visitElement(region, arg);
+            var result = this.visitElement(region, arg);
             for (var i = 0, l = region.vertices.length; i < l; i++) {
                 region.vertices[i].accept(this, arg);
             }
+            return result;
         };
         Visitor.prototype.visitVertex = function (vertex, arg) {
-            this.visitElement(vertex, arg);
+            var result = this.visitElement(vertex, arg);
             for (var i = 0, l = vertex.transitions.length; i < l; i++) {
                 vertex.transitions[i].accept(this, arg);
             }
+            return result;
         };
         Visitor.prototype.visitPseudoState = function (pseudoState, arg) {
-            this.visitVertex(pseudoState, arg);
+            return this.visitVertex(pseudoState, arg);
         };
         Visitor.prototype.visitState = function (state, arg) {
-            this.visitVertex(state, arg);
+            var result = this.visitVertex(state, arg);
             for (var i = 0, l = state.regions.length; i < l; i++) {
                 state.regions[i].accept(this, arg);
             }
+            return result;
         };
         Visitor.prototype.visitFinalState = function (finalState, arg) {
-            this.visitState(finalState, arg);
+            return this.visitState(finalState, arg);
         };
         Visitor.prototype.visitStateMachine = function (stateMachine, arg) {
-            this.visitState(stateMachine, arg);
+            return this.visitState(stateMachine, arg);
         };
         Visitor.prototype.visitTransition = function (transition, arg) {
+            return;
         };
         return Visitor;
     })();

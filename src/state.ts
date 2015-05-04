@@ -78,45 +78,53 @@ module fsm {
 		 * @returns {any} Any value may be returned when visiting an element.
 		 */
 		visitElement(element: Element, arg: TArg): any {
+			return;
 		}
 
 		visitRegion(region: Region, arg: TArg): any {
-			this.visitElement(region, arg);
+			var result = this.visitElement(region, arg);
 
 			for (var i = 0, l = region.vertices.length; i < l; i++) {
 				region.vertices[i].accept(this, arg);
 			}
+			
+			return result;
 		}
 
 		visitVertex(vertex: Vertex, arg: TArg): any {
-			this.visitElement(vertex, arg);
+			var result = this.visitElement(vertex, arg);
 
 			for (var i = 0, l = vertex.transitions.length; i < l; i++) {
 				vertex.transitions[i].accept(this, arg);
 			}
+			
+			return result;
 		}
 
 		visitPseudoState(pseudoState: PseudoState, arg: TArg): any {
-			this.visitVertex(pseudoState, arg);
+			return this.visitVertex(pseudoState, arg);
 		}
 
 		visitState(state: State, arg: TArg): any {
-			this.visitVertex(state, arg);
+			var result = this.visitVertex(state, arg);
 
 			for (var i = 0, l = state.regions.length; i < l; i++) {
 				state.regions[i].accept(this, arg);
 			}
+			
+			return result;
 		}
 
 		visitFinalState(finalState: FinalState, arg: TArg): any {
-			this.visitState(finalState, arg);
+			return this.visitState(finalState, arg);
 		}
 
 		visitStateMachine(stateMachine: StateMachine, arg: TArg): any {
-			this.visitState(stateMachine, arg);
+			return this.visitState(stateMachine, arg);
 		}
 
 		visitTransition(transition: Transition, arg: TArg): any {
+			return;
 		}
 	}
 
