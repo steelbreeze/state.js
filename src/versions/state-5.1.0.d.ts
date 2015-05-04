@@ -10,16 +10,24 @@
  */
 declare module fsm {
     /**
-     * Declaration for guard condition callbacks.
-     * Guard conditions must evaluate true for a transition to be traversed.
+     * Declaration callbacks that provide transition guard conditions.
      * @interface Guard
      * @param {any} message The message that may trigger the transition.
      * @param {IActiveStateConfiguration} instance The state machine instance.
      * @param {boolean} history Internal use only
+     * @returns {boolean} True if the guard condition passed.
      */
     interface Guard {
         (message: any, instance: IActiveStateConfiguration): boolean;
     }
+    /**
+     * Declaration for callbacks that provide state entry, state exit and transition behaviour.
+     * @interface Action
+     * @param {any} message The message that may trigger the transition.
+     * @param {IActiveStateConfiguration} instance The state machine instance.
+     * @param {boolean} history Internal use only
+     * @returns {any} Actions can return any value.
+     */
     interface Action {
         (message: any, instance: IActiveStateConfiguration, history: boolean): any;
     }
@@ -47,15 +55,26 @@ declare module fsm {
          */
         getCurrent(region: Region): State;
     }
+    /**
+     * Implementation of a visitor pattern.
+     * @class Visitor
+     */
     class Visitor<TArg> {
-        visitElement(element: Element, arg: TArg): void;
-        visitRegion(region: Region, arg: TArg): void;
-        visitVertex(vertex: Vertex, arg: TArg): void;
-        visitPseudoState(pseudoState: PseudoState, arg: TArg): void;
-        visitState(state: State, arg: TArg): void;
-        visitFinalState(finalState: FinalState, arg: TArg): void;
-        visitStateMachine(stateMachine: StateMachine, arg: TArg): void;
-        visitTransition(transition: Transition, arg: TArg): void;
+        /**
+         * Visits an element within a state machine model.
+         * @method visitElement
+         * @param {Element} element the element being visited.
+         * @param {TArg} arg The parameter passed into the accept method.
+         * @returns {any} Any value may be returned when visiting an element.
+         */
+        visitElement(element: Element, arg: TArg): any;
+        visitRegion(region: Region, arg: TArg): any;
+        visitVertex(vertex: Vertex, arg: TArg): any;
+        visitPseudoState(pseudoState: PseudoState, arg: TArg): any;
+        visitState(state: State, arg: TArg): any;
+        visitFinalState(finalState: FinalState, arg: TArg): any;
+        visitStateMachine(stateMachine: StateMachine, arg: TArg): any;
+        visitTransition(transition: Transition, arg: TArg): any;
     }
     /**
      * An abstract class used as the base for the Region and Vertex classes.

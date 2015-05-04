@@ -12,6 +12,22 @@ http://www.steelbreeze.net/state.cs
 
 * * *
 
+## Class: Visitor
+Implementation of a visitor pattern.
+
+### fsm.Visitor.visitElement(element, arg) 
+
+Visits an element within a state machine model.
+
+**Parameters**
+
+**element**: `Element`, the element being visited.
+
+**arg**: `TArg`, The parameter passed into the accept method.
+
+**Returns**: `any`, Any value may be returned when visiting an element.
+
+
 ## Class: Element
 An abstract class used as the base for the Region and Vertex classes.
 An element is any part of the tree structure that represents a composite state machine model.
@@ -95,17 +111,22 @@ An enumeration of static constants that dictates the precise behaviour of pseudo
 Use these constants as the `kind` parameter when creating new `PseudoState` instances.
 
 **Initial**: `number` , Used for pseudo states that are always the staring point when entering their parent region.
+
 **ShallowHistory**: `number` , Used for pseudo states that are the the starting point when entering their parent region for the first time; subsequent entries will start at the last known state.
+
 **DeepHistory**: `number` , As per `ShallowHistory` but the history semantic cascades through all child regions irrespective of their initial pseudo state kind.
+
 **Choice**: `number` , Enables a dynamic conditional branches; within a compound transition.
 All outbound transition guards from a Choice are evaluated upon entering the PseudoState:
 if a single transition is found, it will be traversed;
 if many transitions are found, an arbitary one will be selected and traversed;
 if none evaluate true, and there is no 'else transition' defined, the machine is deemed illformed and an exception will be thrown.
+
 **Junction**: `number` , Enables a static conditional branches; within a compound transition.
 All outbound transition guards from a Choice are evaluated upon entering the PseudoState:
 if a single transition is found, it will be traversed;
 if many or none evaluate true, and there is no 'else transition' defined, the machine is deemed illformed and an exception will be thrown.
+
 **Terminate**: `number` , Entering a terminate `PseudoState` implies that the execution of this state machine by means of its state object is terminated.
 
 ## Class: PseudoState

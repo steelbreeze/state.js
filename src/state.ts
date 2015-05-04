@@ -9,23 +9,31 @@
  * @module fsm
  */
 module fsm {
-	/* String keyed dictionary type for internal use only */
+	// string keyed dictionary type for internal use only
 	interface Dictionary<TValue> {
 		[index: string]: TValue;
 	}
 
 	/**
-	 * Declaration for guard condition callbacks.
-	 * Guard conditions must evaluate true for a transition to be traversed.
+	 * Declaration callbacks that provide transition guard conditions.
 	 * @interface Guard
 	 * @param {any} message The message that may trigger the transition.
 	 * @param {IActiveStateConfiguration} instance The state machine instance.
 	 * @param {boolean} history Internal use only
+	 * @returns {boolean} True if the guard condition passed.
 	 */
 	export interface Guard {
 		(message: any, instance: IActiveStateConfiguration): boolean;
 	}
 
+	/**
+	 * Declaration for callbacks that provide state entry, state exit and transition behaviour.
+	 * @interface Action
+	 * @param {any} message The message that may trigger the transition.
+	 * @param {IActiveStateConfiguration} instance The state machine instance.
+	 * @param {boolean} history Internal use only
+	 * @returns {any} Actions can return any value.
+	 */
 	export interface Action {
 		(message: any, instance: IActiveStateConfiguration, history: boolean): any;
 	}
@@ -57,11 +65,22 @@ module fsm {
         getCurrent(region: Region): State;
     }
 
+	/**
+	 * Implementation of a visitor pattern.
+	 * @class Visitor
+	 */
 	export class Visitor<TArg> {
-		visitElement(element: Element, arg: TArg) {
+		/**
+		 * Visits an element within a state machine model.
+		 * @method visitElement
+		 * @param {Element} element the element being visited.
+		 * @param {TArg} arg The parameter passed into the accept method.
+		 * @returns {any} Any value may be returned when visiting an element.
+		 */
+		visitElement(element: Element, arg: TArg): any {
 		}
 
-		visitRegion(region: Region, arg: TArg) {
+		visitRegion(region: Region, arg: TArg): any {
 			this.visitElement(region, arg);
 
 			for (var i = 0, l = region.vertices.length; i < l; i++) {
@@ -69,7 +88,7 @@ module fsm {
 			}
 		}
 
-		visitVertex(vertex: Vertex, arg: TArg) {
+		visitVertex(vertex: Vertex, arg: TArg): any {
 			this.visitElement(vertex, arg);
 
 			for (var i = 0, l = vertex.transitions.length; i < l; i++) {
@@ -77,11 +96,11 @@ module fsm {
 			}
 		}
 
-		visitPseudoState(pseudoState: PseudoState, arg: TArg) {
+		visitPseudoState(pseudoState: PseudoState, arg: TArg): any {
 			this.visitVertex(pseudoState, arg);
 		}
 
-		visitState(state: State, arg: TArg) {
+		visitState(state: State, arg: TArg): any {
 			this.visitVertex(state, arg);
 
 			for (var i = 0, l = state.regions.length; i < l; i++) {
@@ -89,19 +108,19 @@ module fsm {
 			}
 		}
 
-		visitFinalState(finalState: FinalState, arg: TArg) {
+		visitFinalState(finalState: FinalState, arg: TArg): any {
 			this.visitState(finalState, arg);
 		}
 
-		visitStateMachine(stateMachine: StateMachine, arg: TArg) {
+		visitStateMachine(stateMachine: StateMachine, arg: TArg): any {
 			this.visitState(stateMachine, arg);
 		}
 
-		visitTransition(transition: Transition, arg: TArg) {
+		visitTransition(transition: Transition, arg: TArg): any {
 		}
 	}
 
-	/* Temporary structure to hold element behaviour during the bootstrap process */
+	// Temporary structure to hold element behaviour during the bootstrap process
 	class Behaviour {
         leave: Array<Action> = [];
         beginEnter: Array<Action> = [];
@@ -109,7 +128,7 @@ module fsm {
         enter: Array<Action> = [];
 	}
 
-	/* Bootstraps transitions after all elements have been bootstrapped */
+	// Bootstraps transitions after all elements have been bootstrapped
 	class BootstrapTransitions extends Visitor<(element: Element) => Behaviour> {
 		visitTransition(transition: Transition, behaviour: (element: Element) => Behaviour) {
 			// internal transitions: just perform the actions; no exiting or entering states
@@ -174,6 +193,7 @@ module fsm {
 		}
 	}
 
+	// bootstraps all the elements within a state machine model
 	class Bootstrap extends Visitor<boolean> {
 		private static bootstrapTransitions = new BootstrapTransitions();
 		private behaviours: Dictionary<Behaviour>;
@@ -310,23 +330,27 @@ module fsm {
 		 */
 		qualifiedName: string;
 
-		// creates a new instance of the Element class; note this is for internal use only
+		// creates a new instance of the Element class; note this is for internal use only.
         constructor(name: string) {
 			this.name = name;
         }
 
+		// returns the parent element of this element; note this is for internal use only.
         getParent(): Element {
-            return; // note this is an abstract method
+            return; // note this is an abstract method.
         }
 
+		// returns the root state machine that this element belongs to; note this is for internal use only.
         root(): StateMachine {
             return this.getParent().root();
         }
 
+		// returns the ancestors of this element; note this is for internal use only.
         ancestors(): Array<Element> {
             return (this.getParent() ? this.getParent().ancestors() : []).concat(this);
         }
 
+		// true if the element is active for a given state machine instance; note this is for internal use only.
         isActive(instance: IActiveStateConfiguration): boolean {
             return this.getParent().isActive(instance);
         }

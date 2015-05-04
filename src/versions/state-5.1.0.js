@@ -16,9 +16,20 @@ var __extends = this.__extends || function (d, b) {
  */
 var fsm;
 (function (fsm) {
+    /**
+     * Implementation of a visitor pattern.
+     * @class Visitor
+     */
     var Visitor = (function () {
         function Visitor() {
         }
+        /**
+         * Visits an element within a state machine model.
+         * @method visitElement
+         * @param {Element} element the element being visited.
+         * @param {TArg} arg The parameter passed into the accept method.
+         * @returns {any} Any value may be returned when visiting an element.
+         */
         Visitor.prototype.visitElement = function (element, arg) {
         };
         Visitor.prototype.visitRegion = function (region, arg) {
@@ -53,7 +64,7 @@ var fsm;
         return Visitor;
     })();
     fsm.Visitor = Visitor;
-    /* Temporary structure to hold element behaviour during the bootstrap process */
+    // Temporary structure to hold element behaviour during the bootstrap process
     var Behaviour = (function () {
         function Behaviour() {
             this.leave = [];
@@ -63,7 +74,7 @@ var fsm;
         }
         return Behaviour;
     })();
-    /* Bootstraps transitions after all elements have been bootstrapped */
+    // Bootstraps transitions after all elements have been bootstrapped
     var BootstrapTransitions = (function (_super) {
         __extends(BootstrapTransitions, _super);
         function BootstrapTransitions() {
@@ -119,6 +130,7 @@ var fsm;
         };
         return BootstrapTransitions;
     })(Visitor);
+    // bootstraps all the elements within a state machine model
     var Bootstrap = (function (_super) {
         __extends(Bootstrap, _super);
         function Bootstrap() {
@@ -212,19 +224,23 @@ var fsm;
      * @class Element
      */
     var Element = (function () {
-        // creates a new instance of the Element class; note this is for internal use only
+        // creates a new instance of the Element class; note this is for internal use only.
         function Element(name) {
             this.name = name;
         }
+        // returns the parent element of this element; note this is for internal use only.
         Element.prototype.getParent = function () {
-            return; // note this is an abstract method
+            return; // note this is an abstract method.
         };
+        // returns the root state machine that this element belongs to; note this is for internal use only.
         Element.prototype.root = function () {
             return this.getParent().root();
         };
+        // returns the ancestors of this element; note this is for internal use only.
         Element.prototype.ancestors = function () {
             return (this.getParent() ? this.getParent().ancestors() : []).concat(this);
         };
+        // true if the element is active for a given state machine instance; note this is for internal use only.
         Element.prototype.isActive = function (instance) {
             return this.getParent().isActive(instance);
         };
