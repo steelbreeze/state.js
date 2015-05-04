@@ -1,4 +1,4 @@
-## Version 5.2.0
+## Version 5.1.0
 Fixes a bug that would cause completion transitions to fire for composite states that were not complete.
 
 Changed the file management for releases: the latest version will always be state.js and state.min.js and state.d.ts; files with version numbers will also be available.
@@ -19,7 +19,7 @@ Remove Selector type and functions; replace with virtual methods on Vertex subty
 
 Implement a visitor pattern for state machine models.
 
-Migtate transition bootstrap to a visitor.
+Migtated transition bootstrap to a visitor.
 
 ## Version 5.0.1
 Fix bug relating to external transitions and orthogonal regions that could result in an invalid current active state.
