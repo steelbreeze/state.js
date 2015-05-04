@@ -64,7 +64,7 @@ declare module fsm {
          * Visits an element within a state machine model.
          * @method visitElement
          * @param {Element} element the element being visited.
-         * @param {TArg} arg The parameter passed into the accept method.
+         * @param {any} arg The parameter passed into the accept method.
          * @returns {any} Any value may be returned when visiting an element.
          */
         visitElement(element: Element, arg: TArg): any;
@@ -147,7 +147,7 @@ declare module fsm {
          */
         isComplete(instance: IActiveStateConfiguration): boolean;
         evaluate(message: any, instance: IActiveStateConfiguration): boolean;
-        accept<TArg>(visitor: Visitor<TArg>, arg: TArg): void;
+        accept<TArg>(visitor: Visitor<TArg>, arg: TArg): any;
     }
     /**
      * An abstract element within a state machine model that can be the source or target of a transition (states and pseudo states).
@@ -183,7 +183,7 @@ declare module fsm {
         evaluateCompletions(message: any, instance: IActiveStateConfiguration, history: boolean): void;
         select(message: any, instance: IActiveStateConfiguration): Transition;
         evaluate(message: any, instance: IActiveStateConfiguration): boolean;
-        accept<TArg>(visitor: Visitor<TArg>, arg: TArg): void;
+        accept<TArg>(visitor: Visitor<TArg>, arg: TArg): any;
     }
     /**
      * An enumeration of static constants that dictates the precise behaviour of pseudo states.
@@ -269,7 +269,7 @@ declare module fsm {
         isHistory(): boolean;
         isInitial(): boolean;
         select(message: any, instance: IActiveStateConfiguration): Transition;
-        accept<TArg>(visitor: Visitor<TArg>, arg: TArg): void;
+        accept<TArg>(visitor: Visitor<TArg>, arg: TArg): any;
     }
     /**
      * An element within a state machine model that represents an invariant condition within the life of the state machine instance.
@@ -351,7 +351,7 @@ declare module fsm {
         entry<TMessage>(entryAction: Action): State;
         select(message: any, instance: IActiveStateConfiguration): Transition;
         evaluate(message: any, instance: IActiveStateConfiguration): boolean;
-        accept<TArg>(visitor: Visitor<TArg>, arg: TArg): void;
+        accept<TArg>(visitor: Visitor<TArg>, arg: TArg): any;
     }
     /**
      * An element within a state machine model that represents completion of the life of the containing Region within the state machine instance.
@@ -376,7 +376,7 @@ declare module fsm {
          */
         constructor(name: string, parent: State);
         to(target?: Vertex): Transition;
-        accept<TArg>(visitor: Visitor<TArg>, arg: TArg): void;
+        accept<TArg>(visitor: Visitor<TArg>, arg: TArg): any;
     }
     /**
      * An element within a state machine model that represents the root of the state machine model.
@@ -426,7 +426,7 @@ declare module fsm {
          * @returns {boolean} True if the method caused a state transition.
          */
         evaluate(message: any, instance: IActiveStateConfiguration, autoBootstrap?: boolean): boolean;
-        accept<TArg>(visitor: Visitor<TArg>, arg: TArg): void;
+        accept<TArg>(visitor: Visitor<TArg>, arg: TArg): any;
     }
     /**
      * A transition between vertices (states or pseudo states) that may be traversed in response to a message.
@@ -474,7 +474,7 @@ declare module fsm {
          * @returns {Transition} Returns the transition object to enable the fluent API.
          */
         effect<TMessage>(transitionAction: Action): Transition;
-        accept<TArg>(visitor: Visitor<TArg>, arg: TArg): void;
+        accept<TArg>(visitor: Visitor<TArg>, arg: TArg): any;
     }
     /**
      * Default working implementation of a state machine instance class.

@@ -74,7 +74,7 @@ module fsm {
 		 * Visits an element within a state machine model.
 		 * @method visitElement
 		 * @param {Element} element the element being visited.
-		 * @param {TArg} arg The parameter passed into the accept method.
+		 * @param {any} arg The parameter passed into the accept method.
 		 * @returns {any} Any value may be returned when visiting an element.
 		 */
 		visitElement(element: Element, arg: TArg): any {
@@ -419,8 +419,8 @@ module fsm {
             return instance.getCurrent(this).evaluate(message, instance);
         }
 
-		accept<TArg>(visitor: Visitor<TArg>, arg: TArg) {
-			visitor.visitRegion(this, arg);
+		accept<TArg>(visitor: Visitor<TArg>, arg: TArg): any {
+			return visitor.visitRegion(this, arg);
 		}
     }
     
@@ -507,8 +507,8 @@ module fsm {
             return true;
         }
 
-		accept<TArg>(visitor: Visitor<TArg>, arg: TArg) {
-			// NOTE: abstract method
+		accept<TArg>(visitor: Visitor<TArg>, arg: TArg): any {
+			return; // note: abstract method
 		}
     }
 
@@ -679,8 +679,8 @@ module fsm {
 			}
 		}
 
-		accept<TArg>(visitor: Visitor<TArg>, arg: TArg) {
-			visitor.visitPseudoState(this, arg);
+		accept<TArg>(visitor: Visitor<TArg>, arg: TArg): any {
+			return visitor.visitPseudoState(this, arg);
 		}
     }
 
@@ -865,8 +865,8 @@ module fsm {
             return processed;
         }
 
-		accept<TArg>(visitor: Visitor<TArg>, arg: TArg) {
-			visitor.visitState(this, arg);
+		accept<TArg>(visitor: Visitor<TArg>, arg: TArg): any {
+			return visitor.visitState(this, arg);
 		}
     }
 
@@ -908,8 +908,8 @@ module fsm {
             throw "A FinalState cannot be the source of a transition.";
         }
 
-		accept<TArg>(visitor: Visitor<TArg>, arg: TArg) {
-			visitor.visitFinalState(this, arg);
+		accept<TArg>(visitor: Visitor<TArg>, arg: TArg): any {
+			return visitor.visitFinalState(this, arg);
 		}
     }
 
@@ -996,8 +996,8 @@ module fsm {
             return super.evaluate(message, instance);
         }
 
-		accept<TArg>(visitor: Visitor<TArg>, arg: TArg) {
-			visitor.visitStateMachine(this, arg);
+		accept<TArg>(visitor: Visitor<TArg>, arg: TArg): any {
+			return visitor.visitStateMachine(this, arg);
 		}
     }
 
@@ -1068,8 +1068,8 @@ module fsm {
             return this;
         }
 
-		accept<TArg>(visitor: Visitor<TArg>, arg: TArg) {
-			visitor.visitTransition(this, arg);
+		accept<TArg>(visitor: Visitor<TArg>, arg: TArg): any {
+			return visitor.visitTransition(this, arg);
 		}
     }
 

@@ -27,7 +27,7 @@ var fsm;
          * Visits an element within a state machine model.
          * @method visitElement
          * @param {Element} element the element being visited.
-         * @param {TArg} arg The parameter passed into the accept method.
+         * @param {any} arg The parameter passed into the accept method.
          * @returns {any} Any value may be returned when visiting an element.
          */
         Visitor.prototype.visitElement = function (element, arg) {
@@ -302,7 +302,7 @@ var fsm;
             return instance.getCurrent(this).evaluate(message, instance);
         };
         Region.prototype.accept = function (visitor, arg) {
-            visitor.visitRegion(this, arg);
+            return visitor.visitRegion(this, arg);
         };
         /**
          * The name given to regions that are are created automatically when a state is passed as a vertex's parent.
@@ -382,7 +382,7 @@ var fsm;
             return true;
         };
         Vertex.prototype.accept = function (visitor, arg) {
-            // NOTE: abstract method
+            return; // note: abstract method
         };
         return Vertex;
     })(Element);
@@ -523,7 +523,7 @@ var fsm;
             }
         };
         PseudoState.prototype.accept = function (visitor, arg) {
-            visitor.visitPseudoState(this, arg);
+            return visitor.visitPseudoState(this, arg);
         };
         return PseudoState;
     })(Vertex);
@@ -669,7 +669,7 @@ var fsm;
             return processed;
         };
         State.prototype.accept = function (visitor, arg) {
-            visitor.visitState(this, arg);
+            return visitor.visitState(this, arg);
         };
         return State;
     })(Vertex);
@@ -698,7 +698,7 @@ var fsm;
             throw "A FinalState cannot be the source of a transition.";
         };
         FinalState.prototype.accept = function (visitor, arg) {
-            visitor.visitFinalState(this, arg);
+            return visitor.visitFinalState(this, arg);
         };
         return FinalState;
     })(State);
@@ -776,7 +776,7 @@ var fsm;
             return _super.prototype.evaluate.call(this, message, instance);
         };
         StateMachine.prototype.accept = function (visitor, arg) {
-            visitor.visitStateMachine(this, arg);
+            return visitor.visitStateMachine(this, arg);
         };
         StateMachine.bootstrap = new Bootstrap();
         return StateMachine;
@@ -841,7 +841,7 @@ var fsm;
             return this;
         };
         Transition.prototype.accept = function (visitor, arg) {
-            visitor.visitTransition(this, arg);
+            return visitor.visitTransition(this, arg);
         };
         Transition.isElse = function (message, instance) { return false; };
         return Transition;
