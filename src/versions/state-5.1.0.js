@@ -83,6 +83,7 @@ var fsm;
                 var sourceAncestorsLength = sourceAncestors.length;
                 var targetAncestorsLength = targetAncestors.length;
                 var i = 0, l = Math.min(sourceAncestorsLength, targetAncestorsLength);
+                // find the index of the first uncommon ancestor
                 while ((i < l) && (sourceAncestors[i] === targetAncestors[i])) {
                     i++;
                 }
@@ -95,6 +96,7 @@ var fsm;
                 if (i >= targetAncestorsLength) {
                     transition.traverse = transition.traverse.concat(behaviour(transition.target).beginEnter);
                 }
+                // enter the target ancestry
                 while (i < targetAncestorsLength) {
                     var element = targetAncestors[i++];
                     var next = i < targetAncestorsLength ? targetAncestors[i] : undefined;
@@ -124,27 +126,21 @@ var fsm;
         }
         Bootstrap.prototype.behaviour = function (element) {
             if (!element.qualifiedName) {
-                element.qualifiedName = element.ancestors().map(function (e) {
-                    return e.name;
-                }).join(Element.namespaceSeparator);
+                element.qualifiedName = element.ancestors().map(function (e) { return e.name; }).join(Element.namespaceSeparator);
             }
             return this.behaviours[element.qualifiedName] || (this.behaviours[element.qualifiedName] = new Behaviour());
         };
         Bootstrap.prototype.visitElement = function (element, deepHistoryAbove) {
             var elementBehaviour = this.behaviour(element);
-            elementBehaviour.leave.push(function (message, instance) {
-                console.log(instance + " leave " + element);
-            });
-            elementBehaviour.beginEnter.push(function (message, instance) {
-                console.log(instance + " enter " + element);
-            });
+            elementBehaviour.leave.push(function (message, instance) { console.log(instance + " leave " + element); });
+            elementBehaviour.beginEnter.push(function (message, instance) { console.log(instance + " enter " + element); });
             elementBehaviour.enter = elementBehaviour.beginEnter.concat(elementBehaviour.endEnter);
         };
         Bootstrap.prototype.visitRegion = function (region, deepHistoryAbove) {
             var _this = this;
             var regionBehaviour = this.behaviour(region);
             for (var i = 0, l = region.vertices.length; i < l; i++) {
-                region.vertices[i].accept(this, deepHistoryAbove || (region.initial && region.initial.kind === 2 /* DeepHistory */));
+                region.vertices[i].accept(this, deepHistoryAbove || (region.initial && region.initial.kind === PseudoStateKind.DeepHistory));
             }
             regionBehaviour.leave.push(function (message, instance, history) {
                 invoke(_this.behaviour(instance.getCurrent(region)).leave, message, instance, history);
@@ -155,7 +151,7 @@ var fsm;
                     if (history || region.initial.isHistory()) {
                         initial = instance.getCurrent(region) || region.initial;
                     }
-                    invoke(_this.behaviour(initial).enter, message, instance, history || (region.initial.kind === 2 /* DeepHistory */));
+                    invoke(_this.behaviour(initial).enter, message, instance, history || (region.initial.kind === PseudoStateKind.DeepHistory));
                 });
             }
             else {
@@ -173,7 +169,7 @@ var fsm;
         };
         Bootstrap.prototype.visitPseudoState = function (pseudoState, deepHistoryAbove) {
             this.visitVertex(pseudoState, deepHistoryAbove);
-            if (pseudoState.kind === 5 /* Terminate */) {
+            if (pseudoState.kind === PseudoStateKind.Terminate) {
                 this.behaviour(pseudoState).enter.push(function (message, instance, history) {
                     instance.isTerminated = true;
                 });
@@ -204,9 +200,7 @@ var fsm;
             var _this = this;
             this.behaviours = {};
             this.visitState(stateMachine, deepHistoryAbove);
-            stateMachine.accept(Bootstrap.bootstrapTransitions, function (element) {
-                return _this.behaviour(element);
-            });
+            stateMachine.accept(Bootstrap.bootstrapTransitions, function (element) { return _this.behaviour(element); });
             stateMachine.init = this.behaviour(stateMachine).enter;
         };
         Bootstrap.bootstrapTransitions = new BootstrapTransitions();
@@ -443,7 +437,7 @@ var fsm;
          * @param {PseudoStateKind} kind Determines the behaviour of the PseudoState.
          */
         function PseudoState(name, parent, kind) {
-            _super.call(this, name, parent);
+            _super.call(this, name, parent /*, pseudoState(kind)*/);
             this.kind = kind;
             if (this.isInitial()) {
                 this.region.initial = this;
@@ -461,23 +455,23 @@ var fsm;
             return true;
         };
         PseudoState.prototype.isHistory = function () {
-            return this.kind === 2 /* DeepHistory */ || this.kind === 1 /* ShallowHistory */;
+            return this.kind === PseudoStateKind.DeepHistory || this.kind === PseudoStateKind.ShallowHistory;
         };
         PseudoState.prototype.isInitial = function () {
-            return this.kind === 0 /* Initial */ || this.isHistory();
+            return this.kind === PseudoStateKind.Initial || this.isHistory();
         };
         PseudoState.prototype.select = function (message, instance) {
             switch (this.kind) {
-                case 0 /* Initial */:
-                case 2 /* DeepHistory */:
-                case 1 /* ShallowHistory */:
+                case PseudoStateKind.Initial:
+                case PseudoStateKind.DeepHistory:
+                case PseudoStateKind.ShallowHistory:
                     if (this.transitions.length === 1) {
                         return this.transitions[0];
                     }
                     else {
                         throw "Initial transition must have a single outbound transition from " + this.qualifiedName;
                     }
-                case 4 /* Junction */:
+                case PseudoStateKind.Junction:
                     var result, elseResult;
                     for (var i = 0, l = this.transitions.length; i < l; i++) {
                         if (this.transitions[i].guard === Transition.isElse) {
@@ -494,7 +488,7 @@ var fsm;
                         }
                     }
                     return result || elseResult;
-                case 3 /* Choice */:
+                case PseudoStateKind.Choice:
                     var results = [];
                     for (var i = 0, l = this.transitions.length; i < l; i++) {
                         if (this.transitions[i].guard === Transition.isElse) {
@@ -684,6 +678,7 @@ var fsm;
             _super.call(this, name, parent);
         }
         FinalState.prototype.to = function (target) {
+            // ensure FinalStates will satisfy the isFinal check
             throw "A FinalState cannot be the source of a transition.";
         };
         FinalState.prototype.accept = function (visitor, arg) {
@@ -795,9 +790,7 @@ var fsm;
             this.transitionBehavior = [];
             this.traverse = [];
             // transitions are initially completion transitions, where the message is the source state itself
-            this.guard = function (message, instance) {
-                return message === _this.source;
-            };
+            this.guard = function (message, instance) { return message === _this.source; };
         }
         /**
          * Turns a transition into an else transition.
@@ -834,9 +827,7 @@ var fsm;
         Transition.prototype.accept = function (visitor, arg) {
             visitor.visitTransition(this, arg);
         };
-        Transition.isElse = function (message, instance) {
-            return false;
-        };
+        Transition.isElse = function (message, instance) { return false; };
         return Transition;
     })();
     fsm.Transition = Transition;

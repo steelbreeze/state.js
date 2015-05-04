@@ -14,6 +14,14 @@ module fsm {
 		[index: string]: TValue;
 	}
 
+	/**
+	 * Declaration for guard condition callbacks.
+	 * Guard conditions must evaluate true for a transition to be traversed.
+	 * @interface Guard
+	 * @param {any} message The message that may trigger the transition.
+	 * @param {IActiveStateConfiguration} instance The state machine instance.
+	 * @param {boolean} history Internal use only
+	 */
 	export interface Guard {
 		(message: any, instance: IActiveStateConfiguration): boolean;
 	}

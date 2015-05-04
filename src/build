@@ -1,6 +1,6 @@
 #!/bin/bash 
 
-VERSION='5.2.0'
+VERSION='5.1.0'
 
 tsc -d --noImplicitAny state.ts
 minify state.js

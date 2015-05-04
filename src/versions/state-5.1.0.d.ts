@@ -9,6 +9,14 @@
  * @module fsm
  */
 declare module fsm {
+    /**
+     * Declaration for guard condition callbacks.
+     * Guard conditions must evaluate true for a transition to be traversed.
+     * @interface Guard
+     * @param {any} message The message that may trigger the transition.
+     * @param {IActiveStateConfiguration} instance The state machine instance.
+     * @param {boolean} history Internal use only
+     */
     interface Guard {
         (message: any, instance: IActiveStateConfiguration): boolean;
     }
