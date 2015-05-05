@@ -33,6 +33,13 @@ var fsm;
         Visitor.prototype.visitElement = function (element, arg) {
             return;
         };
+        /**
+         * Visits a region within a state machine model.
+         * @method visitRegion
+         * @param {Region} region The region being visited.
+         * @param {any} arg The parameter passed into the accept method.
+         * @returns {any} Any value may be returned when visiting an element.
+         */
         Visitor.prototype.visitRegion = function (region, arg) {
             var result = this.visitElement(region, arg);
             for (var i = 0, l = region.vertices.length; i < l; i++) {
@@ -40,6 +47,13 @@ var fsm;
             }
             return result;
         };
+        /**
+         * Visits a vertex within a state machine model.
+         * @method visitVertex
+         * @param {Vertex} vertex The vertex being visited.
+         * @param {any} arg The parameter passed into the accept method.
+         * @returns {any} Any value may be returned when visiting an element.
+         */
         Visitor.prototype.visitVertex = function (vertex, arg) {
             var result = this.visitElement(vertex, arg);
             for (var i = 0, l = vertex.transitions.length; i < l; i++) {
@@ -47,9 +61,23 @@ var fsm;
             }
             return result;
         };
+        /**
+         * Visits a pseudo state within a state machine model.
+         * @method visitPseudoState
+         * @param {PseudoState} pseudoState The pseudo state being visited.
+         * @param {any} arg The parameter passed into the accept method.
+         * @returns {any} Any value may be returned when visiting an element.
+         */
         Visitor.prototype.visitPseudoState = function (pseudoState, arg) {
             return this.visitVertex(pseudoState, arg);
         };
+        /**
+         * Visits a state within a state machine model.
+         * @method visitState
+         * @param {State} state The state being visited.
+         * @param {any} arg The parameter passed into the accept method.
+         * @returns {any} Any value may be returned when visiting an element.
+         */
         Visitor.prototype.visitState = function (state, arg) {
             var result = this.visitVertex(state, arg);
             for (var i = 0, l = state.regions.length; i < l; i++) {
@@ -57,12 +85,33 @@ var fsm;
             }
             return result;
         };
+        /**
+         * Visits a final state within a state machine model.
+         * @method visitFinal
+         * @param {FinalState} finalState The final state being visited.
+         * @param {any} arg The parameter passed into the accept method.
+         * @returns {any} Any value may be returned when visiting an element.
+         */
         Visitor.prototype.visitFinalState = function (finalState, arg) {
             return this.visitState(finalState, arg);
         };
+        /**
+         * Visits a state machine within a state machine model.
+         * @method visitVertex
+         * @param {StateMachine} state machine The state machine being visited.
+         * @param {any} arg The parameter passed into the accept method.
+         * @returns {any} Any value may be returned when visiting an element.
+         */
         Visitor.prototype.visitStateMachine = function (stateMachine, arg) {
             return this.visitState(stateMachine, arg);
         };
+        /**
+         * Visits a transition within a state machine model.
+         * @method visitTransition
+         * @param {Transition} transition The transition being visited.
+         * @param {any} arg The parameter passed into the accept method.
+         * @returns {any} Any value may be returned when visiting an element.
+         */
         Visitor.prototype.visitTransition = function (transition, arg) {
             return;
         };
@@ -229,23 +278,42 @@ var fsm;
      * @class Element
      */
     var Element = (function () {
-        // creates a new instance of the Element class; note this is for internal use only.
+        /**
+         * Creates a new instance of the element class.
+         * @param {string} name The name of the element.
+         */
         function Element(name) {
             this.name = name;
         }
-        // returns the parent element of this element; note this is for internal use only.
+        /**
+         * Returns the parent element of this element.
+         * @method getParent
+         * @returns {Element} The parent element of the element.
+         */
         Element.prototype.getParent = function () {
             return; // note this is an abstract method.
         };
-        // returns the root state machine that this element belongs to; note this is for internal use only.
+        /**
+         * Returns the root element within the state machine model.
+         * @method root
+         * @returns {StateMachine} The root state machine element.
+         */
         Element.prototype.root = function () {
             return this.getParent().root();
         };
-        // returns the ancestors of this element; note this is for internal use only.
+        /**
+         * Returns the ancestors of the element.
+         * The ancestors are returned as an array of elements, staring with the root element and ending with this elemenet.
+         */
         Element.prototype.ancestors = function () {
             return (this.getParent() ? this.getParent().ancestors() : []).concat(this);
         };
-        // true if the element is active for a given state machine instance; note this is for internal use only.
+        /**
+         * Determines if an element is active within a given state machine instance.
+         * @method isActive
+         * @param {IActiveStateConfiguration} instance The state machine instance.
+         * @returns {boolean} True if the element is active within the state machine instance.
+         */
         Element.prototype.isActive = function (instance) {
             return this.getParent().isActive(instance);
         };
@@ -286,10 +354,19 @@ var fsm;
         function Region(name, parent) {
             _super.call(this, name);
             this.parent = parent;
+            /**
+             * The set of vertices that are children of the region.
+             * @member {Array<Vertex>}
+             */
             this.vertices = [];
             parent.regions.push(this);
             parent.root().clean = false;
         }
+        /**
+         * Returns the parent element of this region.
+         * @method getParent
+         * @returns {Element} The parent element of the region.
+         */
         Region.prototype.getParent = function () {
             return this.parent;
         };
@@ -306,6 +383,13 @@ var fsm;
         Region.prototype.evaluate = function (message, instance) {
             return instance.getCurrent(this).evaluate(message, instance);
         };
+        /**
+         * Accepts an instance of a visitor and calls the visitRegion method on it.
+         * @method accept
+         * @param {Visitor<TArg>} visitor The visitor instance.
+         * @param {TArg} arg An optional argument to pass into the visitor.
+         * @returns {any} Any value can be returned by the visitor.
+         */
         Region.prototype.accept = function (visitor, arg) {
             return visitor.visitRegion(this, arg);
         };
@@ -342,6 +426,11 @@ var fsm;
                 this.region.root().clean = false;
             }
         }
+        /**
+         * Returns the parent element of this vertex.
+         * @method getParent
+         * @returns {Element} The parent element of the vertex.
+         */
         Vertex.prototype.getParent = function () {
             return this.region;
         };
@@ -386,6 +475,13 @@ var fsm;
             invoke(transition.traverse, message, instance, false);
             return true;
         };
+        /**
+         * Accepts an instance of a visitor.
+         * @method accept
+         * @param {Visitor<TArg>} visitor The visitor instance.
+         * @param {TArg} arg An optional argument to pass into the visitor.
+         * @returns {any} Any value can be returned by the visitor.
+         */
         Vertex.prototype.accept = function (visitor, arg) {
             return; // note: abstract method
         };
@@ -527,6 +623,13 @@ var fsm;
                     return null;
             }
         };
+        /**
+         * Accepts an instance of a visitor and calls the visitPseudoState method on it.
+         * @method accept
+         * @param {Visitor<TArg>} visitor The visitor instance.
+         * @param {TArg} arg An optional argument to pass into the visitor.
+         * @returns {any} Any value can be returned by the visitor.
+         */
         PseudoState.prototype.accept = function (visitor, arg) {
             return visitor.visitPseudoState(this, arg);
         };
@@ -568,6 +671,12 @@ var fsm;
             }
             return region;
         };
+        /**
+         * Determines if an element is active within a given state machine instance.
+         * @method isActive
+         * @param {IActiveStateConfiguration} instance The state machine instance.
+         * @returns {boolean} True if the element is active within the state machine instance.
+         */
         State.prototype.isActive = function (instance) {
             return _super.prototype.isActive.call(this, instance) && instance.getCurrent(this.region) === this;
         };
@@ -673,6 +782,13 @@ var fsm;
             }
             return processed;
         };
+        /**
+         * Accepts an instance of a visitor and calls the visitState method on it.
+         * @method accept
+         * @param {Visitor<TArg>} visitor The visitor instance.
+         * @param {TArg} arg An optional argument to pass into the visitor.
+         * @returns {any} Any value can be returned by the visitor.
+         */
         State.prototype.accept = function (visitor, arg) {
             return visitor.visitState(this, arg);
         };
@@ -702,6 +818,13 @@ var fsm;
             // ensure FinalStates will satisfy the isFinal check
             throw "A FinalState cannot be the source of a transition.";
         };
+        /**
+         * Accepts an instance of a visitor and calls the visitFinalState method on it.
+         * @method accept
+         * @param {Visitor<TArg>} visitor The visitor instance.
+         * @param {TArg} arg An optional argument to pass into the visitor.
+         * @returns {any} Any value can be returned by the visitor.
+         */
         FinalState.prototype.accept = function (visitor, arg) {
             return visitor.visitFinalState(this, arg);
         };
@@ -726,11 +849,23 @@ var fsm;
             // NOTE: would like an equivalent of internal or package-private
             this.clean = true;
         }
+        /**
+         * Returns the root element within the state machine model.
+         * Note that if this state machine is embeded within another state machine, the ultimate root element will be returned.
+         * @method root
+         * @returns {StateMachine} The root state machine element.
+         */
         StateMachine.prototype.root = function () {
-            return this;
+            return this.region ? this.region.root() : this;
         };
+        /**
+         * Determines if an element is active within a given state machine instance.
+         * @method isActive
+         * @param {IActiveStateConfiguration} instance The state machine instance.
+         * @returns {boolean} True if the element is active within the state machine instance.
+         */
         StateMachine.prototype.isActive = function (instance) {
-            return true;
+            return this.region ? this.region.isActive(instance) : true;
         };
         /**
          * Bootstraps the state machine model; precompiles the actions to take during transition traversal.
@@ -780,6 +915,13 @@ var fsm;
             }
             return _super.prototype.evaluate.call(this, message, instance);
         };
+        /**
+         * Accepts an instance of a visitor and calls the visitStateMachine method on it.
+         * @method accept
+         * @param {Visitor<TArg>} visitor The visitor instance.
+         * @param {TArg} arg An optional argument to pass into the visitor.
+         * @returns {any} Any value can be returned by the visitor.
+         */
         StateMachine.prototype.accept = function (visitor, arg) {
             return visitor.visitStateMachine(this, arg);
         };
@@ -845,6 +987,13 @@ var fsm;
             this.source.root().clean = false;
             return this;
         };
+        /**
+         * Accepts an instance of a visitor and calls the visitTransition method on it.
+         * @method accept
+         * @param {Visitor<TArg>} visitor The visitor instance.
+         * @param {TArg} arg An optional argument to pass into the visitor.
+         * @returns {any} Any value can be returned by the visitor.
+         */
         Transition.prototype.accept = function (visitor, arg) {
             return visitor.visitTransition(this, arg);
         };

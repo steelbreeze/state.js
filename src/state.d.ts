@@ -67,14 +67,63 @@ declare module fsm {
          * @param {any} arg The parameter passed into the accept method.
          * @returns {any} Any value may be returned when visiting an element.
          */
-        visitElement(element: Element, arg: TArg): any;
-        visitRegion(region: Region, arg: TArg): any;
-        visitVertex(vertex: Vertex, arg: TArg): any;
-        visitPseudoState(pseudoState: PseudoState, arg: TArg): any;
-        visitState(state: State, arg: TArg): any;
-        visitFinalState(finalState: FinalState, arg: TArg): any;
-        visitStateMachine(stateMachine: StateMachine, arg: TArg): any;
-        visitTransition(transition: Transition, arg: TArg): any;
+        visitElement(element: Element, arg?: TArg): any;
+        /**
+         * Visits a region within a state machine model.
+         * @method visitRegion
+         * @param {Region} region The region being visited.
+         * @param {any} arg The parameter passed into the accept method.
+         * @returns {any} Any value may be returned when visiting an element.
+         */
+        visitRegion(region: Region, arg?: TArg): any;
+        /**
+         * Visits a vertex within a state machine model.
+         * @method visitVertex
+         * @param {Vertex} vertex The vertex being visited.
+         * @param {any} arg The parameter passed into the accept method.
+         * @returns {any} Any value may be returned when visiting an element.
+         */
+        visitVertex(vertex: Vertex, arg?: TArg): any;
+        /**
+         * Visits a pseudo state within a state machine model.
+         * @method visitPseudoState
+         * @param {PseudoState} pseudoState The pseudo state being visited.
+         * @param {any} arg The parameter passed into the accept method.
+         * @returns {any} Any value may be returned when visiting an element.
+         */
+        visitPseudoState(pseudoState: PseudoState, arg?: TArg): any;
+        /**
+         * Visits a state within a state machine model.
+         * @method visitState
+         * @param {State} state The state being visited.
+         * @param {any} arg The parameter passed into the accept method.
+         * @returns {any} Any value may be returned when visiting an element.
+         */
+        visitState(state: State, arg?: TArg): any;
+        /**
+         * Visits a final state within a state machine model.
+         * @method visitFinal
+         * @param {FinalState} finalState The final state being visited.
+         * @param {any} arg The parameter passed into the accept method.
+         * @returns {any} Any value may be returned when visiting an element.
+         */
+        visitFinalState(finalState: FinalState, arg?: TArg): any;
+        /**
+         * Visits a state machine within a state machine model.
+         * @method visitVertex
+         * @param {StateMachine} state machine The state machine being visited.
+         * @param {any} arg The parameter passed into the accept method.
+         * @returns {any} Any value may be returned when visiting an element.
+         */
+        visitStateMachine(stateMachine: StateMachine, arg?: TArg): any;
+        /**
+         * Visits a transition within a state machine model.
+         * @method visitTransition
+         * @param {Transition} transition The transition being visited.
+         * @param {any} arg The parameter passed into the accept method.
+         * @returns {any} Any value may be returned when visiting an element.
+         */
+        visitTransition(transition: Transition, arg?: TArg): any;
     }
     /**
      * An abstract class used as the base for the Region and Vertex classes.
@@ -98,10 +147,34 @@ declare module fsm {
          * @member {string}
          */
         qualifiedName: string;
+        /**
+         * Creates a new instance of the element class.
+         * @param {string} name The name of the element.
+         */
         constructor(name: string);
+        /**
+         * Returns the parent element of this element.
+         * @method getParent
+         * @returns {Element} The parent element of the element.
+         */
         getParent(): Element;
+        /**
+         * Returns the root element within the state machine model.
+         * @method root
+         * @returns {StateMachine} The root state machine element.
+         */
         root(): StateMachine;
+        /**
+         * Returns the ancestors of the element.
+         * The ancestors are returned as an array of elements, staring with the root element and ending with this elemenet.
+         */
         ancestors(): Array<Element>;
+        /**
+         * Determines if an element is active within a given state machine instance.
+         * @method isActive
+         * @param {IActiveStateConfiguration} instance The state machine instance.
+         * @returns {boolean} True if the element is active within the state machine instance.
+         */
         isActive(instance: IActiveStateConfiguration): boolean;
         /**
          * Returns a the element name as a fully qualified namespace.
@@ -129,7 +202,15 @@ declare module fsm {
          * @member {string}
          */
         static defaultName: string;
+        /**
+         * The set of vertices that are children of the region.
+         * @member {Array<Vertex>}
+         */
         vertices: Array<Vertex>;
+        /**
+         * The pseudo state that will be in initial starting state when entering the region explicitly.
+         * @member {PseudoState}
+         */
         initial: PseudoState;
         /**
          * Creates a new instance of the Region class.
@@ -137,6 +218,11 @@ declare module fsm {
          * @param {State} parent The parent state that this region will be a child of.
          */
         constructor(name: string, parent: State);
+        /**
+         * Returns the parent element of this region.
+         * @method getParent
+         * @returns {Element} The parent element of the region.
+         */
         getParent(): Element;
         /**
          * Tests a region to determine if it is deemed to be complete.
@@ -147,7 +233,14 @@ declare module fsm {
          */
         isComplete(instance: IActiveStateConfiguration): boolean;
         evaluate(message: any, instance: IActiveStateConfiguration): boolean;
-        accept<TArg>(visitor: Visitor<TArg>, arg: TArg): any;
+        /**
+         * Accepts an instance of a visitor and calls the visitRegion method on it.
+         * @method accept
+         * @param {Visitor<TArg>} visitor The visitor instance.
+         * @param {TArg} arg An optional argument to pass into the visitor.
+         * @returns {any} Any value can be returned by the visitor.
+         */
+        accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any;
     }
     /**
      * An abstract element within a state machine model that can be the source or target of a transition (states and pseudo states).
@@ -161,6 +254,11 @@ declare module fsm {
         transitions: Array<Transition>;
         constructor(name: string, parent: Region);
         constructor(name: string, parent: State);
+        /**
+         * Returns the parent element of this vertex.
+         * @method getParent
+         * @returns {Element} The parent element of the vertex.
+         */
         getParent(): Element;
         /**
          * Tests the vertex to determine if it is deemed to be complete.
@@ -183,7 +281,14 @@ declare module fsm {
         evaluateCompletions(message: any, instance: IActiveStateConfiguration, history: boolean): void;
         select(message: any, instance: IActiveStateConfiguration): Transition;
         evaluate(message: any, instance: IActiveStateConfiguration): boolean;
-        accept<TArg>(visitor: Visitor<TArg>, arg: TArg): any;
+        /**
+         * Accepts an instance of a visitor.
+         * @method accept
+         * @param {Visitor<TArg>} visitor The visitor instance.
+         * @param {TArg} arg An optional argument to pass into the visitor.
+         * @returns {any} Any value can be returned by the visitor.
+         */
+        accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any;
     }
     /**
      * An enumeration of static constants that dictates the precise behaviour of pseudo states.
@@ -269,7 +374,14 @@ declare module fsm {
         isHistory(): boolean;
         isInitial(): boolean;
         select(message: any, instance: IActiveStateConfiguration): Transition;
-        accept<TArg>(visitor: Visitor<TArg>, arg: TArg): any;
+        /**
+         * Accepts an instance of a visitor and calls the visitPseudoState method on it.
+         * @method accept
+         * @param {Visitor<TArg>} visitor The visitor instance.
+         * @param {TArg} arg An optional argument to pass into the visitor.
+         * @returns {any} Any value can be returned by the visitor.
+         */
+        accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any;
     }
     /**
      * An element within a state machine model that represents an invariant condition within the life of the state machine instance.
@@ -298,6 +410,12 @@ declare module fsm {
          */
         constructor(name: string, parent: State);
         defaultRegion(): Region;
+        /**
+         * Determines if an element is active within a given state machine instance.
+         * @method isActive
+         * @param {IActiveStateConfiguration} instance The state machine instance.
+         * @returns {boolean} True if the element is active within the state machine instance.
+         */
         isActive(instance: IActiveStateConfiguration): boolean;
         /**
          * Tests the state to see if it is a final state;
@@ -351,7 +469,14 @@ declare module fsm {
         entry<TMessage>(entryAction: Action): State;
         select(message: any, instance: IActiveStateConfiguration): Transition;
         evaluate(message: any, instance: IActiveStateConfiguration): boolean;
-        accept<TArg>(visitor: Visitor<TArg>, arg: TArg): any;
+        /**
+         * Accepts an instance of a visitor and calls the visitState method on it.
+         * @method accept
+         * @param {Visitor<TArg>} visitor The visitor instance.
+         * @param {TArg} arg An optional argument to pass into the visitor.
+         * @returns {any} Any value can be returned by the visitor.
+         */
+        accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any;
     }
     /**
      * An element within a state machine model that represents completion of the life of the containing Region within the state machine instance.
@@ -376,7 +501,14 @@ declare module fsm {
          */
         constructor(name: string, parent: State);
         to(target?: Vertex): Transition;
-        accept<TArg>(visitor: Visitor<TArg>, arg: TArg): any;
+        /**
+         * Accepts an instance of a visitor and calls the visitFinalState method on it.
+         * @method accept
+         * @param {Visitor<TArg>} visitor The visitor instance.
+         * @param {TArg} arg An optional argument to pass into the visitor.
+         * @returns {any} Any value can be returned by the visitor.
+         */
+        accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any;
     }
     /**
      * An element within a state machine model that represents the root of the state machine model.
@@ -394,7 +526,19 @@ declare module fsm {
          * @param {string} name The name of the state machine.
          */
         constructor(name: string);
+        /**
+         * Returns the root element within the state machine model.
+         * Note that if this state machine is embeded within another state machine, the ultimate root element will be returned.
+         * @method root
+         * @returns {StateMachine} The root state machine element.
+         */
         root(): StateMachine;
+        /**
+         * Determines if an element is active within a given state machine instance.
+         * @method isActive
+         * @param {IActiveStateConfiguration} instance The state machine instance.
+         * @returns {boolean} True if the element is active within the state machine instance.
+         */
         isActive(instance: IActiveStateConfiguration): boolean;
         /**
          * Bootstraps the state machine model; precompiles the actions to take during transition traversal.
@@ -426,7 +570,14 @@ declare module fsm {
          * @returns {boolean} True if the method caused a state transition.
          */
         evaluate(message: any, instance: IActiveStateConfiguration, autoBootstrap?: boolean): boolean;
-        accept<TArg>(visitor: Visitor<TArg>, arg: TArg): any;
+        /**
+         * Accepts an instance of a visitor and calls the visitStateMachine method on it.
+         * @method accept
+         * @param {Visitor<TArg>} visitor The visitor instance.
+         * @param {TArg} arg An optional argument to pass into the visitor.
+         * @returns {any} Any value can be returned by the visitor.
+         */
+        accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any;
     }
     /**
      * A transition between vertices (states or pseudo states) that may be traversed in response to a message.
@@ -474,7 +625,14 @@ declare module fsm {
          * @returns {Transition} Returns the transition object to enable the fluent API.
          */
         effect<TMessage>(transitionAction: Action): Transition;
-        accept<TArg>(visitor: Visitor<TArg>, arg: TArg): any;
+        /**
+         * Accepts an instance of a visitor and calls the visitTransition method on it.
+         * @method accept
+         * @param {Visitor<TArg>} visitor The visitor instance.
+         * @param {TArg} arg An optional argument to pass into the visitor.
+         * @returns {any} Any value can be returned by the visitor.
+         */
+        accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any;
     }
     /**
      * Default working implementation of a state machine instance class.

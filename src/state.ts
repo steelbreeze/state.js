@@ -77,11 +77,18 @@ module fsm {
 		 * @param {any} arg The parameter passed into the accept method.
 		 * @returns {any} Any value may be returned when visiting an element.
 		 */
-		visitElement(element: Element, arg: TArg): any {
+		visitElement(element: Element, arg?: TArg): any {
 			return;
 		}
 
-		visitRegion(region: Region, arg: TArg): any {
+		/**
+		 * Visits a region within a state machine model.
+		 * @method visitRegion
+		 * @param {Region} region The region being visited.
+		 * @param {any} arg The parameter passed into the accept method.
+		 * @returns {any} Any value may be returned when visiting an element.
+		 */
+		visitRegion(region: Region, arg?: TArg): any {
 			var result = this.visitElement(region, arg);
 
 			for (var i = 0, l = region.vertices.length; i < l; i++) {
@@ -91,7 +98,14 @@ module fsm {
 			return result;
 		}
 
-		visitVertex(vertex: Vertex, arg: TArg): any {
+		/**
+		 * Visits a vertex within a state machine model.
+		 * @method visitVertex
+		 * @param {Vertex} vertex The vertex being visited.
+		 * @param {any} arg The parameter passed into the accept method.
+		 * @returns {any} Any value may be returned when visiting an element.
+		 */
+		visitVertex(vertex: Vertex, arg?: TArg): any {
 			var result = this.visitElement(vertex, arg);
 
 			for (var i = 0, l = vertex.transitions.length; i < l; i++) {
@@ -101,11 +115,25 @@ module fsm {
 			return result;
 		}
 
-		visitPseudoState(pseudoState: PseudoState, arg: TArg): any {
+		/**
+		 * Visits a pseudo state within a state machine model.
+		 * @method visitPseudoState
+		 * @param {PseudoState} pseudoState The pseudo state being visited.
+		 * @param {any} arg The parameter passed into the accept method.
+		 * @returns {any} Any value may be returned when visiting an element.
+		 */
+		visitPseudoState(pseudoState: PseudoState, arg?: TArg): any {
 			return this.visitVertex(pseudoState, arg);
 		}
 
-		visitState(state: State, arg: TArg): any {
+		/**
+		 * Visits a state within a state machine model.
+		 * @method visitState
+		 * @param {State} state The state being visited.
+		 * @param {any} arg The parameter passed into the accept method.
+		 * @returns {any} Any value may be returned when visiting an element.
+		 */
+		visitState(state: State, arg?: TArg): any {
 			var result = this.visitVertex(state, arg);
 
 			for (var i = 0, l = state.regions.length; i < l; i++) {
@@ -115,15 +143,36 @@ module fsm {
 			return result;
 		}
 
-		visitFinalState(finalState: FinalState, arg: TArg): any {
+		/**
+		 * Visits a final state within a state machine model.
+		 * @method visitFinal
+		 * @param {FinalState} finalState The final state being visited.
+		 * @param {any} arg The parameter passed into the accept method.
+		 * @returns {any} Any value may be returned when visiting an element.
+		 */
+		visitFinalState(finalState: FinalState, arg?: TArg): any {
 			return this.visitState(finalState, arg);
 		}
 
-		visitStateMachine(stateMachine: StateMachine, arg: TArg): any {
+		/**
+		 * Visits a state machine within a state machine model.
+		 * @method visitVertex
+		 * @param {StateMachine} state machine The state machine being visited.
+		 * @param {any} arg The parameter passed into the accept method.
+		 * @returns {any} Any value may be returned when visiting an element.
+		 */
+		visitStateMachine(stateMachine: StateMachine, arg?: TArg): any {
 			return this.visitState(stateMachine, arg);
 		}
 
-		visitTransition(transition: Transition, arg: TArg): any {
+		/**
+		 * Visits a transition within a state machine model.
+		 * @method visitTransition
+		 * @param {Transition} transition The transition being visited.
+		 * @param {any} arg The parameter passed into the accept method.
+		 * @returns {any} Any value may be returned when visiting an element.
+		 */
+		visitTransition(transition: Transition, arg?: TArg): any {
 			return;
 		}
 	}
@@ -338,27 +387,46 @@ module fsm {
 		 */
 		public qualifiedName: string;
 
-		// creates a new instance of the Element class; note this is for internal use only.
+		/**
+		 * Creates a new instance of the element class.
+		 * @param {string} name The name of the element.
+		 */
         constructor(name: string) {
 			this.name = name;
         }
 
-		// returns the parent element of this element; note this is for internal use only.
+		/**
+		 * Returns the parent element of this element.
+		 * @method getParent
+		 * @returns {Element} The parent element of the element.
+		 */
         getParent(): Element {
             return; // note this is an abstract method.
         }
 
-		// returns the root state machine that this element belongs to; note this is for internal use only.
+		/**
+		 * Returns the root element within the state machine model.
+		 * @method root
+		 * @returns {StateMachine} The root state machine element.
+		 */
         root(): StateMachine {
             return this.getParent().root();
         }
 
-		// returns the ancestors of this element; note this is for internal use only.
+		/**
+		 * Returns the ancestors of the element.
+		 * The ancestors are returned as an array of elements, staring with the root element and ending with this elemenet.
+		 */
         ancestors(): Array<Element> {
             return (this.getParent() ? this.getParent().ancestors() : []).concat(this);
         }
 
-		// true if the element is active for a given state machine instance; note this is for internal use only.
+		/**
+		 * Determines if an element is active within a given state machine instance.
+		 * @method isActive
+		 * @param {IActiveStateConfiguration} instance The state machine instance.
+		 * @returns {boolean} True if the element is active within the state machine instance.
+		 */
         isActive(instance: IActiveStateConfiguration): boolean {
             return this.getParent().isActive(instance);
         }
@@ -392,7 +460,16 @@ module fsm {
          */
         public static defaultName: string = "default";
         
+		/**
+		 * The set of vertices that are children of the region.
+		 * @member {Array<Vertex>}
+		 */
         vertices: Array<Vertex> = [];
+		
+		/**
+		 * The pseudo state that will be in initial starting state when entering the region explicitly.
+		 * @member {PseudoState}
+		 */
         initial: PseudoState;
 
         /**
@@ -408,6 +485,11 @@ module fsm {
             parent.root().clean = false;
         }
 
+		/**
+		 * Returns the parent element of this region.
+		 * @method getParent
+		 * @returns {Element} The parent element of the region.
+		 */
         getParent(): Element {
             return this.parent;
         }
@@ -427,7 +509,14 @@ module fsm {
             return instance.getCurrent(this).evaluate(message, instance);
         }
 
-		accept<TArg>(visitor: Visitor<TArg>, arg: TArg): any {
+		/**
+		 * Accepts an instance of a visitor and calls the visitRegion method on it.
+		 * @method accept
+		 * @param {Visitor<TArg>} visitor The visitor instance.
+		 * @param {TArg} arg An optional argument to pass into the visitor.
+		 * @returns {any} Any value can be returned by the visitor.
+ 		 */
+		accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any {
 			return visitor.visitRegion(this, arg);
 		}
     }
@@ -460,6 +549,11 @@ module fsm {
             }
         }
 
+		/**
+		 * Returns the parent element of this vertex.
+		 * @method getParent
+		 * @returns {Element} The parent element of the vertex.
+		 */
         getParent(): Element {
             return this.region;
         }
@@ -515,7 +609,14 @@ module fsm {
             return true;
         }
 
-		accept<TArg>(visitor: Visitor<TArg>, arg: TArg): any {
+		/**
+		 * Accepts an instance of a visitor.
+		 * @method accept
+		 * @param {Visitor<TArg>} visitor The visitor instance.
+		 * @param {TArg} arg An optional argument to pass into the visitor.
+		 * @returns {any} Any value can be returned by the visitor.
+ 		 */
+		accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any {
 			return; // note: abstract method
 		}
     }
@@ -687,7 +788,14 @@ module fsm {
 			}
 		}
 
-		accept<TArg>(visitor: Visitor<TArg>, arg: TArg): any {
+		/**
+		 * Accepts an instance of a visitor and calls the visitPseudoState method on it.
+		 * @method accept
+		 * @param {Visitor<TArg>} visitor The visitor instance.
+		 * @param {TArg} arg An optional argument to pass into the visitor.
+		 * @returns {any} Any value can be returned by the visitor.
+ 		 */
+		accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any {
 			return visitor.visitPseudoState(this, arg);
 		}
     }
@@ -746,6 +854,12 @@ module fsm {
             return region;
         }
 
+		/**
+		 * Determines if an element is active within a given state machine instance.
+		 * @method isActive
+		 * @param {IActiveStateConfiguration} instance The state machine instance.
+		 * @returns {boolean} True if the element is active within the state machine instance.
+		 */
         isActive(instance: IActiveStateConfiguration): boolean {
             return super.isActive(instance) && instance.getCurrent(this.region) === this;
         }
@@ -873,7 +987,14 @@ module fsm {
             return processed;
         }
 
-		accept<TArg>(visitor: Visitor<TArg>, arg: TArg): any {
+		/**
+		 * Accepts an instance of a visitor and calls the visitState method on it.
+		 * @method accept
+		 * @param {Visitor<TArg>} visitor The visitor instance.
+		 * @param {TArg} arg An optional argument to pass into the visitor.
+		 * @returns {any} Any value can be returned by the visitor.
+ 		 */
+		accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any {
 			return visitor.visitState(this, arg);
 		}
     }
@@ -916,7 +1037,14 @@ module fsm {
             throw "A FinalState cannot be the source of a transition.";
         }
 
-		accept<TArg>(visitor: Visitor<TArg>, arg: TArg): any {
+		/**
+		 * Accepts an instance of a visitor and calls the visitFinalState method on it.
+		 * @method accept
+		 * @param {Visitor<TArg>} visitor The visitor instance.
+		 * @param {TArg} arg An optional argument to pass into the visitor.
+		 * @returns {any} Any value can be returned by the visitor.
+ 		 */
+		accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any {
 			return visitor.visitFinalState(this, arg);
 		}
     }
@@ -943,12 +1071,24 @@ module fsm {
             super(name, undefined);
         }
 
+		/**
+		 * Returns the root element within the state machine model.
+		 * Note that if this state machine is embeded within another state machine, the ultimate root element will be returned.
+		 * @method root
+		 * @returns {StateMachine} The root state machine element.
+		 */
         root(): StateMachine {
-            return this;
+            return this.region ? this.region.root() : this;
         }
 
+		/**
+		 * Determines if an element is active within a given state machine instance.
+		 * @method isActive
+		 * @param {IActiveStateConfiguration} instance The state machine instance.
+		 * @returns {boolean} True if the element is active within the state machine instance.
+		 */
         isActive(instance: IActiveStateConfiguration): boolean {
-            return true;
+            return this.region ? this.region.isActive(instance) : true;
         }
 
         /**
@@ -1004,7 +1144,14 @@ module fsm {
             return super.evaluate(message, instance);
         }
 
-		accept<TArg>(visitor: Visitor<TArg>, arg: TArg): any {
+		/**
+		 * Accepts an instance of a visitor and calls the visitStateMachine method on it.
+		 * @method accept
+		 * @param {Visitor<TArg>} visitor The visitor instance.
+		 * @param {TArg} arg An optional argument to pass into the visitor.
+		 * @returns {any} Any value can be returned by the visitor.
+ 		 */
+		accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any {
 			return visitor.visitStateMachine(this, arg);
 		}
     }
@@ -1076,7 +1223,14 @@ module fsm {
             return this;
         }
 
-		accept<TArg>(visitor: Visitor<TArg>, arg: TArg): any {
+		/**
+		 * Accepts an instance of a visitor and calls the visitTransition method on it.
+		 * @method accept
+		 * @param {Visitor<TArg>} visitor The visitor instance.
+		 * @param {TArg} arg An optional argument to pass into the visitor.
+		 * @returns {any} Any value can be returned by the visitor.
+ 		 */
+		accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any {
 			return visitor.visitTransition(this, arg);
 		}
     }

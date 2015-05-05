@@ -21,6 +21,8 @@ Implement a visitor pattern for state machine models.
 
 Migtated transition bootstrap to a visitor.
 
+Minor changes to StateMachine to enable it to be embedded within other state machines.
+
 ## Version 5.0.1
 Fix bug relating to external transitions and orthogonal regions that could result in an invalid current active state.
 
