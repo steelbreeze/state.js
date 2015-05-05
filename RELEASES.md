@@ -23,6 +23,10 @@ Migtated transition bootstrap to a visitor.
 
 Minor changes to StateMachine to enable it to be embedded within other state machines.
 
+Remove evaluateCompletions method and just inline the code where used given its simplicity.
+
+Remove assert function as it was used only once.
+
 ## Version 5.0.1
 Fix bug relating to external transitions and orthogonal regions that could result in an invalid current active state.
 

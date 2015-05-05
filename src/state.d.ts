@@ -232,6 +232,14 @@ declare module fsm {
          * @returns {boolean} True if the region is deemed to be complete.
          */
         isComplete(instance: IActiveStateConfiguration): boolean;
+        /**
+         * Evaluates a message to determine if a state transition can be made.
+         * Regions delegate messages to the currently active child state for evaluation.
+         * @method evaluate
+         * @param {any} message The message that will be evaluated.
+         * @param {IActiveStateConfiguration} instance The state machine instance.
+         * @returns {boolean} True if the message triggered a state transition.
+         */
         evaluate(message: any, instance: IActiveStateConfiguration): boolean;
         /**
          * Accepts an instance of a visitor and calls the visitRegion method on it.
@@ -250,9 +258,28 @@ declare module fsm {
      * @augments Element
      */
     class Vertex extends Element {
+        /**
+         * The parent region of this vertex.
+         * @member {Region}
+         */
         region: Region;
+        /**
+         * The set of transitions from this vertex.
+         * @member {Array<Transition>}
+         */
         transitions: Array<Transition>;
+        /**
+         * Creates a new instance of the Vertex class within a given parent region.
+         * @param {string} name The name of the vertex.
+         * @param {Region} parent The parent region.
+         */
         constructor(name: string, parent: Region);
+        /**
+         * Creates a new instance of the Vertex class within a given parent state.
+         * Note, this will create the vertex within the parent states default region.
+         * @param {string} name The name of the vertex.
+         * @param {State} parent The parent state.
+         */
         constructor(name: string, parent: State);
         /**
          * Returns the parent element of this vertex.
@@ -278,8 +305,15 @@ declare module fsm {
          * @returns {Transition} The new transition object.
          */
         to(target?: Vertex): Transition;
-        evaluateCompletions(message: any, instance: IActiveStateConfiguration, history: boolean): void;
         select(message: any, instance: IActiveStateConfiguration): Transition;
+        /**
+         * Evaluates a message to determine if a state transition can be made.
+         * Vertices will evauate the guard conditions of their outbound transition; if a single guard evaluates true, the transition will be traversed.
+         * @method evaluate
+         * @param {any} message The message that will be evaluated.
+         * @param {IActiveStateConfiguration} instance The state machine instance.
+         * @returns {boolean} True if the message triggered a state transition.
+         */
         evaluate(message: any, instance: IActiveStateConfiguration): boolean;
         /**
          * Accepts an instance of a visitor.
@@ -371,7 +405,19 @@ declare module fsm {
          * @returns {boolean} True if the vertex is deemed to be complete.
          */
         isComplete(instance: IActiveStateConfiguration): boolean;
+        /**
+         * Tests a pseudo state to determine if it is a history pseudo state.
+         * History pseudo states are of kind: Initial, ShallowHisory, or DeepHistory.
+         * @method isHistory
+         * @returns {boolean} True if the pseudo state is a history pseudo state.
+         */
         isHistory(): boolean;
+        /**
+         * Tests a pseudo state to determine if it is an initial pseudo state.
+         * Initial pseudo states are of kind: Initial, ShallowHisory, or DeepHistory.
+         * @method isInitial
+         * @returns {boolean} True if the pseudo state is an initial pseudo state.
+         */
         isInitial(): boolean;
         select(message: any, instance: IActiveStateConfiguration): Transition;
         /**
@@ -396,6 +442,10 @@ declare module fsm {
     class State extends Vertex {
         exitBehavior: Array<Action>;
         entryBehavior: Array<Action>;
+        /**
+         * The set of regions under this state.
+         * @member {Array<Region>}
+         */
         regions: Array<Region>;
         /**
          * Creates a new instance of the State class.
@@ -409,6 +459,12 @@ declare module fsm {
          * @param {State} parent The parent state that owns the state.
          */
         constructor(name: string, parent: State);
+        /**
+         * Returns the default region for the state.
+         * Note, this will create the default region if it does not already exist.
+         * @method defaultRegion
+         * @returns {Region} The default region.
+         */
         defaultRegion(): Region;
         /**
          * Determines if an element is active within a given state machine instance.
@@ -468,6 +524,14 @@ declare module fsm {
          */
         entry<TMessage>(entryAction: Action): State;
         select(message: any, instance: IActiveStateConfiguration): Transition;
+        /**
+         * Evaluates a message to determine if a state transition can be made.
+         * States initially delegate messages to their child regions for evaluation, if no state transition is triggered, they behave as any other vertex.
+         * @method evaluate
+         * @param {any} message The message that will be evaluated.
+         * @param {IActiveStateConfiguration} instance The state machine instance.
+         * @returns {boolean} True if the message triggered a state transition.
+         */
         evaluate(message: any, instance: IActiveStateConfiguration): boolean;
         /**
          * Accepts an instance of a visitor and calls the visitState method on it.
@@ -559,15 +623,12 @@ declare module fsm {
          */
         initialise(instance: IActiveStateConfiguration, autoBootstrap?: boolean): void;
         /**
-         * Passes a message to a state machine instance for evaluation.
-         *
-         * The message will cause the guard conditions of outbound transitions from the current state to be evaluated; if a single guard evaluates true, it will trigger transition traversal.
-         * Transition traversal may cause a chain of transitions to be traversed.
+         * Evaluates a message to determine if a state transition can be made.
+         * State machines initially delegate messages to their child regions for evaluation.
          * @method evaluate
-         * @param {any} message A message to pass to a state machine instance for evaluation that may cause a state transition.
-         * @param {IActiveStateConfiguration} instance The object representing a particular state machine instance.
-         * @param {boolean} autoBootstrap Set to false to manually control when bootstrapping occurs.
-         * @returns {boolean} True if the method caused a state transition.
+         * @param {any} message The message that will be evaluated.
+         * @param {IActiveStateConfiguration} instance The state machine instance.
+         * @returns {boolean} True if the message triggered a state transition.
          */
         evaluate(message: any, instance: IActiveStateConfiguration, autoBootstrap?: boolean): boolean;
         /**
@@ -646,6 +707,10 @@ declare module fsm {
         name: string;
         isTerminated: boolean;
         private last;
+        /**
+         * Creates a new instance of the state machine instance class.
+         * @param {string} name The optional name of the state machine instance.
+         */
         constructor(name?: string);
         /**
          * Updates the last known state for a given region.
@@ -661,6 +726,11 @@ declare module fsm {
          * @returns {State} The last known state for the given region.
          */
         getCurrent(region: Region): State;
+        /**
+         * Returns the name of the state machine instance.
+         * @method toString
+         * @returns {string} The name of the state machine instance.
+         */
         toString(): string;
     }
 }

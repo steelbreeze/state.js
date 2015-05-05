@@ -153,7 +153,9 @@ var fsm;
                     i++;
                 }
                 // validate transition does not cross sibling regions boundaries
-                assert(!(sourceAncestors[i] instanceof Region), "Transitions may not cross sibling orthogonal region boundaries");
+                if (sourceAncestors[i] instanceof Region) {
+                    throw "Transitions may not cross sibling orthogonal region boundaries";
+                }
                 // leave the first uncommon ancestor
                 transition.traverse = behaviour(i < sourceAncestorsLength ? sourceAncestors[i] : transition.source).leave.slice(0);
                 // perform the transition action
@@ -198,8 +200,9 @@ var fsm;
         };
         Bootstrap.prototype.visitElement = function (element, deepHistoryAbove) {
             var elementBehaviour = this.behaviour(element);
-            elementBehaviour.leave.push(function (message, instance) { console.log(instance + " leave " + element); });
-            elementBehaviour.beginEnter.push(function (message, instance) { console.log(instance + " enter " + element); });
+            //			uncomment the following two lines for debugging purposes
+            //			elementBehaviour.leave.push((message, instance) => { console.log(instance + " leave " + element); });
+            //			elementBehaviour.beginEnter.push((message, instance) => { console.log(instance + " enter " + element); });
             elementBehaviour.enter = elementBehaviour.beginEnter.concat(elementBehaviour.endEnter);
         };
         Bootstrap.prototype.visitRegion = function (region, deepHistoryAbove) {
@@ -229,7 +232,9 @@ var fsm;
             this.visitElement(vertex, deepHistoryAbove);
             var vertexBehaviour = this.behaviour((vertex));
             vertexBehaviour.endEnter.push(function (message, instance, history) {
-                vertex.evaluateCompletions(message, instance, history);
+                if (vertex.isComplete(instance)) {
+                    vertex.evaluate(vertex, instance);
+                }
             });
             vertexBehaviour.enter = vertexBehaviour.beginEnter.concat(vertexBehaviour.endEnter);
         };
@@ -380,6 +385,14 @@ var fsm;
         Region.prototype.isComplete = function (instance) {
             return instance.getCurrent(this).isFinal();
         };
+        /**
+         * Evaluates a message to determine if a state transition can be made.
+         * Regions delegate messages to the currently active child state for evaluation.
+         * @method evaluate
+         * @param {any} message The message that will be evaluated.
+         * @param {IActiveStateConfiguration} instance The state machine instance.
+         * @returns {boolean} True if the message triggered a state transition.
+         */
         Region.prototype.evaluate = function (message, instance) {
             return instance.getCurrent(this).evaluate(message, instance);
         };
@@ -412,8 +425,17 @@ var fsm;
      */
     var Vertex = (function (_super) {
         __extends(Vertex, _super);
+        /**
+         * Creates a new instance of the Vertex class.
+         * @param {string} name The name of the vertex.
+         * @param {Region|State} parent The parent region or state.
+         */
         function Vertex(name, parent) {
             _super.call(this, name);
+            /**
+             * The set of transitions from this vertex.
+             * @member {Array<Transition>}
+             */
             this.transitions = [];
             if (parent instanceof Region) {
                 this.region = parent;
@@ -459,14 +481,18 @@ var fsm;
             this.root().clean = false;
             return transition;
         };
-        Vertex.prototype.evaluateCompletions = function (message, instance, history) {
-            if (this.isComplete(instance)) {
-                this.evaluate(this, instance);
-            }
-        };
+        // selects the transition to follow for a given message and state machine instance combination
         Vertex.prototype.select = function (message, instance) {
             return; // NOTE: abstract method
         };
+        /**
+         * Evaluates a message to determine if a state transition can be made.
+         * Vertices will evauate the guard conditions of their outbound transition; if a single guard evaluates true, the transition will be traversed.
+         * @method evaluate
+         * @param {any} message The message that will be evaluated.
+         * @param {IActiveStateConfiguration} instance The state machine instance.
+         * @returns {boolean} True if the message triggered a state transition.
+         */
         Vertex.prototype.evaluate = function (message, instance) {
             var transition = this.select(message, instance);
             if (!transition) {
@@ -554,7 +580,7 @@ var fsm;
          * @param {PseudoStateKind} kind Determines the behaviour of the PseudoState.
          */
         function PseudoState(name, parent, kind) {
-            _super.call(this, name, parent /*, pseudoState(kind)*/);
+            _super.call(this, name, parent);
             this.kind = kind;
             if (this.isInitial()) {
                 this.region.initial = this;
@@ -571,12 +597,25 @@ var fsm;
         PseudoState.prototype.isComplete = function (instance) {
             return true;
         };
+        /**
+         * Tests a pseudo state to determine if it is a history pseudo state.
+         * History pseudo states are of kind: Initial, ShallowHisory, or DeepHistory.
+         * @method isHistory
+         * @returns {boolean} True if the pseudo state is a history pseudo state.
+         */
         PseudoState.prototype.isHistory = function () {
             return this.kind === PseudoStateKind.DeepHistory || this.kind === PseudoStateKind.ShallowHistory;
         };
+        /**
+         * Tests a pseudo state to determine if it is an initial pseudo state.
+         * Initial pseudo states are of kind: Initial, ShallowHisory, or DeepHistory.
+         * @method isInitial
+         * @returns {boolean} True if the pseudo state is an initial pseudo state.
+         */
         PseudoState.prototype.isInitial = function () {
             return this.kind === PseudoStateKind.Initial || this.isHistory();
         };
+        // selects the transition to follow for a given message and state machine instance combination
         PseudoState.prototype.select = function (message, instance) {
             switch (this.kind) {
                 case PseudoStateKind.Initial:
@@ -655,10 +694,22 @@ var fsm;
          */
         function State(name, parent) {
             _super.call(this, name, parent);
+            // user defined behaviour (via exit method) to execute when exiting a state.
             this.exitBehavior = [];
+            // user defined behaviour (via entry method) to execute when entering a state.
             this.entryBehavior = [];
+            /**
+             * The set of regions under this state.
+             * @member {Array<Region>}
+             */
             this.regions = [];
         }
+        /**
+         * Returns the default region for the state.
+         * Note, this will create the default region if it does not already exist.
+         * @method defaultRegion
+         * @returns {Region} The default region.
+         */
         State.prototype.defaultRegion = function () {
             var region;
             for (var i = 0, l = this.regions.length; i < l; i++) {
@@ -753,6 +804,7 @@ var fsm;
             this.root().clean = false;
             return this;
         };
+        // selects the transition to follow for a given message and state machine instance combination
         State.prototype.select = function (message, instance) {
             var result;
             for (var i = 0, l = this.transitions.length; i < l; i++) {
@@ -765,6 +817,14 @@ var fsm;
             }
             return result;
         };
+        /**
+         * Evaluates a message to determine if a state transition can be made.
+         * States initially delegate messages to their child regions for evaluation, if no state transition is triggered, they behave as any other vertex.
+         * @method evaluate
+         * @param {any} message The message that will be evaluated.
+         * @param {IActiveStateConfiguration} instance The state machine instance.
+         * @returns {boolean} True if the message triggered a state transition.
+         */
         State.prototype.evaluate = function (message, instance) {
             var processed = false;
             for (var i = 0, l = this.regions.length; i < l; i++) {
@@ -777,8 +837,8 @@ var fsm;
             if (processed === false) {
                 processed = _super.prototype.evaluate.call(this, message, instance);
             }
-            if (processed === true && message !== this) {
-                this.evaluateCompletions(this, instance, false);
+            if (processed === true && message !== this && this.isComplete(instance)) {
+                this.evaluate(this, instance);
             }
             return processed;
         };
@@ -814,8 +874,8 @@ var fsm;
         function FinalState(name, parent) {
             _super.call(this, name, parent);
         }
+        // override Vertex.to to throw an exception when trying to create a transition from a final state.
         FinalState.prototype.to = function (target) {
-            // ensure FinalStates will satisfy the isFinal check
             throw "A FinalState cannot be the source of a transition.";
         };
         /**
@@ -846,8 +906,8 @@ var fsm;
          */
         function StateMachine(name) {
             _super.call(this, name, undefined);
-            // NOTE: would like an equivalent of internal or package-private
-            this.clean = true;
+            // flag used to indicate that the state machine model requires bootstrapping.
+            this.clean = false;
         }
         /**
          * Returns the root element within the state machine model.
@@ -895,15 +955,12 @@ var fsm;
             invoke(this.init, undefined, instance, false);
         };
         /**
-         * Passes a message to a state machine instance for evaluation.
-         *
-         * The message will cause the guard conditions of outbound transitions from the current state to be evaluated; if a single guard evaluates true, it will trigger transition traversal.
-         * Transition traversal may cause a chain of transitions to be traversed.
+         * Evaluates a message to determine if a state transition can be made.
+         * State machines initially delegate messages to their child regions for evaluation.
          * @method evaluate
-         * @param {any} message A message to pass to a state machine instance for evaluation that may cause a state transition.
-         * @param {IActiveStateConfiguration} instance The object representing a particular state machine instance.
-         * @param {boolean} autoBootstrap Set to false to manually control when bootstrapping occurs.
-         * @returns {boolean} True if the method caused a state transition.
+         * @param {any} message The message that will be evaluated.
+         * @param {IActiveStateConfiguration} instance The state machine instance.
+         * @returns {boolean} True if the message triggered a state transition.
          */
         StateMachine.prototype.evaluate = function (message, instance, autoBootstrap) {
             if (autoBootstrap === void 0) { autoBootstrap = true; }
@@ -925,6 +982,7 @@ var fsm;
         StateMachine.prototype.accept = function (visitor, arg) {
             return visitor.visitStateMachine(this, arg);
         };
+        // visitor used to bootstrap state machine models.
         StateMachine.bootstrap = new Bootstrap();
         return StateMachine;
     })(State);
@@ -950,7 +1008,9 @@ var fsm;
             var _this = this;
             this.source = source;
             this.target = target;
+            // user defined behaviour (via effect) executed when traversing this transition.
             this.transitionBehavior = [];
+            // the collected actions to perform when traversing the transition (includes exiting states, traversal, and state entry)
             this.traverse = [];
             // transitions are initially completion transitions, where the message is the source state itself
             this.guard = function (message, instance) { return message === _this.source; };
@@ -997,18 +1057,15 @@ var fsm;
         Transition.prototype.accept = function (visitor, arg) {
             return visitor.visitTransition(this, arg);
         };
+        // used as the guard condition for else tranitions
         Transition.isElse = function (message, instance) { return false; };
         return Transition;
     })();
     fsm.Transition = Transition;
+    // invokes the collected behaviour of an array of actions.
     function invoke(actions, message, instance, history) {
         for (var i = 0, l = actions.length; i < l; i++) {
             actions[i](message, instance, history);
-        }
-    }
-    function assert(condition, error) {
-        if (!condition) {
-            throw error;
         }
     }
     /**
@@ -1020,6 +1077,10 @@ var fsm;
      * @implements IActiveStateConfiguration
      */
     var StateMachineInstance = (function () {
+        /**
+         * Creates a new instance of the state machine instance class.
+         * @param {string} name The optional name of the state machine instance.
+         */
         function StateMachineInstance(name) {
             if (name === void 0) { name = "unnamed"; }
             this.name = name;
@@ -1044,6 +1105,11 @@ var fsm;
         StateMachineInstance.prototype.getCurrent = function (region) {
             return this.last[region.qualifiedName];
         };
+        /**
+         * Returns the name of the state machine instance.
+         * @method toString
+         * @returns {string} The name of the state machine instance.
+         */
         StateMachineInstance.prototype.toString = function () {
             return this.name;
         };

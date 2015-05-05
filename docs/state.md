@@ -202,6 +202,19 @@ A region is complete if its current state is final (a state having on outbound t
 
 **Returns**: `boolean`, True if the region is deemed to be complete.
 
+### fsm.Region.evaluate(message, instance) 
+
+Evaluates a message to determine if a state transition can be made.
+Regions delegate messages to the currently active child state for evaluation.
+
+**Parameters**
+
+**message**: `any`, The message that will be evaluated.
+
+**instance**: `IActiveStateConfiguration`, The state machine instance.
+
+**Returns**: `boolean`, True if the message triggered a state transition.
+
 ### fsm.Region.accept(visitor, arg) 
 
 Accepts an instance of a visitor and calls the visitRegion method on it.
@@ -219,6 +232,18 @@ Accepts an instance of a visitor and calls the visitRegion method on it.
 An abstract element within a state machine model that can be the source or target of a transition (states and pseudo states).
 
 Vertex extends the Element class and inherits its public interface.
+
+**transitions**: `Array.&lt;Transition&gt;` , The set of transitions from this vertex.
+### fsm.Vertex.Vertex(name, parent) 
+
+Creates a new instance of the Vertex class.
+
+**Parameters**
+
+**name**: `string`, The name of the vertex.
+
+**parent**: `Region | State`, The parent region or state.
+
 
 ### fsm.Vertex.getParent() 
 
@@ -249,6 +274,19 @@ Transitions can be converted to be event triggered by adding a guard condition v
 **target**: `Vertex`, The destination of the transition; omit for internal transitions.
 
 **Returns**: `Transition`, The new transition object.
+
+### fsm.Vertex.evaluate(message, instance) 
+
+Evaluates a message to determine if a state transition can be made.
+Vertices will evauate the guard conditions of their outbound transition; if a single guard evaluates true, the transition will be traversed.
+
+**Parameters**
+
+**message**: `any`, The message that will be evaluated.
+
+**instance**: `IActiveStateConfiguration`, The state machine instance.
+
+**Returns**: `boolean`, True if the message triggered a state transition.
 
 ### fsm.Vertex.accept(visitor, arg) 
 
@@ -321,6 +359,20 @@ Composite states are deemed to be complete when all its child regions all are co
 
 **Returns**: `boolean`, True if the vertex is deemed to be complete.
 
+### fsm.PseudoState.isHistory() 
+
+Tests a pseudo state to determine if it is a history pseudo state.
+History pseudo states are of kind: Initial, ShallowHisory, or DeepHistory.
+
+**Returns**: `boolean`, True if the pseudo state is a history pseudo state.
+
+### fsm.PseudoState.isInitial() 
+
+Tests a pseudo state to determine if it is an initial pseudo state.
+Initial pseudo states are of kind: Initial, ShallowHisory, or DeepHistory.
+
+**Returns**: `boolean`, True if the pseudo state is an initial pseudo state.
+
 ### fsm.PseudoState.accept(visitor, arg) 
 
 Accepts an instance of a visitor and calls the visitPseudoState method on it.
@@ -342,6 +394,7 @@ Behaviour can be defined for both state entry and state exit.
 
 State extends the Vertex class and inherits its public interface.
 
+**regions**: `Array.&lt;Region&gt;` , The set of regions under this state.
 ### fsm.State.State(name, parent) 
 
 Creates a new instance of the State class.
@@ -352,6 +405,13 @@ Creates a new instance of the State class.
 
 **parent**: `Element`, The parent state that owns the state.
 
+
+### fsm.State.defaultRegion() 
+
+Returns the default region for the state.
+Note, this will create the default region if it does not already exist.
+
+**Returns**: `Region`, The default region.
 
 ### fsm.State.isActive(instance) 
 
@@ -421,6 +481,19 @@ Adds behaviour to a state that is executed each time the state is entered.
 **entryAction**: `Action`, The action to add to the state's entry behaviour.
 
 **Returns**: `State`, Returns the state to allow a fluent style API.
+
+### fsm.State.evaluate(message, instance) 
+
+Evaluates a message to determine if a state transition can be made.
+States initially delegate messages to their child regions for evaluation, if no state transition is triggered, they behave as any other vertex.
+
+**Parameters**
+
+**message**: `any`, The message that will be evaluated.
+
+**instance**: `IActiveStateConfiguration`, The state machine instance.
+
+**Returns**: `boolean`, True if the message triggered a state transition.
 
 ### fsm.State.accept(visitor, arg) 
 
@@ -519,22 +592,18 @@ Entering the initial pseudo state may cause a chain of other completion transiti
 **autoBootstrap**: `boolean`, Set to false to manually control when bootstrapping occurs.
 
 
-### fsm.StateMachine.evaluate(message, instance, autoBootstrap) 
+### fsm.StateMachine.evaluate(message, instance) 
 
-Passes a message to a state machine instance for evaluation.
-
-The message will cause the guard conditions of outbound transitions from the current state to be evaluated; if a single guard evaluates true, it will trigger transition traversal.
-Transition traversal may cause a chain of transitions to be traversed.
+Evaluates a message to determine if a state transition can be made.
+State machines initially delegate messages to their child regions for evaluation.
 
 **Parameters**
 
-**message**: `any`, A message to pass to a state machine instance for evaluation that may cause a state transition.
+**message**: `any`, The message that will be evaluated.
 
-**instance**: `IActiveStateConfiguration`, The object representing a particular state machine instance.
+**instance**: `IActiveStateConfiguration`, The state machine instance.
 
-**autoBootstrap**: `boolean`, Set to false to manually control when bootstrapping occurs.
-
-**Returns**: `boolean`, True if the method caused a state transition.
+**Returns**: `boolean`, True if the message triggered a state transition.
 
 ### fsm.StateMachine.accept(visitor, arg) 
 
@@ -617,6 +686,15 @@ Default working implementation of a state machine instance class.
 Implements the `IActiveStateConfiguration` interface.
 It is possible to create other custom instance classes to manage state machine state in any way (e.g. as serialisable JSON); just implement the same members and methods as this class.
 
+### fsm.Context.StateMachineInstance(name) 
+
+Creates a new instance of the state machine instance class.
+
+**Parameters**
+
+**name**: `string`, The optional name of the state machine instance.
+
+
 ### fsm.Context.setCurrent(region, state) 
 
 Updates the last known state for a given region.
@@ -637,6 +715,12 @@ Returns the last known state for a given region.
 **region**: `Region`, The region to update the last known state for.
 
 **Returns**: `State`, The last known state for the given region.
+
+### fsm.Context.toString() 
+
+Returns the name of the state machine instance.
+
+**Returns**: `string`, The name of the state machine instance.
 
 
 
