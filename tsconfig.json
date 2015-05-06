@@ -1,8 +1,10 @@
 {
 	"compilerOptions": {
+		"noImplicitAny": true,
 		"declaration": true,
 		"out": "./lib/state.js"
 	},
+
 	"files": [
 		"./src/state.ts"
 	]
