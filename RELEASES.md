@@ -1,7 +1,7 @@
 ## Version 5.1.0
 Fixes a bug that would cause completion transitions to fire for composite states that were not complete.
 
-Changed the file management for releases: the latest version will always be state.js and state.min.js and state.d.ts; files with version numbers will also be available.
+Changed the file management for releases: the latest version will always be lib/state.js, lib/state.min.js, and lib/state.d.ts; files with version numbers will also be available in lib/versions.
 
 Renamed IContext to IActiveStateConfiguration, Context to StateMachineInstance.
 

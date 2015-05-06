@@ -1,0 +1,11 @@
+#!/bin/bash 
+
+VERSION='5.1.0'
+
+tsc -p .
+minify lib/state.js
+jsdox --output docs lib/state.js
+
+cp lib/state.d.ts lib/versions/state-$VERSION.d.ts
+cp lib/state.js lib/versions/state-$VERSION.js
+cp lib/state.min.js lib/versions/state-$VERSION.min.js

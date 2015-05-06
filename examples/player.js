@@ -3,7 +3,7 @@
  * Copyright (c) 2014 Steelbreeze Limited
  * Licensed under MIT and GPL v3 licences
  */
-/// <reference path="../src/state.d.ts" />
+/// <reference path="../lib/state.d.ts" />
 var player = new fsm.StateMachine("player");
 var initial = new fsm.PseudoState("initial", player, fsm.PseudoStateKind.Initial);
 var operational = new fsm.State("operational", player);
