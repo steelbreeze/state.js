@@ -28,5 +28,3 @@ state.js is available as a node packaged module; to install type:
 
 ## Licence
 State.js is dual-licenecd under the MIT and GPL v3 licences.
-
-[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/1481fb51f491522f451063ef0b9604c7 "githalytics.com")](http://githalytics.com/steelbreeze/state.js)
