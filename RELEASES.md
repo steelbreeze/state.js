@@ -1,3 +1,6 @@
+## Version 5.1.1
+Created singletons for bootstrapping rather than static method in StateMachine and Bootstrap classes.
+
 ## Version 5.1.0
 Fixes a bug that would cause completion transitions to fire for composite states that were not complete.
 

@@ -12,106 +12,6 @@ http://www.steelbreeze.net/state.cs
 
 * * *
 
-## Class: Visitor
-Implementation of a visitor pattern.
-
-### fsm.Visitor.visitElement(element, arg) 
-
-Visits an element within a state machine model.
-
-**Parameters**
-
-**element**: `Element`, the element being visited.
-
-**arg**: `any`, The parameter passed into the accept method.
-
-**Returns**: `any`, Any value may be returned when visiting an element.
-
-### fsm.Visitor.visitRegion(region, arg) 
-
-Visits a region within a state machine model.
-
-**Parameters**
-
-**region**: `Region`, The region being visited.
-
-**arg**: `any`, The parameter passed into the accept method.
-
-**Returns**: `any`, Any value may be returned when visiting an element.
-
-### fsm.Visitor.visitVertex(vertex, arg) 
-
-Visits a vertex within a state machine model.
-
-**Parameters**
-
-**vertex**: `Vertex`, The vertex being visited.
-
-**arg**: `any`, The parameter passed into the accept method.
-
-**Returns**: `any`, Any value may be returned when visiting an element.
-
-### fsm.Visitor.visitPseudoState(pseudoState, arg) 
-
-Visits a pseudo state within a state machine model.
-
-**Parameters**
-
-**pseudoState**: `PseudoState`, The pseudo state being visited.
-
-**arg**: `any`, The parameter passed into the accept method.
-
-**Returns**: `any`, Any value may be returned when visiting an element.
-
-### fsm.Visitor.visitState(state, arg) 
-
-Visits a state within a state machine model.
-
-**Parameters**
-
-**state**: `State`, The state being visited.
-
-**arg**: `any`, The parameter passed into the accept method.
-
-**Returns**: `any`, Any value may be returned when visiting an element.
-
-### fsm.Visitor.visitFinal(finalState, arg) 
-
-Visits a final state within a state machine model.
-
-**Parameters**
-
-**finalState**: `FinalState`, The final state being visited.
-
-**arg**: `any`, The parameter passed into the accept method.
-
-**Returns**: `any`, Any value may be returned when visiting an element.
-
-### fsm.Visitor.visitVertex(state, arg) 
-
-Visits a state machine within a state machine model.
-
-**Parameters**
-
-**state**: `StateMachine`, machine The state machine being visited.
-
-**arg**: `any`, The parameter passed into the accept method.
-
-**Returns**: `any`, Any value may be returned when visiting an element.
-
-### fsm.Visitor.visitTransition(transition, arg) 
-
-Visits a transition within a state machine model.
-
-**Parameters**
-
-**transition**: `Transition`, The transition being visited.
-
-**arg**: `any`, The parameter passed into the accept method.
-
-**Returns**: `any`, Any value may be returned when visiting an element.
-
-
 ## Class: Element
 An abstract class used as the base for the Region and Vertex classes.
 An element is any part of the tree structure that represents a composite state machine model.
@@ -680,13 +580,113 @@ Accepts an instance of a visitor and calls the visitTransition method on it.
 **Returns**: `any`, Any value can be returned by the visitor.
 
 
-## Class: Context
+## Class: Visitor
+Implementation of a visitor pattern.
+
+### fsm.Visitor.visitElement(element, arg) 
+
+Visits an element within a state machine model.
+
+**Parameters**
+
+**element**: `Element`, the element being visited.
+
+**arg**: `any`, The parameter passed into the accept method.
+
+**Returns**: `any`, Any value may be returned when visiting an element.
+
+### fsm.Visitor.visitRegion(region, arg) 
+
+Visits a region within a state machine model.
+
+**Parameters**
+
+**region**: `Region`, The region being visited.
+
+**arg**: `any`, The parameter passed into the accept method.
+
+**Returns**: `any`, Any value may be returned when visiting an element.
+
+### fsm.Visitor.visitVertex(vertex, arg) 
+
+Visits a vertex within a state machine model.
+
+**Parameters**
+
+**vertex**: `Vertex`, The vertex being visited.
+
+**arg**: `any`, The parameter passed into the accept method.
+
+**Returns**: `any`, Any value may be returned when visiting an element.
+
+### fsm.Visitor.visitPseudoState(pseudoState, arg) 
+
+Visits a pseudo state within a state machine model.
+
+**Parameters**
+
+**pseudoState**: `PseudoState`, The pseudo state being visited.
+
+**arg**: `any`, The parameter passed into the accept method.
+
+**Returns**: `any`, Any value may be returned when visiting an element.
+
+### fsm.Visitor.visitState(state, arg) 
+
+Visits a state within a state machine model.
+
+**Parameters**
+
+**state**: `State`, The state being visited.
+
+**arg**: `any`, The parameter passed into the accept method.
+
+**Returns**: `any`, Any value may be returned when visiting an element.
+
+### fsm.Visitor.visitFinal(finalState, arg) 
+
+Visits a final state within a state machine model.
+
+**Parameters**
+
+**finalState**: `FinalState`, The final state being visited.
+
+**arg**: `any`, The parameter passed into the accept method.
+
+**Returns**: `any`, Any value may be returned when visiting an element.
+
+### fsm.Visitor.visitVertex(state, arg) 
+
+Visits a state machine within a state machine model.
+
+**Parameters**
+
+**state**: `StateMachine`, machine The state machine being visited.
+
+**arg**: `any`, The parameter passed into the accept method.
+
+**Returns**: `any`, Any value may be returned when visiting an element.
+
+### fsm.Visitor.visitTransition(transition, arg) 
+
+Visits a transition within a state machine model.
+
+**Parameters**
+
+**transition**: `Transition`, The transition being visited.
+
+**arg**: `any`, The parameter passed into the accept method.
+
+**Returns**: `any`, Any value may be returned when visiting an element.
+
+
+## Class: StateMachineInstance
 Default working implementation of a state machine instance class.
 
 Implements the `IActiveStateConfiguration` interface.
 It is possible to create other custom instance classes to manage state machine state in any way (e.g. as serialisable JSON); just implement the same members and methods as this class.
 
-### fsm.Context.StateMachineInstance(name) 
+### fsm.StateMachineInstance.StateMachineInstance(name) 
 
 Creates a new instance of the state machine instance class.
 
@@ -695,7 +695,7 @@ Creates a new instance of the state machine instance class.
 **name**: `string`, The optional name of the state machine instance.
 
 
-### fsm.Context.setCurrent(region, state) 
+### fsm.StateMachineInstance.setCurrent(region, state) 
 
 Updates the last known state for a given region.
 
@@ -706,7 +706,7 @@ Updates the last known state for a given region.
 **state**: `State`, The last known state for the given region.
 
 
-### fsm.Context.getCurrent(region) 
+### fsm.StateMachineInstance.getCurrent(region) 
 
 Returns the last known state for a given region.
 
@@ -716,7 +716,7 @@ Returns the last known state for a given region.
 
 **Returns**: `State`, The last known state for the given region.
 
-### fsm.Context.toString() 
+### fsm.StateMachineInstance.toString() 
 
 Returns the name of the state machine instance.
 

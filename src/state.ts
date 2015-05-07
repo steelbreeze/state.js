@@ -37,7 +37,7 @@ module fsm {
 	export interface Action {
 		(message: any, instance: IActiveStateConfiguration, history: boolean): any;
 	}
-	
+
 	/**
 	 * Interface for the state machine instance; an object used as each instance of a state machine (as the classes in this library describe a state machine model).
 	 * @interface IActiveStateConfiguration
@@ -47,7 +47,7 @@ module fsm {
 		 * @member {boolean} isTerminated Indicates that the state machine instance has reached a terminate pseudo state and therfore will no longer evaluate messages.
 		 */
 		isTerminated: boolean;
-		
+
 		/**
 		 * Updates the last known state for a given region.
 		 * @method setCurrent
@@ -55,7 +55,7 @@ module fsm {
 		 * @param {State} state The last known state for the given region.
 		 */
 		setCurrent(region: Region, state: State): void;
-		
+
 		/**
 		 * Returns the last known state for a given region.
 		 * @method getCurrent
@@ -63,308 +63,6 @@ module fsm {
 		 * @returns {State} The last known state for the given region.
 		 */
 		getCurrent(region: Region): State;
-	}
-
-	/**
-	 * Implementation of a visitor pattern.
-	 * @class Visitor
-	 */
-	export class Visitor<TArg> {
-		/**
-		 * Visits an element within a state machine model.
-		 * @method visitElement
-		 * @param {Element} element the element being visited.
-		 * @param {any} arg The parameter passed into the accept method.
-		 * @returns {any} Any value may be returned when visiting an element.
-		 */
-		visitElement(element: Element, arg?: TArg): any {
-			return;
-		}
-
-		/**
-		 * Visits a region within a state machine model.
-		 * @method visitRegion
-		 * @param {Region} region The region being visited.
-		 * @param {any} arg The parameter passed into the accept method.
-		 * @returns {any} Any value may be returned when visiting an element.
-		 */
-		visitRegion(region: Region, arg?: TArg): any {
-			var result = this.visitElement(region, arg);
-
-			for (var i = 0, l = region.vertices.length; i < l; i++) {
-				region.vertices[i].accept(this, arg);
-			}
-			
-			return result;
-		}
-
-		/**
-		 * Visits a vertex within a state machine model.
-		 * @method visitVertex
-		 * @param {Vertex} vertex The vertex being visited.
-		 * @param {any} arg The parameter passed into the accept method.
-		 * @returns {any} Any value may be returned when visiting an element.
-		 */
-		visitVertex(vertex: Vertex, arg?: TArg): any {
-			var result = this.visitElement(vertex, arg);
-
-			for (var i = 0, l = vertex.transitions.length; i < l; i++) {
-				vertex.transitions[i].accept(this, arg);
-			}
-			
-			return result;
-		}
-
-		/**
-		 * Visits a pseudo state within a state machine model.
-		 * @method visitPseudoState
-		 * @param {PseudoState} pseudoState The pseudo state being visited.
-		 * @param {any} arg The parameter passed into the accept method.
-		 * @returns {any} Any value may be returned when visiting an element.
-		 */
-		visitPseudoState(pseudoState: PseudoState, arg?: TArg): any {
-			return this.visitVertex(pseudoState, arg);
-		}
-
-		/**
-		 * Visits a state within a state machine model.
-		 * @method visitState
-		 * @param {State} state The state being visited.
-		 * @param {any} arg The parameter passed into the accept method.
-		 * @returns {any} Any value may be returned when visiting an element.
-		 */
-		visitState(state: State, arg?: TArg): any {
-			var result = this.visitVertex(state, arg);
-
-			for (var i = 0, l = state.regions.length; i < l; i++) {
-				state.regions[i].accept(this, arg);
-			}
-			
-			return result;
-		}
-
-		/**
-		 * Visits a final state within a state machine model.
-		 * @method visitFinal
-		 * @param {FinalState} finalState The final state being visited.
-		 * @param {any} arg The parameter passed into the accept method.
-		 * @returns {any} Any value may be returned when visiting an element.
-		 */
-		visitFinalState(finalState: FinalState, arg?: TArg): any {
-			return this.visitState(finalState, arg);
-		}
-
-		/**
-		 * Visits a state machine within a state machine model.
-		 * @method visitVertex
-		 * @param {StateMachine} state machine The state machine being visited.
-		 * @param {any} arg The parameter passed into the accept method.
-		 * @returns {any} Any value may be returned when visiting an element.
-		 */
-		visitStateMachine(stateMachine: StateMachine, arg?: TArg): any {
-			return this.visitState(stateMachine, arg);
-		}
-
-		/**
-		 * Visits a transition within a state machine model.
-		 * @method visitTransition
-		 * @param {Transition} transition The transition being visited.
-		 * @param {any} arg The parameter passed into the accept method.
-		 * @returns {any} Any value may be returned when visiting an element.
-		 */
-		visitTransition(transition: Transition, arg?: TArg): any {
-			return;
-		}
-	}
-
-	// Temporary structure to hold element behaviour during the bootstrap process
-	class Behaviour {
-		leave: Array<Action> = [];
-		beginEnter: Array<Action> = [];
-		endEnter: Array<Action> = [];
-		enter: Array<Action> = [];
-	}
-
-	// Bootstraps transitions after all elements have been bootstrapped
-	class BootstrapTransitions extends Visitor<(element: Element) => Behaviour> {
-		visitTransition(transition: Transition, behaviour: (element: Element) => Behaviour) {
-			// internal transitions: just perform the actions; no exiting or entering states
-			if (!transition.target) {
-				transition.traverse = transition.transitionBehavior;
-				
-				// local transtions (within the same parent region): simple exit, transition and entry
-			} else if (transition.target.getParent() === transition.source.getParent()) {
-				transition.traverse = behaviour(transition.source).leave.concat(transition.transitionBehavior).concat(behaviour(transition.target).enter);
-				
-				// external transitions (crossing region boundaries): exit to the LCA, transition, enter from the LCA
-			} else {
-				var sourceAncestors = transition.source.ancestors();
-				var targetAncestors = transition.target.ancestors();
-				var sourceAncestorsLength = sourceAncestors.length;
-				var targetAncestorsLength = targetAncestors.length;
-				var i = 0, l = Math.min(sourceAncestorsLength, targetAncestorsLength);
-
-				// find the index of the first uncommon ancestor
-				while ((i < l) && (sourceAncestors[i] === targetAncestors[i])) {
-					i++;
-				}
-
-				// validate transition does not cross sibling regions boundaries
-				if (sourceAncestors[i] instanceof Region) {
-					throw "Transitions may not cross sibling orthogonal region boundaries";
-				}
-				
-				// leave the first uncommon ancestor
-				transition.traverse = behaviour(i < sourceAncestorsLength ? sourceAncestors[i] : transition.source).leave.slice(0);
-
-				// perform the transition action
-				transition.traverse = transition.traverse.concat(transition.transitionBehavior);
-
-				if (i >= targetAncestorsLength) {
-					transition.traverse = transition.traverse.concat(behaviour(transition.target).beginEnter);
-				}
-								
-				// enter the target ancestry
-				while (i < targetAncestorsLength) {
-					var element = targetAncestors[i++];
-					var next = i < targetAncestorsLength ? targetAncestors[i] : undefined;
-
-					transition.traverse = transition.traverse.concat(behaviour(element).beginEnter);
-
-					if (element instanceof State) {
-						var state = <State>element;
-
-						if (state.isOrthogonal()) {
-							for (var ii = 0, ll = state.regions.length; ii < ll; ii++) {
-								var region = state.regions[ii];
-
-								if (region !== next) {
-									transition.traverse = transition.traverse.concat(behaviour(region).enter);
-								}
-							}
-						}
-					}
-				}
-
-				// trigger cascade
-				transition.traverse = transition.traverse.concat(behaviour(transition.target).endEnter);
-			}
-		}
-	}
-
-	// bootstraps all the elements within a state machine model
-	class Bootstrap extends Visitor<boolean> {
-		private static bootstrapTransitions = new BootstrapTransitions();
-		private behaviours: Dictionary<Behaviour>;
-
-		private behaviour(element: Element): Behaviour {
-			if (!element.qualifiedName) {
-				element.qualifiedName = element.ancestors().map<string>((e) => { return e.name; }).join(Element.namespaceSeparator);
-			}
-						
-			return this.behaviours[element.qualifiedName] || (this.behaviours[element.qualifiedName] = new Behaviour());
-		}
-
-		visitElement(element: Element, deepHistoryAbove: boolean) {
-			var elementBehaviour = this.behaviour(element);
-
-//			uncomment the following two lines for debugging purposes
-//			elementBehaviour.leave.push((message, instance) => { console.log(instance + " leave " + element); });
-//			elementBehaviour.beginEnter.push((message, instance) => { console.log(instance + " enter " + element); });
-
-			elementBehaviour.enter = elementBehaviour.beginEnter.concat(elementBehaviour.endEnter);
-		}
-
-		visitRegion(region: Region, deepHistoryAbove: boolean) {
-			var regionBehaviour = this.behaviour(region);
-			
-			for (var i = 0, l = region.vertices.length; i < l; i++) {
-				region.vertices[i].accept(this, deepHistoryAbove || (region.initial && region.initial.kind === PseudoStateKind.DeepHistory));
-			}
-
-			regionBehaviour.leave.push((message, instance, history) => {
-				invoke(this.behaviour(instance.getCurrent(region)).leave, message, instance, history);
-			});
-
-			if (deepHistoryAbove || !region.initial || region.initial.isHistory()) {
-				regionBehaviour.endEnter.push((message, instance, history) => {
-					var initial: Vertex = region.initial;
-					
-					if (history || region.initial.isHistory()) {
-						initial = instance.getCurrent(region) || region.initial;
-					}
-					
-					invoke(this.behaviour(initial).enter, message, instance, history || (region.initial.kind === PseudoStateKind.DeepHistory)); });
-			} else {
-				regionBehaviour.endEnter = regionBehaviour.endEnter.concat(this.behaviour(region.initial).enter);
-			}
-
-			this.visitElement(region, deepHistoryAbove);
-		}
-
-		visitVertex(vertex: Vertex, deepHistoryAbove: boolean) {
-			this.visitElement(vertex, deepHistoryAbove);
-
-			var vertexBehaviour = this.behaviour((vertex));
-
-			vertexBehaviour.endEnter.push((message, instance, history) => {
-				if (vertex.isComplete(instance)) {
-					vertex.evaluate(vertex, instance);
-				}
-			});
-				
-			vertexBehaviour.enter = vertexBehaviour.beginEnter.concat(vertexBehaviour.endEnter);
-		}
-
-		visitPseudoState(pseudoState: PseudoState, deepHistoryAbove: boolean) {
-			this.visitVertex(pseudoState, deepHistoryAbove);
-
-			if (pseudoState.kind === PseudoStateKind.Terminate) {
-				this.behaviour(pseudoState).enter.push((message, instance, history) => {
-					instance.isTerminated = true;
-				});
-			}
-		}
-
-		visitState(state: State, deepHistoryAbove: boolean) {
-			var stateBehaviour = this.behaviour(state);
-			
-			for (var i = 0, l = state.regions.length; i < l; i++) {
-				var region = state.regions[i];
-				var regionBehaviour = this.behaviour(region);
-
-				region.accept(this, deepHistoryAbove);
-
-				stateBehaviour.leave.push((message, instance, history) => {
-					invoke(regionBehaviour.leave, message, instance, history);
-				});
-
-				stateBehaviour.endEnter = stateBehaviour.endEnter.concat(regionBehaviour.enter);
-			}
-
-			this.visitVertex(state, deepHistoryAbove);
-
-			stateBehaviour.leave = stateBehaviour.leave.concat(state.exitBehavior);
-			stateBehaviour.beginEnter = stateBehaviour.beginEnter.concat(state.entryBehavior);
-
-			stateBehaviour.beginEnter.push((message, instance, history) => {
-				if (state.region) {
-					instance.setCurrent(state.region, state);
-					}
-				});
-
-			stateBehaviour.enter = stateBehaviour.beginEnter.concat(stateBehaviour.endEnter);
-		}
-
-		visitStateMachine(stateMachine: StateMachine, deepHistoryAbove: boolean) {
-			this.behaviours = {};
-			
-			this.visitState(stateMachine, deepHistoryAbove);
-
-			stateMachine.accept(Bootstrap.bootstrapTransitions, (element: Element) => { return this.behaviour(element); });
-
-			stateMachine.init = this.behaviour(stateMachine).enter;
-		}
 	}
 	
 	/**
@@ -1136,9 +834,6 @@ module fsm {
 	 * @augments State
 	 */
 	export class StateMachine extends State {
-		// visitor used to bootstrap state machine models.
-		private static bootstrap = new Bootstrap();
-		
 		// behaviour required to bootstrap state machine instances.
 		init: Array<Action>;
 		
@@ -1185,7 +880,7 @@ module fsm {
 		initialiseModel(): void {
 			this.clean = true;
 
-			this.accept(StateMachine.bootstrap, false);
+			this.accept(Bootstrap.instance, false);
 		}
 
 		/**
@@ -1327,12 +1022,316 @@ module fsm {
 		}
 	}
 	
+		/**
+	 * Implementation of a visitor pattern.
+	 * @class Visitor
+	 */
+	export class Visitor<TArg> {
+		/**
+		 * Visits an element within a state machine model.
+		 * @method visitElement
+		 * @param {Element} element the element being visited.
+		 * @param {any} arg The parameter passed into the accept method.
+		 * @returns {any} Any value may be returned when visiting an element.
+		 */
+		visitElement(element: Element, arg?: TArg): any {
+			return;
+		}
+
+		/**
+		 * Visits a region within a state machine model.
+		 * @method visitRegion
+		 * @param {Region} region The region being visited.
+		 * @param {any} arg The parameter passed into the accept method.
+		 * @returns {any} Any value may be returned when visiting an element.
+		 */
+		visitRegion(region: Region, arg?: TArg): any {
+			var result = this.visitElement(region, arg);
+
+			for (var i = 0, l = region.vertices.length; i < l; i++) {
+				region.vertices[i].accept(this, arg);
+			}
+
+			return result;
+		}
+
+		/**
+		 * Visits a vertex within a state machine model.
+		 * @method visitVertex
+		 * @param {Vertex} vertex The vertex being visited.
+		 * @param {any} arg The parameter passed into the accept method.
+		 * @returns {any} Any value may be returned when visiting an element.
+		 */
+		visitVertex(vertex: Vertex, arg?: TArg): any {
+			var result = this.visitElement(vertex, arg);
+
+			for (var i = 0, l = vertex.transitions.length; i < l; i++) {
+				vertex.transitions[i].accept(this, arg);
+			}
+
+			return result;
+		}
+
+		/**
+		 * Visits a pseudo state within a state machine model.
+		 * @method visitPseudoState
+		 * @param {PseudoState} pseudoState The pseudo state being visited.
+		 * @param {any} arg The parameter passed into the accept method.
+		 * @returns {any} Any value may be returned when visiting an element.
+		 */
+		visitPseudoState(pseudoState: PseudoState, arg?: TArg): any {
+			return this.visitVertex(pseudoState, arg);
+		}
+
+		/**
+		 * Visits a state within a state machine model.
+		 * @method visitState
+		 * @param {State} state The state being visited.
+		 * @param {any} arg The parameter passed into the accept method.
+		 * @returns {any} Any value may be returned when visiting an element.
+		 */
+		visitState(state: State, arg?: TArg): any {
+			var result = this.visitVertex(state, arg);
+
+			for (var i = 0, l = state.regions.length; i < l; i++) {
+				state.regions[i].accept(this, arg);
+			}
+			
+			return result;
+		}
+
+		/**
+		 * Visits a final state within a state machine model.
+		 * @method visitFinal
+		 * @param {FinalState} finalState The final state being visited.
+		 * @param {any} arg The parameter passed into the accept method.
+		 * @returns {any} Any value may be returned when visiting an element.
+		 */
+		visitFinalState(finalState: FinalState, arg?: TArg): any {
+			return this.visitState(finalState, arg);
+		}
+
+		/**
+		 * Visits a state machine within a state machine model.
+		 * @method visitVertex
+		 * @param {StateMachine} state machine The state machine being visited.
+		 * @param {any} arg The parameter passed into the accept method.
+		 * @returns {any} Any value may be returned when visiting an element.
+		 */
+		visitStateMachine(stateMachine: StateMachine, arg?: TArg): any {
+			return this.visitState(stateMachine, arg);
+		}
+
+		/**
+		 * Visits a transition within a state machine model.
+		 * @method visitTransition
+		 * @param {Transition} transition The transition being visited.
+		 * @param {any} arg The parameter passed into the accept method.
+		 * @returns {any} Any value may be returned when visiting an element.
+		 */
+		visitTransition(transition: Transition, arg?: TArg): any {
+			return;
+		}
+	}
+
+	// Temporary structure to hold element behaviour during the bootstrap process
+	class Behaviour {
+		leave: Array<Action> = [];
+		beginEnter: Array<Action> = [];
+		endEnter: Array<Action> = [];
+		enter: Array<Action> = [];
+	}
+
+	// Bootstraps transitions after all elements have been bootstrapped
+	class BootstrapTransitions extends Visitor<(element: Element) => Behaviour> {
+		static instance = new BootstrapTransitions();
+		
+		visitTransition(transition: Transition, behaviour: (element: Element) => Behaviour) {
+			// internal transitions: just perform the actions; no exiting or entering states
+			if (!transition.target) {
+				transition.traverse = transition.transitionBehavior;
+				
+				// local transtions (within the same parent region): simple exit, transition and entry
+			} else if (transition.target.getParent() === transition.source.getParent()) {
+				transition.traverse = behaviour(transition.source).leave.concat(transition.transitionBehavior).concat(behaviour(transition.target).enter);
+				
+				// external transitions (crossing region boundaries): exit to the LCA, transition, enter from the LCA
+			} else {
+				var sourceAncestors = transition.source.ancestors();
+				var targetAncestors = transition.target.ancestors();
+				var sourceAncestorsLength = sourceAncestors.length;
+				var targetAncestorsLength = targetAncestors.length;
+				var i = 0, l = Math.min(sourceAncestorsLength, targetAncestorsLength);
+
+				// find the index of the first uncommon ancestor
+				while ((i < l) && (sourceAncestors[i] === targetAncestors[i])) {
+					i++;
+				}
+
+				// validate transition does not cross sibling regions boundaries
+				if (sourceAncestors[i] instanceof Region) {
+					throw "Transitions may not cross sibling orthogonal region boundaries";
+				}
+				
+				// leave the first uncommon ancestor
+				transition.traverse = behaviour(i < sourceAncestorsLength ? sourceAncestors[i] : transition.source).leave.slice(0);
+
+				// perform the transition action
+				transition.traverse = transition.traverse.concat(transition.transitionBehavior);
+
+				if (i >= targetAncestorsLength) {
+					transition.traverse = transition.traverse.concat(behaviour(transition.target).beginEnter);
+				}
+								
+				// enter the target ancestry
+				while (i < targetAncestorsLength) {
+					var element = targetAncestors[i++];
+					var next = i < targetAncestorsLength ? targetAncestors[i] : undefined;
+
+					transition.traverse = transition.traverse.concat(behaviour(element).beginEnter);
+
+					if (element instanceof State) {
+						var state = <State>element;
+
+						if (state.isOrthogonal()) {
+							for (var ii = 0, ll = state.regions.length; ii < ll; ii++) {
+								var region = state.regions[ii];
+
+								if (region !== next) {
+									transition.traverse = transition.traverse.concat(behaviour(region).enter);
+								}
+							}
+						}
+					}
+				}
+
+				// trigger cascade
+				transition.traverse = transition.traverse.concat(behaviour(transition.target).endEnter);
+			}
+		}
+	}
+
+	// bootstraps all the elements within a state machine model
+	class Bootstrap extends Visitor<boolean> {
+		static instance = new Bootstrap();
+		private behaviours: Dictionary<Behaviour>;
+
+		private behaviour(element: Element): Behaviour {
+			if (!element.qualifiedName) {
+				element.qualifiedName = element.ancestors().map<string>((e) => { return e.name; }).join(Element.namespaceSeparator);
+			}
+						
+			return this.behaviours[element.qualifiedName] || (this.behaviours[element.qualifiedName] = new Behaviour());
+		}
+
+		visitElement(element: Element, deepHistoryAbove: boolean) {
+			var elementBehaviour = this.behaviour(element);
+
+//			uncomment the following two lines for debugging purposes
+//			elementBehaviour.leave.push((message, instance) => { console.log(instance + " leave " + element); });
+//			elementBehaviour.beginEnter.push((message, instance) => { console.log(instance + " enter " + element); });
+
+			elementBehaviour.enter = elementBehaviour.beginEnter.concat(elementBehaviour.endEnter);
+		}
+
+		visitRegion(region: Region, deepHistoryAbove: boolean) {
+			var regionBehaviour = this.behaviour(region);
+			
+			for (var i = 0, l = region.vertices.length; i < l; i++) {
+				region.vertices[i].accept(this, deepHistoryAbove || (region.initial && region.initial.kind === PseudoStateKind.DeepHistory));
+			}
+
+			regionBehaviour.leave.push((message, instance, history) => {
+				invoke(this.behaviour(instance.getCurrent(region)).leave, message, instance, history);
+			});
+
+			if (deepHistoryAbove || !region.initial || region.initial.isHistory()) {
+				regionBehaviour.endEnter.push((message, instance, history) => {
+					var initial: Vertex = region.initial;
+					
+					if (history || region.initial.isHistory()) {
+						initial = instance.getCurrent(region) || region.initial;
+					}
+					
+					invoke(this.behaviour(initial).enter, message, instance, history || (region.initial.kind === PseudoStateKind.DeepHistory)); });
+			} else {
+				regionBehaviour.endEnter = regionBehaviour.endEnter.concat(this.behaviour(region.initial).enter);
+			}
+
+			this.visitElement(region, deepHistoryAbove);
+		}
+
+		visitVertex(vertex: Vertex, deepHistoryAbove: boolean) {
+			this.visitElement(vertex, deepHistoryAbove);
+
+			var vertexBehaviour = this.behaviour((vertex));
+
+			vertexBehaviour.endEnter.push((message, instance, history) => {
+				if (vertex.isComplete(instance)) {
+					vertex.evaluate(vertex, instance);
+				}
+			});
+				
+			vertexBehaviour.enter = vertexBehaviour.beginEnter.concat(vertexBehaviour.endEnter);
+		}
+
+		visitPseudoState(pseudoState: PseudoState, deepHistoryAbove: boolean) {
+			this.visitVertex(pseudoState, deepHistoryAbove);
+
+			if (pseudoState.kind === PseudoStateKind.Terminate) {
+				this.behaviour(pseudoState).enter.push((message, instance, history) => {
+					instance.isTerminated = true;
+				});
+			}
+		}
+
+		visitState(state: State, deepHistoryAbove: boolean) {
+			var stateBehaviour = this.behaviour(state);
+			
+			for (var i = 0, l = state.regions.length; i < l; i++) {
+				var region = state.regions[i];
+				var regionBehaviour = this.behaviour(region);
+
+				region.accept(this, deepHistoryAbove);
+
+				stateBehaviour.leave.push((message, instance, history) => {
+					invoke(regionBehaviour.leave, message, instance, history);
+				});
+
+				stateBehaviour.endEnter = stateBehaviour.endEnter.concat(regionBehaviour.enter);
+			}
+
+			this.visitVertex(state, deepHistoryAbove);
+
+			stateBehaviour.leave = stateBehaviour.leave.concat(state.exitBehavior);
+			stateBehaviour.beginEnter = stateBehaviour.beginEnter.concat(state.entryBehavior);
+
+			stateBehaviour.beginEnter.push((message, instance, history) => {
+				if (state.region) {
+					instance.setCurrent(state.region, state);
+					}
+				});
+
+			stateBehaviour.enter = stateBehaviour.beginEnter.concat(stateBehaviour.endEnter);
+		}
+
+		visitStateMachine(stateMachine: StateMachine, deepHistoryAbove: boolean) {
+			this.behaviours = {};
+			
+			this.visitState(stateMachine, deepHistoryAbove);
+
+			stateMachine.accept(BootstrapTransitions.instance, (element: Element) => { return this.behaviour(element); });
+
+			stateMachine.init = this.behaviour(stateMachine).enter;
+		}
+	}
+
 	/**
 	 * Default working implementation of a state machine instance class.
 	 *
 	 * Implements the `IActiveStateConfiguration` interface.
 	 * It is possible to create other custom instance classes to manage state machine state in any way (e.g. as serialisable JSON); just implement the same members and methods as this class.
-	 * @class Context
+	 * @class StateMachineInstance
 	 * @implements IActiveStateConfiguration
 	 */
 	export class StateMachineInstance implements IActiveStateConfiguration {
