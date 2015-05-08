@@ -625,9 +625,9 @@ declare module fsm {
         accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any;
     }
     /**
- * Implementation of a visitor pattern.
- * @class Visitor
- */
+     * Implementation of a visitor pattern.
+     * @class Visitor
+     */
     class Visitor<TArg> {
         /**
          * Visits an element within a state machine model.

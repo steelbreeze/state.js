@@ -9,11 +9,6 @@
  * @module fsm
  */
 module fsm {
-	// string keyed dictionary type for internal use only
-	interface Dictionary<TValue> {
-		[index: string]: TValue;
-	}
-
 	/**
 	 * Declaration callbacks that provide transition guard conditions.
 	 * @interface Guard
@@ -345,7 +340,9 @@ module fsm {
 				return false;
 			}
 
-			invoke(transition.traverse, message, instance, false);
+			for (var i =0, l = transition.traverse.length; i < l; i++) {
+				transition.traverse[i](message, instance, false);
+			}
 
 			return true;
 		}
@@ -895,7 +892,9 @@ module fsm {
 				this.initialiseModel();
 			}
 
-			invoke(this.init, undefined, instance, false);
+			for (var i =0, l = this.init.length; i < l; i++) {
+				this.init[i](undefined, instance, false);
+			}
 		}
 
 		/**
@@ -1015,14 +1014,7 @@ module fsm {
 		}
 	}
 
-	// invokes the collected behaviour of an array of actions.
-	function invoke(actions: Array<Action>, message: any, instance: IActiveStateConfiguration, history: boolean): void {
-		for (var i = 0, l = actions.length; i < l; i++) {
-			actions[i](message, instance, history);
-		}
-	}
-	
-		/**
+	/**
 	 * Implementation of a visitor pattern.
 	 * @class Visitor
 	 */
@@ -1214,7 +1206,7 @@ module fsm {
 	// bootstraps all the elements within a state machine model
 	class Bootstrap extends Visitor<boolean> {
 		static instance = new Bootstrap();
-		private behaviours: Dictionary<Behaviour>;
+		private behaviours: any = {};
 
 		private behaviour(element: Element): Behaviour {
 			if (!element.qualifiedName) {
@@ -1242,7 +1234,11 @@ module fsm {
 			}
 
 			regionBehaviour.leave.push((message, instance, history) => {
-				invoke(this.behaviour(instance.getCurrent(region)).leave, message, instance, history);
+				var leave = this.behaviour(instance.getCurrent(region)).leave;
+				
+				for (var i =0, l = leave.length; i < l; i++) {
+					leave[i](message, instance, false);
+				}
 			});
 
 			if (deepHistoryAbove || !region.initial || region.initial.isHistory()) {
@@ -1253,7 +1249,13 @@ module fsm {
 						initial = instance.getCurrent(region) || region.initial;
 					}
 					
-					invoke(this.behaviour(initial).enter, message, instance, history || (region.initial.kind === PseudoStateKind.DeepHistory)); });
+					var enter = this.behaviour(initial).enter;
+					var hist = history || region.initial.kind === PseudoStateKind.DeepHistory;
+					
+					for (var i =0, l = enter.length; i < l; i++) {
+						enter[i](message, instance, hist);
+					}
+				});
 			} else {
 				regionBehaviour.endEnter = regionBehaviour.endEnter.concat(this.behaviour(region.initial).enter);
 			}
@@ -1295,7 +1297,9 @@ module fsm {
 				region.accept(this, deepHistoryAbove);
 
 				stateBehaviour.leave.push((message, instance, history) => {
-					invoke(regionBehaviour.leave, message, instance, history);
+					for (var i =0, l = regionBehaviour.leave.length; i < l; i++) {
+						regionBehaviour.leave[i](message, instance, false);
+					}
 				});
 
 				stateBehaviour.endEnter = stateBehaviour.endEnter.concat(regionBehaviour.enter);
@@ -1336,7 +1340,7 @@ module fsm {
 	 */
 	export class StateMachineInstance implements IActiveStateConfiguration {
 		isTerminated: boolean = false;
-		private last: Dictionary<State> = {};
+		private last: any = {};
 
 		/**
 		 * Creates a new instance of the state machine instance class.
