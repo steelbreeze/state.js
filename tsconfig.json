@@ -7,6 +7,11 @@
 	},
 
 	"files": [
-		"./src/state.ts"
+		"./src/Action.ts",
+		"./src/Guard.ts",
+		"./src/IActiveStateConfiguration.ts",
+		"./src/PseudoStateKind.ts",
+		"./src/StateMachine.ts",
+		"./src/StateMachineInstance.ts"
 	]
 }

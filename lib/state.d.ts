@@ -1,13 +1,16 @@
-/**
- * Finite state machine library
- *
- * Copyright (c) 2014-5 Steelbreeze Limited
- *
- * Licensed under the MIT and GPL v3 licences
- *
- * http://www.steelbreeze.net/state.cs
- * @module fsm
- */
+declare module fsm {
+    /**
+     * Declaration for callbacks that provide state entry, state exit and transition behaviour.
+     * @interface Action
+     * @param {any} message The message that may trigger the transition.
+     * @param {IActiveStateConfiguration} instance The state machine instance.
+     * @param {boolean} history Internal use only
+     * @returns {any} Actions can return any value.
+     */
+    interface Action {
+        (message: any, instance: IActiveStateConfiguration, history: boolean): any;
+    }
+}
 declare module fsm {
     /**
      * Declaration callbacks that provide transition guard conditions.
@@ -20,17 +23,8 @@ declare module fsm {
     interface Guard {
         (message: any, instance: IActiveStateConfiguration): boolean;
     }
-    /**
-     * Declaration for callbacks that provide state entry, state exit and transition behaviour.
-     * @interface Action
-     * @param {any} message The message that may trigger the transition.
-     * @param {IActiveStateConfiguration} instance The state machine instance.
-     * @param {boolean} history Internal use only
-     * @returns {any} Actions can return any value.
-     */
-    interface Action {
-        (message: any, instance: IActiveStateConfiguration, history: boolean): any;
-    }
+}
+declare module fsm {
     /**
      * Interface for the state machine instance; an object used as each instance of a state machine (as the classes in this library describe a state machine model).
      * @interface IActiveStateConfiguration
@@ -55,6 +49,59 @@ declare module fsm {
          */
         getCurrent(region: Region): State;
     }
+}
+declare module fsm {
+    /**
+     * An enumeration of static constants that dictates the precise behaviour of pseudo states.
+     *
+     * Use these constants as the `kind` parameter when creating new `PseudoState` instances.
+     * @class PseudoStateKind
+     */
+    enum PseudoStateKind {
+        /**
+         * Used for pseudo states that are always the staring point when entering their parent region.
+         * @member {number} Initial
+         */
+        Initial = 0,
+        /**
+         * Used for pseudo states that are the the starting point when entering their parent region for the first time; subsequent entries will start at the last known state.
+         * @member {number} ShallowHistory
+         */
+        ShallowHistory = 1,
+        /**
+         * As per `ShallowHistory` but the history semantic cascades through all child regions irrespective of their initial pseudo state kind.
+         * @member {number} DeepHistory
+         */
+        DeepHistory = 2,
+        /**
+         * Enables a dynamic conditional branches; within a compound transition.
+         * All outbound transition guards from a Choice are evaluated upon entering the PseudoState:
+         * if a single transition is found, it will be traversed;
+         * if many transitions are found, an arbitary one will be selected and traversed;
+         * if none evaluate true, and there is no 'else transition' defined, the machine is deemed illformed and an exception will be thrown.
+         * @member {number} Choice
+         */
+        Choice = 3,
+        /**
+         * Enables a static conditional branches; within a compound transition.
+         * All outbound transition guards from a Choice are evaluated upon entering the PseudoState:
+         * if a single transition is found, it will be traversed;
+         * if many or none evaluate true, and there is no 'else transition' defined, the machine is deemed illformed and an exception will be thrown.
+         * @member {number} Junction
+         */
+        Junction = 4,
+        /**
+         * Entering a terminate `PseudoState` implies that the execution of this state machine by means of its state object is terminated.
+         * @member {number} Terminate
+         */
+        Terminate = 5,
+    }
+}
+/**
+ * Namespace for the finite state machine classes.
+ * @module fsm
+ */
+declare module fsm {
     /**
      * An abstract class used as the base for the Region and Vertex classes.
      * An element is any part of the tree structure that represents a composite state machine model.
@@ -253,51 +300,6 @@ declare module fsm {
          * @returns {any} Any value can be returned by the visitor.
          */
         accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any;
-    }
-    /**
-     * An enumeration of static constants that dictates the precise behaviour of pseudo states.
-     *
-     * Use these constants as the `kind` parameter when creating new `PseudoState` instances.
-     * @class PseudoStateKind
-     */
-    enum PseudoStateKind {
-        /**
-         * Used for pseudo states that are always the staring point when entering their parent region.
-         * @member {number} Initial
-         */
-        Initial = 0,
-        /**
-         * Used for pseudo states that are the the starting point when entering their parent region for the first time; subsequent entries will start at the last known state.
-         * @member {number} ShallowHistory
-         */
-        ShallowHistory = 1,
-        /**
-         * As per `ShallowHistory` but the history semantic cascades through all child regions irrespective of their initial pseudo state kind.
-         * @member {number} DeepHistory
-         */
-        DeepHistory = 2,
-        /**
-         * Enables a dynamic conditional branches; within a compound transition.
-         * All outbound transition guards from a Choice are evaluated upon entering the PseudoState:
-         * if a single transition is found, it will be traversed;
-         * if many transitions are found, an arbitary one will be selected and traversed;
-         * if none evaluate true, and there is no 'else transition' defined, the machine is deemed illformed and an exception will be thrown.
-         * @member {number} Choice
-         */
-        Choice = 3,
-        /**
-         * Enables a static conditional branches; within a compound transition.
-         * All outbound transition guards from a Choice are evaluated upon entering the PseudoState:
-         * if a single transition is found, it will be traversed;
-         * if many or none evaluate true, and there is no 'else transition' defined, the machine is deemed illformed and an exception will be thrown.
-         * @member {number} Junction
-         */
-        Junction = 4,
-        /**
-         * Entering a terminate `PseudoState` implies that the execution of this state machine by means of its state object is terminated.
-         * @member {number} Terminate
-         */
-        Terminate = 5,
     }
     /**
      * An element within a state machine model that represents an transitory Vertex within the state machine model.
@@ -694,6 +696,8 @@ declare module fsm {
          */
         visitTransition(transition: Transition, arg?: TArg): any;
     }
+}
+declare module fsm {
     /**
      * Default working implementation of a state machine instance class.
      *

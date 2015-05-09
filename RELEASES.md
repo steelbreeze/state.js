@@ -1,6 +1,12 @@
 ## Version 5.1.1
 Created singletons for bootstrapping rather than static method in StateMachine and Bootstrap classes.
 
+Inline invoke method and remove Dictionary interface.
+
+Improve the singleton implementation for Bootstrap and BootstrapTransitions.
+
+Started to break up the source across mutliple files using tsconfig.json to pull them back together into the same state.js output.
+
 ## Version 5.1.0
 Fixes a bug that would cause completion transitions to fire for composite states that were not complete.
 

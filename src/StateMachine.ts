@@ -1,65 +1,15 @@
-/**
+/*
  * Finite state machine library
- * 
  * Copyright (c) 2014-5 Steelbreeze Limited
- * 
  * Licensed under the MIT and GPL v3 licences
- * 
  * http://www.steelbreeze.net/state.cs
- * @module fsm
  */
-module fsm {
-	/**
-	 * Declaration callbacks that provide transition guard conditions.
-	 * @interface Guard
-	 * @param {any} message The message that may trigger the transition.
-	 * @param {IActiveStateConfiguration} instance The state machine instance.
-	 * @param {boolean} history Internal use only
-	 * @returns {boolean} True if the guard condition passed.
-	 */
-	export interface Guard {
-		(message: any, instance: IActiveStateConfiguration): boolean;
-	}
-
-	/**
-	 * Declaration for callbacks that provide state entry, state exit and transition behaviour.
-	 * @interface Action
-	 * @param {any} message The message that may trigger the transition.
-	 * @param {IActiveStateConfiguration} instance The state machine instance.
-	 * @param {boolean} history Internal use only
-	 * @returns {any} Actions can return any value.
-	 */
-	export interface Action {
-		(message: any, instance: IActiveStateConfiguration, history: boolean): any;
-	}
-
-	/**
-	 * Interface for the state machine instance; an object used as each instance of a state machine (as the classes in this library describe a state machine model).
-	 * @interface IActiveStateConfiguration
-	 */
-	export interface IActiveStateConfiguration {
-		/**
-		 * @member {boolean} isTerminated Indicates that the state machine instance has reached a terminate pseudo state and therfore will no longer evaluate messages.
-		 */
-		isTerminated: boolean;
-
-		/**
-		 * Updates the last known state for a given region.
-		 * @method setCurrent
-		 * @param {Region} region The region to update the last known state for.
-		 * @param {State} state The last known state for the given region.
-		 */
-		setCurrent(region: Region, state: State): void;
-
-		/**
-		 * Returns the last known state for a given region.
-		 * @method getCurrent
-		 * @param {Region} region The region to update the last known state for.
-		 * @returns {State} The last known state for the given region.
-		 */
-		getCurrent(region: Region): State;
-	}
-	
+ 
+ /**
+  * Namespace for the finite state machine classes.
+  * @module fsm
+  */
+module fsm {	
 	/**
 	 * An abstract class used as the base for the Region and Vertex classes.
 	 * An element is any part of the tree structure that represents a composite state machine model.
@@ -357,57 +307,6 @@ module fsm {
 		accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any {
 			return; // note: abstract method
 		}
-	}
-
-	/**
-	 * An enumeration of static constants that dictates the precise behaviour of pseudo states.
-	 *
-	 * Use these constants as the `kind` parameter when creating new `PseudoState` instances.
-	 * @class PseudoStateKind
-	 */
-	export enum PseudoStateKind {		
-		/**
-		 * Used for pseudo states that are always the staring point when entering their parent region.
-		 * @member {number} Initial
-		 */
-		Initial,
-				
-		/**
-		 * Used for pseudo states that are the the starting point when entering their parent region for the first time; subsequent entries will start at the last known state.
-		 * @member {number} ShallowHistory
-		 */
-		ShallowHistory,
-		
-		/**
-		 * As per `ShallowHistory` but the history semantic cascades through all child regions irrespective of their initial pseudo state kind.
-		 * @member {number} DeepHistory
-		 */
-		DeepHistory,
-		
-		/**
-		 * Enables a dynamic conditional branches; within a compound transition.
-		 * All outbound transition guards from a Choice are evaluated upon entering the PseudoState:
-		 * if a single transition is found, it will be traversed;
-		 * if many transitions are found, an arbitary one will be selected and traversed;
-		 * if none evaluate true, and there is no 'else transition' defined, the machine is deemed illformed and an exception will be thrown.
-		 * @member {number} Choice
-		 */
-		Choice,
-
-		/**
-		 * Enables a static conditional branches; within a compound transition.
-		 * All outbound transition guards from a Choice are evaluated upon entering the PseudoState:
-		 * if a single transition is found, it will be traversed;
-		 * if many or none evaluate true, and there is no 'else transition' defined, the machine is deemed illformed and an exception will be thrown.
-		 * @member {number} Junction
-		 */
-		Junction,
-
-		/**
-		 * Entering a terminate `PseudoState` implies that the execution of this state machine by means of its state object is terminated.
-		 * @member {number} Terminate
-		 */
-		Terminate
 	}
 
 	/**
@@ -877,7 +776,7 @@ module fsm {
 		initialiseModel(): void {
 			this.clean = true;
 
-			this.accept(Bootstrap.instance, false);
+			this.accept(Bootstrap.getInstance(), false);
 		}
 
 		/**
@@ -1014,6 +913,8 @@ module fsm {
 		}
 	}
 
+	// TODO: determine how to seperate these from the StateMachine class.
+
 	/**
 	 * Implementation of a visitor pattern.
 	 * @class Visitor
@@ -1136,7 +1037,15 @@ module fsm {
 
 	// Bootstraps transitions after all elements have been bootstrapped
 	class BootstrapTransitions extends Visitor<(element: Element) => Behaviour> {
-		static instance = new BootstrapTransitions();
+		private static _instance: BootstrapTransitions;
+		
+		public static getInstance(): BootstrapTransitions {
+			if (!BootstrapTransitions._instance) {
+				BootstrapTransitions._instance = new BootstrapTransitions();
+			}
+			
+			return BootstrapTransitions._instance;
+		}
 		
 		visitTransition(transition: Transition, behaviour: (element: Element) => Behaviour) {
 			// internal transitions: just perform the actions; no exiting or entering states
@@ -1205,7 +1114,16 @@ module fsm {
 
 	// bootstraps all the elements within a state machine model
 	class Bootstrap extends Visitor<boolean> {
-		static instance = new Bootstrap();
+		private static _instance: Bootstrap;
+		
+		public static getInstance(): Bootstrap {
+			if (!Bootstrap._instance) {
+				Bootstrap._instance = new Bootstrap();
+			}
+			
+			return Bootstrap._instance;
+		}
+		
 		private behaviours: any = {};
 
 		private behaviour(element: Element): Behaviour {
@@ -1324,57 +1242,9 @@ module fsm {
 			
 			this.visitState(stateMachine, deepHistoryAbove);
 
-			stateMachine.accept(BootstrapTransitions.instance, (element: Element) => { return this.behaviour(element); });
+			stateMachine.accept(BootstrapTransitions.getInstance(), (element: Element) => { return this.behaviour(element); });
 
 			stateMachine.init = this.behaviour(stateMachine).enter;
-		}
-	}
-
-	/**
-	 * Default working implementation of a state machine instance class.
-	 *
-	 * Implements the `IActiveStateConfiguration` interface.
-	 * It is possible to create other custom instance classes to manage state machine state in any way (e.g. as serialisable JSON); just implement the same members and methods as this class.
-	 * @class StateMachineInstance
-	 * @implements IActiveStateConfiguration
-	 */
-	export class StateMachineInstance implements IActiveStateConfiguration {
-		isTerminated: boolean = false;
-		private last: any = {};
-
-		/**
-		 * Creates a new instance of the state machine instance class.
-		 * @param {string} name The optional name of the state machine instance.
-		 */
-		constructor(public name: string = "unnamed") { }
-		
-		/**
-		 * Updates the last known state for a given region.
-		 * @method setCurrent
-		 * @param {Region} region The region to update the last known state for.
-		 * @param {State} state The last known state for the given region.
-		 */
-		setCurrent(region: Region, state: State): void {
-			this.last[region.qualifiedName] = state;
-		}
-
-		/**
-		 * Returns the last known state for a given region.
-		 * @method getCurrent
-		 * @param {Region} region The region to update the last known state for.
-		 * @returns {State} The last known state for the given region.
-		 */
-		getCurrent(region: Region): State {
-			return this.last[region.qualifiedName];
-		}
-
-		/**
-		 * Returns the name of the state machine instance.
-		 * @method toString
-		 * @returns {string} The name of the state machine instance.
-		 */
-		toString(): string {
-			return this.name;
 		}
 	}
 }
