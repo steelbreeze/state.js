@@ -8,10 +8,13 @@
 
 	"files": [
 		"./src/Action.ts",
+		"./src/Element.ts",
 		"./src/Guard.ts",
 		"./src/IActiveStateConfiguration.ts",
 		"./src/PseudoStateKind.ts",
+		"./src/Region.ts",
 		"./src/StateMachine.ts",
-		"./src/StateMachineInstance.ts"
+		"./src/StateMachineInstance.ts",
+		"./src/Transition.ts"
 	]
 }
