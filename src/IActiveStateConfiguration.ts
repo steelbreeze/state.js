@@ -1,3 +1,10 @@
+/*
+ * Finite state machine library
+ * Copyright (c) 2014-5 Steelbreeze Limited
+ * Licensed under the MIT and GPL v3 licences
+ * http://www.steelbreeze.net/state.cs
+ */
+ 
 module fsm {
 	/**
 	 * Interface for the state machine instance; an object used as each instance of a state machine (as the classes in this library describe a state machine model).

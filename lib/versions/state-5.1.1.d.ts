@@ -1,13 +1,16 @@
-/**
- * Finite state machine library
- *
- * Copyright (c) 2014-5 Steelbreeze Limited
- *
- * Licensed under the MIT and GPL v3 licences
- *
- * http://www.steelbreeze.net/state.cs
- * @module fsm
- */
+declare module fsm {
+    /**
+     * Declaration for callbacks that provide state entry, state exit and transition behaviour.
+     * @interface Action
+     * @param {any} message The message that may trigger the transition.
+     * @param {IActiveStateConfiguration} instance The state machine instance.
+     * @param {boolean} history Internal use only
+     * @returns {any} Actions can return any value.
+     */
+    interface Action {
+        (message: any, instance: IActiveStateConfiguration, history: boolean): any;
+    }
+}
 declare module fsm {
     /**
      * Declaration callbacks that provide transition guard conditions.
@@ -20,41 +23,12 @@ declare module fsm {
     interface Guard {
         (message: any, instance: IActiveStateConfiguration): boolean;
     }
-    /**
-     * Declaration for callbacks that provide state entry, state exit and transition behaviour.
-     * @interface Action
-     * @param {any} message The message that may trigger the transition.
-     * @param {IActiveStateConfiguration} instance The state machine instance.
-     * @param {boolean} history Internal use only
-     * @returns {any} Actions can return any value.
-     */
-    interface Action {
-        (message: any, instance: IActiveStateConfiguration, history: boolean): any;
-    }
-    /**
-     * Interface for the state machine instance; an object used as each instance of a state machine (as the classes in this library describe a state machine model).
-     * @interface IActiveStateConfiguration
-     */
-    interface IActiveStateConfiguration {
-        /**
-         * @member {boolean} isTerminated Indicates that the state machine instance has reached a terminate pseudo state and therfore will no longer evaluate messages.
-         */
-        isTerminated: boolean;
-        /**
-         * Updates the last known state for a given region.
-         * @method setCurrent
-         * @param {Region} region The region to update the last known state for.
-         * @param {State} state The last known state for the given region.
-         */
-        setCurrent(region: Region, state: State): void;
-        /**
-         * Returns the last known state for a given region.
-         * @method getCurrent
-         * @param {Region} region The region to update the last known state for.
-         * @returns {State} The last known state for the given region.
-         */
-        getCurrent(region: Region): State;
-    }
+}
+/**
+ * Namespace for the finite state machine classes.
+ * @module fsm
+ */
+declare module fsm {
     /**
      * An abstract class used as the base for the Region and Vertex classes.
      * An element is any part of the tree structure that represents a composite state machine model.
@@ -113,73 +87,8 @@ declare module fsm {
          */
         toString(): string;
     }
-    /**
-     * An element within a state machine model that is a container of Vertices.
-     *
-     * Regions are implicitly inserted into composite state machines as a container for vertices.
-     * They only need to be explicitly defined if orthogonal states are required.
-     *
-     * Region extends the Element class and inherits its public interface.
-     * @class Region
-     * @augments Element
-     */
-    class Region extends Element {
-        parent: State;
-        /**
-         * The name given to regions that are are created automatically when a state is passed as a vertex's parent.
-         * Regions are automatically inserted into state machine models as the composite structure is built; they are named using this static member.
-         * Update this static member to use a different name for default regions.
-         * @member {string}
-         */
-        static defaultName: string;
-        /**
-         * The set of vertices that are children of the region.
-         * @member {Array<Vertex>}
-         */
-        vertices: Array<Vertex>;
-        /**
-         * The pseudo state that will be in initial starting state when entering the region explicitly.
-         * @member {PseudoState}
-         */
-        initial: PseudoState;
-        /**
-         * Creates a new instance of the Region class.
-         * @param {string} name The name of the region.
-         * @param {State} parent The parent state that this region will be a child of.
-         */
-        constructor(name: string, parent: State);
-        /**
-         * Returns the parent element of this region.
-         * @method getParent
-         * @returns {Element} The parent element of the region.
-         */
-        getParent(): Element;
-        /**
-         * Tests a region to determine if it is deemed to be complete.
-         * A region is complete if its current state is final (a state having on outbound transitions).
-         * @method isComplete
-         * @param {IActiveStateConfiguration} instance The object representing a particular state machine instance.
-         * @returns {boolean} True if the region is deemed to be complete.
-         */
-        isComplete(instance: IActiveStateConfiguration): boolean;
-        /**
-         * Evaluates a message to determine if a state transition can be made.
-         * Regions delegate messages to the currently active child state for evaluation.
-         * @method evaluate
-         * @param {any} message The message that will be evaluated.
-         * @param {IActiveStateConfiguration} instance The state machine instance.
-         * @returns {boolean} True if the message triggered a state transition.
-         */
-        evaluate(message: any, instance: IActiveStateConfiguration): boolean;
-        /**
-         * Accepts an instance of a visitor and calls the visitRegion method on it.
-         * @method accept
-         * @param {Visitor<TArg>} visitor The visitor instance.
-         * @param {TArg} arg An optional argument to pass into the visitor.
-         * @returns {any} Any value can be returned by the visitor.
-         */
-        accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any;
-    }
+}
+declare module fsm {
     /**
      * An abstract element within a state machine model that can be the source or target of a transition (states and pseudo states).
      *
@@ -254,51 +163,34 @@ declare module fsm {
          */
         accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any;
     }
+}
+declare module fsm {
     /**
-     * An enumeration of static constants that dictates the precise behaviour of pseudo states.
-     *
-     * Use these constants as the `kind` parameter when creating new `PseudoState` instances.
-     * @class PseudoStateKind
+     * Interface for the state machine instance; an object used as each instance of a state machine (as the classes in this library describe a state machine model).
+     * @interface IActiveStateConfiguration
      */
-    enum PseudoStateKind {
+    interface IActiveStateConfiguration {
         /**
-         * Used for pseudo states that are always the staring point when entering their parent region.
-         * @member {number} Initial
+         * @member {boolean} isTerminated Indicates that the state machine instance has reached a terminate pseudo state and therfore will no longer evaluate messages.
          */
-        Initial = 0,
+        isTerminated: boolean;
         /**
-         * Used for pseudo states that are the the starting point when entering their parent region for the first time; subsequent entries will start at the last known state.
-         * @member {number} ShallowHistory
+         * Updates the last known state for a given region.
+         * @method setCurrent
+         * @param {Region} region The region to update the last known state for.
+         * @param {State} state The last known state for the given region.
          */
-        ShallowHistory = 1,
+        setCurrent(region: Region, state: State): void;
         /**
-         * As per `ShallowHistory` but the history semantic cascades through all child regions irrespective of their initial pseudo state kind.
-         * @member {number} DeepHistory
+         * Returns the last known state for a given region.
+         * @method getCurrent
+         * @param {Region} region The region to update the last known state for.
+         * @returns {State} The last known state for the given region.
          */
-        DeepHistory = 2,
-        /**
-         * Enables a dynamic conditional branches; within a compound transition.
-         * All outbound transition guards from a Choice are evaluated upon entering the PseudoState:
-         * if a single transition is found, it will be traversed;
-         * if many transitions are found, an arbitary one will be selected and traversed;
-         * if none evaluate true, and there is no 'else transition' defined, the machine is deemed illformed and an exception will be thrown.
-         * @member {number} Choice
-         */
-        Choice = 3,
-        /**
-         * Enables a static conditional branches; within a compound transition.
-         * All outbound transition guards from a Choice are evaluated upon entering the PseudoState:
-         * if a single transition is found, it will be traversed;
-         * if many or none evaluate true, and there is no 'else transition' defined, the machine is deemed illformed and an exception will be thrown.
-         * @member {number} Junction
-         */
-        Junction = 4,
-        /**
-         * Entering a terminate `PseudoState` implies that the execution of this state machine by means of its state object is terminated.
-         * @member {number} Terminate
-         */
-        Terminate = 5,
+        getCurrent(region: Region): State;
     }
+}
+declare module fsm {
     /**
      * An element within a state machine model that represents an transitory Vertex within the state machine model.
      *
@@ -311,6 +203,10 @@ declare module fsm {
      * @augments Vertex
      */
     class PseudoState extends Vertex {
+        /**
+         * The kind of the pseudo state which determines its use and behaviour.
+         * @member {PseudoStateKind}
+         */
         kind: PseudoStateKind;
         /**
          * Creates a new instance of the PseudoState class.
@@ -359,6 +255,124 @@ declare module fsm {
          */
         accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any;
     }
+}
+declare module fsm {
+    /**
+     * An enumeration of static constants that dictates the precise behaviour of pseudo states.
+     *
+     * Use these constants as the `kind` parameter when creating new `PseudoState` instances.
+     * @class PseudoStateKind
+     */
+    enum PseudoStateKind {
+        /**
+         * Used for pseudo states that are always the staring point when entering their parent region.
+         * @member {number} Initial
+         */
+        Initial = 0,
+        /**
+         * Used for pseudo states that are the the starting point when entering their parent region for the first time; subsequent entries will start at the last known state.
+         * @member {number} ShallowHistory
+         */
+        ShallowHistory = 1,
+        /**
+         * As per `ShallowHistory` but the history semantic cascades through all child regions irrespective of their initial pseudo state kind.
+         * @member {number} DeepHistory
+         */
+        DeepHistory = 2,
+        /**
+         * Enables a dynamic conditional branches; within a compound transition.
+         * All outbound transition guards from a Choice are evaluated upon entering the PseudoState:
+         * if a single transition is found, it will be traversed;
+         * if many transitions are found, an arbitary one will be selected and traversed;
+         * if none evaluate true, and there is no 'else transition' defined, the machine is deemed illformed and an exception will be thrown.
+         * @member {number} Choice
+         */
+        Choice = 3,
+        /**
+         * Enables a static conditional branches; within a compound transition.
+         * All outbound transition guards from a Choice are evaluated upon entering the PseudoState:
+         * if a single transition is found, it will be traversed;
+         * if many or none evaluate true, and there is no 'else transition' defined, the machine is deemed illformed and an exception will be thrown.
+         * @member {number} Junction
+         */
+        Junction = 4,
+        /**
+         * Entering a terminate `PseudoState` implies that the execution of this state machine by means of its state object is terminated.
+         * @member {number} Terminate
+         */
+        Terminate = 5,
+    }
+}
+declare module fsm {
+    /**
+     * An element within a state machine model that is a container of Vertices.
+     *
+     * Regions are implicitly inserted into composite state machines as a container for vertices.
+     * They only need to be explicitly defined if orthogonal states are required.
+     *
+     * Region extends the Element class and inherits its public interface.
+     * @class Region
+     * @augments Element
+     */
+    class Region extends Element {
+        parent: State;
+        /**
+         * The name given to regions that are are created automatically when a state is passed as a vertex's parent.
+         * Regions are automatically inserted into state machine models as the composite structure is built; they are named using this static member.
+         * Update this static member to use a different name for default regions.
+         * @member {string}
+         */
+        static defaultName: string;
+        /**
+         * The set of vertices that are children of the region.
+         * @member {Array<Vertex>}
+         */
+        vertices: Array<Vertex>;
+        /**
+         * The pseudo state that will be in initial starting state when entering the region explicitly.
+         * @member {PseudoState}
+         */
+        initial: PseudoState;
+        /**
+         * Creates a new instance of the Region class.
+         * @param {string} name The name of the region.
+         * @param {State} parent The parent state that this region will be a child of.
+         */
+        constructor(name: string, parent: State);
+        /**
+         * Returns the parent element of this region.
+         * @method getParent
+         * @returns {Element} The parent element of the region.
+         */
+        getParent(): Element;
+        /**
+         * Tests a region to determine if it is deemed to be complete.
+         * A region is complete if its current state is final (a state having on outbound transitions).
+         * @method isComplete
+         * @param {IActiveStateConfiguration} instance The object representing a particular state machine instance.
+         * @returns {boolean} True if the region is deemed to be complete.
+         */
+        isComplete(instance: IActiveStateConfiguration): boolean;
+        /**
+         * Evaluates a message to determine if a state transition can be made.
+         * Regions delegate messages to the currently active child state for evaluation.
+         * @method evaluate
+         * @param {any} message The message that will be evaluated.
+         * @param {IActiveStateConfiguration} instance The state machine instance.
+         * @returns {boolean} True if the message triggered a state transition.
+         */
+        evaluate(message: any, instance: IActiveStateConfiguration): boolean;
+        /**
+         * Accepts an instance of a visitor and calls the visitRegion method on it.
+         * @method accept
+         * @param {Visitor<TArg>} visitor The visitor instance.
+         * @param {TArg} arg An optional argument to pass into the visitor.
+         * @returns {any} Any value can be returned by the visitor.
+         */
+        accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any;
+    }
+}
+declare module fsm {
     /**
      * An element within a state machine model that represents an invariant condition within the life of the state machine instance.
      *
@@ -472,6 +486,8 @@ declare module fsm {
          */
         accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any;
     }
+}
+declare module fsm {
     /**
      * An element within a state machine model that represents completion of the life of the containing Region within the state machine instance.
      *
@@ -504,130 +520,12 @@ declare module fsm {
          */
         accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any;
     }
+}
+declare module fsm {
     /**
-     * An element within a state machine model that represents the root of the state machine model.
-     *
-     * StateMachine extends the State class and inherits its public interface.
-     * @class StateMachine
-     * @augments State
+     * Implementation of a visitor pattern.
+     * @class Visitor
      */
-    class StateMachine extends State {
-        init: Array<Action>;
-        clean: boolean;
-        /**
-         * Creates a new instance of the StateMachine class.
-         * @param {string} name The name of the state machine.
-         */
-        constructor(name: string);
-        /**
-         * Returns the root element within the state machine model.
-         * Note that if this state machine is embeded within another state machine, the ultimate root element will be returned.
-         * @method root
-         * @returns {StateMachine} The root state machine element.
-         */
-        root(): StateMachine;
-        /**
-         * Determines if an element is active within a given state machine instance.
-         * @method isActive
-         * @param {IActiveStateConfiguration} instance The state machine instance.
-         * @returns {boolean} True if the element is active within the state machine instance.
-         */
-        isActive(instance: IActiveStateConfiguration): boolean;
-        /**
-         * Bootstraps the state machine model; precompiles the actions to take during transition traversal.
-         *
-         * Bootstrapping a state machine model pre-calculates all the actions required for each transition within the state machine model.
-         * The actions will exit all states as appropriate, perform transition behaviour, enter all states as appropriate and update the current state.
-         *
-         * This is only required if you are dynamically changing the state machine model and want to manually control when the model is bootstrapped.
-         * @method bootstrap
-         */
-        initialiseModel(): void;
-        /**
-         * Initialises an instance of the state machine and enters its initial pseudo state.
-         * Entering the initial pseudo state may cause a chain of other completion transitions.
-         * @method initialise
-         * @param {IActiveStateConfiguration} instance The object representing a particular state machine instance.
-         * @param {boolean} autoBootstrap Set to false to manually control when bootstrapping occurs.
-         */
-        initialise(instance: IActiveStateConfiguration, autoBootstrap?: boolean): void;
-        /**
-         * Evaluates a message to determine if a state transition can be made.
-         * State machines initially delegate messages to their child regions for evaluation.
-         * @method evaluate
-         * @param {any} message The message that will be evaluated.
-         * @param {IActiveStateConfiguration} instance The state machine instance.
-         * @returns {boolean} True if the message triggered a state transition.
-         */
-        evaluate(message: any, instance: IActiveStateConfiguration, autoBootstrap?: boolean): boolean;
-        /**
-         * Accepts an instance of a visitor and calls the visitStateMachine method on it.
-         * @method accept
-         * @param {Visitor<TArg>} visitor The visitor instance.
-         * @param {TArg} arg An optional argument to pass into the visitor.
-         * @returns {any} Any value can be returned by the visitor.
-         */
-        accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any;
-    }
-    /**
-     * A transition between vertices (states or pseudo states) that may be traversed in response to a message.
-     *
-     * Transitions come in a variety of types:
-     * internal transitions respond to messages but do not cause a state transition, they only have behaviour;
-     * local transitions are contained within a single region therefore the source vertex is exited, the transition traversed, and the target state entered;
-     * external transitions are more complex in nature as they cross region boundaries, all elements up to but not not including the common ancestor are exited and entered.
-     *
-     * Entering a composite state will cause the entry of the child regions within the composite state; this in turn may trigger more transitions.
-     * @class Transition
-     */
-    class Transition {
-        source: Vertex;
-        target: Vertex;
-        static isElse: (message: any, instance: IActiveStateConfiguration) => boolean;
-        guard: Guard;
-        transitionBehavior: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any>;
-        traverse: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any>;
-        /**
-         * Creates a new instance of the Transition class.
-         * @param {Vertex} source The source of the transition.
-         * @param {Vertex} source The target of the transition.
-         */
-        constructor(source: Vertex, target?: Vertex);
-        /**
-         * Turns a transition into an else transition.
-         *
-         * Else transitions can be used at `Junction` or `Choice` pseudo states if no other transition guards evaluate true, an Else transition if present will be traversed.
-         * @method else
-         * @returns {Transition} Returns the transition object to enable the fluent API.
-         */
-        else(): Transition;
-        /**
-         * Defines the guard condition for the transition.
-         * @method when
-         * @param {Guard} guard The guard condition that must evaluate true for the transition to be traversed.
-         * @returns {Transition} Returns the transition object to enable the fluent API.
-         */
-        when(guard: Guard): Transition;
-        /**
-         * Add behaviour to a transition.
-         * @method effect
-         * @param {Action} transitionAction The action to add to the transitions traversal behaviour.
-         * @returns {Transition} Returns the transition object to enable the fluent API.
-         */
-        effect<TMessage>(transitionAction: Action): Transition;
-        /**
-         * Accepts an instance of a visitor and calls the visitTransition method on it.
-         * @method accept
-         * @param {Visitor<TArg>} visitor The visitor instance.
-         * @param {TArg} arg An optional argument to pass into the visitor.
-         * @returns {any} Any value can be returned by the visitor.
-         */
-        accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any;
-    }
-    /**
- * Implementation of a visitor pattern.
- * @class Visitor
- */
     class Visitor<TArg> {
         /**
          * Visits an element within a state machine model.
@@ -694,6 +592,75 @@ declare module fsm {
          */
         visitTransition(transition: Transition, arg?: TArg): any;
     }
+}
+declare module fsm {
+    /**
+     * An element within a state machine model that represents the root of the state machine model.
+     *
+     * StateMachine extends the State class and inherits its public interface.
+     * @class StateMachine
+     * @augments State
+     */
+    class StateMachine extends State {
+        init: Array<Action>;
+        clean: boolean;
+        /**
+         * Creates a new instance of the StateMachine class.
+         * @param {string} name The name of the state machine.
+         */
+        constructor(name: string);
+        /**
+         * Returns the root element within the state machine model.
+         * Note that if this state machine is embeded within another state machine, the ultimate root element will be returned.
+         * @method root
+         * @returns {StateMachine} The root state machine element.
+         */
+        root(): StateMachine;
+        /**
+         * Determines if an element is active within a given state machine instance.
+         * @method isActive
+         * @param {IActiveStateConfiguration} instance The state machine instance.
+         * @returns {boolean} True if the element is active within the state machine instance.
+         */
+        isActive(instance: IActiveStateConfiguration): boolean;
+        /**
+         * Bootstraps the state machine model; precompiles the actions to take during transition traversal.
+         *
+         * Bootstrapping a state machine model pre-calculates all the actions required for each transition within the state machine model.
+         * The actions will exit all states as appropriate, perform transition behaviour, enter all states as appropriate and update the current state.
+         *
+         * This is only required if you are dynamically changing the state machine model and want to manually control when the model is bootstrapped.
+         * @method bootstrap
+         */
+        initialiseModel(): void;
+        /**
+         * Initialises an instance of the state machine and enters its initial pseudo state.
+         * Entering the initial pseudo state may cause a chain of other completion transitions.
+         * @method initialise
+         * @param {IActiveStateConfiguration} instance The object representing a particular state machine instance.
+         * @param {boolean} autoBootstrap Set to false to manually control when bootstrapping occurs.
+         */
+        initialise(instance: IActiveStateConfiguration, autoBootstrap?: boolean): void;
+        /**
+         * Evaluates a message to determine if a state transition can be made.
+         * State machines initially delegate messages to their child regions for evaluation.
+         * @method evaluate
+         * @param {any} message The message that will be evaluated.
+         * @param {IActiveStateConfiguration} instance The state machine instance.
+         * @returns {boolean} True if the message triggered a state transition.
+         */
+        evaluate(message: any, instance: IActiveStateConfiguration, autoBootstrap?: boolean): boolean;
+        /**
+         * Accepts an instance of a visitor and calls the visitStateMachine method on it.
+         * @method accept
+         * @param {Visitor<TArg>} visitor The visitor instance.
+         * @param {TArg} arg An optional argument to pass into the visitor.
+         * @returns {any} Any value can be returned by the visitor.
+         */
+        accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any;
+    }
+}
+declare module fsm {
     /**
      * Default working implementation of a state machine instance class.
      *
@@ -731,5 +698,62 @@ declare module fsm {
          * @returns {string} The name of the state machine instance.
          */
         toString(): string;
+    }
+}
+declare module fsm {
+    /**
+     * A transition between vertices (states or pseudo states) that may be traversed in response to a message.
+     *
+     * Transitions come in a variety of types:
+     * internal transitions respond to messages but do not cause a state transition, they only have behaviour;
+     * local transitions are contained within a single region therefore the source vertex is exited, the transition traversed, and the target state entered;
+     * external transitions are more complex in nature as they cross region boundaries, all elements up to but not not including the common ancestor are exited and entered.
+     *
+     * Entering a composite state will cause the entry of the child regions within the composite state; this in turn may trigger more transitions.
+     * @class Transition
+     */
+    class Transition {
+        source: Vertex;
+        target: Vertex;
+        static isElse: (message: any, instance: IActiveStateConfiguration) => boolean;
+        guard: Guard;
+        transitionBehavior: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any>;
+        traverse: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any>;
+        /**
+         * Creates a new instance of the Transition class.
+         * @param {Vertex} source The source of the transition.
+         * @param {Vertex} source The target of the transition.
+         */
+        constructor(source: Vertex, target?: Vertex);
+        /**
+         * Turns a transition into an else transition.
+         *
+         * Else transitions can be used at `Junction` or `Choice` pseudo states if no other transition guards evaluate true, an Else transition if present will be traversed.
+         * @method else
+         * @returns {Transition} Returns the transition object to enable the fluent API.
+         */
+        else(): Transition;
+        /**
+         * Defines the guard condition for the transition.
+         * @method when
+         * @param {Guard} guard The guard condition that must evaluate true for the transition to be traversed.
+         * @returns {Transition} Returns the transition object to enable the fluent API.
+         */
+        when(guard: Guard): Transition;
+        /**
+         * Add behaviour to a transition.
+         * @method effect
+         * @param {Action} transitionAction The action to add to the transitions traversal behaviour.
+         * @returns {Transition} Returns the transition object to enable the fluent API.
+         */
+        effect<TMessage>(transitionAction: Action): Transition;
+        /**
+         * Accepts an instance of a visitor and calls the visitTransition method on it.
+         * @method accept
+         * @param {Visitor<TArg>} visitor The visitor instance.
+         * @param {TArg} arg An optional argument to pass into the visitor.
+         * @returns {any} Any value can be returned by the visitor.
+         */
+        accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any;
     }
 }

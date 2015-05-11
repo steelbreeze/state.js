@@ -5,10 +5,6 @@
  * http://www.steelbreeze.net/state.cs
  */
  
- /**
-  * Namespace for the finite state machine classes.
-  * @module fsm
-  */
 module fsm {
 	/**
 	 * An element within a state machine model that represents the root of the state machine model.

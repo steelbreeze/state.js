@@ -24,6 +24,10 @@ declare module fsm {
         (message: any, instance: IActiveStateConfiguration): boolean;
     }
 }
+/**
+ * Namespace for the finite state machine classes.
+ * @module fsm
+ */
 declare module fsm {
     /**
      * An abstract class used as the base for the Region and Vertex classes.
@@ -589,10 +593,6 @@ declare module fsm {
         visitTransition(transition: Transition, arg?: TArg): any;
     }
 }
-/**
- * Namespace for the finite state machine classes.
- * @module fsm
- */
 declare module fsm {
     /**
      * An element within a state machine model that represents the root of the state machine model.

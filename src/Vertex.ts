@@ -1,3 +1,10 @@
+/*
+ * Finite state machine library
+ * Copyright (c) 2014-5 Steelbreeze Limited
+ * Licensed under the MIT and GPL v3 licences
+ * http://www.steelbreeze.net/state.cs
+ */
+ 
 module fsm {
 	/**
 	 * An abstract element within a state machine model that can be the source or target of a transition (states and pseudo states).
