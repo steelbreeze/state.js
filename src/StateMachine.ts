@@ -62,9 +62,9 @@ module fsm {
 		 * @method bootstrap
 		 */
 		initialiseModel(): void {
-			this.clean = true;
+			this.accept(BootstrapElements.getInstance(), false);
 
-			this.accept(Bootstrap.getInstance(), false);
+			this.clean = true;
 		}
 
 		/**
@@ -204,15 +204,15 @@ module fsm {
 	}
 
 	// bootstraps all the elements within a state machine model
-	class Bootstrap extends Visitor<boolean> {
-		private static _instance: Bootstrap;
+	class BootstrapElements extends Visitor<boolean> {
+		private static _instance: BootstrapElements;
 		
-		public static getInstance(): Bootstrap {
-			if (!Bootstrap._instance) {
-				Bootstrap._instance = new Bootstrap();
+		public static getInstance(): BootstrapElements {
+			if (!BootstrapElements._instance) {
+				BootstrapElements._instance = new BootstrapElements();
 			}
 			
-			return Bootstrap._instance;
+			return BootstrapElements._instance;
 		}
 		
 		private behaviours: any = {};
