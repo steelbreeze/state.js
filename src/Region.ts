@@ -5,6 +5,7 @@
  * http://www.steelbreeze.net/state.cs
  */
  
+// TODO: look to move isComplete as its not related to model definition
 module fsm {
 	/**
 	 * An element within a state machine model that is a container of Vertices.
@@ -71,26 +72,17 @@ module fsm {
 		}
 
 		/**
-		 * Evaluates a message to determine if a state transition can be made.
-		 * Regions delegate messages to the currently active child state for evaluation.
-		 * @method evaluate
-		 * @param {any} message The message that will be evaluated.
-		 * @param {IActiveStateConfiguration} instance The state machine instance.
-		 * @returns {boolean} True if the message triggered a state transition.
-		 */
-		evaluate(message: any, instance: IActiveStateConfiguration): boolean {
-			return instance.getCurrent(this).evaluate(message, instance);
-		}
-
-		/**
 		 * Accepts an instance of a visitor and calls the visitRegion method on it.
 		 * @method accept
-		 * @param {Visitor<TArg>} visitor The visitor instance.
-		 * @param {TArg} arg An optional argument to pass into the visitor.
+		 * @param {Visitor<TArg1>} visitor The visitor instance.
+		 * @param {TArg1} arg1 An optional argument to pass into the visitor.
+		 * @param {any} arg2 An optional argument to pass into the visitor.
+		 * @param {any} arg3 An optional argument to pass into the visitor.
+		 * @param {any} arg4 An optional argument to pass into the visitor.
 		 * @returns {any} Any value can be returned by the visitor.
  		 */
-		accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any {
-			return visitor.visitRegion(this, arg);
+		accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
+			return visitor.visitRegion(this, arg1, arg2, arg3, arg4);
 		}
 	}
 }

@@ -103,19 +103,6 @@ Transitions can be converted to be event triggered by adding a guard condition v
 
 **Returns**: `Transition`, The new transition object.
 
-### fsm.Vertex.evaluate(message, instance) 
-
-Evaluates a message to determine if a state transition can be made.
-Vertices will evauate the guard conditions of their outbound transition; if a single guard evaluates true, the transition will be traversed.
-
-**Parameters**
-
-**message**: `any`, The message that will be evaluated.
-
-**instance**: `IActiveStateConfiguration`, The state machine instance.
-
-**Returns**: `boolean`, True if the message triggered a state transition.
-
 ### fsm.Vertex.accept(visitor, arg) 
 
 Accepts an instance of a visitor.
@@ -177,15 +164,21 @@ Initial pseudo states are of kind: Initial, ShallowHisory, or DeepHistory.
 
 **Returns**: `boolean`, True if the pseudo state is an initial pseudo state.
 
-### fsm.PseudoState.accept(visitor, arg) 
+### fsm.PseudoState.accept(visitor, arg1, arg2, arg3, arg4) 
 
 Accepts an instance of a visitor and calls the visitPseudoState method on it.
 
 **Parameters**
 
-**visitor**: `Visitor.&lt;TArg&gt;`, The visitor instance.
+**visitor**: `Visitor.&lt;TArg1&gt;`, The visitor instance.
 
-**arg**: `TArg`, An optional argument to pass into the visitor.
+**arg1**: `TArg1`, An optional argument to pass into the visitor.
+
+**arg2**: `any`, An optional argument to pass into the visitor.
+
+**arg3**: `any`, An optional argument to pass into the visitor.
+
+**arg4**: `any`, An optional argument to pass into the visitor.
 
 **Returns**: `any`, Any value can be returned by the visitor.
 
@@ -254,28 +247,21 @@ A region is complete if its current state is final (a state having on outbound t
 
 **Returns**: `boolean`, True if the region is deemed to be complete.
 
-### fsm.Region.evaluate(message, instance) 
-
-Evaluates a message to determine if a state transition can be made.
-Regions delegate messages to the currently active child state for evaluation.
-
-**Parameters**
-
-**message**: `any`, The message that will be evaluated.
-
-**instance**: `IActiveStateConfiguration`, The state machine instance.
-
-**Returns**: `boolean`, True if the message triggered a state transition.
-
-### fsm.Region.accept(visitor, arg) 
+### fsm.Region.accept(visitor, arg1, arg2, arg3, arg4) 
 
 Accepts an instance of a visitor and calls the visitRegion method on it.
 
 **Parameters**
 
-**visitor**: `Visitor.&lt;TArg&gt;`, The visitor instance.
+**visitor**: `Visitor.&lt;TArg1&gt;`, The visitor instance.
 
-**arg**: `TArg`, An optional argument to pass into the visitor.
+**arg1**: `TArg1`, An optional argument to pass into the visitor.
+
+**arg2**: `any`, An optional argument to pass into the visitor.
+
+**arg3**: `any`, An optional argument to pass into the visitor.
+
+**arg4**: `any`, An optional argument to pass into the visitor.
 
 **Returns**: `any`, Any value can be returned by the visitor.
 
@@ -376,28 +362,21 @@ Adds behaviour to a state that is executed each time the state is entered.
 
 **Returns**: `State`, Returns the state to allow a fluent style API.
 
-### fsm.State.evaluate(message, instance) 
-
-Evaluates a message to determine if a state transition can be made.
-States initially delegate messages to their child regions for evaluation, if no state transition is triggered, they behave as any other vertex.
-
-**Parameters**
-
-**message**: `any`, The message that will be evaluated.
-
-**instance**: `IActiveStateConfiguration`, The state machine instance.
-
-**Returns**: `boolean`, True if the message triggered a state transition.
-
-### fsm.State.accept(visitor, arg) 
+### fsm.State.accept(visitor, arg1, arg2, arg3, arg4) 
 
 Accepts an instance of a visitor and calls the visitState method on it.
 
 **Parameters**
 
-**visitor**: `Visitor.&lt;TArg&gt;`, The visitor instance.
+**visitor**: `Visitor.&lt;TArg1&gt;`, The visitor instance.
 
-**arg**: `TArg`, An optional argument to pass into the visitor.
+**arg1**: `TArg1`, An optional argument to pass into the visitor.
+
+**arg2**: `any`, An optional argument to pass into the visitor.
+
+**arg3**: `any`, An optional argument to pass into the visitor.
+
+**arg4**: `any`, An optional argument to pass into the visitor.
 
 **Returns**: `any`, Any value can be returned by the visitor.
 
@@ -436,7 +415,7 @@ Accepts an instance of a visitor and calls the visitFinalState method on it.
 ## Class: Visitor
 Implementation of a visitor pattern.
 
-### fsm.Visitor.visitElement(element, arg) 
+### fsm.Visitor.visitElement(element, arg1, arg2, arg3, arg4) 
 
 Visits an element within a state machine model.
 
@@ -444,11 +423,17 @@ Visits an element within a state machine model.
 
 **element**: `Element`, the element being visited.
 
-**arg**: `any`, The parameter passed into the accept method.
+**arg1**: `TArg1`, An optional parameter passed into the accept method.
+
+**arg2**: `any`, An optional parameter passed into the accept method.
+
+**arg3**: `any`, An optional parameter passed into the accept method.
+
+**arg4**: `any`, An optional parameter passed into the accept method.
 
 **Returns**: `any`, Any value may be returned when visiting an element.
 
-### fsm.Visitor.visitRegion(region, arg) 
+### fsm.Visitor.visitRegion(region, arg1, arg2, arg3, arg4) 
 
 Visits a region within a state machine model.
 
@@ -456,11 +441,17 @@ Visits a region within a state machine model.
 
 **region**: `Region`, The region being visited.
 
-**arg**: `any`, The parameter passed into the accept method.
+**arg1**: `TArg1`, An optional parameter passed into the accept method.
+
+**arg2**: `any`, An optional parameter passed into the accept method.
+
+**arg3**: `any`, An optional parameter passed into the accept method.
+
+**arg4**: `any`, An optional parameter passed into the accept method.
 
 **Returns**: `any`, Any value may be returned when visiting an element.
 
-### fsm.Visitor.visitVertex(vertex, arg) 
+### fsm.Visitor.visitVertex(vertex, arg1, arg2, arg3, arg4) 
 
 Visits a vertex within a state machine model.
 
@@ -468,11 +459,17 @@ Visits a vertex within a state machine model.
 
 **vertex**: `Vertex`, The vertex being visited.
 
-**arg**: `any`, The parameter passed into the accept method.
+**arg1**: `TArg1`, An optional parameter passed into the accept method.
+
+**arg2**: `any`, An optional parameter passed into the accept method.
+
+**arg3**: `any`, An optional parameter passed into the accept method.
+
+**arg4**: `any`, An optional parameter passed into the accept method.
 
 **Returns**: `any`, Any value may be returned when visiting an element.
 
-### fsm.Visitor.visitPseudoState(pseudoState, arg) 
+### fsm.Visitor.visitPseudoState(pseudoState, arg1, arg2, arg3, arg4) 
 
 Visits a pseudo state within a state machine model.
 
@@ -480,11 +477,17 @@ Visits a pseudo state within a state machine model.
 
 **pseudoState**: `PseudoState`, The pseudo state being visited.
 
-**arg**: `any`, The parameter passed into the accept method.
+**arg1**: `TArg1`, An optional parameter passed into the accept method.
+
+**arg2**: `any`, An optional parameter passed into the accept method.
+
+**arg3**: `any`, An optional parameter passed into the accept method.
+
+**arg4**: `any`, An optional parameter passed into the accept method.
 
 **Returns**: `any`, Any value may be returned when visiting an element.
 
-### fsm.Visitor.visitState(state, arg) 
+### fsm.Visitor.visitState(state, arg1, arg2, arg3, arg4) 
 
 Visits a state within a state machine model.
 
@@ -492,11 +495,17 @@ Visits a state within a state machine model.
 
 **state**: `State`, The state being visited.
 
-**arg**: `any`, The parameter passed into the accept method.
+**arg1**: `TArg1`, An optional parameter passed into the accept method.
+
+**arg2**: `any`, An optional parameter passed into the accept method.
+
+**arg3**: `any`, An optional parameter passed into the accept method.
+
+**arg4**: `any`, An optional parameter passed into the accept method.
 
 **Returns**: `any`, Any value may be returned when visiting an element.
 
-### fsm.Visitor.visitFinal(finalState, arg) 
+### fsm.Visitor.visitFinal(finalState, arg1, arg2, arg3, arg4) 
 
 Visits a final state within a state machine model.
 
@@ -504,11 +513,17 @@ Visits a final state within a state machine model.
 
 **finalState**: `FinalState`, The final state being visited.
 
-**arg**: `any`, The parameter passed into the accept method.
+**arg1**: `TArg1`, An optional parameter passed into the accept method.
+
+**arg2**: `any`, An optional parameter passed into the accept method.
+
+**arg3**: `any`, An optional parameter passed into the accept method.
+
+**arg4**: `any`, An optional parameter passed into the accept method.
 
 **Returns**: `any`, Any value may be returned when visiting an element.
 
-### fsm.Visitor.visitVertex(state, arg) 
+### fsm.Visitor.visitVertex(state, arg1, arg2, arg3, arg4) 
 
 Visits a state machine within a state machine model.
 
@@ -516,11 +531,17 @@ Visits a state machine within a state machine model.
 
 **state**: `StateMachine`, machine The state machine being visited.
 
-**arg**: `any`, The parameter passed into the accept method.
+**arg1**: `TArg1`, An optional parameter passed into the accept method.
+
+**arg2**: `any`, An optional parameter passed into the accept method.
+
+**arg3**: `any`, An optional parameter passed into the accept method.
+
+**arg4**: `any`, An optional parameter passed into the accept method.
 
 **Returns**: `any`, Any value may be returned when visiting an element.
 
-### fsm.Visitor.visitTransition(transition, arg) 
+### fsm.Visitor.visitTransition(transition, arg1, arg2, arg3, arg4) 
 
 Visits a transition within a state machine model.
 
@@ -528,7 +549,13 @@ Visits a transition within a state machine model.
 
 **transition**: `Transition`, The transition being visited.
 
-**arg**: `any`, The parameter passed into the accept method.
+**arg1**: `TArg1`, An optional parameter passed into the accept method.
+
+**arg2**: `any`, An optional parameter passed into the accept method.
+
+**arg3**: `any`, An optional parameter passed into the accept method.
+
+**arg4**: `any`, An optional parameter passed into the accept method.
 
 **Returns**: `any`, Any value may be returned when visiting an element.
 
@@ -599,15 +626,21 @@ State machines initially delegate messages to their child regions for evaluation
 
 **Returns**: `boolean`, True if the message triggered a state transition.
 
-### fsm.StateMachine.accept(visitor, arg) 
+### fsm.StateMachine.accept(visitor, arg1, arg2, arg3, arg4) 
 
 Accepts an instance of a visitor and calls the visitStateMachine method on it.
 
 **Parameters**
 
-**visitor**: `Visitor.&lt;TArg&gt;`, The visitor instance.
+**visitor**: `Visitor.&lt;TArg1&gt;`, The visitor instance.
 
-**arg**: `TArg`, An optional argument to pass into the visitor.
+**arg1**: `TArg1`, An optional argument to pass into the visitor.
+
+**arg2**: `any`, An optional argument to pass into the visitor.
+
+**arg3**: `any`, An optional argument to pass into the visitor.
+
+**arg4**: `any`, An optional argument to pass into the visitor.
 
 **Returns**: `any`, Any value can be returned by the visitor.
 
@@ -704,15 +737,21 @@ Add behaviour to a transition.
 
 **Returns**: `Transition`, Returns the transition object to enable the fluent API.
 
-### fsm.Transition.accept(visitor, arg) 
+### fsm.Transition.accept(visitor, arg1, arg2, arg3, arg4) 
 
 Accepts an instance of a visitor and calls the visitTransition method on it.
 
 **Parameters**
 
-**visitor**: `Visitor.&lt;TArg&gt;`, The visitor instance.
+**visitor**: `Visitor.&lt;TArg1&gt;`, The visitor instance.
 
-**arg**: `TArg`, An optional argument to pass into the visitor.
+**arg1**: `TArg1`, An optional argument to pass into the visitor.
+
+**arg2**: `any`, An optional argument to pass into the visitor.
+
+**arg3**: `any`, An optional argument to pass into the visitor.
+
+**arg4**: `any`, An optional argument to pass into the visitor.
 
 **Returns**: `any`, Any value can be returned by the visitor.
 

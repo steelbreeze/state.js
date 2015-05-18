@@ -5,6 +5,7 @@
  * http://www.steelbreeze.net/state.cs
  */
  
+// TODO: look to move isAvtive and isComplete as they're not related to model definition
 module fsm {
 	/**
 	 * An element within a state machine model that represents an invariant condition within the life of the state machine instance.
@@ -169,62 +170,18 @@ module fsm {
 			return this;
 		}
 
-		// selects the transition to follow for a given message and state machine instance combination
-		select(message: any, instance: IActiveStateConfiguration): Transition {
-			var result: Transition;
-
-			for (var i = 0, l = this.transitions.length; i < l; i++) {
-				if (this.transitions[i].guard(message, instance)) {
-					if (result) {
-						throw "Multiple outbound transitions evaluated true";
-					}
-
-					result = this.transitions[i];
-				}
-			}
-
-			return result;
-		}
-
-		/**
-		 * Evaluates a message to determine if a state transition can be made.
-		 * States initially delegate messages to their child regions for evaluation, if no state transition is triggered, they behave as any other vertex.
-		 * @method evaluate
-		 * @param {any} message The message that will be evaluated.
-		 * @param {IActiveStateConfiguration} instance The state machine instance.
-		 * @returns {boolean} True if the message triggered a state transition.
-		 */
-		evaluate(message: any, instance: IActiveStateConfiguration): boolean {
-			var processed = false;
-
-			for (var i = 0, l = this.regions.length; i < l; i++) {
-				if (this.isActive(instance) === true) {
-					if (this.regions[i].evaluate(message, instance)) {
-						processed = true;
-					}
-				}
-			}
-
-			if (processed === false) {
-				processed = super.evaluate(message, instance);
-			}
-
-			if (processed === true && message !== this && this.isComplete(instance)) {
-				this.evaluate(this, instance);
-			}
-
-			return processed;
-		}
-
 		/**
 		 * Accepts an instance of a visitor and calls the visitState method on it.
 		 * @method accept
-		 * @param {Visitor<TArg>} visitor The visitor instance.
-		 * @param {TArg} arg An optional argument to pass into the visitor.
+		 * @param {Visitor<TArg1>} visitor The visitor instance.
+		 * @param {TArg1} arg1 An optional argument to pass into the visitor.
+		 * @param {any} arg2 An optional argument to pass into the visitor.
+		 * @param {any} arg3 An optional argument to pass into the visitor.
+		 * @param {any} arg4 An optional argument to pass into the visitor.
 		 * @returns {any} Any value can be returned by the visitor.
  		 */
-		accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any {
-			return visitor.visitState(this, arg);
+		accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
+			return visitor.visitState(this, arg1, arg2, arg3, arg4);
 		}
 	}
 }

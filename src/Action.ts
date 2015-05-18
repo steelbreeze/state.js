@@ -15,6 +15,6 @@ module fsm {
 	 * @returns {any} Actions can return any value.
 	 */
 	export interface Action {
-		(message: any, instance: IActiveStateConfiguration, history: boolean): any;
+		(message?: any, instance?: IActiveStateConfiguration, history?: boolean): any;
 	}
 }

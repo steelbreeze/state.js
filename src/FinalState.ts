@@ -51,8 +51,8 @@ module fsm {
 		 * @param {TArg} arg An optional argument to pass into the visitor.
 		 * @returns {any} Any value can be returned by the visitor.
  		 */
-		accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any {
-			return visitor.visitFinalState(this, arg);
+		accept<TArg>(visitor: Visitor<TArg>, arg?: TArg, ...rest: any[]): any {
+			return visitor.visitFinalState(this, arg, rest);
 		}
 	}
 }

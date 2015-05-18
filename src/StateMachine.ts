@@ -5,6 +5,7 @@
  * http://www.steelbreeze.net/state.cs
  */
  
+// TODO: look to move isActive and evaluate as they're not part of model definition
 module fsm {
 	/**
 	 * An element within a state machine model that represents the root of the state machine model.
@@ -75,9 +76,7 @@ module fsm {
 				this.initialiseModel();
 			}
 
-			for (var i =0, l = this.init.length; i < l; i++) {
-				this.init[i](undefined, instance, false);
-			}
+			invoke(this.init, undefined, instance);
 		}
 
 		/**
@@ -97,22 +96,163 @@ module fsm {
 				return false;
 			}
 
-			return super.evaluate(message, instance);
+			return this.accept(Evaluator.getInstance(), instance, message);
 		}
 
 		/**
 		 * Accepts an instance of a visitor and calls the visitStateMachine method on it.
 		 * @method accept
-		 * @param {Visitor<TArg>} visitor The visitor instance.
-		 * @param {TArg} arg An optional argument to pass into the visitor.
+		 * @param {Visitor<TArg1>} visitor The visitor instance.
+		 * @param {TArg1} arg1 An optional argument to pass into the visitor.
+		 * @param {any} arg2 An optional argument to pass into the visitor.
+		 * @param {any} arg3 An optional argument to pass into the visitor.
+		 * @param {any} arg4 An optional argument to pass into the visitor.
 		 * @returns {any} Any value can be returned by the visitor.
  		 */
-		accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any {
-			return visitor.visitStateMachine(this, arg);
+		accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
+			return visitor.visitStateMachine(this, arg1, arg2, arg3, arg4);
 		}
 	}
 
-	// TODO: determine how to seperate these package internal items from the StateMachine class.
+	// invokes behaviour
+	function invoke(actions: Array<Action>, message: any, instance: IActiveStateConfiguration, history: boolean = false) : any {
+		for (var i = 0, l = actions.length; i < l; i++) {
+			actions[i](message, instance, history);
+		}	
+	}
+	
+	// evaluates messages against a state machine, executing transitions as appropriate
+	class Evaluator extends Visitor<IActiveStateConfiguration> {
+		private static _instance: Evaluator;
+		
+		public static getInstance(): Evaluator {
+			if (!Evaluator._instance) {
+				Evaluator._instance = new Evaluator();
+			}
+			
+			return Evaluator._instance;
+		}
+
+		visitRegion(region: Region, instance: IActiveStateConfiguration, message: any): boolean {
+			return instance.getCurrent(region).accept(this, instance, message);
+		}
+
+		select(pseudoState: PseudoState, message: any, instance: IActiveStateConfiguration): Transition {
+			var transition: Transition;
+			
+			switch (pseudoState.kind) {
+				case PseudoStateKind.Initial:
+				case PseudoStateKind.DeepHistory:
+				case PseudoStateKind.ShallowHistory: {
+					if (pseudoState.transitions.length === 1) {
+						transition = pseudoState.transitions[0];
+					} else {
+						throw "Initial transition must have a single outbound transition from " + pseudoState;
+					}
+					
+					break;
+				}
+				
+				case PseudoStateKind.Junction: {
+					var result: Transition, elseResult: Transition;
+
+					for (var i = 0, l = pseudoState.transitions.length; i < l; i++) {
+						if (pseudoState.transitions[i].guard === Transition.isElse) {
+							if (elseResult) {
+								throw "Multiple outbound transitions evaluated true";
+							}
+
+							elseResult = pseudoState.transitions[i];
+						} else if (pseudoState.transitions[i].guard(message, instance)) {
+							if (result) {
+								throw "Multiple outbound transitions evaluated true";
+							}
+
+							result = pseudoState.transitions[i];
+						}
+					}
+
+					transition = result || elseResult;
+				
+					break;
+				}
+				
+				case PseudoStateKind.Choice: {
+					var results: Array<Transition> = [];
+
+					for (var i = 0, l = pseudoState.transitions.length; i < l; i++) {
+						if (pseudoState.transitions[i].guard === Transition.isElse) {
+							if (elseResult) {
+								throw "Multiple outbound else transitions found at " + this + " for " + message;
+							}
+
+							elseResult = pseudoState.transitions[i];
+						} else if (pseudoState.transitions[i].guard(message, instance)) {
+							results.push(pseudoState.transitions[i]);
+						}
+					}
+
+					transition = results.length !== 0 ? results[Math.round((results.length - 1) * Math.random())] : elseResult;
+					
+					break;
+				}
+			}
+			
+			return transition;
+		}
+
+		visitPseudoState(pseudoState: PseudoState, instance: IActiveStateConfiguration, message: any): boolean {			
+			var transition = this.select (pseudoState, message, instance);
+
+			if (!transition) {
+				return false;
+			}
+
+			invoke(transition.traverse, message, instance);
+
+			return true;
+		}
+		
+		visitState (state: State, instance: IActiveStateConfiguration, message: any): boolean {
+			var result = false;
+			
+			// delegate to child regions first
+			for (var i = 0, l = state.regions.length; i < l; i++) {
+				if (state.isActive(instance)) {
+					if (state.regions[i].accept(this, instance, message)) {
+						result = true;
+					}
+				}
+			}
+			
+			//if still unprocessed, try to find one here
+			if (!result) {
+				var transition: Transition;				
+	
+				for (var i = 0, l = state.transitions.length; i < l; i++) {
+					if (state.transitions[i].guard(message, instance)) {
+						if (transition) {
+							throw new Error ("Multiple outbound transitions evaluated true");
+						}
+	
+						transition = state.transitions[i];
+					}
+				}
+
+				if (transition) {
+					invoke (transition.traverse, message, instance);
+					
+					result = true;
+				}
+			}
+			
+			if (result && (message !== state) && state.isComplete(instance)) {
+				this.visitState (state, instance, state);
+			}
+			
+			return result;
+		}
+	}
 
 	// Temporary structure to hold element behaviour during the bootstrap process
 	class Behaviour {
@@ -239,11 +379,7 @@ module fsm {
 			}
 
 			regionBehaviour.leave.push((message, instance, history) => {
-				var leave = this.behaviour(instance.getCurrent(region)).leave;
-				
-				for (var i =0, l = leave.length; i < l; i++) {
-					leave[i](message, instance, false);
-				}
+				invoke(this.behaviour(instance.getCurrent(region)).leave, message, instance);
 			});
 
 			if (deepHistoryAbove || !region.initial || region.initial.isHistory()) {
@@ -254,12 +390,7 @@ module fsm {
 						initial = instance.getCurrent(region) || region.initial;
 					}
 					
-					var enter = this.behaviour(initial).enter;
-					var hist = history || region.initial.kind === PseudoStateKind.DeepHistory;
-					
-					for (var i =0, l = enter.length; i < l; i++) {
-						enter[i](message, instance, hist);
-					}
+					invoke(this.behaviour(initial).enter, message, instance, history || region.initial.kind === PseudoStateKind.DeepHistory);
 				});
 			} else {
 				regionBehaviour.endEnter = regionBehaviour.endEnter.concat(this.behaviour(region.initial).enter);
@@ -275,7 +406,7 @@ module fsm {
 
 			vertexBehaviour.endEnter.push((message, instance, history) => {
 				if (vertex.isComplete(instance)) {
-					vertex.evaluate(vertex, instance);
+					vertex.accept(Evaluator.getInstance(), instance, vertex);
 				}
 			});
 				
@@ -302,9 +433,7 @@ module fsm {
 				region.accept(this, deepHistoryAbove);
 
 				stateBehaviour.leave.push((message, instance, history) => {
-					for (var i =0, l = regionBehaviour.leave.length; i < l; i++) {
-						regionBehaviour.leave[i](message, instance, false);
-					}
+					invoke(regionBehaviour.leave, message, instance);
 				});
 
 				stateBehaviour.endEnter = stateBehaviour.endEnter.concat(regionBehaviour.enter);

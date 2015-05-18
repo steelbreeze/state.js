@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>state.js v5.1.1 tests</title>
+		<title>state.js v5.1.2 tests</title>
     <script src="../lib/state.js"></script>
 		<script>
 			function result( text ) {
@@ -173,10 +173,9 @@
                 initialBb.to(state7);
                 
                 state3.to(state2).when(function (c) { return c === "event2"; }).effect(function () { result("p3pp3r test passed"); });
-                state3.to(state8).when(function (c) { return c === "event1"; });
-                
+				state3.to(state8).when(function (c) { return c === "event1"; });
                 state7.to(state5).when(function (c) { return c === "event2"; }).effect(function () { result("p3pp3r test also failed"); });
-                state7.to(state5).when(function (c) { return c === "event1"; });
+				state7.to(state5).when(function (c) { return c === "event1"; });
                 
                 var sms = new fsm.StateMachineInstance();
                 main.initialise(sms);
@@ -189,13 +188,13 @@
 				compTest();
 				shallowTest();
                 muximise1();
-                brice1();
-                p3pp3r();
+				brice1();
+				p3pp3r();
 			}			
 		</script>
 	</head>
 	<body onload="run()">
-        <h1>state.js v5.1.1 tests</h1>
+        <h1>state.js v5.1.2 tests</h1>
 		<div id="results"/>
 	</body>
 </html>

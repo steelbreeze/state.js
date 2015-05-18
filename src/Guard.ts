@@ -15,6 +15,6 @@ module fsm {
 	 * @returns {boolean} True if the guard condition passed.
 	 */
 	export interface Guard {
-		(message: any, instance: IActiveStateConfiguration): boolean;
+		(message?: any, instance?: IActiveStateConfiguration): boolean;
 	}
 }

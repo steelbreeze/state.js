@@ -5,6 +5,8 @@
  * http://www.steelbreeze.net/state.cs
  */
  
+ // TODO: remove isActive
+ 
 /**
  * Namespace for the finite state machine classes.
  * @module fsm

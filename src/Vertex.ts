@@ -5,6 +5,7 @@
  * http://www.steelbreeze.net/state.cs
  */
  
+// TODO: remove isComplete
 module fsm {
 	/**
 	 * An abstract element within a state machine model that can be the source or target of a transition (states and pseudo states).
@@ -99,33 +100,6 @@ module fsm {
 			return transition;
 		}
 
-		// selects the transition to follow for a given message and state machine instance combination
-		select(message: any, instance: IActiveStateConfiguration): Transition {
-			return; // NOTE: abstract method
-		}
-
-		/**
-		 * Evaluates a message to determine if a state transition can be made.
-		 * Vertices will evauate the guard conditions of their outbound transition; if a single guard evaluates true, the transition will be traversed.
-		 * @method evaluate
-		 * @param {any} message The message that will be evaluated.
-		 * @param {IActiveStateConfiguration} instance The state machine instance.
-		 * @returns {boolean} True if the message triggered a state transition.
-		 */
-		evaluate(message: any, instance: IActiveStateConfiguration): boolean {
-			var transition = this.select(message, instance);
-
-			if (!transition) {
-				return false;
-			}
-
-			for (var i =0, l = transition.traverse.length; i < l; i++) {
-				transition.traverse[i](message, instance, false);
-			}
-
-			return true;
-		}
-
 		/**
 		 * Accepts an instance of a visitor.
 		 * @method accept
@@ -133,8 +107,7 @@ module fsm {
 		 * @param {TArg} arg An optional argument to pass into the visitor.
 		 * @returns {any} Any value can be returned by the visitor.
  		 */
-		accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any {
-			return; // note: abstract method
+		accept<TArg>(visitor: Visitor<TArg>, arg?: TArg, ...rest: any[]): any {
 		}
 	}
 }

@@ -5,6 +5,7 @@
  * http://www.steelbreeze.net/state.cs
  */
  
+// TODO: remove isComplete
 module fsm {
 	/**
 	 * An element within a state machine model that represents an transitory Vertex within the state machine model.
@@ -88,70 +89,18 @@ module fsm {
 			return this.kind === PseudoStateKind.Initial || this.isHistory();
 		}
 
-		// selects the transition to follow for a given message and state machine instance combination
-		select(message: any, instance: IActiveStateConfiguration): Transition {
-			switch (this.kind) {
-				case PseudoStateKind.Initial:
-				case PseudoStateKind.DeepHistory:
-				case PseudoStateKind.ShallowHistory:
-					if (this.transitions.length === 1) {
-						return this.transitions[0];
-					} else {
-						throw "Initial transition must have a single outbound transition from " + this.qualifiedName;
-					}
-
-				case PseudoStateKind.Junction:
-					var result: Transition, elseResult: Transition;
-
-					for (var i = 0, l = this.transitions.length; i < l; i++) {
-						if (this.transitions[i].guard === Transition.isElse) {
-							if (elseResult) {
-								throw "Multiple outbound transitions evaluated true";
-							}
-
-							elseResult = this.transitions[i];
-						} else if (this.transitions[i].guard(message, instance)) {
-							if (result) {
-								throw "Multiple outbound transitions evaluated true";
-							}
-
-							result = this.transitions[i];
-						}
-					}
-
-					return result || elseResult;
-
-				case PseudoStateKind.Choice:
-					var results: Array<Transition> = [];
-
-					for (var i = 0, l = this.transitions.length; i < l; i++) {
-						if (this.transitions[i].guard === Transition.isElse) {
-							if (elseResult) {
-								throw "Multiple outbound else transitions found at " + this + " for " + message;
-							}
-
-							elseResult = this.transitions[i];
-						} else if (this.transitions[i].guard(message, instance)) {
-							results.push(this.transitions[i]);
-						}
-					}
-
-					return results.length !== 0 ? results[Math.round((results.length - 1) * Math.random())] : elseResult;
-
-				default:
-					return null;
-			}
-		}
-
 		/**
 		 * Accepts an instance of a visitor and calls the visitPseudoState method on it.
 		 * @method accept
-		 * @param {Visitor<TArg>} visitor The visitor instance.
-		 * @param {TArg} arg An optional argument to pass into the visitor.
+		 * @param {Visitor<TArg1>} visitor The visitor instance.
+		 * @param {TArg1} arg1 An optional argument to pass into the visitor.
+		 * @param {any} arg2 An optional argument to pass into the visitor.
+		 * @param {any} arg3 An optional argument to pass into the visitor.
+		 * @param {any} arg4 An optional argument to pass into the visitor.
 		 * @returns {any} Any value can be returned by the visitor.
  		 */
-		accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any {
-			return visitor.visitPseudoState(this, arg);
+		accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
+			return visitor.visitPseudoState(this, arg1, arg2, arg3, arg4);
 		}
 	}
 }

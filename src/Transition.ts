@@ -82,12 +82,15 @@ module fsm {
 		/**
 		 * Accepts an instance of a visitor and calls the visitTransition method on it.
 		 * @method accept
-		 * @param {Visitor<TArg>} visitor The visitor instance.
-		 * @param {TArg} arg An optional argument to pass into the visitor.
+		 * @param {Visitor<TArg1>} visitor The visitor instance.
+		 * @param {TArg1} arg1 An optional argument to pass into the visitor.
+		 * @param {any} arg2 An optional argument to pass into the visitor.
+		 * @param {any} arg3 An optional argument to pass into the visitor.
+		 * @param {any} arg4 An optional argument to pass into the visitor.
 		 * @returns {any} Any value can be returned by the visitor.
  		 */
-		accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): any {
-			return visitor.visitTransition(this, arg);
+		accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
+			return visitor.visitTransition(this, arg1, arg2, arg3, arg4);
 		}
 	}
 }

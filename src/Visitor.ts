@@ -10,15 +10,18 @@ module fsm {
 	 * Implementation of a visitor pattern.
 	 * @class Visitor
 	 */
-	export class Visitor<TArg> {
+	export class Visitor<TArg1> {
 		/**
 		 * Visits an element within a state machine model.
 		 * @method visitElement
 		 * @param {Element} element the element being visited.
-		 * @param {any} arg The parameter passed into the accept method.
+		 * @param {TArg1} arg1 An optional parameter passed into the accept method.
+		 * @param {any} arg2 An optional parameter passed into the accept method.
+		 * @param {any} arg3 An optional parameter passed into the accept method.
+		 * @param {any} arg4 An optional parameter passed into the accept method.
 		 * @returns {any} Any value may be returned when visiting an element.
 		 */
-		visitElement(element: Element, arg?: TArg): any {
+		visitElement(element: Element, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
 			return;
 		}
 
@@ -26,14 +29,17 @@ module fsm {
 		 * Visits a region within a state machine model.
 		 * @method visitRegion
 		 * @param {Region} region The region being visited.
-		 * @param {any} arg The parameter passed into the accept method.
+		 * @param {TArg1} arg1 An optional parameter passed into the accept method.
+		 * @param {any} arg2 An optional parameter passed into the accept method.
+		 * @param {any} arg3 An optional parameter passed into the accept method.
+		 * @param {any} arg4 An optional parameter passed into the accept method.
 		 * @returns {any} Any value may be returned when visiting an element.
 		 */
-		visitRegion(region: Region, arg?: TArg): any {
-			var result = this.visitElement(region, arg);
+		visitRegion(region: Region, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
+			var result = this.visitElement(region, arg1, arg2, arg3, arg4);
 
 			for (var i = 0, l = region.vertices.length; i < l; i++) {
-				region.vertices[i].accept(this, arg);
+				region.vertices[i].accept(this, arg1, arg2, arg3, arg4);
 			}
 
 			return result;
@@ -43,14 +49,17 @@ module fsm {
 		 * Visits a vertex within a state machine model.
 		 * @method visitVertex
 		 * @param {Vertex} vertex The vertex being visited.
-		 * @param {any} arg The parameter passed into the accept method.
+		 * @param {TArg1} arg1 An optional parameter passed into the accept method.
+		 * @param {any} arg2 An optional parameter passed into the accept method.
+		 * @param {any} arg3 An optional parameter passed into the accept method.
+		 * @param {any} arg4 An optional parameter passed into the accept method.
 		 * @returns {any} Any value may be returned when visiting an element.
 		 */
-		visitVertex(vertex: Vertex, arg?: TArg): any {
-			var result = this.visitElement(vertex, arg);
+		visitVertex(vertex: Vertex, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
+			var result = this.visitElement(vertex, arg1, arg2, arg3, arg4);
 
 			for (var i = 0, l = vertex.transitions.length; i < l; i++) {
-				vertex.transitions[i].accept(this, arg);
+				vertex.transitions[i].accept(this, arg1, arg2, arg3, arg4);
 			}
 
 			return result;
@@ -60,25 +69,31 @@ module fsm {
 		 * Visits a pseudo state within a state machine model.
 		 * @method visitPseudoState
 		 * @param {PseudoState} pseudoState The pseudo state being visited.
-		 * @param {any} arg The parameter passed into the accept method.
+		 * @param {TArg1} arg1 An optional parameter passed into the accept method.
+		 * @param {any} arg2 An optional parameter passed into the accept method.
+		 * @param {any} arg3 An optional parameter passed into the accept method.
+		 * @param {any} arg4 An optional parameter passed into the accept method.
 		 * @returns {any} Any value may be returned when visiting an element.
 		 */
-		visitPseudoState(pseudoState: PseudoState, arg?: TArg): any {
-			return this.visitVertex(pseudoState, arg);
+		visitPseudoState(pseudoState: PseudoState, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
+			return this.visitVertex(pseudoState, arg1, arg2, arg3, arg4);
 		}
 
 		/**
 		 * Visits a state within a state machine model.
 		 * @method visitState
 		 * @param {State} state The state being visited.
-		 * @param {any} arg The parameter passed into the accept method.
+		 * @param {TArg1} arg1 An optional parameter passed into the accept method.
+		 * @param {any} arg2 An optional parameter passed into the accept method.
+		 * @param {any} arg3 An optional parameter passed into the accept method.
+		 * @param {any} arg4 An optional parameter passed into the accept method.
 		 * @returns {any} Any value may be returned when visiting an element.
 		 */
-		visitState(state: State, arg?: TArg): any {
-			var result = this.visitVertex(state, arg);
+		visitState(state: State, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
+			var result = this.visitVertex(state, arg1, arg2, arg3, arg4);
 
 			for (var i = 0, l = state.regions.length; i < l; i++) {
-				state.regions[i].accept(this, arg);
+				state.regions[i].accept(this, arg1, arg2, arg3, arg4);
 			}
 			
 			return result;
@@ -88,32 +103,41 @@ module fsm {
 		 * Visits a final state within a state machine model.
 		 * @method visitFinal
 		 * @param {FinalState} finalState The final state being visited.
-		 * @param {any} arg The parameter passed into the accept method.
+		 * @param {TArg1} arg1 An optional parameter passed into the accept method.
+		 * @param {any} arg2 An optional parameter passed into the accept method.
+		 * @param {any} arg3 An optional parameter passed into the accept method.
+		 * @param {any} arg4 An optional parameter passed into the accept method.
 		 * @returns {any} Any value may be returned when visiting an element.
 		 */
-		visitFinalState(finalState: FinalState, arg?: TArg): any {
-			return this.visitState(finalState, arg);
+		visitFinalState(finalState: FinalState, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
+			return this.visitState(finalState, arg1, arg2, arg3, arg4);
 		}
 
 		/**
 		 * Visits a state machine within a state machine model.
 		 * @method visitVertex
 		 * @param {StateMachine} state machine The state machine being visited.
-		 * @param {any} arg The parameter passed into the accept method.
+		 * @param {TArg1} arg1 An optional parameter passed into the accept method.
+		 * @param {any} arg2 An optional parameter passed into the accept method.
+		 * @param {any} arg3 An optional parameter passed into the accept method.
+		 * @param {any} arg4 An optional parameter passed into the accept method.
 		 * @returns {any} Any value may be returned when visiting an element.
 		 */
-		visitStateMachine(stateMachine: StateMachine, arg?: TArg): any {
-			return this.visitState(stateMachine, arg);
+		visitStateMachine(stateMachine: StateMachine, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
+			return this.visitState(stateMachine, arg1, arg2, arg3, arg4);
 		}
 
 		/**
 		 * Visits a transition within a state machine model.
 		 * @method visitTransition
 		 * @param {Transition} transition The transition being visited.
-		 * @param {any} arg The parameter passed into the accept method.
+		 * @param {TArg1} arg1 An optional parameter passed into the accept method.
+		 * @param {any} arg2 An optional parameter passed into the accept method.
+		 * @param {any} arg3 An optional parameter passed into the accept method.
+		 * @param {any} arg4 An optional parameter passed into the accept method.
 		 * @returns {any} Any value may be returned when visiting an element.
 		 */
-		visitTransition(transition: Transition, arg?: TArg): any {
+		visitTransition(transition: Transition, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
 			return;
 		}
 	}
