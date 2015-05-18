@@ -212,15 +212,13 @@ module fsm {
 			
 			// delegate to child regions first
 			for (var i = 0, l = state.regions.length; i < l; i++) {
-//				if (state.isActive(instance)) {
-					if (state.regions[i].accept(this, instance, message)) {
-						result = true;
-						
-						if (!state.isActive(instance)) {
-							break;
-						}
+				if (state.regions[i].accept(this, instance, message)) {
+					result = true;
+					
+					if (!state.isActive(instance)) {
+						break;
 					}
-//				}
+				}
 			}
 			
 			//if still unprocessed, try to find one here
