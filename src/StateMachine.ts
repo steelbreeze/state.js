@@ -137,7 +137,7 @@ module fsm {
 			return instance.getCurrent(region).accept(this, instance, message);
 		}
 
-		select(pseudoState: PseudoState, message: any, instance: IActiveStateConfiguration): Transition {
+		visitPseudoState(pseudoState: PseudoState, instance: IActiveStateConfiguration, message: any): boolean {			
 			var transition: Transition;
 			
 			switch (pseudoState.kind) {
@@ -197,12 +197,6 @@ module fsm {
 					break;
 				}
 			}
-			
-			return transition;
-		}
-
-		visitPseudoState(pseudoState: PseudoState, instance: IActiveStateConfiguration, message: any): boolean {			
-			var transition = this.select (pseudoState, message, instance);
 
 			if (!transition) {
 				return false;

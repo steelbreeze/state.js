@@ -2,7 +2,7 @@
 Changed the visitor implementation to accept multiple parameters after the template parameter.
 
 Moved the message evaluation and transition selection / execution to a visitor to free up core model classes.
-* note that the intent is to remove much of the executable elements of the code from the core model claseses.
+* note that the intent is to remove all the executable elements of the code from the core model claseses.
 
 ## Version 5.1.1
 Created singletons for bootstrapping rather than static method in StateMachine and Bootstrap classes.
