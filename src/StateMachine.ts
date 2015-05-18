@@ -5,7 +5,6 @@
  * http://www.steelbreeze.net/state.cs
  */
  
-// TODO: look to move isActive and evaluate as they're not part of model definition
 module fsm {
 	/**
 	 * An element within a state machine model that represents the root of the state machine model.

@@ -5,7 +5,6 @@
  * http://www.steelbreeze.net/state.cs
  */
  
-// TODO: remove isComplete
 module fsm {
 	/**
 	 * An element within a state machine model that represents an transitory Vertex within the state machine model.

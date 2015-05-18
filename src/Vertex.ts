@@ -5,7 +5,6 @@
  * http://www.steelbreeze.net/state.cs
  */
  
-// TODO: remove isComplete
 module fsm {
 	/**
 	 * An abstract element within a state machine model that can be the source or target of a transition (states and pseudo states).

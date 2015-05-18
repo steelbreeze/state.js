@@ -5,7 +5,6 @@
  * http://www.steelbreeze.net/state.cs
  */
  
-// TODO: look to move isComplete as its not related to model definition
 module fsm {
 	/**
 	 * An element within a state machine model that is a container of Vertices.

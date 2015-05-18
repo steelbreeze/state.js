@@ -4,8 +4,7 @@
  * Licensed under the MIT and GPL v3 licences
  * http://www.steelbreeze.net/state.cs
  */
- 
-// TODO: look to move isAvtive and isComplete as they're not related to model definition
+
 module fsm {
 	/**
 	 * An element within a state machine model that represents an invariant condition within the life of the state machine instance.
