@@ -81,6 +81,14 @@ declare module fsm {
          */
         isActive(instance: IActiveStateConfiguration): boolean;
         /**
+         * Accepts an instance of a visitor.
+         * @method accept
+         * @param {Visitor<TArg>} visitor The visitor instance.
+         * @param {TArg} arg An optional argument to pass into the visitor.
+         * @returns {any} Any value can be returned by the visitor.
+         */
+        accept<TArg>(visitor: Visitor<TArg>, arg?: TArg, ...rest: any[]): any;
+        /**
          * Returns a the element name as a fully qualified namespace.
          * @method toString
          * @returns {string}
@@ -144,14 +152,6 @@ declare module fsm {
          * @returns {Transition} The new transition object.
          */
         to(target?: Vertex): Transition;
-        /**
-         * Accepts an instance of a visitor.
-         * @method accept
-         * @param {Visitor<TArg>} visitor The visitor instance.
-         * @param {TArg} arg An optional argument to pass into the visitor.
-         * @returns {any} Any value can be returned by the visitor.
-         */
-        accept<TArg>(visitor: Visitor<TArg>, arg?: TArg, ...rest: any[]): any;
     }
 }
 declare module fsm {

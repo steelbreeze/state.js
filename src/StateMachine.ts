@@ -45,7 +45,7 @@ module fsm {
 		 * @returns {boolean} True if the element is active within the state machine instance.
 		 */
 		isActive(instance: IActiveStateConfiguration): boolean {
-			return this.region ? this.region.isActive(instance) : true;
+			return this.region ? super.isActive(instance) : true;
 		}
 
 		/**
@@ -119,6 +119,7 @@ module fsm {
 			actions[i](message, instance, history);
 		}	
 	}
+	
 	
 	// evaluates messages against a state machine, executing transitions as appropriate
 	class Evaluator extends Visitor<IActiveStateConfiguration> {
@@ -213,6 +214,7 @@ module fsm {
 			for (var i = 0, l = state.regions.length; i < l; i++) {
 				if (state.regions[i].accept(this, instance, message)) {
 					result = true;
+										
 					
 					if (!state.isActive(instance)) {
 						break;

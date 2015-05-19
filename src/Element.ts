@@ -49,8 +49,8 @@ module fsm {
 		 * @returns {Element} The parent element of the element.
 		 */
 		getParent(): Element {
-			return; // note this is an abstract method.
-		}
+			return;
+		 }
 
 		/**
 		 * Returns the root element within the state machine model.
@@ -77,6 +77,18 @@ module fsm {
 		 */
 		isActive(instance: IActiveStateConfiguration): boolean {
 			return this.getParent().isActive(instance);
+		}
+
+
+		/**
+		 * Accepts an instance of a visitor.
+		 * @method accept
+		 * @param {Visitor<TArg>} visitor The visitor instance.
+		 * @param {TArg} arg An optional argument to pass into the visitor.
+		 * @returns {any} Any value can be returned by the visitor.
+ 		 */
+		accept<TArg>(visitor: Visitor<TArg>, arg?: TArg, ...rest: any[]): any {
+			return;
 		}
 
 		/**

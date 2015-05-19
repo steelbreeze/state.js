@@ -49,6 +49,18 @@ Determines if an element is active within a given state machine instance.
 
 **Returns**: `boolean`, True if the element is active within the state machine instance.
 
+### fsm.Element.accept(visitor, arg) 
+
+Accepts an instance of a visitor.
+
+**Parameters**
+
+**visitor**: `Visitor.&lt;TArg&gt;`, The visitor instance.
+
+**arg**: `TArg`, An optional argument to pass into the visitor.
+
+**Returns**: `any`, Any value can be returned by the visitor.
+
 ### fsm.Element.toString() 
 
 Returns a the element name as a fully qualified namespace.
@@ -102,18 +114,6 @@ Transitions can be converted to be event triggered by adding a guard condition v
 **target**: `Vertex`, The destination of the transition; omit for internal transitions.
 
 **Returns**: `Transition`, The new transition object.
-
-### fsm.Vertex.accept(visitor, arg) 
-
-Accepts an instance of a visitor.
-
-**Parameters**
-
-**visitor**: `Visitor.&lt;TArg&gt;`, The visitor instance.
-
-**arg**: `TArg`, An optional argument to pass into the visitor.
-
-**Returns**: `any`, Any value can be returned by the visitor.
 
 
 ## Class: PseudoState
@@ -189,22 +189,17 @@ An enumeration of static constants that dictates the precise behaviour of pseudo
 Use these constants as the `kind` parameter when creating new `PseudoState` instances.
 
 **Initial**: `number` , Used for pseudo states that are always the staring point when entering their parent region.
-
 **ShallowHistory**: `number` , Used for pseudo states that are the the starting point when entering their parent region for the first time; subsequent entries will start at the last known state.
-
 **DeepHistory**: `number` , As per `ShallowHistory` but the history semantic cascades through all child regions irrespective of their initial pseudo state kind.
-
 **Choice**: `number` , Enables a dynamic conditional branches; within a compound transition.
 All outbound transition guards from a Choice are evaluated upon entering the PseudoState:
 if a single transition is found, it will be traversed;
 if many transitions are found, an arbitary one will be selected and traversed;
 if none evaluate true, and there is no 'else transition' defined, the machine is deemed illformed and an exception will be thrown.
-
 **Junction**: `number` , Enables a static conditional branches; within a compound transition.
 All outbound transition guards from a Choice are evaluated upon entering the PseudoState:
 if a single transition is found, it will be traversed;
 if many or none evaluate true, and there is no 'else transition' defined, the machine is deemed illformed and an exception will be thrown.
-
 **Terminate**: `number` , Entering a terminate `PseudoState` implies that the execution of this state machine by means of its state object is terminated.
 
 ## Class: Region
