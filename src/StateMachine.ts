@@ -39,16 +39,6 @@ module fsm {
 		}
 
 		/**
-		 * Determines if an element is active within a given state machine instance.
-		 * @method isActive
-		 * @param {IActiveStateConfiguration} instance The state machine instance.
-		 * @returns {boolean} True if the element is active within the state machine instance.
-		 */
-		isActive(instance: IActiveStateConfiguration): boolean {
-			return this.region ? super.isActive(instance) : true;
-		}
-
-		/**
 		 * Bootstraps the state machine model; precompiles the actions to take during transition traversal.
 		 *
 		 * Bootstrapping a state machine model pre-calculates all the actions required for each transition within the state machine model.
@@ -120,6 +110,10 @@ module fsm {
 		}	
 	}
 	
+	// determines if a state is currently active
+	function isActive(state: State, instance: IActiveStateConfiguration): boolean {
+		return state.region ? (isActive(state.region.state, instance) && (instance.getCurrent(state.region) === state)) : true;
+	}
 	
 	// evaluates messages against a state machine, executing transitions as appropriate
 	class Evaluator extends Visitor<IActiveStateConfiguration> {
@@ -214,9 +208,8 @@ module fsm {
 			for (var i = 0, l = state.regions.length; i < l; i++) {
 				if (state.regions[i].accept(this, instance, message)) {
 					result = true;
-										
 					
-					if (!state.isActive(instance)) {
+					if (!isActive(state,instance)) {
 						break;
 					}
 				}

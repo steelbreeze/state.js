@@ -74,20 +74,13 @@ declare module fsm {
          */
         ancestors(): Array<Element>;
         /**
-         * Determines if an element is active within a given state machine instance.
-         * @method isActive
-         * @param {IActiveStateConfiguration} instance The state machine instance.
-         * @returns {boolean} True if the element is active within the state machine instance.
-         */
-        isActive(instance: IActiveStateConfiguration): boolean;
-        /**
          * Accepts an instance of a visitor.
          * @method accept
          * @param {Visitor<TArg>} visitor The visitor instance.
          * @param {TArg} arg An optional argument to pass into the visitor.
          * @returns {any} Any value can be returned by the visitor.
          */
-        accept<TArg>(visitor: Visitor<TArg>, arg?: TArg, ...rest: any[]): any;
+        accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any;
         /**
          * Returns a the element name as a fully qualified namespace.
          * @method toString
@@ -307,7 +300,6 @@ declare module fsm {
      * @augments Element
      */
     class Region extends Element {
-        parent: State;
         /**
          * The name given to regions that are are created automatically when a state is passed as a vertex's parent.
          * Regions are automatically inserted into state machine models as the composite structure is built; they are named using this static member.
@@ -315,6 +307,11 @@ declare module fsm {
          * @member {string}
          */
         static defaultName: string;
+        /**
+         * The parent state of this region.
+         * @member {Region}
+         */
+        state: State;
         /**
          * The set of vertices that are children of the region.
          * @member {Array<Vertex>}
@@ -328,9 +325,9 @@ declare module fsm {
         /**
          * Creates a new instance of the Region class.
          * @param {string} name The name of the region.
-         * @param {State} parent The parent state that this region will be a child of.
+         * @param {State} state The parent state that this region will be a child of.
          */
-        constructor(name: string, parent: State);
+        constructor(name: string, state: State);
         /**
          * Returns the parent element of this region.
          * @method getParent
@@ -396,13 +393,6 @@ declare module fsm {
          * @returns {Region} The default region.
          */
         defaultRegion(): Region;
-        /**
-         * Determines if an element is active within a given state machine instance.
-         * @method isActive
-         * @param {IActiveStateConfiguration} instance The state machine instance.
-         * @returns {boolean} True if the element is active within the state machine instance.
-         */
-        isActive(instance: IActiveStateConfiguration): boolean;
         /**
          * Tests the state to see if it is a final state;
          * a final state is one that has no outbound transitions.
@@ -497,7 +487,7 @@ declare module fsm {
          * @param {TArg} arg An optional argument to pass into the visitor.
          * @returns {any} Any value can be returned by the visitor.
          */
-        accept<TArg>(visitor: Visitor<TArg>, arg?: TArg, ...rest: any[]): any;
+        accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any;
     }
 }
 declare module fsm {
@@ -619,13 +609,6 @@ declare module fsm {
          * @returns {StateMachine} The root state machine element.
          */
         root(): StateMachine;
-        /**
-         * Determines if an element is active within a given state machine instance.
-         * @method isActive
-         * @param {IActiveStateConfiguration} instance The state machine instance.
-         * @returns {boolean} True if the element is active within the state machine instance.
-         */
-        isActive(instance: IActiveStateConfiguration): boolean;
         /**
          * Bootstraps the state machine model; precompiles the actions to take during transition traversal.
          *

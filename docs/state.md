@@ -39,16 +39,6 @@ Returns the ancestors of the element.
 The ancestors are returned as an array of elements, staring with the root element and ending with this elemenet.
 
 
-### fsm.Element.isActive(instance) 
-
-Determines if an element is active within a given state machine instance.
-
-**Parameters**
-
-**instance**: `IActiveStateConfiguration`, The state machine instance.
-
-**Returns**: `boolean`, True if the element is active within the state machine instance.
-
 ### fsm.Element.accept(visitor, arg) 
 
 Accepts an instance of a visitor.
@@ -219,7 +209,7 @@ Region extends the Element class and inherits its public interface.
 **defaultName**: `string` , The name given to regions that are are created automatically when a state is passed as a vertex's parent.
 Regions are automatically inserted into state machine models as the composite structure is built; they are named using this static member.
 Update this static member to use a different name for default regions.
-### fsm.Region.Region(name, parent) 
+### fsm.Region.Region(name, state) 
 
 Creates a new instance of the Region class.
 
@@ -227,7 +217,7 @@ Creates a new instance of the Region class.
 
 **name**: `string`, The name of the region.
 
-**parent**: `State`, The parent state that this region will be a child of.
+**state**: `State`, The parent state that this region will be a child of.
 
 
 ### fsm.Region.getParent() 
@@ -292,16 +282,6 @@ Returns the default region for the state.
 Note, this will create the default region if it does not already exist.
 
 **Returns**: `Region`, The default region.
-
-### fsm.State.isActive(instance) 
-
-Determines if an element is active within a given state machine instance.
-
-**Parameters**
-
-**instance**: `IActiveStateConfiguration`, The state machine instance.
-
-**Returns**: `boolean`, True if the element is active within the state machine instance.
 
 ### fsm.State.isFinal() 
 
@@ -580,16 +560,6 @@ Returns the root element within the state machine model.
 Note that if this state machine is embeded within another state machine, the ultimate root element will be returned.
 
 **Returns**: `StateMachine`, The root state machine element.
-
-### fsm.StateMachine.isActive(instance) 
-
-Determines if an element is active within a given state machine instance.
-
-**Parameters**
-
-**instance**: `IActiveStateConfiguration`, The state machine instance.
-
-**Returns**: `boolean`, True if the element is active within the state machine instance.
 
 ### fsm.StateMachine.bootstrap() 
 

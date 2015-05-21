@@ -70,25 +70,14 @@ module fsm {
 		}
 
 		/**
-		 * Determines if an element is active within a given state machine instance.
-		 * @method isActive
-		 * @param {IActiveStateConfiguration} instance The state machine instance.
-		 * @returns {boolean} True if the element is active within the state machine instance.
-		 */
-		isActive(instance: IActiveStateConfiguration): boolean {
-			return this.getParent().isActive(instance);
-		}
-
-
-		/**
 		 * Accepts an instance of a visitor.
 		 * @method accept
 		 * @param {Visitor<TArg>} visitor The visitor instance.
 		 * @param {TArg} arg An optional argument to pass into the visitor.
 		 * @returns {any} Any value can be returned by the visitor.
  		 */
-		accept<TArg>(visitor: Visitor<TArg>, arg?: TArg, ...rest: any[]): any {
-			return;
+		accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
+			return visitor.visitElement(this, arg1, arg2, arg3, arg4); // NOTE: this should never get called
 		}
 
 		/**

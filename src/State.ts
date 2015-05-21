@@ -75,16 +75,6 @@ module fsm {
 		}
 
 		/**
-		 * Determines if an element is active within a given state machine instance.
-		 * @method isActive
-		 * @param {IActiveStateConfiguration} instance The state machine instance.
-		 * @returns {boolean} True if the element is active within the state machine instance.
-		 */
-		isActive(instance: IActiveStateConfiguration): boolean {
-			return super.isActive(instance) && instance.getCurrent(this.region) === this;
-		}
-
-		/**
 		 * Tests the state to see if it is a final state;
 		 * a final state is one that has no outbound transitions.
 		 * @method isFinal

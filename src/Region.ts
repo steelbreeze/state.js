@@ -26,6 +26,12 @@ module fsm {
 		public static defaultName: string = "default";
 		
 		/**
+		 * The parent state of this region.
+		 * @member {Region}
+		 */
+		state: State;
+		
+		/**
 		 * The set of vertices that are children of the region.
 		 * @member {Array<Vertex>}
 		 */
@@ -40,14 +46,16 @@ module fsm {
 		/**
 		 * Creates a new instance of the Region class.
 		 * @param {string} name The name of the region.
-		 * @param {State} parent The parent state that this region will be a child of.
+		 * @param {State} state The parent state that this region will be a child of.
 		 */
-		constructor(name: string, public parent: State) {
+		constructor(name: string, state: State) {
 			super(name);
+		
+			this.state = state;
 
-			parent.regions.push(this);
+			this.state.regions.push(this);
 
-			parent.root().clean = false;
+			this.state.root().clean = false;
 		}
 
 		/**
@@ -56,7 +64,7 @@ module fsm {
 		 * @returns {Element} The parent element of the region.
 		 */
 		getParent(): Element {
-			return this.parent;
+			return this.state;
 		}
 		
 		/**
