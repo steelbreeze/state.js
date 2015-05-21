@@ -6,6 +6,8 @@ Moved the message evaluation and transition selection / execution to a visitor t
 
 Move Vertex.accept to Element.accept.
 
+Refactor isActive out of state machine model.
+
 ## Version 5.1.1
 Created singletons for bootstrapping rather than static method in StateMachine and Bootstrap classes.
 
