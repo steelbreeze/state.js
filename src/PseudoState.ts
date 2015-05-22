@@ -57,18 +57,6 @@ module fsm {
 		}
 
 		/**
-		 * Tests the vertex to determine if it is deemed to be complete.
-		 * Pseudo states and simple states are always deemed to be complete.
-		 * Composite states are deemed to be complete when all its child regions all are complete.
-		 * @method isComplete
-		 * @param {IActiveStateConfiguration} instance The object representing a particular state machine instance.
-		 * @returns {boolean} True if the vertex is deemed to be complete.
-		 */
-		isComplete(instance: IActiveStateConfiguration): boolean {
-			return true;
-		}
-
-		/**
 		 * Tests a pseudo state to determine if it is a history pseudo state.
 		 * History pseudo states are of kind: Initial, ShallowHisory, or DeepHistory.
 		 * @method isHistory

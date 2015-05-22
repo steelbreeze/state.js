@@ -15,7 +15,7 @@ module fsm {
 	 * @implements IActiveStateConfiguration
 	 */
 	export class StateMachineInstance implements IActiveStateConfiguration {
-		isTerminated: boolean = false;
+		public isTerminated: boolean = false;
 		private last: any = {};
 
 		/**

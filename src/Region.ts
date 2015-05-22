@@ -68,17 +68,6 @@ module fsm {
 		}
 		
 		/**
-		 * Tests a region to determine if it is deemed to be complete.
-		 * A region is complete if its current state is final (a state having on outbound transitions).
-		 * @method isComplete
-		 * @param {IActiveStateConfiguration} instance The object representing a particular state machine instance.
-		 * @returns {boolean} True if the region is deemed to be complete.
-		 */
-		isComplete(instance: IActiveStateConfiguration): boolean {
-			return instance.getCurrent(this).isFinal();
-		}
-
-		/**
 		 * Accepts an instance of a visitor and calls the visitRegion method on it.
 		 * @method accept
 		 * @param {Visitor<TArg1>} visitor The visitor instance.

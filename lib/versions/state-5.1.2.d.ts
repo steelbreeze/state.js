@@ -128,15 +128,6 @@ declare module fsm {
          */
         getParent(): Element;
         /**
-         * Tests the vertex to determine if it is deemed to be complete.
-         * Pseudo states and simple states are always deemed to be complete.
-         * Composite states are deemed to be complete when all its child regions all are complete.
-         * @method isComplete
-         * @param {IActiveStateConfiguration} instance The object representing a particular state machine instance.
-         * @returns {boolean} True if the vertex is deemed to be complete.
-         */
-        isComplete(instance: IActiveStateConfiguration): boolean;
-        /**
          * Creates a new transition from this vertex.
          * Newly created transitions are completion transitions; they will be evaluated after a vertex has been entered if it is deemed to be complete.
          * Transitions can be converted to be event triggered by adding a guard condition via the transitions `where` method.
@@ -205,15 +196,6 @@ declare module fsm {
          * @param {PseudoStateKind} kind Determines the behaviour of the PseudoState.
          */
         constructor(name: string, parent: State, kind: PseudoStateKind);
-        /**
-         * Tests the vertex to determine if it is deemed to be complete.
-         * Pseudo states and simple states are always deemed to be complete.
-         * Composite states are deemed to be complete when all its child regions all are complete.
-         * @method isComplete
-         * @param {IActiveStateConfiguration} instance The object representing a particular state machine instance.
-         * @returns {boolean} True if the vertex is deemed to be complete.
-         */
-        isComplete(instance: IActiveStateConfiguration): boolean;
         /**
          * Tests a pseudo state to determine if it is a history pseudo state.
          * History pseudo states are of kind: Initial, ShallowHisory, or DeepHistory.
@@ -335,14 +317,6 @@ declare module fsm {
          */
         getParent(): Element;
         /**
-         * Tests a region to determine if it is deemed to be complete.
-         * A region is complete if its current state is final (a state having on outbound transitions).
-         * @method isComplete
-         * @param {IActiveStateConfiguration} instance The object representing a particular state machine instance.
-         * @returns {boolean} True if the region is deemed to be complete.
-         */
-        isComplete(instance: IActiveStateConfiguration): boolean;
-        /**
          * Accepts an instance of a visitor and calls the visitRegion method on it.
          * @method accept
          * @param {Visitor<TArg1>} visitor The visitor instance.
@@ -421,14 +395,6 @@ declare module fsm {
          * @returns {boolean} True if the state is an orthogonal state.
          */
         isOrthogonal(): boolean;
-        /**
-         * Tests a region to determine if it is deemed to be complete.
-         * A region is complete if its current state is final (a state having on outbound transitions).
-         * @method isComplete
-         * @param {IActiveStateConfiguration} instance The object representing a particular state machine instance.
-         * @returns {boolean} True if the region is deemed to be complete.
-         */
-        isComplete(instance: IActiveStateConfiguration): boolean;
         /**
          * Adds behaviour to a state that is executed each time the state is exited.
          * @method exit
@@ -595,7 +561,7 @@ declare module fsm {
      * @augments State
      */
     class StateMachine extends State {
-        init: Array<Action>;
+        onInitialise: Array<Action>;
         clean: boolean;
         /**
          * Creates a new instance of the StateMachine class.
@@ -636,6 +602,14 @@ declare module fsm {
          * @returns {boolean} True if the message triggered a state transition.
          */
         evaluate(message: any, instance: IActiveStateConfiguration, autoBootstrap?: boolean): boolean;
+        /**
+         * Test a state machine instance to see if is it deemed to be complete.
+         * A state machine is complete if all its regions are complete; a region is complete if their current state is a final state.
+         * @method isComplete
+         * @param {IActiveStateConfiguration} instance The state machine instance.
+         * @returns {boolean} True if the state machine instance is complete.
+         */
+        isComplete(instance: IActiveStateConfiguration): boolean;
         /**
          * Accepts an instance of a visitor and calls the visitStateMachine method on it.
          * @method accept
@@ -704,10 +678,10 @@ declare module fsm {
     class Transition {
         source: Vertex;
         target: Vertex;
-        static isElse: (message: any, instance: IActiveStateConfiguration) => boolean;
+        static isElse: () => boolean;
         guard: Guard;
-        transitionBehavior: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any>;
-        traverse: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any>;
+        transitionBehavior: Array<Action>;
+        traverse: Array<Action>;
         /**
          * Creates a new instance of the Transition class.
          * @param {Vertex} source The source of the transition.

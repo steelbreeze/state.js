@@ -61,7 +61,7 @@ module fsm {
 		defaultRegion(): Region {
 			var region: Region;
 
-			for (var i = 0, l = this.regions.length; i < l; i++) {
+			for (var i = 0, l = this.regions.length; i < l; i++) { // TODO: is there a native JS way to select a single value?
 				if (this.regions[i].name === Region.defaultName) {
 					region = this.regions[i];
 				}
@@ -112,23 +112,6 @@ module fsm {
 		 */
 		isOrthogonal(): boolean {
 			return this.regions.length > 1;
-		}
-
-		/**
-		 * Tests a region to determine if it is deemed to be complete.
-		 * A region is complete if its current state is final (a state having on outbound transitions).
-		 * @method isComplete
-		 * @param {IActiveStateConfiguration} instance The object representing a particular state machine instance.
-		 * @returns {boolean} True if the region is deemed to be complete.
-		 */
-		isComplete(instance: IActiveStateConfiguration): boolean {
-			for (var i = 0, l = this.regions.length; i < l; i++) {
-				if (this.regions[i].isComplete(instance) === false) {
-					return false;
-				}
-			}
-
-			return true;
 		}
 		
 		/**

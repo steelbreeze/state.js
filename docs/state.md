@@ -81,18 +81,6 @@ Returns the parent element of this vertex.
 
 **Returns**: `Element`, The parent element of the vertex.
 
-### fsm.Vertex.isComplete(instance) 
-
-Tests the vertex to determine if it is deemed to be complete.
-Pseudo states and simple states are always deemed to be complete.
-Composite states are deemed to be complete when all its child regions all are complete.
-
-**Parameters**
-
-**instance**: `IActiveStateConfiguration`, The object representing a particular state machine instance.
-
-**Returns**: `boolean`, True if the vertex is deemed to be complete.
-
 ### fsm.Vertex.to(target) 
 
 Creates a new transition from this vertex.
@@ -127,18 +115,6 @@ Creates a new instance of the PseudoState class.
 
 **kind**: `PseudoStateKind`, Determines the behaviour of the PseudoState.
 
-
-### fsm.PseudoState.isComplete(instance) 
-
-Tests the vertex to determine if it is deemed to be complete.
-Pseudo states and simple states are always deemed to be complete.
-Composite states are deemed to be complete when all its child regions all are complete.
-
-**Parameters**
-
-**instance**: `IActiveStateConfiguration`, The object representing a particular state machine instance.
-
-**Returns**: `boolean`, True if the vertex is deemed to be complete.
 
 ### fsm.PseudoState.isHistory() 
 
@@ -226,17 +202,6 @@ Returns the parent element of this region.
 
 **Returns**: `Element`, The parent element of the region.
 
-### fsm.Region.isComplete(instance) 
-
-Tests a region to determine if it is deemed to be complete.
-A region is complete if its current state is final (a state having on outbound transitions).
-
-**Parameters**
-
-**instance**: `IActiveStateConfiguration`, The object representing a particular state machine instance.
-
-**Returns**: `boolean`, True if the region is deemed to be complete.
-
 ### fsm.Region.accept(visitor, arg1, arg2, arg3, arg4) 
 
 Accepts an instance of a visitor and calls the visitRegion method on it.
@@ -310,17 +275,6 @@ Tests the state to see if it is an orthogonal state;
 an orthogonal state is one that has two or more child regions.
 
 **Returns**: `boolean`, True if the state is an orthogonal state.
-
-### fsm.State.isComplete(instance) 
-
-Tests a region to determine if it is deemed to be complete.
-A region is complete if its current state is final (a state having on outbound transitions).
-
-**Parameters**
-
-**instance**: `IActiveStateConfiguration`, The object representing a particular state machine instance.
-
-**Returns**: `boolean`, True if the region is deemed to be complete.
 
 ### fsm.State.exit(exitAction) 
 
@@ -595,6 +549,17 @@ State machines initially delegate messages to their child regions for evaluation
 **instance**: `IActiveStateConfiguration`, The state machine instance.
 
 **Returns**: `boolean`, True if the message triggered a state transition.
+
+### fsm.StateMachine.isComplete(instance) 
+
+Test a state machine instance to see if is it deemed to be complete.
+A state machine is complete if all its regions are complete; a region is complete if their current state is a final state.
+
+**Parameters**
+
+**instance**: `IActiveStateConfiguration`, The state machine instance.
+
+**Returns**: `boolean`, True if the state machine instance is complete.
 
 ### fsm.StateMachine.accept(visitor, arg1, arg2, arg3, arg4) 
 

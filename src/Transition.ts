@@ -19,16 +19,16 @@ module fsm {
 	 */
 	export class Transition {
 		// used as the guard condition for else tranitions
-		static isElse = (message: any, instance: IActiveStateConfiguration): boolean => { return false; };
+		static isElse = () => { return false; };
 
 		// guard condition for this transition.
 		guard: Guard;
 		
 		// user defined behaviour (via effect) executed when traversing this transition.
-		transitionBehavior: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any> = [];
+		transitionBehavior: Array<Action> = [];
 		
 		// the collected actions to perform when traversing the transition (includes exiting states, traversal, and state entry)
-		traverse: Array<(message: any, instance: IActiveStateConfiguration, history: boolean) => any> = [];
+		traverse: Array<Action> = [];
 
 		/** 
 		 * Creates a new instance of the Transition class.
@@ -36,8 +36,7 @@ module fsm {
 		 * @param {Vertex} source The target of the transition.
 		 */
 		constructor(public source: Vertex, public target?: Vertex) {
-			// transitions are initially completion transitions, where the message is the source state itself
-			this.guard = (message, instance): boolean => { return message === this.source; };
+			this.guard = message => { return message === this.source; };
 		}
 
 		/**

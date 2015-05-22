@@ -15,7 +15,7 @@ module fsm {
 	 */
 	export class StateMachine extends State {
 		// behaviour required to bootstrap state machine instances.
-		init: Array<Action>;
+		onInitialise: Array<Action>;
 		
 		// flag used to indicate that the state machine model requires bootstrapping.
 		clean = false;
@@ -65,7 +65,7 @@ module fsm {
 				this.initialiseModel();
 			}
 
-			invoke(this.init, undefined, instance);
+			invoke(this.onInitialise, undefined, instance);
 		}
 
 		/**
@@ -86,6 +86,17 @@ module fsm {
 			}
 
 			return this.accept(Evaluator.getInstance(), instance, message);
+		}
+
+		/**
+		 * Test a state machine instance to see if is it deemed to be complete.
+		 * A state machine is complete if all its regions are complete; a region is complete if their current state is a final state.
+		 * @method isComplete
+		 * @param {IActiveStateConfiguration} instance The state machine instance.
+		 * @returns {boolean} True if the state machine instance is complete.
+		 */
+		isComplete(instance: IActiveStateConfiguration) {
+			return isComplete(this, instance);
 		}
 
 		/**
@@ -114,7 +125,24 @@ module fsm {
 	function isActive(state: State, instance: IActiveStateConfiguration): boolean {
 		return state.region ? (isActive(state.region.state, instance) && (instance.getCurrent(state.region) === state)) : true;
 	}
+
+	// deternines if a vertex is complete
+	function isComplete(vertex: Vertex, instance: IActiveStateConfiguration): boolean {
+		if(vertex instanceof State) {
+			return (<State>vertex).regions.every(region => { return instance.getCurrent(region).isFinal(); });			
+		}
+
+		return true;
+	}
 	
+	// Temporary structure to hold element behaviour during the bootstrap process
+	class Behaviour {
+		leave: Array<Action> = [];
+		beginEnter: Array<Action> = [];
+		endEnter: Array<Action> = [];
+		enter: Array<Action> = [];
+	}
+
 	// evaluates messages against a state machine, executing transitions as appropriate
 	class Evaluator extends Visitor<IActiveStateConfiguration> {
 		private static _instance: Evaluator;
@@ -236,20 +264,12 @@ module fsm {
 				}
 			}
 			
-			if (result && (message !== state) && state.isComplete(instance)) {
+			if (result && (message !== state) && isComplete(state, instance)) {
 				this.visitState (state, instance, state);
 			}
 			
 			return result;
 		}
-	}
-
-	// Temporary structure to hold element behaviour during the bootstrap process
-	class Behaviour {
-		leave: Array<Action> = [];
-		beginEnter: Array<Action> = [];
-		endEnter: Array<Action> = [];
-		enter: Array<Action> = [];
 	}
 
 	// Bootstraps transitions after all elements have been bootstrapped
@@ -395,7 +415,7 @@ module fsm {
 			var vertexBehaviour = this.behaviour((vertex));
 
 			vertexBehaviour.endEnter.push((message, instance, history) => {
-				if (vertex.isComplete(instance)) {
+				if (isComplete(vertex, instance)) {
 					vertex.accept(Evaluator.getInstance(), instance, vertex);
 				}
 			});
@@ -450,7 +470,7 @@ module fsm {
 
 			stateMachine.accept(BootstrapTransitions.getInstance(), (element: Element) => { return this.behaviour(element); });
 
-			stateMachine.init = this.behaviour(stateMachine).enter;
+			stateMachine.onInitialise = this.behaviour(stateMachine).enter;
 		}
 	}
 }

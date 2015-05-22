@@ -71,18 +71,6 @@ module fsm {
 		}
 		
 		/**
-		 * Tests the vertex to determine if it is deemed to be complete.
-		 * Pseudo states and simple states are always deemed to be complete.
-		 * Composite states are deemed to be complete when all its child regions all are complete.
-		 * @method isComplete
-		 * @param {IActiveStateConfiguration} instance The object representing a particular state machine instance.
-		 * @returns {boolean} True if the vertex is deemed to be complete.
-		 */
-		isComplete(instance: IActiveStateConfiguration): boolean {
-			return;
-		}
-
-		/**
 		 * Creates a new transition from this vertex.
 		 * Newly created transitions are completion transitions; they will be evaluated after a vertex has been entered if it is deemed to be complete.
 		 * Transitions can be converted to be event triggered by adding a guard condition via the transitions `where` method.
