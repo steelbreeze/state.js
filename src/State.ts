@@ -61,11 +61,7 @@ module fsm {
 		defaultRegion(): Region {
 			var region: Region;
 
-			for (var i = 0, l = this.regions.length; i < l; i++) { // TODO: is there a native JS way to select a single value?
-				if (this.regions[i].name === Region.defaultName) {
-					region = this.regions[i];
-				}
-			}
+			this.regions.forEach(r => { if (r.name === Region.defaultName) { region = r; } });
 
 			if (!region) {
 				region = new Region(Region.defaultName, this);
