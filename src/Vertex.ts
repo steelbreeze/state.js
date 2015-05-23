@@ -18,20 +18,20 @@ module fsm {
 		 * The parent region of this vertex.
 		 * @member {Region}
 		 */
-		region: Region;
+		public region: Region;
 		
 		/**
 		 * The set of transitions from this vertex.
 		 * @member {Array<Transition>}
 		 */
-		transitions: Array<Transition> = [];
+		public transitions: Array<Transition> = [];
 
 		/**
 		 * Creates a new instance of the Vertex class within a given parent region.
 		 * @param {string} name The name of the vertex.
 		 * @param {Region} parent The parent region.
 		 */
-		constructor(name: string, parent: Region);
+		public constructor(name: string, parent: Region);
 		
 		/**
 		 * Creates a new instance of the Vertex class within a given parent state.
@@ -39,14 +39,14 @@ module fsm {
 		 * @param {string} name The name of the vertex.
 		 * @param {State} parent The parent state.
 		 */
-		constructor(name: string, parent: State);
+		public constructor(name: string, parent: State);
 
 		/**
 		 * Creates a new instance of the Vertex class.
 		 * @param {string} name The name of the vertex.
 		 * @param {Region|State} parent The parent region or state.
 		 */
-		constructor(name: string, parent: any) {
+		public constructor(name: string, parent: any) {
 			super(name);
 
 			if (parent instanceof Region) {
@@ -66,7 +66,7 @@ module fsm {
 		 * @method getParent
 		 * @returns {Element} The parent element of the vertex.
 		 */
-		getParent(): Element {
+		public getParent(): Element {
 			return this.region;
 		}
 		
@@ -78,7 +78,7 @@ module fsm {
 		 * @param {Vertex} target The destination of the transition; omit for internal transitions.
 		 * @returns {Transition} The new transition object.
 		 */
-		to(target?: Vertex): Transition {
+		public to(target?: Vertex): Transition {
 			var transition = new Transition(this, target);
 
 			this.transitions.push(transition);

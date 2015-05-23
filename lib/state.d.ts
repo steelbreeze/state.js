@@ -144,6 +144,7 @@ declare module fsm {
      * @interface IActiveStateConfiguration
      */
     interface IActiveStateConfiguration {
+        evaluator: Visitor<IActiveStateConfiguration>;
         /**
          * @member {boolean} isTerminated Indicates that the state machine instance has reached a terminate pseudo state and therfore will no longer evaluate messages.
          */
@@ -561,8 +562,8 @@ declare module fsm {
      * @augments State
      */
     class StateMachine extends State {
-        onInitialise: Array<Action>;
         clean: boolean;
+        onInitialise: Array<Action>;
         /**
          * Creates a new instance of the StateMachine class.
          * @param {string} name The name of the state machine.
@@ -575,41 +576,6 @@ declare module fsm {
          * @returns {StateMachine} The root state machine element.
          */
         root(): StateMachine;
-        /**
-         * Bootstraps the state machine model; precompiles the actions to take during transition traversal.
-         *
-         * Bootstrapping a state machine model pre-calculates all the actions required for each transition within the state machine model.
-         * The actions will exit all states as appropriate, perform transition behaviour, enter all states as appropriate and update the current state.
-         *
-         * This is only required if you are dynamically changing the state machine model and want to manually control when the model is bootstrapped.
-         * @method bootstrap
-         */
-        initialiseModel(): void;
-        /**
-         * Initialises an instance of the state machine and enters its initial pseudo state.
-         * Entering the initial pseudo state may cause a chain of other completion transitions.
-         * @method initialise
-         * @param {IActiveStateConfiguration} instance The object representing a particular state machine instance.
-         * @param {boolean} autoBootstrap Set to false to manually control when bootstrapping occurs.
-         */
-        initialise(instance: IActiveStateConfiguration, autoBootstrap?: boolean): void;
-        /**
-         * Evaluates a message to determine if a state transition can be made.
-         * State machines initially delegate messages to their child regions for evaluation.
-         * @method evaluate
-         * @param {any} message The message that will be evaluated.
-         * @param {IActiveStateConfiguration} instance The state machine instance.
-         * @returns {boolean} True if the message triggered a state transition.
-         */
-        evaluate(message: any, instance: IActiveStateConfiguration, autoBootstrap?: boolean): boolean;
-        /**
-         * Test a state machine instance to see if is it deemed to be complete.
-         * A state machine is complete if all its regions are complete; a region is complete if their current state is a final state.
-         * @method isComplete
-         * @param {IActiveStateConfiguration} instance The state machine instance.
-         * @returns {boolean} True if the state machine instance is complete.
-         */
-        isComplete(instance: IActiveStateConfiguration): boolean;
         /**
          * Accepts an instance of a visitor and calls the visitStateMachine method on it.
          * @method accept
@@ -624,6 +590,11 @@ declare module fsm {
     }
 }
 declare module fsm {
+    function initialise(stateMachine: StateMachine, instance?: IActiveStateConfiguration, autoBootstrap?: boolean): void;
+    function evaluate(stateMachine: StateMachine, instance: IActiveStateConfiguration, message: any, autoBootstrap?: boolean): boolean;
+    function isComplete(vertex: Vertex, instance: IActiveStateConfiguration): boolean;
+}
+declare module fsm {
     /**
      * Default working implementation of a state machine instance class.
      *
@@ -634,6 +605,7 @@ declare module fsm {
      */
     class StateMachineInstance implements IActiveStateConfiguration {
         name: string;
+        evaluator: Visitor<IActiveStateConfiguration>;
         isTerminated: boolean;
         private last;
         /**
@@ -641,19 +613,7 @@ declare module fsm {
          * @param {string} name The optional name of the state machine instance.
          */
         constructor(name?: string);
-        /**
-         * Updates the last known state for a given region.
-         * @method setCurrent
-         * @param {Region} region The region to update the last known state for.
-         * @param {State} state The last known state for the given region.
-         */
         setCurrent(region: Region, state: State): void;
-        /**
-         * Returns the last known state for a given region.
-         * @method getCurrent
-         * @param {Region} region The region to update the last known state for.
-         * @returns {State} The last known state for the given region.
-         */
         getCurrent(region: Region): State;
         /**
          * Returns the name of the state machine instance.

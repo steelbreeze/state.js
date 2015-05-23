@@ -1,6 +1,6 @@
 # Welcome to state.js
 
-This is version 5.1.3.
+This is version 5.2.0 which is currently under development.
 
 To see the example code in action, click [here](https://cdn.rawgit.com/steelbreeze/state.js/master/examples/test.html).
 

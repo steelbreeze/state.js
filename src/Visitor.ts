@@ -21,7 +21,7 @@ module fsm {
 		 * @param {any} arg4 An optional parameter passed into the accept method.
 		 * @returns {any} Any value may be returned when visiting an element.
 		 */
-		visitElement(element: Element, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
+		public visitElement(element: Element, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
 			return;
 		}
 
@@ -35,7 +35,7 @@ module fsm {
 		 * @param {any} arg4 An optional parameter passed into the accept method.
 		 * @returns {any} Any value may be returned when visiting an element.
 		 */
-		visitRegion(region: Region, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
+		public visitRegion(region: Region, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
 			var result = this.visitElement(region, arg1, arg2, arg3, arg4);
 
 			region.vertices.forEach(vertex => { vertex.accept(this, arg1, arg2, arg3, arg4) });
@@ -53,7 +53,7 @@ module fsm {
 		 * @param {any} arg4 An optional parameter passed into the accept method.
 		 * @returns {any} Any value may be returned when visiting an element.
 		 */
-		visitVertex(vertex: Vertex, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
+		public visitVertex(vertex: Vertex, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
 			var result = this.visitElement(vertex, arg1, arg2, arg3, arg4);
 
 			vertex.transitions.forEach(transition => { transition.accept(this, arg1, arg2, arg3, arg4) });
@@ -71,7 +71,7 @@ module fsm {
 		 * @param {any} arg4 An optional parameter passed into the accept method.
 		 * @returns {any} Any value may be returned when visiting an element.
 		 */
-		visitPseudoState(pseudoState: PseudoState, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
+		public visitPseudoState(pseudoState: PseudoState, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
 			return this.visitVertex(pseudoState, arg1, arg2, arg3, arg4);
 		}
 
@@ -86,7 +86,7 @@ module fsm {
 		 * @param {any} arg4 An optional parameter passed into the accept method.
 		 * @returns {any} Any value may be returned when visiting an element.
 		 */
-		visitState(state: State, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
+		public visitState(state: State, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
 			var result = this.visitVertex(state, arg1, arg2, arg3, arg4);
 
 			state.regions.forEach(region => { region.accept(this, arg1, arg2, arg3, arg4) });
@@ -104,7 +104,7 @@ module fsm {
 		 * @param {any} arg4 An optional parameter passed into the accept method.
 		 * @returns {any} Any value may be returned when visiting an element.
 		 */
-		visitFinalState(finalState: FinalState, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
+		public visitFinalState(finalState: FinalState, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
 			return this.visitState(finalState, arg1, arg2, arg3, arg4);
 		}
 
@@ -118,7 +118,7 @@ module fsm {
 		 * @param {any} arg4 An optional parameter passed into the accept method.
 		 * @returns {any} Any value may be returned when visiting an element.
 		 */
-		visitStateMachine(stateMachine: StateMachine, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
+		public visitStateMachine(stateMachine: StateMachine, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
 			return this.visitState(stateMachine, arg1, arg2, arg3, arg4);
 		}
 
@@ -132,7 +132,7 @@ module fsm {
 		 * @param {any} arg4 An optional parameter passed into the accept method.
 		 * @returns {any} Any value may be returned when visiting an element.
 		 */
-		visitTransition(transition: Transition, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
+		public visitTransition(transition: Transition, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
 			return;
 		}
 	}

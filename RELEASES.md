@@ -1,3 +1,6 @@
+## Version 5.2.0
+Extract the last pieces of the runtime from the model classes to a set of independant functions.
+
 ## Version 5.1.2 / 3
 Changed the visitor implementation to accept multiple parameters after the template parameter.
 

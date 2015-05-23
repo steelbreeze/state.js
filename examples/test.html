@@ -42,13 +42,13 @@
             flipped.entry(function () { $("#diagram").attr("src", "controller_flipped.png"); });
 
             /* create the state machine context object */
-            var sms = new fsm.StateMachineInstance("player");
+            var instance = new fsm.StateMachineInstance("player");
 
             /* pass button values to the state machine when clicked */
-            $("button").click(function(button) { player.evaluate(button.target.textContent, sms); });
+            $("button").click(function(button) { fsm.evaluate (player, instance, button.target.textContent); });
 
             /* initialise the machine */
-            player.initialise(sms);
+            fsm.initialise(player, instance);
         });
     </script>
 </html>

@@ -21,26 +21,26 @@ module fsm {
 		 * @param {string} name The name of the final state.
 		 * @param {Region} parent The parent region that owns the final state.
 		 */
-		constructor(name: string, parent: Region);
+		public constructor(name: string, parent: Region);
 		
 		/** 
 		 * Creates a new instance of the FinalState class.
 		 * @param {string} name The name of the final state.
 		 * @param {State} parent The parent state that owns the final state.
 		 */
-		constructor(name: string, parent: State);
+		public constructor(name: string, parent: State);
 		
 		/** 
 		 * Creates a new instance of the FinalState class.
 		 * @param {string} name The name of the final state.
 		 * @param {Element} parent The parent element that owns the final state.
 		 */
-		constructor(name: string, parent: any) {
+		public constructor(name: string, parent: any) {
 			super(name, parent);
 		}
 
 		// override Vertex.to to throw an exception when trying to create a transition from a final state.
-		to(target?: Vertex): Transition {
+		public to(target?: Vertex): Transition {
 			throw "A FinalState cannot be the source of a transition.";
 		}
 
@@ -51,7 +51,7 @@ module fsm {
 		 * @param {TArg} arg An optional argument to pass into the visitor.
 		 * @returns {any} Any value can be returned by the visitor.
  		 */
-		accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
+		public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
 			return visitor.visitFinalState(this, arg1, arg2, arg3, arg4);
 		}
 	}

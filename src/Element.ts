@@ -39,7 +39,7 @@ module fsm {
 		 * Creates a new instance of the element class.
 		 * @param {string} name The name of the element.
 		 */
-		constructor(name: string) {
+		public constructor(name: string) {
 			this.name = name;
 		}
 
@@ -48,7 +48,7 @@ module fsm {
 		 * @method getParent
 		 * @returns {Element} The parent element of the element.
 		 */
-		getParent(): Element {
+		public getParent(): Element {
 			return;
 		 }
 
@@ -57,7 +57,7 @@ module fsm {
 		 * @method root
 		 * @returns {StateMachine} The root state machine element.
 		 */
-		root(): StateMachine {
+		public root(): StateMachine {
 			return this.getParent().root();
 		}
 
@@ -76,7 +76,7 @@ module fsm {
 		 * @param {TArg} arg An optional argument to pass into the visitor.
 		 * @returns {any} Any value can be returned by the visitor.
  		 */
-		accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any { /* virtual method */ }
+		public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any { /* virtual method */ }
 
 		/**
 		 * Returns a the element name as a fully qualified namespace.

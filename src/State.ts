@@ -27,28 +27,28 @@ module fsm {
 		 * The set of regions under this state.
 		 * @member {Array<Region>}
 		 */
-		regions: Array<Region> = [];		
+		public regions: Array<Region> = [];		
 
 		/** 
 		 * Creates a new instance of the State class.
 		 * @param {string} name The name of the state.
 		 * @param {Region} parent The parent region that owns the state.
 		 */
-		constructor(name: string, parent: Region);
+		public constructor(name: string, parent: Region);
 		
 		/** 
 		 * Creates a new instance of the State class.
 		 * @param {string} name The name of the state.
 		 * @param {State} parent The parent state that owns the state.
 		 */
-		constructor(name: string, parent: State);
+		public constructor(name: string, parent: State);
 
 		/** 
 		 * Creates a new instance of the State class.
 		 * @param {string} name The name of the state.
 		 * @param {Element} parent The parent state that owns the state.
 		 */
-		constructor(name: string, parent: any) {
+		public constructor(name: string, parent: any) {
 			super(name, parent);
 		}
 
@@ -58,7 +58,7 @@ module fsm {
 		 * @method defaultRegion
 		 * @returns {Region} The default region.
 		 */
-		defaultRegion(): Region {
+		public defaultRegion(): Region {
 			var region: Region;
 
 			this.regions.forEach(r => { if (r.name === Region.defaultName) { region = r; } });
@@ -76,7 +76,7 @@ module fsm {
 		 * @method isFinal
 		 * @returns {boolean} True if the state is a final state.
 		 */
-		isFinal(): boolean {
+		public isFinal(): boolean {
 			return this.transitions.length === 0;
 		}
 		
@@ -86,7 +86,7 @@ module fsm {
 		 * @method isSimple
 		 * @returns {boolean} True if the state is a simple state.
 		 */
-		isSimple(): boolean {
+		public isSimple(): boolean {
 			return this.regions.length === 0;
 		}
 
@@ -96,7 +96,7 @@ module fsm {
 		 * @method isComposite
 		 * @returns {boolean} True if the state is a composite state.
 		 */
-		isComposite(): boolean {
+		public isComposite(): boolean {
 			return this.regions.length > 0;
 		}
 
@@ -106,7 +106,7 @@ module fsm {
 		 * @method isOrthogonal
 		 * @returns {boolean} True if the state is an orthogonal state.
 		 */
-		isOrthogonal(): boolean {
+		public isOrthogonal(): boolean {
 			return this.regions.length > 1;
 		}
 		
@@ -116,7 +116,7 @@ module fsm {
 		 * @param {Action} exitAction The action to add to the state's exit behaviour.
 		 * @returns {State} Returns the state to allow a fluent style API.
 		 */
-		exit<TMessage>(exitAction: Action): State {
+		public exit<TMessage>(exitAction: Action): State {
 			this.exitBehavior.push(exitAction);
 
 			this.root().clean = false;
@@ -130,7 +130,7 @@ module fsm {
 		 * @param {Action} entryAction The action to add to the state's entry behaviour.
 		 * @returns {State} Returns the state to allow a fluent style API.
 		 */
-		entry<TMessage>(entryAction: Action): State {
+		public entry<TMessage>(entryAction: Action): State {
 			this.entryBehavior.push(entryAction);
 
 			this.root().clean = false;
@@ -148,7 +148,7 @@ module fsm {
 		 * @param {any} arg4 An optional argument to pass into the visitor.
 		 * @returns {any} Any value can be returned by the visitor.
  		 */
-		accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
+		public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
 			return visitor.visitState(this, arg1, arg2, arg3, arg4);
 		}
 	}

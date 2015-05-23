@@ -30,7 +30,7 @@ module fsm {
 		 * @param {Region} parent The parent region that this pseudo state will be a child of.
 		 * @param {PseudoStateKind} kind Determines the behaviour of the PseudoState.
 		 */
-		constructor(name: string, parent: Region, kind: PseudoStateKind);
+		public constructor(name: string, parent: Region, kind: PseudoStateKind);
 		
 		/**
 		 * Creates a new instance of the PseudoState class.
@@ -38,7 +38,7 @@ module fsm {
 		 * @param {State} parent The parent state that this pseudo state will be a child of.
 		 * @param {PseudoStateKind} kind Determines the behaviour of the PseudoState.
 		 */
-		constructor(name: string, parent: State, kind: PseudoStateKind);
+		public constructor(name: string, parent: State, kind: PseudoStateKind);
 
 		/**
 		 * Creates a new instance of the PseudoState class.
@@ -46,7 +46,7 @@ module fsm {
 		 * @param {Element} parent The parent element that this pseudo state will be a child of.
 		 * @param {PseudoStateKind} kind Determines the behaviour of the PseudoState.
 		 */
-		constructor(name: string, parent: any, kind: PseudoStateKind) {
+		public constructor(name: string, parent: any, kind: PseudoStateKind) {
 			super(name, parent);
 
 			this.kind = kind;
@@ -62,7 +62,7 @@ module fsm {
 		 * @method isHistory
 		 * @returns {boolean} True if the pseudo state is a history pseudo state.
 		 */
-		isHistory(): boolean {
+		public isHistory(): boolean {
 			return this.kind === PseudoStateKind.DeepHistory || this.kind === PseudoStateKind.ShallowHistory;
 		}
 
@@ -72,7 +72,7 @@ module fsm {
 		 * @method isInitial
 		 * @returns {boolean} True if the pseudo state is an initial pseudo state.
 		 */
-		isInitial(): boolean {
+		public isInitial(): boolean {
 			return this.kind === PseudoStateKind.Initial || this.isHistory();
 		}
 
@@ -86,7 +86,7 @@ module fsm {
 		 * @param {any} arg4 An optional argument to pass into the visitor.
 		 * @returns {any} Any value can be returned by the visitor.
  		 */
-		accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
+		public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
 			return visitor.visitPseudoState(this, arg1, arg2, arg3, arg4);
 		}
 	}

@@ -34,9 +34,9 @@
                 
                 var sms = new fsm.StateMachineInstance();
 
-				machine.initialise(sms);
+				fsm.initialise(machine, sms);
 								
-				result( "Completion Transitions: " + ( machine.isComplete(sms) ? "passed" : "failed" ) );
+				result( "Completion Transitions: " + (fsm.isComplete(machine, sms) ? "passed" : "failed") );
 			}
 
 			function shallowTest()
@@ -60,14 +60,14 @@
 
                 var sms = new fsm.StateMachineInstance();
 
-				machine.initialise(sms);
+				fsm.initialise(machine, sms);
 
-				result( "Shallow History (1): " + machine.evaluate( "move", sms ) );
-				result( "Shallow History (2): " + machine.evaluate( "go deep", sms ) );
-				result( "Shallow History (3): " + machine.evaluate( "go shallow", sms ) );
-				result( "Shallow History (4): " + machine.evaluate( "end", sms ) );
+				result( "Shallow History (1): " + fsm.evaluate (machine, sms, "move"));
+				result( "Shallow History (2): " + fsm.evaluate (machine, sms, "go deep"));
+				result( "Shallow History (3): " + fsm.evaluate (machine, sms, "go shallow"));
+				result( "Shallow History (4): " + fsm.evaluate (machine, sms, "end"));
 			
-				result( "Shallow History: " + ( machine.isComplete( sms ) ? "passed" : "failed" ) );
+				result( "Shallow History: " + (fsm.isComplete(machine, sms) ? "passed" : "failed") );
 			}
 
             function muximise1() {
@@ -114,12 +114,12 @@
                 });
                 
                 var sms = new fsm.StateMachineInstance();				
-				main.initialise(sms);
+				fsm.initialise(main, sms);
 
-                main.evaluate("complete1", sms);
-                main.evaluate("complete2", sms);
+                fsm.evaluate(main, sms, "complete1");
+                fsm.evaluate(main, sms, "complete2");
             
-            	result("Muximuse test 1: " + (main.isComplete(sms) ? "passed" : "failed"));
+            	result("Muximuse test 1: " + (fsm.isComplete(main, sms) ? "passed" : "failed"));
             }
             
             function brice1 () {
@@ -137,9 +137,10 @@
                 state1.to(state2).when(function(c) { return c === "a";}).effect(function() { result("Brice test1: passed"); });
                 
                 var sms = new fsm.StateMachineInstance();	
-				main.initialise(sms);
 
-                main.evaluate("a", sms);
+				fsm.initialise(main, sms);
+
+                fsm.evaluate(main, sms, "a");
             }
             
             function p3pp3r() {
@@ -178,9 +179,10 @@
 				state7.to(state5).when(function (c) { return c === "event1"; });
                 
                 var sms = new fsm.StateMachineInstance();
-                main.initialise(sms);
+
+				fsm.initialise(main, sms);
                 
-                main.evaluate("event2", sms);
+                fsm.evaluate(main, sms, "event2");
             }
             
 			function run ()

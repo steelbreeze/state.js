@@ -19,6 +19,7 @@
 		"./src/FinalState.ts",	
 		"./src/Visitor.ts",
 		"./src/StateMachine.ts",
+		"./src/Runtime.ts",
 		"./src/StateMachineInstance.ts",
 		"./src/Transition.ts"
 	]

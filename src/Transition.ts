@@ -35,7 +35,7 @@ module fsm {
 		 * @param {Vertex} source The source of the transition.
 		 * @param {Vertex} source The target of the transition.
 		 */
-		constructor(public source: Vertex, public target?: Vertex) {
+		public constructor(public source: Vertex, public target?: Vertex) {
 			this.guard = message => { return message === this.source; };
 		}
 
@@ -46,7 +46,7 @@ module fsm {
 		 * @method else
 		 * @returns {Transition} Returns the transition object to enable the fluent API.
 		 */
-		else(): Transition {
+		public else(): Transition {
 			this.guard = Transition.isElse;
 
 			return this;
@@ -58,7 +58,7 @@ module fsm {
 		 * @param {Guard} guard The guard condition that must evaluate true for the transition to be traversed. 
 		 * @returns {Transition} Returns the transition object to enable the fluent API.
 		 */
-		when(guard: Guard): Transition {
+		public when(guard: Guard): Transition {
 			this.guard = guard;
 
 			return this;
@@ -70,7 +70,7 @@ module fsm {
 		 * @param {Action} transitionAction The action to add to the transitions traversal behaviour.
 		 * @returns {Transition} Returns the transition object to enable the fluent API.
 		 */
-		effect<TMessage>(transitionAction: Action): Transition {
+		public effect<TMessage>(transitionAction: Action): Transition {
 			this.transitionBehavior.push(transitionAction);
 
 			this.source.root().clean = false;
@@ -88,7 +88,7 @@ module fsm {
 		 * @param {any} arg4 An optional argument to pass into the visitor.
 		 * @returns {any} Any value can be returned by the visitor.
  		 */
-		accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
+		public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
 			return visitor.visitTransition(this, arg1, arg2, arg3, arg4);
 		}
 	}

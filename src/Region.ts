@@ -29,26 +29,26 @@ module fsm {
 		 * The parent state of this region.
 		 * @member {Region}
 		 */
-		state: State;
+		public state: State;
 		
 		/**
 		 * The set of vertices that are children of the region.
 		 * @member {Array<Vertex>}
 		 */
-		vertices: Array<Vertex> = [];
+		public vertices: Array<Vertex> = [];
 		
 		/**
 		 * The pseudo state that will be in initial starting state when entering the region explicitly.
 		 * @member {PseudoState}
 		 */
-		initial: PseudoState;
+		public initial: PseudoState;
 
 		/**
 		 * Creates a new instance of the Region class.
 		 * @param {string} name The name of the region.
 		 * @param {State} state The parent state that this region will be a child of.
 		 */
-		constructor(name: string, state: State) {
+		public constructor(name: string, state: State) {
 			super(name);
 		
 			this.state = state;
@@ -63,7 +63,7 @@ module fsm {
 		 * @method getParent
 		 * @returns {Element} The parent element of the region.
 		 */
-		getParent(): Element {
+		public getParent(): Element {
 			return this.state;
 		}
 		
@@ -77,7 +77,7 @@ module fsm {
 		 * @param {any} arg4 An optional argument to pass into the visitor.
 		 * @returns {any} Any value can be returned by the visitor.
  		 */
-		accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
+		public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
 			return visitor.visitRegion(this, arg1, arg2, arg3, arg4);
 		}
 	}
