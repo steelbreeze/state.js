@@ -1,4 +1,4 @@
-## Version 5.1.2
+## Version 5.1.2 / 3
 Changed the visitor implementation to accept multiple parameters after the template parameter.
 
 Moved the message evaluation and transition selection / execution to a visitor to free up core model classes.
