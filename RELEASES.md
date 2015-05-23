@@ -8,6 +8,8 @@ Move Vertex.accept to Element.accept.
 
 Refactor isActive and isComplete out of state machine model.
 
+Use built-in array iterating functions where possible.
+
 ## Version 5.1.1
 Created singletons for bootstrapping rather than static method in StateMachine and Bootstrap classes.
 
