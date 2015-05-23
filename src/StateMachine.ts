@@ -114,11 +114,17 @@ module fsm {
 		}
 	}
 
+ 	// Temporary structure to hold element behaviour during the bootstrap process
+	class Behaviour {
+		leave: Array<Action> = [];
+		beginEnter: Array<Action> = [];
+		endEnter: Array<Action> = [];
+		enter: Array<Action> = [];
+	}
+
 	// invokes behaviour
-	function invoke(actions: Array<Action>, message: any, instance: IActiveStateConfiguration, history: boolean = false) : any {
-		for (var i = 0, l = actions.length; i < l; i++) {
-			actions[i](message, instance, history);
-		}	
+	function invoke(actions: Array<Action>, message: any, instance: IActiveStateConfiguration, history: boolean = false) : void {
+		actions.forEach(action => { action(message, instance, history) });
 	}
 	
 	// determines if a state is currently active
@@ -135,14 +141,6 @@ module fsm {
 		return true;
 	}
 	
-	// Temporary structure to hold element behaviour during the bootstrap process
-	class Behaviour {
-		leave: Array<Action> = [];
-		beginEnter: Array<Action> = [];
-		endEnter: Array<Action> = [];
-		enter: Array<Action> = [];
-	}
-
 	// evaluates messages against a state machine, executing transitions as appropriate
 	class Evaluator extends Visitor<IActiveStateConfiguration> {
 		private static _instance: Evaluator;
@@ -178,21 +176,21 @@ module fsm {
 				case PseudoStateKind.Junction: {
 					var result: Transition, elseResult: Transition;
 
-					for (var i = 0, l = pseudoState.transitions.length; i < l; i++) {
-						if (pseudoState.transitions[i].guard === Transition.isElse) {
+					pseudoState.transitions.forEach (t=> {
+						if (t.guard === Transition.isElse) {
 							if (elseResult) {
 								throw "Multiple outbound transitions evaluated true";
 							}
 
-							elseResult = pseudoState.transitions[i];
-						} else if (pseudoState.transitions[i].guard(message, instance)) {
+							elseResult = t;
+						} else if (t.guard(message, instance)) {
 							if (result) {
 								throw "Multiple outbound transitions evaluated true";
 							}
 
-							result = pseudoState.transitions[i];
+							result = t;
 						}
-					}
+					});
 
 					transition = result || elseResult;
 				
@@ -202,17 +200,17 @@ module fsm {
 				case PseudoStateKind.Choice: {
 					var results: Array<Transition> = [];
 
-					for (var i = 0, l = pseudoState.transitions.length; i < l; i++) {
-						if (pseudoState.transitions[i].guard === Transition.isElse) {
+					pseudoState.transitions.forEach(t => {
+						if (t.guard === Transition.isElse) {
 							if (elseResult) {
 								throw "Multiple outbound else transitions found at " + this + " for " + message;
 							}
 
-							elseResult = pseudoState.transitions[i];
-						} else if (pseudoState.transitions[i].guard(message, instance)) {
-							results.push(pseudoState.transitions[i]);
+							elseResult = t;
+						} else if (t.guard(message, instance)) {
+							results.push(t);
 						}
-					}
+					});
 
 					transition = results.length !== 0 ? results[Math.round((results.length - 1) * Math.random())] : elseResult;
 					
@@ -233,7 +231,7 @@ module fsm {
 			var result = false;
 			
 			// delegate to child regions first
-			for (var i = 0, l = state.regions.length; i < l; i++) {
+			for (var i = 0, l = state.regions.length; i < l; i++) { // NOTE: use of break means this needs to stay as a for loop
 				if (state.regions[i].accept(this, instance, message)) {
 					result = true;
 					
@@ -246,16 +244,16 @@ module fsm {
 			//if still unprocessed, try to find one here
 			if (!result) {
 				var transition: Transition;				
-	
-				for (var i = 0, l = state.transitions.length; i < l; i++) {
-					if (state.transitions[i].guard(message, instance)) {
+
+				state.transitions.forEach(t => {
+					if (t.guard(message, instance)) {
 						if (transition) {
 							throw new Error ("Multiple outbound transitions evaluated true");
 						}
 	
-						transition = state.transitions[i];
+						transition = t;
 					}
-				}
+				});
 
 				if (transition) {
 					invoke (transition.traverse, message, instance);
@@ -332,13 +330,7 @@ module fsm {
 						var state = <State>element;
 
 						if (state.isOrthogonal()) {
-							for (var ii = 0, ll = state.regions.length; ii < ll; ii++) {
-								var region = state.regions[ii];
-
-								if (region !== next) {
-									transition.traverse = transition.traverse.concat(behaviour(region).enter);
-								}
-							}
+							state.regions.forEach(region => { if (region !== next) { transition.traverse = transition.traverse.concat(behaviour(region).enter); } });
 						}
 					}
 				}
@@ -384,9 +376,7 @@ module fsm {
 		visitRegion(region: Region, deepHistoryAbove: boolean) {
 			var regionBehaviour = this.behaviour(region);
 			
-			for (var i = 0, l = region.vertices.length; i < l; i++) {
-				region.vertices[i].accept(this, deepHistoryAbove || (region.initial && region.initial.kind === PseudoStateKind.DeepHistory));
-			}
+			region.vertices.forEach(vertex => { vertex.accept(this, deepHistoryAbove || (region.initial && region.initial.kind === PseudoStateKind.DeepHistory)); });
 
 			regionBehaviour.leave.push((message, instance, history) => {
 				invoke(this.behaviour(instance.getCurrent(region)).leave, message, instance);
@@ -436,8 +426,7 @@ module fsm {
 		visitState(state: State, deepHistoryAbove: boolean) {
 			var stateBehaviour = this.behaviour(state);
 			
-			for (var i = 0, l = state.regions.length; i < l; i++) {
-				var region = state.regions[i];
+			state.regions.forEach(region => {
 				var regionBehaviour = this.behaviour(region);
 
 				region.accept(this, deepHistoryAbove);
@@ -447,7 +436,7 @@ module fsm {
 				});
 
 				stateBehaviour.endEnter = stateBehaviour.endEnter.concat(regionBehaviour.enter);
-			}
+			});
 
 			this.visitVertex(state, deepHistoryAbove);
 
@@ -457,8 +446,8 @@ module fsm {
 			stateBehaviour.beginEnter.push((message, instance, history) => {
 				if (state.region) {
 					instance.setCurrent(state.region, state);
-					}
-				});
+				}
+			});
 
 			stateBehaviour.enter = stateBehaviour.beginEnter.concat(stateBehaviour.endEnter);
 		}

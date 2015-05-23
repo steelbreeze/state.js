@@ -38,9 +38,7 @@ module fsm {
 		visitRegion(region: Region, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
 			var result = this.visitElement(region, arg1, arg2, arg3, arg4);
 
-			for (var i = 0, l = region.vertices.length; i < l; i++) {
-				region.vertices[i].accept(this, arg1, arg2, arg3, arg4);
-			}
+			region.vertices.forEach(vertex => { vertex.accept(this, arg1, arg2, arg3, arg4) });
 
 			return result;
 		}
@@ -58,9 +56,7 @@ module fsm {
 		visitVertex(vertex: Vertex, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
 			var result = this.visitElement(vertex, arg1, arg2, arg3, arg4);
 
-			for (var i = 0, l = vertex.transitions.length; i < l; i++) {
-				vertex.transitions[i].accept(this, arg1, arg2, arg3, arg4);
-			}
+			vertex.transitions.forEach(transition => { transition.accept(this, arg1, arg2, arg3, arg4) });
 
 			return result;
 		}
@@ -79,6 +75,7 @@ module fsm {
 			return this.visitVertex(pseudoState, arg1, arg2, arg3, arg4);
 		}
 
+
 		/**
 		 * Visits a state within a state machine model.
 		 * @method visitState
@@ -92,9 +89,7 @@ module fsm {
 		visitState(state: State, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
 			var result = this.visitVertex(state, arg1, arg2, arg3, arg4);
 
-			for (var i = 0, l = state.regions.length; i < l; i++) {
-				state.regions[i].accept(this, arg1, arg2, arg3, arg4);
-			}
+			state.regions.forEach(region => { region.accept(this, arg1, arg2, arg3, arg4) });
 			
 			return result;
 		}
