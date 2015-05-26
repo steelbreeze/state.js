@@ -1,5 +1,7 @@
 ## Version 5.2.0
-Extract the last pieces of the runtime from the model classes to a set of independant functions.
+Extract the last pieces of the runtime from the model classes to a set of independant functions. This is the cause for a breaking change to the API.
+
+Use public keyword to distinguish public interface; the lack of a protection keyword is used to imply package private.
 
 ## Version 5.1.2 / 3
 Changed the visitor implementation to accept multiple parameters after the template parameter.

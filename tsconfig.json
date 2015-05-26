@@ -10,17 +10,20 @@
 		"./src/Action.ts",
 		"./src/Guard.ts",
 		"./src/Element.ts",
+		"./src/Region.ts",
 		"./src/Vertex.ts",
-		"./src/IActiveStateConfiguration.ts",
 		"./src/PseudoState.ts",
 		"./src/PseudoStateKind.ts",
-		"./src/Region.ts",
 		"./src/State.ts",
 		"./src/FinalState.ts",	
-		"./src/Visitor.ts",
 		"./src/StateMachine.ts",
-		"./src/Runtime.ts",
+		"./src/Transition.ts",
+
+		"./src/Visitor.ts",
+
+		"./src/IActiveStateConfiguration.ts",
 		"./src/StateMachineInstance.ts",
-		"./src/Transition.ts"
+		
+		"./src/Runtime.ts"
 	]
 }

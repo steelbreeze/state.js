@@ -1,6 +1,6 @@
 # Welcome to state.js
 
-This is version 5.2.0 which is currently under development.
+This is version 5.2.0; this is a breaking change from 5.1.3 and splits the state machine runtime completely from the state machine model.
 
 To see the example code in action, click [here](https://cdn.rawgit.com/steelbreeze/state.js/master/examples/test.html).
 

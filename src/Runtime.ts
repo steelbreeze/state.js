@@ -6,36 +6,60 @@
  */
  
 module fsm {
-	export function initialise(stateMachine: StateMachine, instance?: IActiveStateConfiguration, autoBootstrap: boolean = true) {
-		if (instance) {
-			if (autoBootstrap && stateMachine.clean === false) {
-				initialise(stateMachine);
+	/**
+	 * Initialises a state machine and/or state machine model.
+	 * 
+	 * Passing just the state machine model will initialise the model, passing the model and instance will initialse the instance and if necessary, the model.
+	 * @function initialise
+	 * @param {StateMachine} stateMachineModel The state machine model. If autoInitialiseModel is true (or no instance is specified) and the model has changed, the model will be initialised.
+	 * @param {IActiveStateConfiguration} stateMachineInstance The optional state machine instance to initialise.
+	 * @param {boolean} autoInitialiseModel Defaulting to true, this will cause the model to be initialised prior to initialising the instance if the model has changed.
+	 */
+	export function initialise(stateMachineModel: StateMachine, stateMachineInstance?: IActiveStateConfiguration, autoInitialiseModel: boolean = true): void {
+		if (stateMachineInstance) {
+			if (autoInitialiseModel && stateMachineModel.clean === false) {
+				initialise(stateMachineModel);
 			}
 
-			instance.evaluator = new Evaluator();
+			stateMachineInstance.evaluator = new Evaluator(); // TODO: see if evaluator can move to a set of functions rather than a visitor
 			
-			invoke(stateMachine.onInitialise, undefined, instance);
+			invoke(stateMachineModel.onInitialise, undefined, stateMachineInstance);
 		} else {
-			stateMachine.accept(new BootstrapElements(), false);
-			stateMachine.clean = true;
+			stateMachineModel.accept(new BootstrapElements(), false);
+			stateMachineModel.clean = true;
 		}
 	}
 
-	export function evaluate(stateMachine: StateMachine, instance: IActiveStateConfiguration, message: any, autoBootstrap: boolean = true): boolean {
-		if (autoBootstrap && stateMachine.clean === false) {
-			initialise(stateMachine);
+	/**
+	 * Passes a message to a state machine for evaluation; messages trigger state transitions.
+	 * @function evaluate
+	 * @param {StateMachine} stateMachineModel The state machine model. If autoInitialiseModel is true (or no instance is specified) and the model has changed, the model will be initialised.
+	 * @param {IActiveStateConfiguration} stateMachineInstance The instance of the state machine model to evaluate the message against.
+	 * @param {boolean} autoInitialiseModel Defaulting to true, this will cause the model to be initialised prior to initialising the instance if the model has changed.
+	 * @returns {boolean} True if the message triggered a state transition.
+	 */
+	export function evaluate(stateMachineModel: StateMachine, stateMachineInstance: IActiveStateConfiguration, message: any, autoInitialiseModel: boolean = true): boolean {
+		if (autoInitialiseModel && stateMachineModel.clean === false) {
+			initialise(stateMachineModel);
 		}
 
-		if (instance.isTerminated) {
+		if (stateMachineInstance.isTerminated) {
 			return false;
 		}
 
-		return stateMachine.accept(instance.evaluator, instance, message);
+		return stateMachineModel.accept(stateMachineInstance.evaluator, stateMachineInstance, message);
 	}
 
-	export function isComplete(vertex: Vertex, instance: IActiveStateConfiguration): boolean {
+	/**
+	 * Tests a state machine instance to see if its lifecycle is complete. A state machine instance is complete if all regions belonging to the state machine root have curent states that are final states.
+	 * @function isComplete
+	 * @param {StateMachine} stateMachineModel The state machine model. 
+	 * @param {IActiveStateConfiguration} stateMachineInstance The instance of the state machine model to test for completeness.
+	 * @returns {boolean} True if the state machine instance is complete.
+	 */
+	export function isComplete(vertex: Vertex, stateMachineInstance: IActiveStateConfiguration): boolean {
 		if(vertex instanceof State) {
-			return (<State>vertex).regions.every(region => { return instance.getCurrent(region).isFinal(); });			
+			return (<State>vertex).regions.every(region => { return stateMachineInstance.getCurrent(region).isFinal(); });			
 		}
 
 		return true;
@@ -50,22 +74,22 @@ module fsm {
 	}
 
 	// invokes behaviour
-	function invoke(actions: Array<Action>, message: any, instance: IActiveStateConfiguration, history: boolean = false) : void {
-		actions.forEach(action => { action(message, instance, history) });
+	function invoke(actions: Array<Action>, message: any, stateMachineInstance: IActiveStateConfiguration, history: boolean = false) : void {
+		actions.forEach(action => { action(message, stateMachineInstance, history) });
 	}
 	
 	// determines if a state is currently active
-	function isActive(state: State, instance: IActiveStateConfiguration): boolean {
-		return state.region ? (isActive(state.region.state, instance) && (instance.getCurrent(state.region) === state)) : true;
+	function isActive(state: State, stateMachineInstance: IActiveStateConfiguration): boolean {
+		return state.region ? (isActive(state.region.state, stateMachineInstance) && (stateMachineInstance.getCurrent(state.region) === state)) : true;
 	}
 	
 	// evaluates messages against a state machine, executing transitions as appropriate
 	class Evaluator extends Visitor<IActiveStateConfiguration> {
-		visitRegion(region: Region, instance: IActiveStateConfiguration, message: any): boolean {
-			return instance.getCurrent(region).accept(this, instance, message);
+		visitRegion(region: Region, stateMachineInstance: IActiveStateConfiguration, message: any): boolean {
+			return stateMachineInstance.getCurrent(region).accept(this, stateMachineInstance, message);
 		}
 
-		visitPseudoState(pseudoState: PseudoState, instance: IActiveStateConfiguration, message: any): boolean {			
+		visitPseudoState(pseudoState: PseudoState, stateMachineInstance: IActiveStateConfiguration, message: any): boolean {			
 			var transition: Transition;
 			
 			switch (pseudoState.kind) {
@@ -91,7 +115,7 @@ module fsm {
 							}
 
 							elseResult = t;
-						} else if (t.guard(message, instance)) {
+						} else if (t.guard(message, stateMachineInstance)) {
 							if (result) {
 								throw "Multiple outbound transitions evaluated true";
 							}
@@ -115,7 +139,7 @@ module fsm {
 							}
 
 							elseResult = t;
-						} else if (t.guard(message, instance)) {
+						} else if (t.guard(message, stateMachineInstance)) {
 							results.push(t);
 						}
 					});
@@ -130,20 +154,20 @@ module fsm {
 				return false;
 			}
 
-			invoke(transition.traverse, message, instance);
+			invoke(transition.traverse, message, stateMachineInstance);
 
 			return true;
 		}
 		
-		visitState (state: State, instance: IActiveStateConfiguration, message: any): boolean {
+		visitState (state: State, stateMachineInstance: IActiveStateConfiguration, message: any): boolean {
 			var result = false;
 			
 			// delegate to child regions first
 			for (var i = 0, l = state.regions.length; i < l; i++) { // NOTE: use of break means this needs to stay as a for loop
-				if (state.regions[i].accept(this, instance, message)) {
+				if (state.regions[i].accept(this, stateMachineInstance, message)) {
 					result = true;
 					
-					if (!isActive(state,instance)) {
+					if (!isActive(state,stateMachineInstance)) {
 						break;
 					}
 				}
@@ -154,7 +178,7 @@ module fsm {
 				var transition: Transition;				
 
 				state.transitions.forEach(t => {
-					if (t.guard(message, instance)) {
+					if (t.guard(message, stateMachineInstance)) {
 						if (transition) {
 							throw new Error ("Multiple outbound transitions evaluated true");
 						}
@@ -164,14 +188,14 @@ module fsm {
 				});
 
 				if (transition) {
-					invoke (transition.traverse, message, instance);
+					invoke (transition.traverse, message, stateMachineInstance);
 					
 					result = true;
 				}
 			}
 			
-			if (result && (message !== state) && isComplete(state, instance)) {
-				this.visitState (state, instance, state);
+			if (result && (message !== state) && isComplete(state, stateMachineInstance)) {
+				this.visitState (state, stateMachineInstance, state);
 			}
 			
 			return result;
@@ -266,19 +290,19 @@ module fsm {
 			
 			region.vertices.forEach(vertex => { vertex.accept(this, deepHistoryAbove || (region.initial && region.initial.kind === PseudoStateKind.DeepHistory)); });
 
-			regionBehaviour.leave.push((message, instance, history) => {
-				invoke(this.behaviour(instance.getCurrent(region)).leave, message, instance);
+			regionBehaviour.leave.push((message, stateMachineInstance, history) => {
+				invoke(this.behaviour(stateMachineInstance.getCurrent(region)).leave, message, stateMachineInstance);
 			});
 
 			if (deepHistoryAbove || !region.initial || region.initial.isHistory()) {
-				regionBehaviour.endEnter.push((message, instance, history) => {
+				regionBehaviour.endEnter.push((message, stateMachineInstance, history) => {
 					var initial: Vertex = region.initial;
 					
 					if (history || region.initial.isHistory()) {
-						initial = instance.getCurrent(region) || region.initial;
+						initial = stateMachineInstance.getCurrent(region) || region.initial;
 					}
 					
-					invoke(this.behaviour(initial).enter, message, instance, history || region.initial.kind === PseudoStateKind.DeepHistory);
+					invoke(this.behaviour(initial).enter, message, stateMachineInstance, history || region.initial.kind === PseudoStateKind.DeepHistory);
 				});
 			} else {
 				regionBehaviour.endEnter = regionBehaviour.endEnter.concat(this.behaviour(region.initial).enter);
@@ -292,9 +316,9 @@ module fsm {
 
 			var vertexBehaviour = this.behaviour((vertex));
 
-			vertexBehaviour.endEnter.push((message, instance, history) => {
-				if (isComplete(vertex, instance)) {
-					vertex.accept(instance.evaluator, instance, vertex);
+			vertexBehaviour.endEnter.push((message, stateMachineInstance, history) => {
+				if (isComplete(vertex, stateMachineInstance)) {
+					vertex.accept(stateMachineInstance.evaluator, stateMachineInstance, vertex);
 				}
 			});
 				
@@ -305,8 +329,8 @@ module fsm {
 			this.visitVertex(pseudoState, deepHistoryAbove);
 
 			if (pseudoState.kind === PseudoStateKind.Terminate) {
-				this.behaviour(pseudoState).enter.push((message, instance, history) => {
-					instance.isTerminated = true;
+				this.behaviour(pseudoState).enter.push((message, stateMachineInstance, history) => {
+					stateMachineInstance.isTerminated = true;
 				});
 			}
 		}
@@ -319,8 +343,8 @@ module fsm {
 
 				region.accept(this, deepHistoryAbove);
 
-				stateBehaviour.leave.push((message, instance, history) => {
-					invoke(regionBehaviour.leave, message, instance);
+				stateBehaviour.leave.push((message, stateMachineInstance, history) => {
+					invoke(regionBehaviour.leave, message, stateMachineInstance);
 				});
 
 				stateBehaviour.endEnter = stateBehaviour.endEnter.concat(regionBehaviour.enter);
@@ -331,9 +355,9 @@ module fsm {
 			stateBehaviour.leave = stateBehaviour.leave.concat(state.exitBehavior);
 			stateBehaviour.beginEnter = stateBehaviour.beginEnter.concat(state.entryBehavior);
 
-			stateBehaviour.beginEnter.push((message, instance, history) => {
+			stateBehaviour.beginEnter.push((message, stateMachineInstance, history) => {
 				if (state.region) {
-					instance.setCurrent(state.region, state);
+					stateMachineInstance.setCurrent(state.region, state);
 				}
 			});
 

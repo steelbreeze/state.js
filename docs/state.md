@@ -33,12 +33,6 @@ Returns the root element within the state machine model.
 
 **Returns**: `StateMachine`, The root state machine element.
 
-### fsm.Element.ancestors() 
-
-Returns the ancestors of the element.
-The ancestors are returned as an array of elements, staring with the root element and ending with this elemenet.
-
-
 ### fsm.Element.accept(visitor, arg) 
 
 Accepts an instance of a visitor.
@@ -56,6 +50,54 @@ Accepts an instance of a visitor.
 Returns a the element name as a fully qualified namespace.
 
 **Returns**: `string`
+
+
+## Class: Region
+An element within a state machine model that is a container of Vertices.
+
+Regions are implicitly inserted into composite state machines as a container for vertices.
+They only need to be explicitly defined if orthogonal states are required.
+
+Region extends the Element class and inherits its public interface.
+
+**vertices**: `Array.&lt;Vertex&gt;` , The set of vertices that are children of the region.
+**defaultName**: `string` , The name given to regions that are are created automatically when a state is passed as a vertex's parent.
+Regions are automatically inserted into state machine models as the composite structure is built; they are named using this static member.
+Update this static member to use a different name for default regions.
+### fsm.Region.Region(name, state) 
+
+Creates a new instance of the Region class.
+
+**Parameters**
+
+**name**: `string`, The name of the region.
+
+**state**: `State`, The parent state that this region will be a child of.
+
+
+### fsm.Region.getParent() 
+
+Returns the parent element of this region.
+
+**Returns**: `Element`, The parent element of the region.
+
+### fsm.Region.accept(visitor, arg1, arg2, arg3, arg4) 
+
+Accepts an instance of a visitor and calls the visitRegion method on it.
+
+**Parameters**
+
+**visitor**: `Visitor.&lt;TArg1&gt;`, The visitor instance.
+
+**arg1**: `TArg1`, An optional argument to pass into the visitor.
+
+**arg2**: `any`, An optional argument to pass into the visitor.
+
+**arg3**: `any`, An optional argument to pass into the visitor.
+
+**arg4**: `any`, An optional argument to pass into the visitor.
+
+**Returns**: `any`, Any value can be returned by the visitor.
 
 
 ## Class: Vertex
@@ -172,54 +214,6 @@ if a single transition is found, it will be traversed;
 if many or none evaluate true, and there is no 'else transition' defined, the machine is deemed illformed and an exception will be thrown.
 
 **Terminate**: `number` , Entering a terminate `PseudoState` implies that the execution of this state machine by means of its state object is terminated.
-
-## Class: Region
-An element within a state machine model that is a container of Vertices.
-
-Regions are implicitly inserted into composite state machines as a container for vertices.
-They only need to be explicitly defined if orthogonal states are required.
-
-Region extends the Element class and inherits its public interface.
-
-**vertices**: `Array.&lt;Vertex&gt;` , The set of vertices that are children of the region.
-**defaultName**: `string` , The name given to regions that are are created automatically when a state is passed as a vertex's parent.
-Regions are automatically inserted into state machine models as the composite structure is built; they are named using this static member.
-Update this static member to use a different name for default regions.
-### fsm.Region.Region(name, state) 
-
-Creates a new instance of the Region class.
-
-**Parameters**
-
-**name**: `string`, The name of the region.
-
-**state**: `State`, The parent state that this region will be a child of.
-
-
-### fsm.Region.getParent() 
-
-Returns the parent element of this region.
-
-**Returns**: `Element`, The parent element of the region.
-
-### fsm.Region.accept(visitor, arg1, arg2, arg3, arg4) 
-
-Accepts an instance of a visitor and calls the visitRegion method on it.
-
-**Parameters**
-
-**visitor**: `Visitor.&lt;TArg1&gt;`, The visitor instance.
-
-**arg1**: `TArg1`, An optional argument to pass into the visitor.
-
-**arg2**: `any`, An optional argument to pass into the visitor.
-
-**arg3**: `any`, An optional argument to pass into the visitor.
-
-**arg4**: `any`, An optional argument to pass into the visitor.
-
-**Returns**: `any`, Any value can be returned by the visitor.
-
 
 ## Class: State
 An element within a state machine model that represents an invariant condition within the life of the state machine instance.
@@ -342,6 +336,114 @@ Accepts an instance of a visitor and calls the visitFinalState method on it.
 **visitor**: `Visitor.&lt;TArg&gt;`, The visitor instance.
 
 **arg**: `TArg`, An optional argument to pass into the visitor.
+
+**Returns**: `any`, Any value can be returned by the visitor.
+
+
+## Class: StateMachine
+An element within a state machine model that represents the root of the state machine model.
+
+StateMachine extends the State class and inherits its public interface.
+
+### fsm.StateMachine.StateMachine(name) 
+
+Creates a new instance of the StateMachine class.
+
+**Parameters**
+
+**name**: `string`, The name of the state machine.
+
+
+### fsm.StateMachine.root() 
+
+Returns the root element within the state machine model.
+Note that if this state machine is embeded within another state machine, the ultimate root element will be returned.
+
+**Returns**: `StateMachine`, The root state machine element.
+
+### fsm.StateMachine.accept(visitor, arg1, arg2, arg3, arg4) 
+
+Accepts an instance of a visitor and calls the visitStateMachine method on it.
+
+**Parameters**
+
+**visitor**: `Visitor.&lt;TArg1&gt;`, The visitor instance.
+
+**arg1**: `TArg1`, An optional argument to pass into the visitor.
+
+**arg2**: `any`, An optional argument to pass into the visitor.
+
+**arg3**: `any`, An optional argument to pass into the visitor.
+
+**arg4**: `any`, An optional argument to pass into the visitor.
+
+**Returns**: `any`, Any value can be returned by the visitor.
+
+
+## Class: Transition
+A transition between vertices (states or pseudo states) that may be traversed in response to a message.
+
+Transitions come in a variety of types:
+internal transitions respond to messages but do not cause a state transition, they only have behaviour;
+local transitions are contained within a single region therefore the source vertex is exited, the transition traversed, and the target state entered;
+external transitions are more complex in nature as they cross region boundaries, all elements up to but not not including the common ancestor are exited and entered.
+
+Entering a composite state will cause the entry of the child regions within the composite state; this in turn may trigger more transitions.
+
+### fsm.Transition.Transition(source, source) 
+
+Creates a new instance of the Transition class.
+
+**Parameters**
+
+**source**: `Vertex`, The source of the transition.
+
+**source**: `Vertex`, The target of the transition.
+
+
+### fsm.Transition.else() 
+
+Turns a transition into an else transition.
+
+Else transitions can be used at `Junction` or `Choice` pseudo states if no other transition guards evaluate true, an Else transition if present will be traversed.
+
+**Returns**: `Transition`, Returns the transition object to enable the fluent API.
+
+### fsm.Transition.when(guard) 
+
+Defines the guard condition for the transition.
+
+**Parameters**
+
+**guard**: `Guard`, The guard condition that must evaluate true for the transition to be traversed.
+
+**Returns**: `Transition`, Returns the transition object to enable the fluent API.
+
+### fsm.Transition.effect(transitionAction) 
+
+Add behaviour to a transition.
+
+**Parameters**
+
+**transitionAction**: `Action`, The action to add to the transitions traversal behaviour.
+
+**Returns**: `Transition`, Returns the transition object to enable the fluent API.
+
+### fsm.Transition.accept(visitor, arg1, arg2, arg3, arg4) 
+
+Accepts an instance of a visitor and calls the visitTransition method on it.
+
+**Parameters**
+
+**visitor**: `Visitor.&lt;TArg1&gt;`, The visitor instance.
+
+**arg1**: `TArg1`, An optional argument to pass into the visitor.
+
+**arg2**: `any`, An optional argument to pass into the visitor.
+
+**arg3**: `any`, An optional argument to pass into the visitor.
+
+**arg4**: `any`, An optional argument to pass into the visitor.
 
 **Returns**: `any`, Any value can be returned by the visitor.
 
@@ -494,98 +596,13 @@ Visits a transition within a state machine model.
 **Returns**: `any`, Any value may be returned when visiting an element.
 
 
-## Class: StateMachine
-An element within a state machine model that represents the root of the state machine model.
-
-StateMachine extends the State class and inherits its public interface.
-
-### fsm.StateMachine.StateMachine(name) 
-
-Creates a new instance of the StateMachine class.
-
-**Parameters**
-
-**name**: `string`, The name of the state machine.
-
-
-### fsm.StateMachine.root() 
-
-Returns the root element within the state machine model.
-Note that if this state machine is embeded within another state machine, the ultimate root element will be returned.
-
-**Returns**: `StateMachine`, The root state machine element.
-
-### fsm.StateMachine.bootstrap() 
-
-Bootstraps the state machine model; precompiles the actions to take during transition traversal.
-
-Bootstrapping a state machine model pre-calculates all the actions required for each transition within the state machine model.
-The actions will exit all states as appropriate, perform transition behaviour, enter all states as appropriate and update the current state.
-
-This is only required if you are dynamically changing the state machine model and want to manually control when the model is bootstrapped.
-
-
-### fsm.StateMachine.initialise(instance, autoBootstrap) 
-
-Initialises an instance of the state machine and enters its initial pseudo state.
-Entering the initial pseudo state may cause a chain of other completion transitions.
-
-**Parameters**
-
-**instance**: `IActiveStateConfiguration`, The object representing a particular state machine instance.
-
-**autoBootstrap**: `boolean`, Set to false to manually control when bootstrapping occurs.
-
-
-### fsm.StateMachine.evaluate(message, instance) 
-
-Evaluates a message to determine if a state transition can be made.
-State machines initially delegate messages to their child regions for evaluation.
-
-**Parameters**
-
-**message**: `any`, The message that will be evaluated.
-
-**instance**: `IActiveStateConfiguration`, The state machine instance.
-
-**Returns**: `boolean`, True if the message triggered a state transition.
-
-### fsm.StateMachine.isComplete(instance) 
-
-Test a state machine instance to see if is it deemed to be complete.
-A state machine is complete if all its regions are complete; a region is complete if their current state is a final state.
-
-**Parameters**
-
-**instance**: `IActiveStateConfiguration`, The state machine instance.
-
-**Returns**: `boolean`, True if the state machine instance is complete.
-
-### fsm.StateMachine.accept(visitor, arg1, arg2, arg3, arg4) 
-
-Accepts an instance of a visitor and calls the visitStateMachine method on it.
-
-**Parameters**
-
-**visitor**: `Visitor.&lt;TArg1&gt;`, The visitor instance.
-
-**arg1**: `TArg1`, An optional argument to pass into the visitor.
-
-**arg2**: `any`, An optional argument to pass into the visitor.
-
-**arg3**: `any`, An optional argument to pass into the visitor.
-
-**arg4**: `any`, An optional argument to pass into the visitor.
-
-**Returns**: `any`, Any value can be returned by the visitor.
-
-
 ## Class: StateMachineInstance
 Default working implementation of a state machine instance class.
 
 Implements the `IActiveStateConfiguration` interface.
 It is possible to create other custom instance classes to manage state machine state in any way (e.g. as serialisable JSON); just implement the same members and methods as this class.
 
+**isTerminated**:  , Indicates that the state manchine instance reached was terminated by reaching a Terminate pseudo state.
 ### fsm.StateMachineInstance.StateMachineInstance(name) 
 
 Creates a new instance of the state machine instance class.
@@ -595,100 +612,52 @@ Creates a new instance of the state machine instance class.
 **name**: `string`, The optional name of the state machine instance.
 
 
-### fsm.StateMachineInstance.setCurrent(region, state) 
-
-Updates the last known state for a given region.
-
-**Parameters**
-
-**region**: `Region`, The region to update the last known state for.
-
-**state**: `State`, The last known state for the given region.
-
-
-### fsm.StateMachineInstance.getCurrent(region) 
-
-Returns the last known state for a given region.
-
-**Parameters**
-
-**region**: `Region`, The region to update the last known state for.
-
-**Returns**: `State`, The last known state for the given region.
-
 ### fsm.StateMachineInstance.toString() 
 
 Returns the name of the state machine instance.
 
 **Returns**: `string`, The name of the state machine instance.
 
+## Function: initialise(stateMachineModel, stateMachineInstance, autoInitialiseModel) 
 
-## Class: Transition
-A transition between vertices (states or pseudo states) that may be traversed in response to a message.
+Initialises a state machine and/or state machine model.
 
-Transitions come in a variety of types:
-internal transitions respond to messages but do not cause a state transition, they only have behaviour;
-local transitions are contained within a single region therefore the source vertex is exited, the transition traversed, and the target state entered;
-external transitions are more complex in nature as they cross region boundaries, all elements up to but not not including the common ancestor are exited and entered.
-
-Entering a composite state will cause the entry of the child regions within the composite state; this in turn may trigger more transitions.
-
-### fsm.Transition.Transition(source, source) 
-
-Creates a new instance of the Transition class.
+Passing just the state machine model will initialise the model, passing the model and instance will initialse the instance and if necessary, the model.
 
 **Parameters**
 
-**source**: `Vertex`, The source of the transition.
+**stateMachineModel**: `StateMachine`, The state machine model. If autoInitialiseModel is true (or no instance is specified) and the model has changed, the model will be initialised.
 
-**source**: `Vertex`, The target of the transition.
+**stateMachineInstance**: `IActiveStateConfiguration`, The optional state machine instance to initialise.
+
+**autoInitialiseModel**: `boolean`, Defaulting to true, this will cause the model to be initialised prior to initialising the instance if the model has changed.
 
 
-### fsm.Transition.else() 
+## Function: evaluate(stateMachineModel, stateMachineInstance, autoInitialiseModel) 
 
-Turns a transition into an else transition.
-
-Else transitions can be used at `Junction` or `Choice` pseudo states if no other transition guards evaluate true, an Else transition if present will be traversed.
-
-**Returns**: `Transition`, Returns the transition object to enable the fluent API.
-
-### fsm.Transition.when(guard) 
-
-Defines the guard condition for the transition.
+Passes a message to a state machine for evaluation; messages trigger state transitions.
 
 **Parameters**
 
-**guard**: `Guard`, The guard condition that must evaluate true for the transition to be traversed.
+**stateMachineModel**: `StateMachine`, The state machine model. If autoInitialiseModel is true (or no instance is specified) and the model has changed, the model will be initialised.
 
-**Returns**: `Transition`, Returns the transition object to enable the fluent API.
+**stateMachineInstance**: `IActiveStateConfiguration`, The instance of the state machine model to evaluate the message against.
 
-### fsm.Transition.effect(transitionAction) 
+**autoInitialiseModel**: `boolean`, Defaulting to true, this will cause the model to be initialised prior to initialising the instance if the model has changed.
 
-Add behaviour to a transition.
+**Returns**: `boolean`, True if the message triggered a state transition.
 
-**Parameters**
+## Function: isComplete(stateMachineModel, stateMachineInstance) 
 
-**transitionAction**: `Action`, The action to add to the transitions traversal behaviour.
-
-**Returns**: `Transition`, Returns the transition object to enable the fluent API.
-
-### fsm.Transition.accept(visitor, arg1, arg2, arg3, arg4) 
-
-Accepts an instance of a visitor and calls the visitTransition method on it.
+Tests a state machine instance to see if its lifecycle is complete. A state machine instance is complete if all regions belonging to the state machine root have curent states that are final states.
 
 **Parameters**
 
-**visitor**: `Visitor.&lt;TArg1&gt;`, The visitor instance.
+**stateMachineModel**: `StateMachine`, The state machine model.
 
-**arg1**: `TArg1`, An optional argument to pass into the visitor.
+**stateMachineInstance**: `IActiveStateConfiguration`, The instance of the state machine model to test for completeness.
 
-**arg2**: `any`, An optional argument to pass into the visitor.
-
-**arg3**: `any`, An optional argument to pass into the visitor.
-
-**arg4**: `any`, An optional argument to pass into the visitor.
-
-**Returns**: `any`, Any value can be returned by the visitor.
+**Returns**: `boolean`, True if the state machine instance is complete.
 
 
 

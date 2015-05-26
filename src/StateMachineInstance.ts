@@ -16,8 +16,13 @@ module fsm {
 	 */
 	export class StateMachineInstance implements IActiveStateConfiguration {
 		evaluator: Visitor<IActiveStateConfiguration>;
-		isTerminated: boolean = false;
 		private last: any = {};
+
+		/**
+		 * Indicates that the state manchine instance reached was terminated by reaching a Terminate pseudo state.
+		 * @member isTerminated
+		 */
+		public isTerminated: boolean = false;
 
 		/**
 		 * Creates a new instance of the state machine instance class.
