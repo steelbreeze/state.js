@@ -25,10 +25,10 @@ module fsm {
 		guard: Guard;
 		
 		// user defined behaviour (via effect) executed when traversing this transition.
-		transitionBehavior: Array<Action> = [];
+		transitionBehavior: Behavior = [];
 		
 		// the collected actions to perform when traversing the transition (includes exiting states, traversal, and state entry)
-		traverse: Array<Action> = [];
+		traverse: Behavior = [];
 
 		/** 
 		 * Creates a new instance of the Transition class.

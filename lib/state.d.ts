@@ -12,6 +12,10 @@ declare module fsm {
     }
 }
 declare module fsm {
+    interface Behavior extends Array<Action> {
+    }
+}
+declare module fsm {
     /**
      * Declaration callbacks that provide transition guard conditions.
      * @interface Guard
@@ -311,8 +315,8 @@ declare module fsm {
      * @augments Vertex
      */
     class State extends Vertex {
-        exitBehavior: Array<Action>;
-        entryBehavior: Array<Action>;
+        exitBehavior: Behavior;
+        entryBehavior: Behavior;
         /**
          * The set of regions under this state.
          * @member {Array<Region>}
@@ -436,7 +440,7 @@ declare module fsm {
      */
     class StateMachine extends State {
         clean: boolean;
-        onInitialise: Array<Action>;
+        onInitialise: Behavior;
         /**
          * Creates a new instance of the StateMachine class.
          * @param {string} name The name of the state machine.
@@ -479,8 +483,8 @@ declare module fsm {
         target: Vertex;
         static isElse: () => boolean;
         guard: Guard;
-        transitionBehavior: Array<Action>;
-        traverse: Array<Action>;
+        transitionBehavior: Behavior;
+        traverse: Behavior;
         /**
          * Creates a new instance of the Transition class.
          * @param {Vertex} source The source of the transition.

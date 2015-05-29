@@ -66,16 +66,16 @@ module fsm {
 	}
 
  	// Temporary structure to hold element behaviour during the bootstrap process
-	class Behaviour {
-		leave: Array<Action> = [];
-		beginEnter: Array<Action> = [];
-		endEnter: Array<Action> = [];
-		enter: Array<Action> = [];
+	class ElementBehavior {
+		leave: Behavior = [];
+		beginEnter: Behavior = [];
+		endEnter: Behavior = [];
+		enter: Behavior = [];
 	}
 
 	// invokes behaviour
-	function invoke(actions: Array<Action>, message: any, stateMachineInstance: IActiveStateConfiguration, history: boolean = false) : void {
-		actions.forEach(action => { action(message, stateMachineInstance, history) });
+	function invoke(behavior: Behavior, message: any, stateMachineInstance: IActiveStateConfiguration, history: boolean = false) : void {
+		behavior.forEach(action => { action(message, stateMachineInstance, history) });
 	}
 	
 	// determines if a state is currently active
@@ -203,8 +203,8 @@ module fsm {
 	}
 
 	// Bootstraps transitions after all elements have been bootstrapped
-	class BootstrapTransitions extends Visitor<(element: Element) => Behaviour> {		
-		visitTransition(transition: Transition, behaviour: (element: Element) => Behaviour) {
+	class BootstrapTransitions extends Visitor<(element: Element) => ElementBehavior> {		
+		visitTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
 			// internal transitions: just perform the actions; no exiting or entering states
 			if (!transition.target) {
 				transition.traverse = transition.transitionBehavior;
@@ -267,12 +267,12 @@ module fsm {
 	class BootstrapElements extends Visitor<boolean> {		
 		private behaviours: any = {};
 
-		private behaviour(element: Element): Behaviour {
+		private behaviour(element: Element): ElementBehavior {
 			if (!element.qualifiedName) {
 				element.qualifiedName = element.ancestors().map<string>((e) => { return e.name; }).join(Element.namespaceSeparator);
 			}
 						
-			return this.behaviours[element.qualifiedName] || (this.behaviours[element.qualifiedName] = new Behaviour());
+			return this.behaviours[element.qualifiedName] || (this.behaviours[element.qualifiedName] = new ElementBehavior());
 		}
 
 		visitElement(element: Element, deepHistoryAbove: boolean) {

@@ -8,6 +8,7 @@
 
 	"files": [
 		"./src/Action.ts",
+		"./src/Behavior.ts",
 		"./src/Guard.ts",
 		"./src/Element.ts",
 		"./src/Region.ts",

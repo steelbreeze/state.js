@@ -18,10 +18,10 @@ module fsm {
 	 */
 	export class State extends Vertex {
 		// user defined behaviour (via exit method) to execute when exiting a state.
-		exitBehavior: Array<Action> = [];
+		exitBehavior: Behavior = [];
 		
 		// user defined behaviour (via entry method) to execute when entering a state.
-		entryBehavior: Array<Action> = [];
+		entryBehavior: Behavior = [];
 		
 		/**
 		 * The set of regions under this state.
