@@ -10,10 +10,7 @@ module fsm {
 	 * Interface for the state machine instance; an object used as each instance of a state machine (as the classes in this library describe a state machine model).
 	 * @interface IActiveStateConfiguration
 	 */
-	export interface IActiveStateConfiguration {
-		// the visitor used to evaluate messages for this state machine instance.
-		evaluator: Visitor<IActiveStateConfiguration>;
-		
+	export interface IActiveStateConfiguration {		
 		/**
 		 * @member {boolean} isTerminated Indicates that the state machine instance has reached a terminate pseudo state and therfore will no longer evaluate messages.
 		 */

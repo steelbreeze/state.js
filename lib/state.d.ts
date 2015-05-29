@@ -628,7 +628,6 @@ declare module fsm {
      * @interface IActiveStateConfiguration
      */
     interface IActiveStateConfiguration {
-        evaluator: Visitor<IActiveStateConfiguration>;
         /**
          * @member {boolean} isTerminated Indicates that the state machine instance has reached a terminate pseudo state and therfore will no longer evaluate messages.
          */
@@ -660,7 +659,6 @@ declare module fsm {
      */
     class StateMachineInstance implements IActiveStateConfiguration {
         name: string;
-        evaluator: Visitor<IActiveStateConfiguration>;
         private last;
         /**
          * Indicates that the state manchine instance reached was terminated by reaching a Terminate pseudo state.

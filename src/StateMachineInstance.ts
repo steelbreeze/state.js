@@ -15,7 +15,6 @@ module fsm {
 	 * @implements IActiveStateConfiguration
 	 */
 	export class StateMachineInstance implements IActiveStateConfiguration {
-		evaluator: Visitor<IActiveStateConfiguration>;
 		private last: any = {};
 
 		/**

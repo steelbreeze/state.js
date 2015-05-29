@@ -20,8 +20,6 @@ module fsm {
 			if (autoInitialiseModel && stateMachineModel.clean === false) {
 				initialise(stateMachineModel);
 			}
-
-			stateMachineInstance.evaluator = new Evaluator(); // TODO: see if evaluator can move to a set of functions rather than a visitor
 			
 			invoke(stateMachineModel.onInitialise, undefined, stateMachineInstance);
 		} else {
@@ -47,7 +45,7 @@ module fsm {
 			return false;
 		}
 
-		return stateMachineModel.accept(stateMachineInstance.evaluator, stateMachineInstance, message);
+		return stateMachineModel.accept(Evaluator.instance, stateMachineInstance, message);
 	}
 
 	/**
@@ -85,6 +83,8 @@ module fsm {
 	
 	// evaluates messages against a state machine, executing transitions as appropriate
 	class Evaluator extends Visitor<IActiveStateConfiguration> {
+		static instance = new Evaluator();
+		
 		visitRegion(region: Region, stateMachineInstance: IActiveStateConfiguration, message: any): boolean {
 			return stateMachineInstance.getCurrent(region).accept(this, stateMachineInstance, message);
 		}
@@ -318,7 +318,7 @@ module fsm {
 
 			vertexBehaviour.endEnter.push((message, stateMachineInstance, history) => {
 				if (isComplete(vertex, stateMachineInstance)) {
-					vertex.accept(stateMachineInstance.evaluator, stateMachineInstance, vertex);
+					vertex.accept(Evaluator.instance, stateMachineInstance, vertex);
 				}
 			});
 				
