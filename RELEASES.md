@@ -1,6 +1,8 @@
 ## Version 5.?.?
 Added Behavior interface in place of using Array of Action.
 
+Revert the Evaulator class to a singleton as its stateless and therefore thread-safe.
+
 ## Version 5.2.0
 Extract the last pieces of the runtime from the model classes to a set of independant functions. This is the cause for a breaking change to the API.
 
