@@ -16,14 +16,19 @@ module fsm {
 	 * @param {boolean} autoInitialiseModel Defaulting to true, this will cause the model to be initialised prior to initialising the instance if the model has changed.
 	 */
 	export function initialise(stateMachineModel: StateMachine, stateMachineInstance?: IActiveStateConfiguration, autoInitialiseModel: boolean = true): void {
+		// initialise a state machine instance
 		if (stateMachineInstance) {
+			// initialise the state machine model if necessary
 			if (autoInitialiseModel && stateMachineModel.clean === false) {
 				initialise(stateMachineModel);
 			}
 
+			// enter the state machine instance for the first time
 			invoke(stateMachineModel.onInitialise, undefined, stateMachineInstance);
+
+		// initiaise a state machine model
 		} else {
-			stateMachineModel.accept(new BootstrapElements(), false);
+			stateMachineModel.accept(new InitialiseElements(), false);
 			stateMachineModel.clean = true;
 		}
 	}
@@ -37,14 +42,17 @@ module fsm {
 	 * @returns {boolean} True if the message triggered a state transition.
 	 */
 	export function evaluate(stateMachineModel: StateMachine, stateMachineInstance: IActiveStateConfiguration, message: any, autoInitialiseModel: boolean = true): boolean {
+		// initialise the state machine model if necessary
 		if (autoInitialiseModel && stateMachineModel.clean === false) {
 			initialise(stateMachineModel);
 		}
 
+		// terminated state machine instances will not evaluate messages
 		if (stateMachineInstance.isTerminated) {
 			return false;
 		}
 
+		// evaluate the message using the Evaluator visitor
 		return stateMachineModel.accept(Evaluator.instance, stateMachineInstance, message);
 	}
 
@@ -95,7 +103,7 @@ module fsm {
 			switch (pseudoState.kind) {
 				case PseudoStateKind.Initial:
 				case PseudoStateKind.DeepHistory:
-				case PseudoStateKind.ShallowHistory: {
+				case PseudoStateKind.ShallowHistory: 
 					if (pseudoState.transitions.length === 1) {
 						transition = pseudoState.transitions[0];
 					} else {
@@ -103,9 +111,8 @@ module fsm {
 					}
 
 					break;
-				}
 
-				case PseudoStateKind.Junction: {
+				case PseudoStateKind.Junction:
 					var result: Transition, elseResult: Transition;
 
 					pseudoState.transitions.forEach(t=> {
@@ -127,9 +134,8 @@ module fsm {
 					transition = result || elseResult;
 
 					break;
-				}
 
-				case PseudoStateKind.Choice: {
+				case PseudoStateKind.Choice:
 					var results: Array<Transition> = [];
 
 					pseudoState.transitions.forEach(t => {
@@ -147,7 +153,6 @@ module fsm {
 					transition = results.length !== 0 ? results[Math.round((results.length - 1) * Math.random())] : elseResult;
 
 					break;
-				}
 			}
 
 			if (!transition) {
@@ -204,7 +209,7 @@ module fsm {
 	}
 
 	// Bootstraps transitions after all elements have been bootstrapped
-	class BootstrapTransitions extends Visitor<(element: Element) => ElementBehavior> {
+	class InitialiseTransitions extends Visitor<(element: Element) => ElementBehavior> {
 		visitTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
 			// internal transitions: just perform the actions; no exiting or entering states
 			if (!transition.target) {
@@ -265,7 +270,7 @@ module fsm {
 	}
 
 	// bootstraps all the elements within a state machine model
-	class BootstrapElements extends Visitor<boolean> {
+	class InitialiseElements extends Visitor<boolean> {
 		private behaviours: any = {};
 
 		// returns the behavior for a given element; creates one if not present
@@ -292,11 +297,11 @@ module fsm {
 
 			// leave the curent active child state when exiting the region
 			regionBehaviour.leave.push((message, stateMachineInstance, history) => {
-				invoke(this.behaviour(stateMachineInstance.getCurrent(region)).leave, message, stateMachineInstance);
+				invoke(this.behaviour(stateMachineInstance.getCurrent(region)).leave, message, stateMachineInstance); // NOTE: current state needs to be evaluated at runtime
 			});
 
 			// enter the appropriate initial child vertex when entering the region
-			if (deepHistoryAbove || !region.initial || region.initial.isHistory()) {
+			if (deepHistoryAbove || !region.initial || region.initial.isHistory()) { // NOTE: history needs to be determined at runtime
 				regionBehaviour.endEnter.push((message, stateMachineInstance, history) => {
 					var initial: Vertex = region.initial;
 
@@ -310,34 +315,40 @@ module fsm {
 				regionBehaviour.endEnter = regionBehaviour.endEnter.concat(this.behaviour(region.initial).enter);
 			}
 
-			// add debug information as required
+			// add element behaviour (debug)
 			this.visitElement(region, deepHistoryAbove);
 			
+			// merge begin and end enter behaviour
 			regionBehaviour.enter = regionBehaviour.beginEnter.concat(regionBehaviour.endEnter);
 		}
 
 		visitVertex(vertex: Vertex, deepHistoryAbove: boolean) {
+			// add element behaviour (debug)
 			this.visitElement(vertex, deepHistoryAbove);
 
-			var vertexBehaviour = this.behaviour((vertex));
-
-			vertexBehaviour.endEnter.push((message, stateMachineInstance, history) => {
+			// evaluate comppletion transitions once vertex entry is complete
+			this.behaviour(vertex).endEnter.push((message, stateMachineInstance, history) => {
 				if (isComplete(vertex, stateMachineInstance)) {
 					vertex.accept(Evaluator.instance, stateMachineInstance, vertex);
 				}
 			});
-
-			vertexBehaviour.enter = vertexBehaviour.beginEnter.concat(vertexBehaviour.endEnter);
 		}
 
 		visitPseudoState(pseudoState: PseudoState, deepHistoryAbove: boolean) {
+			var pseudoStateBehaviour = this.behaviour(pseudoState);
+			
+			// add vertex behaviour (debug and testing completion transitions)
 			this.visitVertex(pseudoState, deepHistoryAbove);
 
+			// terminate the state machine instance upon transition to a terminate pseudo state
 			if (pseudoState.kind === PseudoStateKind.Terminate) {
-				this.behaviour(pseudoState).enter.push((message, stateMachineInstance, history) => {
+				pseudoStateBehaviour.enter.push((message, stateMachineInstance, history) => {
 					stateMachineInstance.isTerminated = true;
 				});
 			}
+
+			// merge begin and end enter behaviour
+			pseudoStateBehaviour.enter = pseudoStateBehaviour.beginEnter.concat(pseudoStateBehaviour.endEnter);
 		}
 
 		visitState(state: State, deepHistoryAbove: boolean) {
@@ -346,36 +357,41 @@ module fsm {
 			state.regions.forEach(region => {
 				var regionBehaviour = this.behaviour(region);
 
+				// chain initiaisation of child regions
 				region.accept(this, deepHistoryAbove);
 
-				stateBehaviour.leave.push((message, stateMachineInstance, history) => {
-					invoke(regionBehaviour.leave, message, stateMachineInstance);
-				});
+				// leave child regions when leaving the state
+				stateBehaviour.leave = stateBehaviour.leave.concat(regionBehaviour.leave);
 
+				// enter child regions when entering the state
 				stateBehaviour.endEnter = stateBehaviour.endEnter.concat(regionBehaviour.enter);
 			});
 
+			// add vertex behaviour (debug and testing completion transitions)
 			this.visitVertex(state, deepHistoryAbove);
 
+			// add the user defined behaviour when entering and exiting states
 			stateBehaviour.leave = stateBehaviour.leave.concat(state.exitBehavior);
 			stateBehaviour.beginEnter = stateBehaviour.beginEnter.concat(state.entryBehavior);
 
+			// update the parent regions current state
 			stateBehaviour.beginEnter.push((message, stateMachineInstance, history) => {
 				if (state.region) {
 					stateMachineInstance.setCurrent(state.region, state);
 				}
 			});
 
+			// merge begin and end enter behaviour
 			stateBehaviour.enter = stateBehaviour.beginEnter.concat(stateBehaviour.endEnter);
 		}
 
 		visitStateMachine(stateMachine: StateMachine, deepHistoryAbove: boolean) {
-			this.behaviours = {};
-
 			this.visitState(stateMachine, deepHistoryAbove);
 
-			stateMachine.accept(new BootstrapTransitions(), (element: Element) => { return this.behaviour(element); });
+			// initiaise all the transitions once all the elements have been initialised
+			stateMachine.accept(new InitialiseTransitions(), (element: Element) => { return this.behaviour(element); });
 
+			// define the behaviour for initialising a state machine instance
 			stateMachine.onInitialise = this.behaviour(stateMachine).enter;
 		}
 	}
