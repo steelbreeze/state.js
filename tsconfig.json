@@ -2,8 +2,9 @@
 	"compilerOptions": {
 		"noImplicitAny": true,
 		"declaration": true,
-		"module": "commonjs"
+		"module": "commonjs",
+		"outDir": "lib"
 	},
 
-	"files": ["./src/state.com.ts"]
+	"files": ["src/state.com.ts"]
 }

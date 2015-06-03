@@ -1,9 +1,13 @@
 ## Version 5.3.0
-Fix common.js packaging issue for use in Node.js.
+Fix common.js packaging issue for use in Node.js!
 
 Please use the following files in the following ways:
 * src/state.node.js - this is the CommonJS module for use in Node.js; either reference this manually, or if you npm install state.js, this is the target when using require("state.js").
 * src/state.web.js - this is a version for use in browsers; all the classes and functions will be available under the fsm object as in earlier v5 versions.
+
+Renamed public method root to getRoot.
+
+Added an option to turn on console.log messages programatically rather than (un)commenting code.
 
 ## Version 5.2.1
 Added Behavior interface in place of using Array of Action.

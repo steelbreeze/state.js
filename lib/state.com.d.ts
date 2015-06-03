@@ -34,17 +34,17 @@ export interface Behavior extends Array<Action> {
 export declare enum PseudoStateKind {
     /**
      * Used for pseudo states that are always the staring point when entering their parent region.
-     * @member {number} Initial
+     * @member {PseudoStateKind} Initial
      */
     Initial = 0,
     /**
      * Used for pseudo states that are the the starting point when entering their parent region for the first time; subsequent entries will start at the last known state.
-     * @member {number} ShallowHistory
+     * @member {PseudoStateKind} ShallowHistory
      */
     ShallowHistory = 1,
     /**
      * As per `ShallowHistory` but the history semantic cascades through all child regions irrespective of their initial pseudo state kind.
-     * @member {number} DeepHistory
+     * @member {PseudoStateKind} DeepHistory
      */
     DeepHistory = 2,
     /**
@@ -53,7 +53,7 @@ export declare enum PseudoStateKind {
      * if a single transition is found, it will be traversed;
      * if many transitions are found, an arbitary one will be selected and traversed;
      * if none evaluate true, and there is no 'else transition' defined, the machine is deemed illformed and an exception will be thrown.
-     * @member {number} Choice
+     * @member {PseudoStateKind} Choice
      */
     Choice = 3,
     /**
@@ -61,12 +61,12 @@ export declare enum PseudoStateKind {
      * All outbound transition guards from a Choice are evaluated upon entering the PseudoState:
      * if a single transition is found, it will be traversed;
      * if many or none evaluate true, and there is no 'else transition' defined, the machine is deemed illformed and an exception will be thrown.
-     * @member {number} Junction
+     * @member {PseudoStateKind} Junction
      */
     Junction = 4,
     /**
      * Entering a terminate `PseudoState` implies that the execution of this state machine by means of its state object is terminated.
-     * @member {number} Terminate
+     * @member {PseudoStateKind} Terminate
      */
     Terminate = 5,
 }
@@ -105,10 +105,10 @@ export declare class Element {
     getParent(): Element;
     /**
      * Returns the root element within the state machine model.
-     * @method root
+     * @method getRoot
      * @returns {StateMachine} The root state machine element.
      */
-    root(): StateMachine;
+    getRoot(): StateMachine;
     ancestors(): Array<Element>;
     /**
      * Accepts an instance of a visitor.
@@ -419,6 +419,7 @@ export declare class FinalState extends State {
 export declare class StateMachine extends State {
     clean: boolean;
     onInitialise: Behavior;
+    logger: Console;
     /**
      * Creates a new instance of the StateMachine class.
      * @param {string} name The name of the state machine.
@@ -427,10 +428,17 @@ export declare class StateMachine extends State {
     /**
      * Returns the root element within the state machine model.
      * Note that if this state machine is embeded within another state machine, the ultimate root element will be returned.
-     * @method root
+     * @method getRoot
      * @returns {StateMachine} The root state machine element.
      */
-    root(): StateMachine;
+    getRoot(): StateMachine;
+    /**
+     * Instructs the state machine model to log activity to an object supporting the Console interface.
+     * @method setLogger
+     * @param {Console} value Pass in console to log to the console, or any other object supporting the .log method.
+     * @returns {StateMachine} Returns the state machine to enable fluent style API.
+     */
+    setLogger(value?: Console): StateMachine;
     /**
      * Accepts an instance of a visitor and calls the visitStateMachine method on it.
      * @method accept
