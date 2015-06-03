@@ -7,7 +7,7 @@ Please use the following files in the following ways:
 * src/state.web.js - this is a version for use in browsers; all the classes and functions will be available under the fsm object as in earlier v5 versions.
 * src/state.web.min.js - a minified version of state.web.js.
 
-To see the example code in action, click [here](https://cdn.rawgit.com/steelbreeze/state.js/master/examples/test.html).
+To see the example code in action, click [here](https://cdn.rawgit.com/steelbreeze/state.js/master/examples/browser/test.html).
 
 If you're using state.js I'd love to hear about it; please e-mail me at mesmo@steelbreeze.net
 
@@ -23,7 +23,7 @@ The versions are in the form {major}.{minor}.{build}
 * Build changes can introduce features, though usually are fixes and performance enhancements; these will never break the public API.
 
 ## Documentation
-Documentation for the public API can be found [here](https://github.com/steelbreeze/state.js/blob/master/docs/state.md).
+Documentation for the public API can be found [here](https://github.com/steelbreeze/state.js/blob/master/docs/state.com.md).
 
 ## Building state.js
 There is no build, download a copy of state.js and use it in your site or project.
