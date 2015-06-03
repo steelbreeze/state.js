@@ -7,7 +7,7 @@ Please use the following files in the following ways:
 
 Renamed public method root to getRoot.
 
-Added an option to turn on console.log messages programatically rather than (un)commenting code.
+Added an option to turn on log messages programatically rather than (un)commenting code.
 
 ## Version 5.2.1
 Added Behavior interface in place of using Array of Action.
