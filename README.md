@@ -3,9 +3,9 @@
 This is version 5.3.0; this is still under development, it mainly aims to fixe the commonjs packaging issue to allow Node.js use again!
 
 Please use the following files in the following ways:
-* src/state.com.js - this is the CommonJS module for use in Node.js or other CommonJS based applications; either reference this manually, or if you npm install state.js, this is the target when using require("state.js").
-* src/state.web.js - this is a version for use in browsers; all the classes and functions will be available under the fsm object as in earlier v5 versions.
-* src/state.web.min.js - a minified version of state.web.js.
+* lib/state.com.js - this is the CommonJS module for use in Node.js or other CommonJS based applications; either reference this manually, or if you npm install state.js, this is the target when using require("state.js").
+* lib/state.js - this is a version for use in browsers; all the classes and functions will be available under the fsm object as in earlier v5 versions.
+* lib/state.min.js - a minified version of state.web.js.
 
 To see the example code in action, click [here](https://cdn.rawgit.com/steelbreeze/state.js/master/examples/browser/test.html).
 
