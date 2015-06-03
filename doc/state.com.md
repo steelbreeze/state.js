@@ -12,17 +12,22 @@ An enumeration of static constants that dictates the precise behaviour of pseudo
 Use these constants as the `kind` parameter when creating new `PseudoState` instances.
 
 **Initial**: `PseudoStateKind` , Used for pseudo states that are always the staring point when entering their parent region.
+
 **ShallowHistory**: `PseudoStateKind` , Used for pseudo states that are the the starting point when entering their parent region for the first time; subsequent entries will start at the last known state.
+
 **DeepHistory**: `PseudoStateKind` , As per `ShallowHistory` but the history semantic cascades through all child regions irrespective of their initial pseudo state kind.
+
 **Choice**: `PseudoStateKind` , Enables a dynamic conditional branches; within a compound transition.
 All outbound transition guards from a Choice are evaluated upon entering the PseudoState:
 if a single transition is found, it will be traversed;
 if many transitions are found, an arbitary one will be selected and traversed;
 if none evaluate true, and there is no 'else transition' defined, the machine is deemed illformed and an exception will be thrown.
+
 **Junction**: `PseudoStateKind` , Enables a static conditional branches; within a compound transition.
 All outbound transition guards from a Choice are evaluated upon entering the PseudoState:
 if a single transition is found, it will be traversed;
 if many or none evaluate true, and there is no 'else transition' defined, the machine is deemed illformed and an exception will be thrown.
+
 **Terminate**: `PseudoStateKind` , Entering a terminate `PseudoState` implies that the execution of this state machine by means of its state object is terminated.
 
 ## Class: Element
@@ -623,7 +628,7 @@ Returns the name of the state machine instance.
 
 **Returns**: `string`, The name of the state machine instance.
 
-### StateMachineInstance.initialise(stateMachineModel, stateMachineInstance, autoInitialiseModel) 
+## Function: initialise(stateMachineModel, stateMachineInstance, autoInitialiseModel) 
 
 Initialises a state machine and/or state machine model.
 
@@ -638,7 +643,7 @@ Passing just the state machine model will initialise the model, passing the mode
 **autoInitialiseModel**: `boolean`, Defaulting to true, this will cause the model to be initialised prior to initialising the instance if the model has changed.
 
 
-### StateMachineInstance.evaluate(stateMachineModel, stateMachineInstance, autoInitialiseModel) 
+## Function: evaluate(stateMachineModel, stateMachineInstance, autoInitialiseModel) 
 
 Passes a message to a state machine for evaluation; messages trigger state transitions.
 
@@ -652,7 +657,7 @@ Passes a message to a state machine for evaluation; messages trigger state trans
 
 **Returns**: `boolean`, True if the message triggered a state transition.
 
-### StateMachineInstance.isComplete(stateMachineModel, stateMachineInstance) 
+## Function: isComplete(stateMachineModel, stateMachineInstance) 
 
 Tests a state machine instance to see if its lifecycle is complete. A state machine instance is complete if all regions belonging to the state machine root have curent states that are final states.
 
