@@ -2,29 +2,8 @@
 	"compilerOptions": {
 		"noImplicitAny": true,
 		"declaration": true,
-		"module": "commonjs",
-		"out": "./lib/state.js"
+		"module": "commonjs"
 	},
 
-	"files": [
-		"./src/Action.ts",
-		"./src/Behavior.ts",
-		"./src/Guard.ts",
-		"./src/Element.ts",
-		"./src/Region.ts",
-		"./src/Vertex.ts",
-		"./src/PseudoState.ts",
-		"./src/PseudoStateKind.ts",
-		"./src/State.ts",
-		"./src/FinalState.ts",	
-		"./src/StateMachine.ts",
-		"./src/Transition.ts",
-
-		"./src/Visitor.ts",
-
-		"./src/IActiveStateConfiguration.ts",
-		"./src/StateMachineInstance.ts",
-		
-		"./src/Runtime.ts"
-	]
+	"files": ["./src/state.com.ts"]
 }

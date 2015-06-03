@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>state.js v5.2.1 example</title>
+        <title>state.js v5.3.0 example</title>
     </head>
 	<body>
-        <h1>state.js v5.2.1 example</h1>
+        <h1>state.js v5.3.0 example</h1>
 		<p>This example implements a simple controller for a cassette player according to the model below:</p>
 		<p><img id="diagram" /></p>
 		<p>Press the buttons below to send events to the controller (check brower console for trace output):</p>
@@ -21,15 +21,34 @@
     <script src="jquery-1.11.2.min.js"></script>
 
     <!-- import the state machine runtime -->
-    <script src="../lib/state.js"></script>
-
-    <!-- the core player code -->
-    <script src="player.js"></script>
+    <script src="../src/state.web.js"></script>
 
     <!-- script to wire the core player to the web page -->
     <script>               
         /* initialise the page */
         $(document).ready(function() {
+			var player = new fsm.StateMachine("player");
+			var initial = new fsm.PseudoState("initial", player, fsm.PseudoStateKind.Initial);
+			var operational = new fsm.State("operational", player);
+			var flipped = new fsm.State("flipped", player);
+			var finalState = new fsm.FinalState("final", player);
+			var deepHistory = new fsm.PseudoState("history", operational, fsm.PseudoStateKind.DeepHistory);
+			var stopped = new fsm.State("stopped", operational);
+			var active = new fsm.State("active", operational);
+			var running = new fsm.State("running", active);
+			var paused = new fsm.State("paused", active);
+			
+			initial.to(operational);
+			deepHistory.to(stopped);
+			
+			stopped.to(running).when(function (s) { return s === "play"; });
+			active.to(stopped).when(function (s) { return s === "stop"; });
+			running.to(paused).when(function (s) { return s === "pause"; });
+			paused.to(running).when(function (s) { return s === "play"; });
+			operational.to(flipped).when(function (s) { return s === "flip"; });
+			flipped.to(operational).when(function (s) { return s === "flip"; });
+			operational.to(finalState).when(function (s) { return s === "off"; });
+
             /* add core behaviour to appropriate states and transitions in the player machine*/
             active.entry(function () { $("#head").text("Head: engaged"); }).exit(function () { $("#head").text("Head: disengaged"); });
             running.entry(function () { $("#motor").text("Motor: running"); }).exit(function() { $("#motor").text("Motor: stopped"); });
