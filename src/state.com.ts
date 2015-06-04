@@ -965,11 +965,21 @@ export function initialise(stateMachineModel: StateMachine, stateMachineInstance
 			initialise(stateMachineModel);
 		}
 
+		// log as required
+		if (stateMachineModel.logger) {
+			stateMachineModel.logger.log("initialising " + stateMachineInstance);
+		}
+
 		// enter the state machine instance for the first time
 		invoke(stateMachineModel.onInitialise, undefined, stateMachineInstance);
 
 	// initiaise a state machine model
 	} else {
+		// log as required
+		if (stateMachineModel.logger) {
+			stateMachineModel.logger.log("initialising " + stateMachineModel.name);
+		}
+
 		stateMachineModel.accept(new InitialiseElements(), false);
 		stateMachineModel.clean = true;
 	}
