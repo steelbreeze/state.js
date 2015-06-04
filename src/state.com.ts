@@ -967,7 +967,7 @@ export function initialise(stateMachineModel: StateMachine, stateMachineInstance
 
 		// log as required
 		if (stateMachineModel.logger) {
-			stateMachineModel.logger.log("initialising " + stateMachineInstance);
+			stateMachineModel.logger.log("initialise " + stateMachineInstance);
 		}
 
 		// enter the state machine instance for the first time
@@ -977,7 +977,7 @@ export function initialise(stateMachineModel: StateMachine, stateMachineInstance
 	} else {
 		// log as required
 		if (stateMachineModel.logger) {
-			stateMachineModel.logger.log("initialising " + stateMachineModel.name);
+			stateMachineModel.logger.log("initialise " + stateMachineModel.name);
 		}
 
 		stateMachineModel.accept(new InitialiseElements(), false);
@@ -996,7 +996,7 @@ export function initialise(stateMachineModel: StateMachine, stateMachineInstance
 export function evaluate(stateMachineModel: StateMachine, stateMachineInstance: IActiveStateConfiguration, message: any, autoInitialiseModel: boolean = true): boolean {
 	// log as required
 	if (stateMachineModel.logger) {
-		stateMachineModel.logger.log(stateMachineInstance + " evaluating message " + message);
+		stateMachineModel.logger.log(stateMachineInstance + " evaluate " + message);
 	}
 
 	// initialise the state machine model if necessary
