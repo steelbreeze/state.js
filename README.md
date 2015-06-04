@@ -1,6 +1,8 @@
 # Welcome to state.js
 
-This is version 5.3.0; it mainly aims to fixe the commonjs packaging issue to allow Node.js use again!
+This is version 5.3.1; currently under development.
+
+The last stable build is 5.3.0.
 
 Please use the following files in the following ways:
 * lib/state.com.js - this is the CommonJS module for use in Node.js or other CommonJS based applications; either reference this manually, or if you npm install state.js, this is the target when using require("state.js").

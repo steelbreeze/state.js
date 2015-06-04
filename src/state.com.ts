@@ -31,11 +31,6 @@ export interface Guard {
 export interface Action {
 	(message?: any, instance?: IActiveStateConfiguration, history?: boolean): any;
 }
-
-/**
- * Declaration for an array of actions.
- */
-export interface Behavior extends Array<Action> { }
 	
 /**
  * An enumeration of static constants that dictates the precise behaviour of pseudo states.
@@ -418,10 +413,10 @@ export class PseudoState extends Vertex {
  */
 export class State extends Vertex {
 	// user defined behaviour (via exit method) to execute when exiting a state.
-	exitBehavior: Behavior = [];
+	exitBehavior: Array<Action> = [];
 	
 	// user defined behaviour (via entry method) to execute when entering a state.
-	entryBehavior: Behavior = [];
+	entryBehavior: Array<Action> = [];
 	
 	/**
 	 * The set of regions under this state.
@@ -615,7 +610,7 @@ export class StateMachine extends State {
 	clean = false;
 
 	// the behaviour required to initialise state machine instances; created when initialising the state machine model.
-	onInitialise: Behavior;
+	onInitialise: Array<Action>;
 
 	// used to inject logging during the model initialisation process.
 	logger: Console;
@@ -685,10 +680,10 @@ export class Transition {
 	guard: Guard;
 	
 	// user defined behaviour (via effect) executed when traversing this transition.
-	transitionBehavior: Behavior = [];
+	transitionBehavior: Array<Action> = [];
 	
 	// the collected actions to perform when traversing the transition (includes exiting states, traversal, and state entry)
-	traverse: Behavior = [];
+	traverse: Array<Action> = [];
 
 	/** 
 	 * Creates a new instance of the Transition class.
@@ -1025,14 +1020,14 @@ export function isComplete(vertex: Vertex, stateMachineInstance: IActiveStateCon
 
 // Temporary structure to hold element behaviour during the bootstrap process
 class ElementBehavior {
-	leave: Behavior = [];
-	beginEnter: Behavior = [];
-	endEnter: Behavior = [];
-	enter: Behavior = [];
+	leave: Array<Action> = [];
+	beginEnter: Array<Action> = [];
+	endEnter: Array<Action> = [];
+	enter: Array<Action> = [];
 }
 
 // invokes behaviour
-function invoke(behavior: Behavior, message: any, stateMachineInstance: IActiveStateConfiguration, history: boolean = false): void {
+function invoke(behavior: Array<Action>, message: any, stateMachineInstance: IActiveStateConfiguration, history: boolean = false): void {
 	behavior.forEach(action => { action(message, stateMachineInstance, history) });
 }
 

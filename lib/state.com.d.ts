@@ -21,11 +21,6 @@ export interface Action {
     (message?: any, instance?: IActiveStateConfiguration, history?: boolean): any;
 }
 /**
- * Declaration for an array of actions.
- */
-export interface Behavior extends Array<Action> {
-}
-/**
  * An enumeration of static constants that dictates the precise behaviour of pseudo states.
  *
  * Use these constants as the `kind` parameter when creating new `PseudoState` instances.
@@ -297,8 +292,8 @@ export declare class PseudoState extends Vertex {
  * @augments Vertex
  */
 export declare class State extends Vertex {
-    exitBehavior: Behavior;
-    entryBehavior: Behavior;
+    exitBehavior: Array<Action>;
+    entryBehavior: Array<Action>;
     /**
      * The set of regions under this state.
      * @member {Array<Region>}
@@ -418,7 +413,7 @@ export declare class FinalState extends State {
  */
 export declare class StateMachine extends State {
     clean: boolean;
-    onInitialise: Behavior;
+    onInitialise: Array<Action>;
     logger: Console;
     /**
      * Creates a new instance of the StateMachine class.
@@ -467,8 +462,8 @@ export declare class Transition {
     target: Vertex;
     static isElse: () => boolean;
     guard: Guard;
-    transitionBehavior: Behavior;
-    traverse: Behavior;
+    transitionBehavior: Array<Action>;
+    traverse: Array<Action>;
     /**
      * Creates a new instance of the Transition class.
      * @param {Vertex} source The source of the transition.

@@ -1,3 +1,10 @@
+### Version 5.3.1
+Remove declaration of Behavior as it was only for internal use and was cluttering the exported API.
+
+Remove the version history as it was baggage within releases (esp. within Node.js); this can be recreated from GitHub if required.
+
+Tidy the browser example.
+
 ## Version 5.3.0
 Fix common.js packaging issue for use in Node.js!
 

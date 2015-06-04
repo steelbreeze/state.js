@@ -1,18 +1,11 @@
 #!/bin/bash 
-VERSION='5.3.0'
 
-# Transpile the TypeScript into JavaScript for Node.js (using tsconfig.json settings)
+# Transpile the TypeScript into CommonJS packaged JavaScript (using tsconfig.json settings)
 tsc -p .
 
 # Create a version for use in web browsers (including minified copy)
-browserify src/web.js -o lib/state.js
+browserify src/browser.js -o lib/state.js
 minify lib/state.js
 
 # Create documentation
 jsdox --output doc lib/state.com.js
-
-# Create version stamped copies
-cp lib/state.js       lib/versions/state-$VERSION.js
-cp lib/state.com.js   lib/versions/state-$VERSION.com.js
-cp lib/state.com.d.ts lib/versions/state-$VERSION.com.d.ts
-cp lib/state.min.js   lib/versions/state-$VERSION.min.js
