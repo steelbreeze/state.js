@@ -4,7 +4,7 @@
 tsc -p .
 
 # Create a version for use in web browsers (including minified copy)
-browserify src/browser.js -o lib/state.js
+browserify src/window.js -o lib/state.js
 minify lib/state.js
 
 # Create documentation
