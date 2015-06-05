@@ -123,7 +123,7 @@ export class Element {
 	 */
 	public getParent(): Element {
 		return;
-	 }
+	}
 
 	/**
 	 * Returns the root element within the state machine model.
@@ -202,7 +202,7 @@ export class Region extends Element {
 	 */
 	public constructor(name: string, state: State) {
 		super(name);
-	
+
 		this.state = state;
 
 		this.state.regions.push(this);
@@ -642,7 +642,7 @@ export class StateMachine extends State {
 	public setLogger(value: Console = undefined): StateMachine {
 		this.logger = value;
 		this.clean = false;
-		
+
 		return this;
 	}
 
@@ -831,7 +831,7 @@ export class Visitor<TArg1> {
 		var result = this.visitVertex(state, arg1, arg2, arg3, arg4);
 
 		state.regions.forEach(region => { region.accept(this, arg1, arg2, arg3, arg4) });
-		
+
 		return result;
 	}
 
@@ -973,7 +973,7 @@ export function initialise(stateMachineModel: StateMachine, stateMachineInstance
 		// enter the state machine instance for the first time
 		invoke(stateMachineModel.onInitialise, undefined, stateMachineInstance);
 
-	// initiaise a state machine model
+		// initiaise a state machine model
 	} else {
 		// log as required
 		if (stateMachineModel.logger) {
@@ -1060,7 +1060,7 @@ class Evaluator extends Visitor<IActiveStateConfiguration> {
 		switch (pseudoState.kind) {
 			case PseudoStateKind.Initial:
 			case PseudoStateKind.DeepHistory:
-			case PseudoStateKind.ShallowHistory: 
+			case PseudoStateKind.ShallowHistory:
 				if (pseudoState.transitions.length === 1) {
 					transition = pseudoState.transitions[0];
 				} else {
@@ -1126,7 +1126,7 @@ class Evaluator extends Visitor<IActiveStateConfiguration> {
 		
 		// delegate to child regions first
 		for (var i = 0, l = state.regions.length; i < l; i++) { // NOTE: use of break means this needs to stay as a for loop
-			if (state.regions[i].accept(this, stateMachineInstance, message)) {				
+			if (state.regions[i].accept(this, stateMachineInstance, message)) {
 				result = true;
 
 				if (!isActive(state, stateMachineInstance)) {
@@ -1244,7 +1244,7 @@ class InitialiseElements extends Visitor<boolean> {
 		if (element.getRoot().logger) {
 			var elementBehaviour = this.behaviour(element);
 			var logger = element.getRoot().logger;
-	
+
 			elementBehaviour.leave.push((message, instance) => { logger.log(instance + " leave " + element); });
 			elementBehaviour.beginEnter.push((message, instance) => { logger.log(instance + " enter " + element); });
 		}
