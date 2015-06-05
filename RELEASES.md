@@ -3,7 +3,11 @@ Remove declaration of Behavior as it was only for internal use and was clutterin
 
 Remove the version history as it was baggage within releases (esp. within Node.js); this can be recreated from GitHub if required.
 
-Tidy the browser example.
+Tidy the browser example:
+* Pre-load images and jquery to show/hide images
+* Direct logging output to the DOM to display state transitions.
+
+Use the target attribute in the script element to define the global object to bind the state.js API to (fall back to fsm if not supplied).
 
 ## Version 5.3.0
 Fix common.js packaging issue for use in Node.js!

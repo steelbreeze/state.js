@@ -1,12 +1,10 @@
 # Welcome to state.js
 
-This is version 5.3.1; currently under development.
-
-The last stable build is 5.3.0.
+This is version 5.3.1.
 
 Please use the following files in the following ways:
 * lib/state.com.js - this is the CommonJS module for use in Node.js or other CommonJS based applications; either reference this manually, or if you npm install state.js, this is the target when using require("state.js").
-* lib/state.js - this is a version for use in browsers; all the classes and functions will be available under the fsm object as in earlier v5 versions.
+* lib/state.js - this is a version for use in browsers; all the classes and functions will be available under the fsm object as in earlier v5 versions; it is now possible to specify your own object to bind to by using the target attribute in the html script element.
 * lib/state.min.js - a minified version of state.js for use in browsers.
 
 To see the example code in action, click [here](https://cdn.rawgit.com/steelbreeze/state.js/master/examples/browser/test.html).

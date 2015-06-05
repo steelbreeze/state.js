@@ -13,7 +13,7 @@
 	})();
 
 	// get the class attfibute from the script element
-	var classAttribute = script.attributes["class"];
+	var classAttribute = script.attributes["target"];
 
 	// bind the state.js API to the specified name or use "fsm"" as a default
 	target[classAttribute ? classAttribute.textContent : "fsm"] = require("../lib/state.com.js");
