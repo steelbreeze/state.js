@@ -56,7 +56,7 @@ state.evaluate(model, instance, "move");
 
 Note that that *target* attribute within the script element defines the name of the global object that the state.js API will be bound to.
 
-#### 3. Write another script with your state machine code:
+#### 3. Create your state machine in another script:
 
 ```html
 <script>
