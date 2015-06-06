@@ -1,6 +1,7 @@
 #state.js
 **Hierarchical finite state machine for JavsScript**
 
+[![GitHub version](https://badge.fury.io/gh/steelbreeze%2Fstate.js.svg)](http://badge.fury.io/gh/steelbreeze%2Fstate.js) 
 [![npm version](https://badge.fury.io/js/state.js.svg)](http://badge.fury.io/js/state.js)
 
 ## Getting started
