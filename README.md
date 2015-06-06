@@ -1,11 +1,11 @@
   [![state.js Logo](http://www.steelbreeze.net/images/logos/statejs_logo.png)](http://www.steelbreeze.net/state.js/)
 
-  Hierarchical finite state machine for [node](http://nodejs.org) and web browsers.
+  Hierarchical finite state machine for [node](http://nodejs.org) and [web browsers](https://cdn.rawgit.com/steelbreeze/state.js/master/examples/browser/test.html).
 
   [![NPM Version][npm-image]][npm-url]
   [![NPM Downloads][downloads-image]][downloads-url]
   [![Build][travis-image]][travis-url]
-
+  
 ## Getting started
 
 The state.js API is split into:
