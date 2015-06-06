@@ -1,5 +1,6 @@
 #state.js
-**Hierarchical finite state machine for JavsScript**
+
+  Hierarchical finite state machine for [node](http://nodejs.org) and browsers.
 
   [![NPM Version][npm-image]][npm-url]
   [![NPM Downloads][downloads-image]][downloads-url]
