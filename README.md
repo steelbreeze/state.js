@@ -3,9 +3,12 @@
 
 [![npm version](https://badge.fury.io/js/state.js.svg)](http://badge.fury.io/js/state.js)
 
+  [![NPM Version][npm-image]][npm-url]
+  [![NPM Downloads][downloads-image]][downloads-url]
+
 ## Getting started
 
-The API is split into:
+The state.js API is split into:
 
 1. Classes that represent a state machine model (State, PseudoState, Transition, etc.)
 2. An interface and implementation of *active state configuration*; this allows multiple concurrent instances of the same state machine model
@@ -95,3 +98,8 @@ Documentation for the public API can be found [here](https://github.com/steelbre
 
 ## Licence
 state.js is dual-licenecd under the MIT and GPL v3 licences.
+
+[npm-image]: https://img.shields.io/npm/v/state.js.svg
+[npm-url]: https://npmjs.org/package/state.js
+[downloads-image]: https://img.shields.io/npm/dm/state.js.svg
+[downloads-url]: https://npmjs.org/package/state.js
