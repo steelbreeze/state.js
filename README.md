@@ -4,6 +4,7 @@
 
   [![NPM Version][npm-image]][npm-url]
   [![NPM Downloads][downloads-image]][downloads-url]
+  [![Build][travis-image]][travis-url]
 
 ## Getting started
 
@@ -103,3 +104,5 @@ state.js is dual-licenecd under the MIT and GPL v3 licences.
 [npm-url]: https://npmjs.org/package/state.js
 [downloads-image]: https://img.shields.io/npm/dm/state.js.svg
 [downloads-url]: https://npmjs.org/package/state.js
+[travis-image]: https://travis-ci.org/steelbreeze/state.js.svg
+[travis-url]: https://travis-ci.org/steelbreeze/state.js
