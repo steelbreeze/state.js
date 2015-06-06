@@ -1,6 +1,6 @@
-Version 5.3.1, stable.
-
 state.js is a JavaScript implementation of UML hierarchical finite state machines.
+
+[![npm version](https://badge.fury.io/js/state.js.svg)](http://badge.fury.io/js/state.js)
 
 ## Getting started
 
