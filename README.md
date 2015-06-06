@@ -1,6 +1,9 @@
-state.js is a JavaScript implementation of UML hierarchical finite state machines.
+#state.js
+**Hierarchical finite state machine for JavsScript**
 
 [![npm version](https://badge.fury.io/js/state.js.svg)](http://badge.fury.io/js/state.js)
+
+[![NPM version][npm-image]][npm-url] [![Downloads][downloads-image]][npm-url]
 
 ## Getting started
 
