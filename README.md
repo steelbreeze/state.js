@@ -1,6 +1,6 @@
 #state.js
 
-  Hierarchical finite state machine for [node](http://nodejs.org) and browsers.
+  Hierarchical finite state machine for [node](http://nodejs.org) and web browsers.
 
   [![NPM Version][npm-image]][npm-url]
   [![NPM Downloads][downloads-image]][downloads-url]
@@ -14,7 +14,7 @@ The state.js API is split into:
 2. An interface and implementation of *active state configuration*; this allows multiple concurrent instances of the same state machine model
 3. A set of functions that provide the state machine runtime
 
-The API is bound to a global object of you choosing. 
+The API is bound to a global object of your choosing. 
 
 ### Node
 #### 1. Install state.js in your project:
