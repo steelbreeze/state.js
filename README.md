@@ -54,14 +54,12 @@ state.evaluate(model, instance, "move");
 <script type="text/javascript" src="state.js" target="state"></script>
 ```
 
-Note that that the element *target* defines the name of the global object that the state.js API will be bound to.
+Note that that *target* attribute within the script element defines the name of the global object that the state.js API will be bound to.
 
 #### 3. Write another script with your state machine code:
 
 ```html
 <script>
-```
-```js
 	// create the state machine model elements
 	var model = new state.StateMachine("model").setLogger(console);
 	var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
@@ -80,8 +78,6 @@ Note that that the element *target* defines the name of the global object that t
 	
 	// send the machine instance a message for evaluation, this will trigger the transition from stateA to stateB
 	state.evaluate(model, instance, "move");
-```
-```html
 </script>
 ```
 
