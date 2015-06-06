@@ -3,8 +3,6 @@
 
 [![npm version](https://badge.fury.io/js/state.js.svg)](http://badge.fury.io/js/state.js)
 
-[![NPM version][npm-image]][npm-url] [![Downloads][downloads-image]][npm-url]
-
 ## Getting started
 
 The API is split into:
