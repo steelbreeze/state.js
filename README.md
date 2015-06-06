@@ -1,20 +1,91 @@
-# Welcome to state.js
+Version 5.3.1, stable.
 
-This is version 5.3.1.
+state.js is a JavaScript implementation of UML hierarchical finite state machines.
 
-Please use the following files in the following ways:
-* lib/state.com.js - this is the CommonJS module for use in Node.js or other CommonJS based applications; either reference this manually, or if you npm install state.js, this is the target when using require("state.js").
-* lib/state.js - this is a version for use in browsers; all the classes and functions will be available under the fsm object as in earlier v5 versions; it is now possible to specify your own object to bind to by using the target attribute in the html script element.
-* lib/state.min.js - a minified version of state.js for use in browsers.
+## Getting started
 
-To see the example code in action, click [here](https://cdn.rawgit.com/steelbreeze/state.js/master/examples/browser/test.html).
+The API is split into:
 
-If you're using state.js I'd love to hear about it; please e-mail me at mesmo@steelbreeze.net
+1. Classes that represent a state machine model (State, PseudoState, Transition, etc.)
+2. An interface and implementation of *active state configuration*; this allows multiple concurrent instances of the same state machine model
+3. A set of functions that provide the state machine runtime
 
-## Introduction
-State.js is a JavaScript implementation of a state machine library that supports most of the UML 2 state machine semantics.
+The API is bound to a global object of you choosing through CommonJS, or our own secret sauce for web browsers. 
 
-State.js provides a hierarchical state machine capable of managing orthogonal regions; a variety of pseudo state kinds are implemented including initial, shallow & deep history, choice, junction and terminate.
+### Node
+#### 1. Install state.js in your project:
+
+```sh
+$ npm install state.js
+```
+
+#### 2. Import state.js into your project and start building a state machine model:
+
+```js
+var state = require("state.js");
+
+// create the state machine model elements
+var model = new state.StateMachine("model").setLogger(console);
+var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
+var stateA = new state.State("stateA", model);
+var stateB = new state.State("stateB", model);
+
+// create the state machine model transitions
+initial.to(stateA);
+stateA.to(stateB).when(function (message) { return message === "move"; });
+
+// create a state machine instance
+var instance = new state.StateMachineInstance("test");
+
+// initialise the model and instance
+state.initialise(model, instance);
+
+// send the machine instance a message for evaluation, this will trigger the transition from stateA to stateB
+state.evaluate(model, instance, "move");
+```
+
+### Browser
+
+#### 1. Download lib/state.js from GitHub
+
+#### 2. Include state.js as a script in your page:
+
+```html
+<script type="text/javascript" src="state.js" target="state"></script>
+```
+
+Note that that the element *target* defines the name of the global object that the state.js API will be bound to.
+
+#### 3. Write another script with your state machine code:
+
+```html
+<script>
+```
+```js
+	// create the state machine model elements
+	var model = new state.StateMachine("model").setLogger(console);
+	var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
+	var stateA = new state.State("stateA", model);
+	var stateB = new state.State("stateB", model);
+	
+	// create the state machine model transitions
+	initial.to(stateA);
+	stateA.to(stateB).when(function (message) { return message === "move"; });
+	
+	// create a state machine instance
+	var instance = new state.StateMachineInstance("test");
+	
+	// initialise the model and instance
+	state.initialise(model, instance);
+	
+	// send the machine instance a message for evaluation, this will trigger the transition from stateA to stateB
+	state.evaluate(model, instance, "move");
+```
+```html
+</script>
+```
+
+
 
 ## Versioning
 The versions are in the form {major}.{minor}.{build}
@@ -25,11 +96,5 @@ The versions are in the form {major}.{minor}.{build}
 ## Documentation
 Documentation for the public API can be found [here](https://github.com/steelbreeze/state.js/blob/master/doc/state.com.md).
 
-## Building state.js
-There is no build, download a copy of state.js and use it in your site or project.
-### Installing with node.js
-state.js is available as a node packaged module; to install type:
-`npm install state.js`
-
 ## Licence
-State.js is dual-licenecd under the MIT and GPL v3 licences.
+state.js is dual-licenecd under the MIT and GPL v3 licences.
