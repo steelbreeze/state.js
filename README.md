@@ -59,7 +59,7 @@ Use [lib/state.js](https://github.com/steelbreeze/state.js/blob/master/lib/state
 <script type="text/javascript" src="state.js" target="state"></script>
 ```
 
-Note that that *target* attribute within the script element defines the name of the global object that the state.js API will be bound to. If not specified, state.js will be bound to the window.fsm.
+Note that that *target* attribute within the script element defines the name of the global object that the state.js API will be bound to. If not specified, state.js will be bound to window.fsm.
 
 #### 3. Create your state machine in another script:
 
