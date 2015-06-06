@@ -1,4 +1,4 @@
-#state.js
+  [![state.js Logo](http://www.steelbreeze.net/images/logos/statejs_logo.png)](http://www.steelbreeze.net/state.js/)
 
   Hierarchical finite state machine for [node](http://nodejs.org) and web browsers.
 
