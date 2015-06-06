@@ -50,7 +50,7 @@ state.evaluate(model, instance, "move");
 ### Browser
 
 #### 1. Download state.js from GitHub
-Use [lib/state.js](lib/state.js).
+Use [lib/state.js](https://raw.githubusercontent.com/steelbreeze/state.js/master/lib/state.js).
 
 #### 2. Include state.js as a script in your page:
 
