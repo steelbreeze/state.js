@@ -48,7 +48,7 @@ state.initialise(model, instance);
 state.evaluate(model, instance, "move");
 ```
 
-### Browser
+### Web browser
 
 #### 1. Download state.js from GitHub:
 Use [lib/state.js](https://github.com/steelbreeze/state.js/blob/master/lib/state.js) or [lib/state.min.js](https://github.com/steelbreeze/state.js/blob/master/lib/state.min.js).
