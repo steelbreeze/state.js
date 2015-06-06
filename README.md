@@ -1,8 +1,6 @@
 #state.js
 **Hierarchical finite state machine for JavsScript**
 
-[![npm version](https://badge.fury.io/js/state.js.svg)](http://badge.fury.io/js/state.js)
-
   [![NPM Version][npm-image]][npm-url]
   [![NPM Downloads][downloads-image]][downloads-url]
 
