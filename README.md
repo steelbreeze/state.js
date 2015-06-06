@@ -23,7 +23,7 @@ The API is bound to a global object of your choosing.
 $ npm install state.js
 ```
 
-#### 2. Import state.js into your project and start building a state machine model:
+#### 2. Import state.js and start building a state machine model:
 
 ```js
 var state = require("state.js");
