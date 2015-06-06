@@ -14,7 +14,7 @@ The state.js API is split into:
 2. An interface and implementation of *active state configuration*; this allows multiple concurrent instances of the same state machine model
 3. A set of functions that provide the state machine runtime
 
-The API is bound to a global object of you choosing through CommonJS, or our own secret sauce for web browsers. 
+The API is bound to a global object of you choosing. 
 
 ### Node
 #### 1. Install state.js in your project:
@@ -59,7 +59,7 @@ Use [lib/state.js](https://github.com/steelbreeze/state.js/blob/master/lib/state
 <script type="text/javascript" src="state.js" target="state"></script>
 ```
 
-Note that that *target* attribute within the script element defines the name of the global object that the state.js API will be bound to.
+Note that that *target* attribute within the script element defines the name of the global object that the state.js API will be bound to. If not specified, state.js will be bound to the window.fsm.
 
 #### 3. Create your state machine in another script:
 
