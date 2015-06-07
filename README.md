@@ -11,7 +11,7 @@
 The state.js API is split into:
 
 1. Classes that represent a state machine model (State, PseudoState, Transition, etc.)
-2. An interface and implementation of *active state configuration*; this allows multiple concurrent instances of the same state machine model
+2. An interface and implementation of *active state configuration* (current state); this allows multiple concurrent instances of a single state machine model
 3. A set of functions that provide the state machine runtime
 
 The API is bound to a global object of your choosing. 
