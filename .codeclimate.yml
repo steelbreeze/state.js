@@ -1,0 +1,7 @@
+# Save as .codeclimate.yml (note leading .) in project root directory
+languages:
+  Ruby: false
+  JavaScript: true
+  TypeSrcipt: true
+# exclude_paths:
+# - "foo/bar.rb"
