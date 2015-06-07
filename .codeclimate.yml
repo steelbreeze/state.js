@@ -1,9 +1,8 @@
-# Save as .codeclimate.yml (note leading .) in project root directory
-languages:
+ languages:
    Ruby: false
    JavaScript: true
    Python: false
    PHP: false
- exclude_paths:
- - "lib/*"
+  exclude_paths:
+   - "lib/*"
  
