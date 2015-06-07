@@ -4,4 +4,4 @@ languages:
   JavaScript: true
   TypeSrcipt: true
  exclude_paths:
- - "lib/"
+ - "lib/*"
