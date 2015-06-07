@@ -1,37 +1,51 @@
 {
-    "name": "state.js",
-    "version": "3.5.3",
-    "author": "Steelbreeze <mesmo@steelbreeze.net>",
-    "description": "Hierarchical finite state machine library for JavaScript",
-    "main": "./lib/state.com",
-    "repository" : {
-        "type" : "git",
-        "url" : "https://github.com/steelbreeze/state.js"
-    },
-	
+	"name": "state.js",
+	"version": "3.5.3",
+	"author": "Steelbreeze <mesmo@steelbreeze.net>",
+	"description": "Hierarchical finite state machine",
+	"main": "./lib/state.com",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/steelbreeze/state.js"
+	},
 	"devDependencies": {
-	    "mocha": "latest"
+		"mocha": "latest"
 	},
 	"scripts": {
 		"test": "mocha test/"
 	},
-    "keywords": ["uml", "finite", "state", "machine", "region",
-	             "orthogonal", "hierarchical", "pseudo", "final",
-	             "initial", "deep", "shallow", "history", "FSM",
-	             "junction", "choice", "transition", "completion"],
-    "bugs" : {
-        "url" : "https://github.com/steelbreeze/state.js/issues"
-    },
+	"keywords": [
+		"uml",
+		"finite",
+		"state",
+		"machine",
+		"region",
+		"orthogonal",
+		"hierarchical",
+		"pseudo",
+		"final",
+		"initial",
+		"deep",
+		"shallow",
+		"history",
+		"FSM",
+		"junction",
+		"choice",
+		"transition",
+		"completion"
+	],
+	"bugs": {
+		"url": "https://github.com/steelbreeze/state.js/issues"
+	},
 	"dependencies": {},
-	
-    "licenses" : [
-        {
-            "type" : "MIT",
-            "url" : "https://github.com/steelbreeze/state.js/blob/master/GPL.md"
-        },
-        {
-            "type" : "GPL",
-            "url" : "https://github.com/steelbreeze/state.js/blob/master/MIT.md"
-        }
-    ]
+	"licenses": [
+		{
+			"type": "MIT",
+			"url": "https://github.com/steelbreeze/state.js/blob/master/GPL.md"
+		},
+		{
+			"type": "GPL",
+			"url": "https://github.com/steelbreeze/state.js/blob/master/MIT.md"
+		}
+	]
 }
