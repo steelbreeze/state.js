@@ -8,6 +8,13 @@
         "type" : "git",
         "url" : "https://github.com/steelbreeze/state.js"
     },
+	
+	"devDependencies": {
+	    "mocha": "latest"
+	},
+	"scripts": {
+		"test": "mocha test/"
+	},
     "keywords": ["uml", "finite", "state", "machine", "region",
 	             "orthogonal", "hierarchical", "pseudo", "final",
 	             "initial", "deep", "shallow", "history", "FSM",
@@ -16,8 +23,7 @@
         "url" : "https://github.com/steelbreeze/state.js/issues"
     },
 	"dependencies": {},
-    "devDependencies": {},
-
+	
     "licenses" : [
         {
             "type" : "MIT",
