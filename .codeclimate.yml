@@ -3,5 +3,5 @@ languages:
   Ruby: false
   JavaScript: true
   TypeSrcipt: true
-# exclude_paths:
-# - "foo/bar.rb"
+ exclude_paths:
+ - "lib/"
