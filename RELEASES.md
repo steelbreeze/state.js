@@ -1,3 +1,6 @@
+### Version 5.3.4
+Fix versioning errors
+
 ### Version 5.3.1
 Remove declaration of Behavior as it was only for internal use and was cluttering the exported API.
 
