@@ -7,6 +7,8 @@
   [![Build][travis-image]][travis-url]
   [![Code Climate](https://codeclimate.com/github/steelbreeze/state.js/badges/gpa.svg)](https://codeclimate.com/github/steelbreeze/state.js)
   
+If you like state.js, please star it.  
+  
 ## Getting started
 
 The state.js API is split into:
