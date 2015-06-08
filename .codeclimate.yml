@@ -1,7 +1,11 @@
+
 languages:
   Ruby: true
   JavaScript: true
   PHP: true
   Python: true
+
+# Exclude the code emitted by tsc and browserify
 exclude_paths:
-- "lib/state.js" # exclude this as its really just a copy of state.com.js and we were getting hit twice...
+- "lib/state.js"
+- "lib/state.com.js"
