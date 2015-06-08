@@ -1155,7 +1155,7 @@ class InitialiseTransitions extends Visitor<(element: Element) => ElementBehavio
 	// determine the type of transition and use the appropriate initiliasition method
 	visitTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
 		if (!transition.target) {
-			this.visitInternalTransition(transition, behaviour);
+			this.visitInternalTransition(transition);
 		} else if (transition.target.region === transition.source.region) {
 			this.visitLocalTransition(transition, behaviour);
 		} else {
@@ -1164,7 +1164,7 @@ class InitialiseTransitions extends Visitor<(element: Element) => ElementBehavio
 	}
 
 	// initialise internal transitions: these do not leave the source state
-	visitInternalTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
+	visitInternalTransition(transition: Transition) {
 		transition.traverse = transition.transitionBehavior;
 	}
 
@@ -1249,7 +1249,7 @@ class InitialiseElements extends Visitor<boolean> {
 		region.vertices.forEach(vertex => { vertex.accept(this, deepHistoryAbove || (region.initial && region.initial.kind === PseudoStateKind.DeepHistory)); });
 
 		// leave the curent active child state when exiting the region
-		regionBehaviour.leave.push((message, stateMachineInstance, history) => {
+		regionBehaviour.leave.push((message, stateMachineInstance) => {
 			invoke(this.behaviour(stateMachineInstance.getCurrent(region)).leave, message, stateMachineInstance); // NOTE: current state needs to be evaluated at runtime
 		});
 
@@ -1280,7 +1280,7 @@ class InitialiseElements extends Visitor<boolean> {
 		this.visitElement(vertex, deepHistoryAbove);
 
 		// evaluate comppletion transitions once vertex entry is complete
-		this.behaviour(vertex).endEnter.push((message, stateMachineInstance, history) => {
+		this.behaviour(vertex).endEnter.push((message, stateMachineInstance) => {
 			if (isComplete(vertex, stateMachineInstance)) {
 				vertex.accept(Evaluator.instance, stateMachineInstance, vertex);
 			}
@@ -1295,7 +1295,7 @@ class InitialiseElements extends Visitor<boolean> {
 
 		// terminate the state machine instance upon transition to a terminate pseudo state
 		if (pseudoState.kind === PseudoStateKind.Terminate) {
-			pseudoStateBehaviour.enter.push((message, stateMachineInstance, history) => {
+			pseudoStateBehaviour.enter.push((message, stateMachineInstance) => {
 				stateMachineInstance.isTerminated = true;
 			});
 		}
@@ -1328,7 +1328,7 @@ class InitialiseElements extends Visitor<boolean> {
 		stateBehaviour.beginEnter = stateBehaviour.beginEnter.concat(state.entryBehavior);
 
 		// update the parent regions current state
-		stateBehaviour.beginEnter.push((message, stateMachineInstance, history) => {
+		stateBehaviour.beginEnter.push((message, stateMachineInstance) => {
 			if (state.region) {
 				stateMachineInstance.setCurrent(state.region, state);
 			}
