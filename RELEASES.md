@@ -1,3 +1,6 @@
+### Version 5.3.5
+Minor refactoring based on Code Climate findings.
+
 ### Version 5.3.4
 Fix versioning errors
 

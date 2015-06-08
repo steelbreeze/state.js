@@ -1,6 +1,6 @@
 {
 	"name": "state.js",
-	"version": "5.3.4",
+	"version": "5.3.5",
 	"author": "Steelbreeze <mesmo@steelbreeze.net>",
 	"description": "Hierarchical finite state machine",
 	"main": "./lib/state.com",
@@ -15,6 +15,8 @@
 		"test": "mocha test/"
 	},
 	"keywords": [
+		"state machine",
+		"finite state machine",
 		"uml",
 		"finite",
 		"state",
@@ -28,7 +30,7 @@
 		"deep",
 		"shallow",
 		"history",
-		"FSM",
+		"fsm",
 		"junction",
 		"choice",
 		"transition",

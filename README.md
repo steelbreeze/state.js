@@ -1,6 +1,6 @@
   [![state.js Logo](http://www.steelbreeze.net/images/logos/statejs_logo.png)](http://www.steelbreeze.net/state.js/)
 
-  Hierarchical finite state machine for [Node](http://nodejs.org) and [HTML scripting](https://cdn.rawgit.com/steelbreeze/state.js/master/examples/browser/test.html).
+  Hierarchical finite state machine for [Node.js](http://nodejs.org) and [HTML scripting](https://cdn.rawgit.com/steelbreeze/state.js/master/examples/browser/test.html).
 
   [![NPM Version][npm-image]][npm-url]
   [![NPM Downloads][downloads-image]][downloads-url]
@@ -17,7 +17,7 @@ The state.js API is split into:
 
 The API is bound to a global object of your choosing. 
 
-### Node
+### Node.js
 #### 1. Install state.js in your project:
 
 ```sh
