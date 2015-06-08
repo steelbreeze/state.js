@@ -112,7 +112,7 @@ export declare class Element {
      * @param {TArg} arg An optional argument to pass into the visitor.
      * @returns {any} Any value can be returned by the visitor.
      */
-    accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any;
+    accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any;
     /**
      * Returns a the element name as a fully qualified namespace.
      * @method toString
@@ -172,10 +172,9 @@ export declare class Region extends Element {
      * @param {TArg1} arg1 An optional argument to pass into the visitor.
      * @param {any} arg2 An optional argument to pass into the visitor.
      * @param {any} arg3 An optional argument to pass into the visitor.
-     * @param {any} arg4 An optional argument to pass into the visitor.
      * @returns {any} Any value can be returned by the visitor.
      */
-    accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any;
+    accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any;
 }
 /**
  * An abstract element within a state machine model that can be the source or target of a transition (states and pseudo states).
@@ -276,10 +275,9 @@ export declare class PseudoState extends Vertex {
      * @param {TArg1} arg1 An optional argument to pass into the visitor.
      * @param {any} arg2 An optional argument to pass into the visitor.
      * @param {any} arg3 An optional argument to pass into the visitor.
-     * @param {any} arg4 An optional argument to pass into the visitor.
      * @returns {any} Any value can be returned by the visitor.
      */
-    accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any;
+    accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any;
 }
 /**
  * An element within a state machine model that represents an invariant condition within the life of the state machine instance.
@@ -367,10 +365,9 @@ export declare class State extends Vertex {
      * @param {TArg1} arg1 An optional argument to pass into the visitor.
      * @param {any} arg2 An optional argument to pass into the visitor.
      * @param {any} arg3 An optional argument to pass into the visitor.
-     * @param {any} arg4 An optional argument to pass into the visitor.
      * @returns {any} Any value can be returned by the visitor.
      */
-    accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any;
+    accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any;
 }
 /**
  * An element within a state machine model that represents completion of the life of the containing Region within the state machine instance.
@@ -402,7 +399,7 @@ export declare class FinalState extends State {
      * @param {TArg} arg An optional argument to pass into the visitor.
      * @returns {any} Any value can be returned by the visitor.
      */
-    accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any;
+    accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any;
 }
 /**
  * An element within a state machine model that represents the root of the state machine model.
@@ -441,10 +438,9 @@ export declare class StateMachine extends State {
      * @param {TArg1} arg1 An optional argument to pass into the visitor.
      * @param {any} arg2 An optional argument to pass into the visitor.
      * @param {any} arg3 An optional argument to pass into the visitor.
-     * @param {any} arg4 An optional argument to pass into the visitor.
      * @returns {any} Any value can be returned by the visitor.
      */
-    accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any;
+    accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any;
 }
 /**
  * A transition between vertices (states or pseudo states) that may be traversed in response to a message.
@@ -499,10 +495,9 @@ export declare class Transition {
      * @param {TArg1} arg1 An optional argument to pass into the visitor.
      * @param {any} arg2 An optional argument to pass into the visitor.
      * @param {any} arg3 An optional argument to pass into the visitor.
-     * @param {any} arg4 An optional argument to pass into the visitor.
      * @returns {any} Any value can be returned by the visitor.
      */
-    accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any;
+    accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any;
 }
 /**
  * Implementation of a visitor pattern.
@@ -516,10 +511,9 @@ export declare class Visitor<TArg1> {
      * @param {TArg1} arg1 An optional parameter passed into the accept method.
      * @param {any} arg2 An optional parameter passed into the accept method.
      * @param {any} arg3 An optional parameter passed into the accept method.
-     * @param {any} arg4 An optional parameter passed into the accept method.
      * @returns {any} Any value may be returned when visiting an element.
      */
-    visitElement(element: Element, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any;
+    visitElement(element: Element, arg1?: TArg1, arg2?: any, arg3?: any): any;
     /**
      * Visits a region within a state machine model.
      * @method visitRegion
@@ -527,10 +521,9 @@ export declare class Visitor<TArg1> {
      * @param {TArg1} arg1 An optional parameter passed into the accept method.
      * @param {any} arg2 An optional parameter passed into the accept method.
      * @param {any} arg3 An optional parameter passed into the accept method.
-     * @param {any} arg4 An optional parameter passed into the accept method.
      * @returns {any} Any value may be returned when visiting an element.
      */
-    visitRegion(region: Region, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any;
+    visitRegion(region: Region, arg1?: TArg1, arg2?: any, arg3?: any): any;
     /**
      * Visits a vertex within a state machine model.
      * @method visitVertex
@@ -538,10 +531,9 @@ export declare class Visitor<TArg1> {
      * @param {TArg1} arg1 An optional parameter passed into the accept method.
      * @param {any} arg2 An optional parameter passed into the accept method.
      * @param {any} arg3 An optional parameter passed into the accept method.
-     * @param {any} arg4 An optional parameter passed into the accept method.
      * @returns {any} Any value may be returned when visiting an element.
      */
-    visitVertex(vertex: Vertex, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any;
+    visitVertex(vertex: Vertex, arg1?: TArg1, arg2?: any, arg3?: any): any;
     /**
      * Visits a pseudo state within a state machine model.
      * @method visitPseudoState
@@ -549,10 +541,9 @@ export declare class Visitor<TArg1> {
      * @param {TArg1} arg1 An optional parameter passed into the accept method.
      * @param {any} arg2 An optional parameter passed into the accept method.
      * @param {any} arg3 An optional parameter passed into the accept method.
-     * @param {any} arg4 An optional parameter passed into the accept method.
      * @returns {any} Any value may be returned when visiting an element.
      */
-    visitPseudoState(pseudoState: PseudoState, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any;
+    visitPseudoState(pseudoState: PseudoState, arg1?: TArg1, arg2?: any, arg3?: any): any;
     /**
      * Visits a state within a state machine model.
      * @method visitState
@@ -560,10 +551,9 @@ export declare class Visitor<TArg1> {
      * @param {TArg1} arg1 An optional parameter passed into the accept method.
      * @param {any} arg2 An optional parameter passed into the accept method.
      * @param {any} arg3 An optional parameter passed into the accept method.
-     * @param {any} arg4 An optional parameter passed into the accept method.
      * @returns {any} Any value may be returned when visiting an element.
      */
-    visitState(state: State, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any;
+    visitState(state: State, arg1?: TArg1, arg2?: any, arg3?: any): any;
     /**
      * Visits a final state within a state machine model.
      * @method visitFinal
@@ -571,10 +561,9 @@ export declare class Visitor<TArg1> {
      * @param {TArg1} arg1 An optional parameter passed into the accept method.
      * @param {any} arg2 An optional parameter passed into the accept method.
      * @param {any} arg3 An optional parameter passed into the accept method.
-     * @param {any} arg4 An optional parameter passed into the accept method.
      * @returns {any} Any value may be returned when visiting an element.
      */
-    visitFinalState(finalState: FinalState, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any;
+    visitFinalState(finalState: FinalState, arg1?: TArg1, arg2?: any, arg3?: any): any;
     /**
      * Visits a state machine within a state machine model.
      * @method visitVertex
@@ -582,10 +571,9 @@ export declare class Visitor<TArg1> {
      * @param {TArg1} arg1 An optional parameter passed into the accept method.
      * @param {any} arg2 An optional parameter passed into the accept method.
      * @param {any} arg3 An optional parameter passed into the accept method.
-     * @param {any} arg4 An optional parameter passed into the accept method.
      * @returns {any} Any value may be returned when visiting an element.
      */
-    visitStateMachine(stateMachine: StateMachine, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any;
+    visitStateMachine(stateMachine: StateMachine, arg1?: TArg1, arg2?: any, arg3?: any): any;
     /**
      * Visits a transition within a state machine model.
      * @method visitTransition
@@ -593,10 +581,9 @@ export declare class Visitor<TArg1> {
      * @param {TArg1} arg1 An optional parameter passed into the accept method.
      * @param {any} arg2 An optional parameter passed into the accept method.
      * @param {any} arg3 An optional parameter passed into the accept method.
-     * @param {any} arg4 An optional parameter passed into the accept method.
      * @returns {any} Any value may be returned when visiting an element.
      */
-    visitTransition(transition: Transition, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any;
+    visitTransition(transition: Transition, arg1?: TArg1, arg2?: any, arg3?: any): any;
 }
 /**
  * Interface for the state machine instance; an object used as each instance of a state machine (as the classes in this library describe a state machine model).

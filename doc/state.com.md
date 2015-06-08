@@ -105,7 +105,7 @@ Returns the parent element of this region.
 
 **Returns**: `Element`, The parent element of the region.
 
-### Region.accept(visitor, arg1, arg2, arg3, arg4) 
+### Region.accept(visitor, arg1, arg2, arg3) 
 
 Accepts an instance of a visitor and calls the visitRegion method on it.
 
@@ -118,8 +118,6 @@ Accepts an instance of a visitor and calls the visitRegion method on it.
 **arg2**: `any`, An optional argument to pass into the visitor.
 
 **arg3**: `any`, An optional argument to pass into the visitor.
-
-**arg4**: `any`, An optional argument to pass into the visitor.
 
 **Returns**: `any`, Any value can be returned by the visitor.
 
@@ -196,7 +194,7 @@ Initial pseudo states are of kind: Initial, ShallowHisory, or DeepHistory.
 
 **Returns**: `boolean`, True if the pseudo state is an initial pseudo state.
 
-### PseudoState.accept(visitor, arg1, arg2, arg3, arg4) 
+### PseudoState.accept(visitor, arg1, arg2, arg3) 
 
 Accepts an instance of a visitor and calls the visitPseudoState method on it.
 
@@ -209,8 +207,6 @@ Accepts an instance of a visitor and calls the visitPseudoState method on it.
 **arg2**: `any`, An optional argument to pass into the visitor.
 
 **arg3**: `any`, An optional argument to pass into the visitor.
-
-**arg4**: `any`, An optional argument to pass into the visitor.
 
 **Returns**: `any`, Any value can be returned by the visitor.
 
@@ -290,7 +286,7 @@ Adds behaviour to a state that is executed each time the state is entered.
 
 **Returns**: `State`, Returns the state to allow a fluent style API.
 
-### State.accept(visitor, arg1, arg2, arg3, arg4) 
+### State.accept(visitor, arg1, arg2, arg3) 
 
 Accepts an instance of a visitor and calls the visitState method on it.
 
@@ -303,8 +299,6 @@ Accepts an instance of a visitor and calls the visitState method on it.
 **arg2**: `any`, An optional argument to pass into the visitor.
 
 **arg3**: `any`, An optional argument to pass into the visitor.
-
-**arg4**: `any`, An optional argument to pass into the visitor.
 
 **Returns**: `any`, Any value can be returned by the visitor.
 
@@ -371,7 +365,7 @@ Instructs the state machine model to log activity to an object supporting the Co
 
 **Returns**: `StateMachine`, Returns the state machine to enable fluent style API.
 
-### StateMachine.accept(visitor, arg1, arg2, arg3, arg4) 
+### StateMachine.accept(visitor, arg1, arg2, arg3) 
 
 Accepts an instance of a visitor and calls the visitStateMachine method on it.
 
@@ -384,8 +378,6 @@ Accepts an instance of a visitor and calls the visitStateMachine method on it.
 **arg2**: `any`, An optional argument to pass into the visitor.
 
 **arg3**: `any`, An optional argument to pass into the visitor.
-
-**arg4**: `any`, An optional argument to pass into the visitor.
 
 **Returns**: `any`, Any value can be returned by the visitor.
 
@@ -439,7 +431,7 @@ Add behaviour to a transition.
 
 **Returns**: `Transition`, Returns the transition object to enable the fluent API.
 
-### Transition.accept(visitor, arg1, arg2, arg3, arg4) 
+### Transition.accept(visitor, arg1, arg2, arg3) 
 
 Accepts an instance of a visitor and calls the visitTransition method on it.
 
@@ -453,15 +445,13 @@ Accepts an instance of a visitor and calls the visitTransition method on it.
 
 **arg3**: `any`, An optional argument to pass into the visitor.
 
-**arg4**: `any`, An optional argument to pass into the visitor.
-
 **Returns**: `any`, Any value can be returned by the visitor.
 
 
 ## Class: Visitor
 Implementation of a visitor pattern.
 
-### Visitor.visitElement(element, arg1, arg2, arg3, arg4) 
+### Visitor.visitElement(element, arg1, arg2, arg3) 
 
 Visits an element within a state machine model.
 
@@ -475,11 +465,9 @@ Visits an element within a state machine model.
 
 **arg3**: `any`, An optional parameter passed into the accept method.
 
-**arg4**: `any`, An optional parameter passed into the accept method.
-
 **Returns**: `any`, Any value may be returned when visiting an element.
 
-### Visitor.visitRegion(region, arg1, arg2, arg3, arg4) 
+### Visitor.visitRegion(region, arg1, arg2, arg3) 
 
 Visits a region within a state machine model.
 
@@ -493,11 +481,9 @@ Visits a region within a state machine model.
 
 **arg3**: `any`, An optional parameter passed into the accept method.
 
-**arg4**: `any`, An optional parameter passed into the accept method.
-
 **Returns**: `any`, Any value may be returned when visiting an element.
 
-### Visitor.visitVertex(vertex, arg1, arg2, arg3, arg4) 
+### Visitor.visitVertex(vertex, arg1, arg2, arg3) 
 
 Visits a vertex within a state machine model.
 
@@ -511,11 +497,9 @@ Visits a vertex within a state machine model.
 
 **arg3**: `any`, An optional parameter passed into the accept method.
 
-**arg4**: `any`, An optional parameter passed into the accept method.
-
 **Returns**: `any`, Any value may be returned when visiting an element.
 
-### Visitor.visitPseudoState(pseudoState, arg1, arg2, arg3, arg4) 
+### Visitor.visitPseudoState(pseudoState, arg1, arg2, arg3) 
 
 Visits a pseudo state within a state machine model.
 
@@ -529,11 +513,9 @@ Visits a pseudo state within a state machine model.
 
 **arg3**: `any`, An optional parameter passed into the accept method.
 
-**arg4**: `any`, An optional parameter passed into the accept method.
-
 **Returns**: `any`, Any value may be returned when visiting an element.
 
-### Visitor.visitState(state, arg1, arg2, arg3, arg4) 
+### Visitor.visitState(state, arg1, arg2, arg3) 
 
 Visits a state within a state machine model.
 
@@ -547,11 +529,9 @@ Visits a state within a state machine model.
 
 **arg3**: `any`, An optional parameter passed into the accept method.
 
-**arg4**: `any`, An optional parameter passed into the accept method.
-
 **Returns**: `any`, Any value may be returned when visiting an element.
 
-### Visitor.visitFinal(finalState, arg1, arg2, arg3, arg4) 
+### Visitor.visitFinal(finalState, arg1, arg2, arg3) 
 
 Visits a final state within a state machine model.
 
@@ -565,11 +545,9 @@ Visits a final state within a state machine model.
 
 **arg3**: `any`, An optional parameter passed into the accept method.
 
-**arg4**: `any`, An optional parameter passed into the accept method.
-
 **Returns**: `any`, Any value may be returned when visiting an element.
 
-### Visitor.visitVertex(state, arg1, arg2, arg3, arg4) 
+### Visitor.visitVertex(state, arg1, arg2, arg3) 
 
 Visits a state machine within a state machine model.
 
@@ -583,11 +561,9 @@ Visits a state machine within a state machine model.
 
 **arg3**: `any`, An optional parameter passed into the accept method.
 
-**arg4**: `any`, An optional parameter passed into the accept method.
-
 **Returns**: `any`, Any value may be returned when visiting an element.
 
-### Visitor.visitTransition(transition, arg1, arg2, arg3, arg4) 
+### Visitor.visitTransition(transition, arg1, arg2, arg3) 
 
 Visits a transition within a state machine model.
 
@@ -600,8 +576,6 @@ Visits a transition within a state machine model.
 **arg2**: `any`, An optional parameter passed into the accept method.
 
 **arg3**: `any`, An optional parameter passed into the accept method.
-
-**arg4**: `any`, An optional parameter passed into the accept method.
 
 **Returns**: `any`, Any value may be returned when visiting an element.
 

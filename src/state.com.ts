@@ -143,7 +143,7 @@ export class Element {
 	 * @param {TArg} arg An optional argument to pass into the visitor.
 	 * @returns {any} Any value can be returned by the visitor.
 	 */
-	public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any { /* virtual method */ }
+	public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any { /* virtual method */ }
 
 	/**
 	 * Returns a the element name as a fully qualified namespace.
@@ -223,11 +223,10 @@ export class Region extends Element {
 	 * @param {TArg1} arg1 An optional argument to pass into the visitor.
 	 * @param {any} arg2 An optional argument to pass into the visitor.
 	 * @param {any} arg3 An optional argument to pass into the visitor.
-	 * @param {any} arg4 An optional argument to pass into the visitor.
 	 * @returns {any} Any value can be returned by the visitor.
 	 */
-	public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
-		return visitor.visitRegion(this, arg1, arg2, arg3, arg4);
+	public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any {
+		return visitor.visitRegion(this, arg1, arg2, arg3);
 	}
 }
 		
@@ -390,11 +389,10 @@ export class PseudoState extends Vertex {
 	 * @param {TArg1} arg1 An optional argument to pass into the visitor.
 	 * @param {any} arg2 An optional argument to pass into the visitor.
 	 * @param {any} arg3 An optional argument to pass into the visitor.
-	 * @param {any} arg4 An optional argument to pass into the visitor.
 	 * @returns {any} Any value can be returned by the visitor.
 	 */
-	public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
-		return visitor.visitPseudoState(this, arg1, arg2, arg3, arg4);
+	public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any {
+		return visitor.visitPseudoState(this, arg1, arg2, arg3);
 	}
 }	
 
@@ -537,11 +535,10 @@ export class State extends Vertex {
 	 * @param {TArg1} arg1 An optional argument to pass into the visitor.
 	 * @param {any} arg2 An optional argument to pass into the visitor.
 	 * @param {any} arg3 An optional argument to pass into the visitor.
-	 * @param {any} arg4 An optional argument to pass into the visitor.
 	 * @returns {any} Any value can be returned by the visitor.
 	 */
-	public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
-		return visitor.visitState(this, arg1, arg2, arg3, arg4);
+	public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any {
+		return visitor.visitState(this, arg1, arg2, arg3);
 	}
 }	
 
@@ -590,8 +587,8 @@ export class FinalState extends State {
 	 * @param {TArg} arg An optional argument to pass into the visitor.
 	 * @returns {any} Any value can be returned by the visitor.
 	 */
-	public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
-		return visitor.visitFinalState(this, arg1, arg2, arg3, arg4);
+	public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any {
+		return visitor.visitFinalState(this, arg1, arg2, arg3);
 	}
 }
 	
@@ -650,11 +647,10 @@ export class StateMachine extends State {
 	 * @param {TArg1} arg1 An optional argument to pass into the visitor.
 	 * @param {any} arg2 An optional argument to pass into the visitor.
 	 * @param {any} arg3 An optional argument to pass into the visitor.
-	 * @param {any} arg4 An optional argument to pass into the visitor.
 	 * @returns {any} Any value can be returned by the visitor.
 	 */
-	public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
-		return visitor.visitStateMachine(this, arg1, arg2, arg3, arg4);
+	public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any {
+		return visitor.visitStateMachine(this, arg1, arg2, arg3);
 	}
 }	
 
@@ -737,11 +733,10 @@ export class Transition {
 	 * @param {TArg1} arg1 An optional argument to pass into the visitor.
 	 * @param {any} arg2 An optional argument to pass into the visitor.
 	 * @param {any} arg3 An optional argument to pass into the visitor.
-	 * @param {any} arg4 An optional argument to pass into the visitor.
 	 * @returns {any} Any value can be returned by the visitor.
 	 */
-	public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
-		return visitor.visitTransition(this, arg1, arg2, arg3, arg4);
+	public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any {
+		return visitor.visitTransition(this, arg1, arg2, arg3);
 	}
 }
 
@@ -757,10 +752,9 @@ export class Visitor<TArg1> {
 	 * @param {TArg1} arg1 An optional parameter passed into the accept method.
 	 * @param {any} arg2 An optional parameter passed into the accept method.
 	 * @param {any} arg3 An optional parameter passed into the accept method.
-	 * @param {any} arg4 An optional parameter passed into the accept method.
 	 * @returns {any} Any value may be returned when visiting an element.
 	 */
-	public visitElement(element: Element, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
+	public visitElement(element: Element, arg1?: TArg1, arg2?: any, arg3?: any): any {
 		return;
 	}
 
@@ -771,13 +765,12 @@ export class Visitor<TArg1> {
 	 * @param {TArg1} arg1 An optional parameter passed into the accept method.
 	 * @param {any} arg2 An optional parameter passed into the accept method.
 	 * @param {any} arg3 An optional parameter passed into the accept method.
-	 * @param {any} arg4 An optional parameter passed into the accept method.
 	 * @returns {any} Any value may be returned when visiting an element.
 	 */
-	public visitRegion(region: Region, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
-		var result = this.visitElement(region, arg1, arg2, arg3, arg4);
+	public visitRegion(region: Region, arg1?: TArg1, arg2?: any, arg3?: any): any {
+		var result = this.visitElement(region, arg1, arg2, arg3);
 
-		region.vertices.forEach(vertex => { vertex.accept(this, arg1, arg2, arg3, arg4) });
+		region.vertices.forEach(vertex => { vertex.accept(this, arg1, arg2, arg3) });
 
 		return result;
 	}
@@ -789,13 +782,12 @@ export class Visitor<TArg1> {
 	 * @param {TArg1} arg1 An optional parameter passed into the accept method.
 	 * @param {any} arg2 An optional parameter passed into the accept method.
 	 * @param {any} arg3 An optional parameter passed into the accept method.
-	 * @param {any} arg4 An optional parameter passed into the accept method.
 	 * @returns {any} Any value may be returned when visiting an element.
 	 */
-	public visitVertex(vertex: Vertex, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
-		var result = this.visitElement(vertex, arg1, arg2, arg3, arg4);
+	public visitVertex(vertex: Vertex, arg1?: TArg1, arg2?: any, arg3?: any): any {
+		var result = this.visitElement(vertex, arg1, arg2, arg3);
 
-		vertex.transitions.forEach(transition => { transition.accept(this, arg1, arg2, arg3, arg4) });
+		vertex.transitions.forEach(transition => { transition.accept(this, arg1, arg2, arg3) });
 
 		return result;
 	}
@@ -807,11 +799,10 @@ export class Visitor<TArg1> {
 	 * @param {TArg1} arg1 An optional parameter passed into the accept method.
 	 * @param {any} arg2 An optional parameter passed into the accept method.
 	 * @param {any} arg3 An optional parameter passed into the accept method.
-	 * @param {any} arg4 An optional parameter passed into the accept method.
 	 * @returns {any} Any value may be returned when visiting an element.
 	 */
-	public visitPseudoState(pseudoState: PseudoState, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
-		return this.visitVertex(pseudoState, arg1, arg2, arg3, arg4);
+	public visitPseudoState(pseudoState: PseudoState, arg1?: TArg1, arg2?: any, arg3?: any): any {
+		return this.visitVertex(pseudoState, arg1, arg2, arg3);
 	}
 
 	/**
@@ -821,13 +812,12 @@ export class Visitor<TArg1> {
 	 * @param {TArg1} arg1 An optional parameter passed into the accept method.
 	 * @param {any} arg2 An optional parameter passed into the accept method.
 	 * @param {any} arg3 An optional parameter passed into the accept method.
-	 * @param {any} arg4 An optional parameter passed into the accept method.
 	 * @returns {any} Any value may be returned when visiting an element.
 	 */
-	public visitState(state: State, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
-		var result = this.visitVertex(state, arg1, arg2, arg3, arg4);
+	public visitState(state: State, arg1?: TArg1, arg2?: any, arg3?: any): any {
+		var result = this.visitVertex(state, arg1, arg2, arg3);
 
-		state.regions.forEach(region => { region.accept(this, arg1, arg2, arg3, arg4) });
+		state.regions.forEach(region => { region.accept(this, arg1, arg2, arg3) });
 
 		return result;
 	}
@@ -839,11 +829,10 @@ export class Visitor<TArg1> {
 	 * @param {TArg1} arg1 An optional parameter passed into the accept method.
 	 * @param {any} arg2 An optional parameter passed into the accept method.
 	 * @param {any} arg3 An optional parameter passed into the accept method.
-	 * @param {any} arg4 An optional parameter passed into the accept method.
 	 * @returns {any} Any value may be returned when visiting an element.
 	 */
-	public visitFinalState(finalState: FinalState, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
-		return this.visitState(finalState, arg1, arg2, arg3, arg4);
+	public visitFinalState(finalState: FinalState, arg1?: TArg1, arg2?: any, arg3?: any): any {
+		return this.visitState(finalState, arg1, arg2, arg3);
 	}
 
 	/**
@@ -853,11 +842,10 @@ export class Visitor<TArg1> {
 	 * @param {TArg1} arg1 An optional parameter passed into the accept method.
 	 * @param {any} arg2 An optional parameter passed into the accept method.
 	 * @param {any} arg3 An optional parameter passed into the accept method.
-	 * @param {any} arg4 An optional parameter passed into the accept method.
 	 * @returns {any} Any value may be returned when visiting an element.
 	 */
-	public visitStateMachine(stateMachine: StateMachine, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
-		return this.visitState(stateMachine, arg1, arg2, arg3, arg4);
+	public visitStateMachine(stateMachine: StateMachine, arg1?: TArg1, arg2?: any, arg3?: any): any {
+		return this.visitState(stateMachine, arg1, arg2, arg3);
 	}
 
 	/**
@@ -867,10 +855,9 @@ export class Visitor<TArg1> {
 	 * @param {TArg1} arg1 An optional parameter passed into the accept method.
 	 * @param {any} arg2 An optional parameter passed into the accept method.
 	 * @param {any} arg3 An optional parameter passed into the accept method.
-	 * @param {any} arg4 An optional parameter passed into the accept method.
 	 * @returns {any} Any value may be returned when visiting an element.
 	 */
-	public visitTransition(transition: Transition, arg1?: TArg1, arg2?: any, arg3?: any, arg4?: any): any {
+	public visitTransition(transition: Transition, arg1?: TArg1, arg2?: any, arg3?: any): any {
 		return;
 	}
 }

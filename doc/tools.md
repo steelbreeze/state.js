@@ -9,3 +9,4 @@ state.js uses the following tools:
 | Source code management | [GitHub](https://github.com)                        |
 | Testing                | [Mocha](http://mochajs.org)                         |
 | Continious integration | [Travis CI](https://travis-ci.org)                  |
+| Code analyis           | [Code Climate](https://codeclimate.com)             |
