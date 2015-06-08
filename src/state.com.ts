@@ -3,9 +3,6 @@
  * Copyright (c) 2014-5 Steelbreeze Limited
  * Licensed under the MIT and GPL v3 licences
  * http://www.steelbreeze.net/state.cs
- *
- * This source file is designed to transpile into a CommonJS module for use in Node.js applications using TypeScript's tsc.
- * The build process will also convert to a regular JavaScript file for use in web browsers using browserify.
  */
 
 /**
@@ -1199,11 +1196,6 @@ class InitialiseTransitions extends Visitor<(element: Element) => ElementBehavio
 		while ((i < l) && (sourceAncestors[i] === targetAncestors[i])) {
 			i++;
 		}
-
-		// validate transition does not cross sibling regions boundaries
-		if (sourceAncestors[i] instanceof Region) {
-			throw "Transitions may not cross sibling orthogonal region boundaries";
-		}
 		
 		// leave the first uncommon ancestor
 		transition.traverse = behaviour(i < sourceAncestors.length ? sourceAncestors[i] : transition.source).leave.slice(0);
@@ -1217,22 +1209,25 @@ class InitialiseTransitions extends Visitor<(element: Element) => ElementBehavio
 						
 		// enter the target ancestry
 		while (i < targetAncestors.length) {
-			var element = targetAncestors[i++];
-			var next = i < targetAncestors.length ? targetAncestors[i] : undefined;
-
-			transition.traverse = transition.traverse.concat(behaviour(element).beginEnter);
-
-			if (element instanceof State) {
-				var state = <State>element;
-
-				if (state.isOrthogonal()) {
-					state.regions.forEach(region => { if (region !== next) { transition.traverse = transition.traverse.concat(behaviour(region).enter); } });
-				}
-			}
+			this.cascadeElementEntry(transition, behaviour, targetAncestors[i++], i < targetAncestors.length ? targetAncestors[i] : undefined);
 		}
 
 		// trigger cascade
 		transition.traverse = transition.traverse.concat(behaviour(transition.target).endEnter);
+	}
+
+	cascadeElementEntry(transition: Transition, behaviour: (element: Element) => ElementBehavior, element: Element, next: Element): void {
+		transition.traverse = transition.traverse.concat(behaviour(element).beginEnter);
+
+		if (element instanceof State) {
+			this.cascadeOrthogonalRegionEntry(transition, behaviour, <State>element, next);
+		}
+	}
+	
+	cascadeOrthogonalRegionEntry(transition: Transition, behaviour: (element: Element) => ElementBehavior, state: State, next: Element): void {
+		if (state.isOrthogonal()) {
+			state.regions.forEach(region => { if (region !== next) { transition.traverse = transition.traverse.concat(behaviour(region).enter); } });
+		}
 	}
 }
 
