@@ -1165,64 +1165,74 @@ class Evaluator extends Visitor<IActiveStateConfiguration> {
 	}
 }
 
-// Bootstraps transitions after all elements have been bootstrapped
+// initialises transitions after all elements have been bootstrapped
 class InitialiseTransitions extends Visitor<(element: Element) => ElementBehavior> {
+	
+	// determine the type of transition and use the appropriate initiliasition method
 	visitTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
-		// internal transitions: just perform the actions; no exiting or entering states
 		if (!transition.target) {
-			transition.traverse = transition.transitionBehavior;
-			
-			// local transtions (within the same parent region): simple exit, transition and entry
+			this.visitInternalTransition(transition, behaviour);
 		} else if (transition.target.region === transition.source.region) {
-			transition.traverse = behaviour(transition.source).leave.concat(transition.transitionBehavior).concat(behaviour(transition.target).enter);
-			
-			// external transitions (crossing region boundaries): exit to the LCA, transition, enter from the LCA
+			this.visitLocalTransition(transition, behaviour);
 		} else {
-			var sourceAncestors = transition.source.ancestors();
-			var targetAncestors = transition.target.ancestors();
-			var sourceAncestorsLength = sourceAncestors.length;
-			var targetAncestorsLength = targetAncestors.length;
-			var i = 0, l = Math.min(sourceAncestorsLength, targetAncestorsLength);
+			this.visitExternalTransition(transition, behaviour);
+		}
+	}
 
-			// find the index of the first uncommon ancestor
-			while ((i < l) && (sourceAncestors[i] === targetAncestors[i])) {
-				i++;
-			}
+	// initialise internal transitions: these do not leave the source state
+	visitInternalTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
+		transition.traverse = transition.transitionBehavior;
+	}
 
-			// validate transition does not cross sibling regions boundaries
-			if (sourceAncestors[i] instanceof Region) {
-				throw "Transitions may not cross sibling orthogonal region boundaries";
-			}
-			
-			// leave the first uncommon ancestor
-			transition.traverse = behaviour(i < sourceAncestorsLength ? sourceAncestors[i] : transition.source).leave.slice(0);
+	// initialise local transitions: these do not leave the source/target parent region
+	visitLocalTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
+		transition.traverse = behaviour(transition.source).leave.concat(transition.transitionBehavior).concat(behaviour(transition.target).enter);
+	}
 
-			// perform the transition action
-			transition.traverse = transition.traverse.concat(transition.transitionBehavior);
+	// initialise external transitions: these are abritarily complex
+	visitExternalTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
+		var sourceAncestors = transition.source.ancestors();
+		var targetAncestors = transition.target.ancestors();
+		var i = 0, l = Math.min(sourceAncestors.length, targetAncestors.length);
 
-			if (i >= targetAncestorsLength) {
-				transition.traverse = transition.traverse.concat(behaviour(transition.target).beginEnter);
-			}
-							
-			// enter the target ancestry
-			while (i < targetAncestorsLength) {
-				var element = targetAncestors[i++];
-				var next = i < targetAncestorsLength ? targetAncestors[i] : undefined;
+		// find the index of the first uncommon ancestor
+		while ((i < l) && (sourceAncestors[i] === targetAncestors[i])) {
+			i++;
+		}
 
-				transition.traverse = transition.traverse.concat(behaviour(element).beginEnter);
+		// validate transition does not cross sibling regions boundaries
+		if (sourceAncestors[i] instanceof Region) {
+			throw "Transitions may not cross sibling orthogonal region boundaries";
+		}
+		
+		// leave the first uncommon ancestor
+		transition.traverse = behaviour(i < sourceAncestors.length ? sourceAncestors[i] : transition.source).leave.slice(0);
 
-				if (element instanceof State) {
-					var state = <State>element;
+		// perform the transition action
+		transition.traverse = transition.traverse.concat(transition.transitionBehavior);
 
-					if (state.isOrthogonal()) {
-						state.regions.forEach(region => { if (region !== next) { transition.traverse = transition.traverse.concat(behaviour(region).enter); } });
-					}
+		if (i >= targetAncestors.length) {
+			transition.traverse = transition.traverse.concat(behaviour(transition.target).beginEnter);
+		}
+						
+		// enter the target ancestry
+		while (i < targetAncestors.length) {
+			var element = targetAncestors[i++];
+			var next = i < targetAncestors.length ? targetAncestors[i] : undefined;
+
+			transition.traverse = transition.traverse.concat(behaviour(element).beginEnter);
+
+			if (element instanceof State) {
+				var state = <State>element;
+
+				if (state.isOrthogonal()) {
+					state.regions.forEach(region => { if (region !== next) { transition.traverse = transition.traverse.concat(behaviour(region).enter); } });
 				}
 			}
-
-			// trigger cascade
-			transition.traverse = transition.traverse.concat(behaviour(transition.target).endEnter);
 		}
+
+		// trigger cascade
+		transition.traverse = transition.traverse.concat(behaviour(transition.target).endEnter);
 	}
 }
 
