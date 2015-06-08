@@ -6,6 +6,7 @@
   [![NPM Downloads][downloads-image]][downloads-url]
   [![Build][travis-image]][travis-url]
   [![Code Climate](https://codeclimate.com/github/steelbreeze/state.js/badges/gpa.svg)](https://codeclimate.com/github/steelbreeze/state.js)
+  <sup>1</sup>
   
 ## Getting started
 
@@ -100,6 +101,9 @@ Documentation for the public API can be found [here](https://github.com/steelbre
 
 ## Licence
 state.js is dual-licenecd under the MIT and GPL v3 licences.
+
+## Notes
+<sup>1</sup> Code climate is testing the JavaScript generated from the TypeScript source; if/when Code Climate support TypeScript, I'll remove the lib folder completely.
 
 [npm-image]: https://img.shields.io/npm/v/state.js.svg
 [npm-url]: https://npmjs.org/package/state.js
