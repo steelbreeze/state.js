@@ -3,8 +3,27 @@
 		"noImplicitAny": true,
 		"declaration": true,
 		"module": "commonjs",
-		"outDir": "lib"
+		"outDir": "lib",
+		"out": "lib/state.com.js"
 	},
+	"files": [
+		"src/Guard.ts",
+		"src/Action.ts",
+		"src/PseudoStateKind.ts",
+		"src/Element.ts",
+		"src/Region.ts",
+		"src/Vertex.ts",
+		"src/PseudoState.ts",
+		"src/State.ts",
+		"src/FinalState.ts",
+		"src/StateMachine.ts",
+		"src/Transition.ts",
 
-	"files": ["src/state.com.ts"]
+		"src/IActiveStateConfiguration.ts",
+		"src/StateMachineInstance.ts",
+		
+		"src/runtime.ts",
+
+		"src/module.ts"
+	]
 }

@@ -4,9 +4,9 @@
 
   [![NPM Version][npm-image]][npm-url]
   [![NPM Downloads][downloads-image]][downloads-url]
-  [![Build][travis-image]][travis-url]
-  [![Code Climate](https://codeclimate.com/github/steelbreeze/state.js/badges/gpa.svg)](https://codeclimate.com/github/steelbreeze/state.js)
-  
+  [![Travis CI][travis-image]][travis-url]
+  [![Code Climate][cc-image]][cc-url]
+    
 If you like state.js, please star it.  
   
 ## Getting started
@@ -109,3 +109,5 @@ state.js is dual-licenecd under the MIT and GPL v3 licences.
 [downloads-url]: https://npmjs.org/package/state.js
 [travis-image]: https://travis-ci.org/steelbreeze/state.js.svg
 [travis-url]: https://travis-ci.org/steelbreeze/state.js
+[cc-image]: https://codeclimate.com/github/steelbreeze/state.js/badges/gpa.svg
+[cc-url]: https://codeclimate.com/github/steelbreeze/state.js
