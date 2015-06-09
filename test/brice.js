@@ -18,10 +18,8 @@ state1.to(state2).when(function(c) { return c === "a";});
 var instance = new state.StateMachineInstance();
 state.initialise(model, instance);
 
-describe("Testing transition selection", function () {	
-	it("Transitions should be selected depth-first", function(){
-		state.evaluate(model, instance, "a");
-		
-		assert.equal(state2, instance.getCurrent(myComposite1.defaultRegion()));
-	});
+it("Transitions should be selected depth-first", function(){
+	state.evaluate(model, instance, "a");
+	
+	assert.equal(state2, instance.getCurrent(myComposite1.defaultRegion()));
 });

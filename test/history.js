@@ -23,13 +23,11 @@ var instance = new state.StateMachineInstance("instance");
 
 state.initialise(model, instance);
 
-describe("Testing history semantics", function () {	
-	state.evaluate (model, instance, "move");
-	state.evaluate (model, instance, "go deep");
-	state.evaluate (model, instance, "go shallow");
-	state.evaluate (model, instance, "end");
+state.evaluate (model, instance, "move");
+state.evaluate (model, instance, "go deep");
+state.evaluate (model, instance, "go shallow");
+state.evaluate (model, instance, "end");
 
-	it("Test should result in a completed state", function(){
-		state.isComplete(model, instance);
-	});
+it("Test should result in a completed state", function(){
+	state.isComplete(model, instance);
 });

@@ -47,11 +47,9 @@ simple.to(ortho).when(function(c) {
 var instance = new state.StateMachineInstance("instance");				
 state.initialise(model, instance);
 
-describe("Completion transitions from orthogonal states", function () {	
-	it("Test should result in a completed state", function(){
-		state.evaluate(model, instance, "complete1");
-		state.evaluate(model, instance, "complete2");
+it("Test should result in a completed state", function(){
+	state.evaluate(model, instance, "complete1");
+	state.evaluate(model, instance, "complete2");
 
-		state.isComplete(model, instance);
-	});
+	state.isComplete(model, instance);
 });

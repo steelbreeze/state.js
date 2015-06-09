@@ -26,8 +26,6 @@ activity3.to(end);
 var instance = new state.StateMachineInstance("instance");
 state.initialise(model, instance);
 
-describe("Testing completion transitions", function () {	
-	it("Completion transitions should be triggered by state entry", function(){
-		assert.equal(true, state.isComplete(model, instance));
-	});
+it("Completion transitions should be triggered by state entry", function(){
+	assert.equal(true, state.isComplete(model, instance));
 });
