@@ -48,10 +48,26 @@ var instance = new state.StateMachineInstance("instance");
 state.initialise(model, instance);
 
 describe("test/muximise.js", function () {
-	it("Test should result in a completed state", function(){
-		state.evaluate(model, instance, "complete1");
-		state.evaluate(model, instance, "complete2");
+	describe("State type tests", function () {
+		it("State.isSimple", function () {
+			assert(true, simple.isSimple());
+		});
+
+		it("State.isComposite", function () {
+			assert(true, ortho.isComposite());
+		});
+
+		it("State.isOrthogonal", function () {
+			assert(true, ortho.isOrthogonal());
+		});
+	});
 	
-		state.isComplete(model, instance);
+	describe("Orthogonal state completion", function () {
+		it("Completion transition fires once all regions of an orthogonal state are complete", function(){
+			state.evaluate(model, instance, "complete1");
+			state.evaluate(model, instance, "complete2");
+		
+			assert.equal(true, state.isComplete(model, instance));
+		});
 	});
 });

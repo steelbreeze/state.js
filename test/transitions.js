@@ -2,7 +2,7 @@
 var assert = require("assert"),
 	state = require("../lib/state.com.js");
 
-var model = new state.StateMachine("compTest");
+var model = new state.StateMachine("compTest").setLogger();
 var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
 
 var activity1 = new state.State("activity1", model);
