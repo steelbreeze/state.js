@@ -16,7 +16,7 @@
 		"istanbul": ">=0.3.14"
 	},
 	"scripts": {
-		"test": "istanbul cover _mocha -- -u exports -R spec"
+		"test": "mocha test/"
 	},
 	"keywords": [
 		"state machine",

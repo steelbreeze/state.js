@@ -9,3 +9,9 @@ minify lib/state.js
 
 # Create documentation
 jsdox --output doc lib/state.com.js
+
+# run tests under code coverage
+istanbul cover _mocha -- -u exports -R spec
+
+# send coverage data to code climate
+codeclimate < coverage/lcov.info
