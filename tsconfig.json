@@ -2,6 +2,7 @@
 	"compilerOptions": {
 		"noImplicitAny": true,
 		"declaration": true,
+		"removeComments": true,
 		"module": "commonjs",
 		"outDir": "lib",
 		"out": "lib/state.com.js"
