@@ -9,10 +9,11 @@
 		"url": "https://github.com/steelbreeze/state.js"
 	},
 	"devDependencies": {
-		"mocha": "latest"
+		"mocha": "latest",
+		"istanbul": "latest"
 	},
 	"scripts": {
-		"test": "mocha test/"
+		"test": "istanbul cover _mocha -- -u exports -R spec"
 	},
 	"keywords": [
 		"state machine",
