@@ -39,9 +39,11 @@ state7.to(state5).when(function (c) { return c === "event1"; });
 var instance = new state.StateMachineInstance("instance");
 state.initialise(model, instance);
 
-it("All regions of orthogonal state must be exited during the external transition", function(){
-	state.evaluate(model, instance, "event2");
-	
-	assert(state3, instance.getCurrent(model.defaultRegion()));
-	assert(state7, instance.getCurrent(regionBb));
+describe("test/p3pp3r.js", function () {
+	it("All regions of orthogonal state must be exited during the external transition", function(){
+		state.evaluate(model, instance, "event2");
+		
+		assert(state3, instance.getCurrent(model.defaultRegion()));
+		assert(state7, instance.getCurrent(regionBb));
+	});
 });

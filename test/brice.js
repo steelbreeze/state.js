@@ -18,8 +18,10 @@ state1.to(state2).when(function(c) { return c === "a";});
 var instance = new state.StateMachineInstance();
 state.initialise(model, instance);
 
-it("Transitions should be selected depth-first", function(){
-	state.evaluate(model, instance, "a");
-	
-	assert.equal(state2, instance.getCurrent(myComposite1.defaultRegion()));
+describe("test/brice.js", function () {
+	it("Transitions should be selected depth-first", function(){
+		state.evaluate(model, instance, "a");
+		
+		assert.equal(state2, instance.getCurrent(myComposite1.defaultRegion()));
+	});
 });

@@ -28,6 +28,8 @@ state.evaluate (model, instance, "go deep");
 state.evaluate (model, instance, "go shallow");
 state.evaluate (model, instance, "end");
 
-it("Test should result in a completed state", function(){
-	state.isComplete(model, instance);
+describe("test/history.js", function () {
+	it("Test should result in a completed state", function(){
+		state.isComplete(model, instance);
+	});
 });
