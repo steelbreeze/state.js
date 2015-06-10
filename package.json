@@ -9,8 +9,8 @@
 		"url": "https://github.com/steelbreeze/state.js"
 	},
 	"devDependencies": {
-		"mocha": "latest",
-		"istanbul": "latest"
+		"mocha": ">=2.2.5",
+		"istanbul": ">=0.3.14"
 	},
 	"scripts": {
 		"test": "istanbul cover _mocha -- -u exports -R spec"
