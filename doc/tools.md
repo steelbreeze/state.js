@@ -11,3 +11,4 @@
 | Testing                | [Mocha](http://mochajs.org)                         |
 | Continious integration | [Travis CI](https://travis-ci.org)                  |
 | Code analyis           | [Code Climate](https://codeclimate.com)             |
+| Code coverage          | [istanbul](https://gotwarlost.github.io/istanbul/)  |
