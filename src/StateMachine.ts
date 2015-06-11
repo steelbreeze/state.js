@@ -4,7 +4,6 @@
  * Licensed under the MIT and GPL v3 licences
  * http://www.steelbreeze.net/state.cs
  */
-
 module StateJS {
 	/**
 	 * An element within a state machine model that represents the root of the state machine model.

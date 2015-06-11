@@ -4,7 +4,6 @@
  * Licensed under the MIT and GPL v3 licences
  * http://www.steelbreeze.net/state.cs
  */
-
 module StateJS {
 	/**
 	 * Default working implementation of a state machine instance class.

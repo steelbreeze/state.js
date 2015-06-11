@@ -4,7 +4,6 @@
  * Licensed under the MIT and GPL v3 licences
  * http://www.steelbreeze.net/state.cs
  */
-
 module StateJS {
 	/**
 	 * An abstract class used as the base for the Region and Vertex classes.

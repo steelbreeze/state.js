@@ -4,7 +4,6 @@
  * Licensed under the MIT and GPL v3 licences
  * http://www.steelbreeze.net/state.cs
  */
-
 module StateJS {
 	/**
 	 * An enumeration of static constants that dictates the precise behaviour of pseudo states.
