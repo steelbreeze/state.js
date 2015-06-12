@@ -41,7 +41,7 @@ module StateJS {
 			stateMachineModel.clean = true;
 		}
 	}
-	
+		
 	/**
 	 * Passes a message to a state machine for evaluation; messages trigger state transitions.
 	 * @function evaluate
@@ -85,6 +85,23 @@ module StateJS {
 		return true;
 	}
 	
+	/**
+	 * Sets a method to select an integer random number less than the max value passed as a parameter.
+	 * 
+	 * This is only useful when a custom random number generator is required; the default implementation is fine in most circumstances.
+	 * @function setRandom
+	 * @param {function} generator A function that takes a max value and returns a random number between 0 and max - 1.
+	 * @returns A random number between 0 and max - 1
+	 */
+	export function setRandom(generator: (max: number) => number): void {
+		random = generator;
+	}
+
+	// the method used to produce a random number; defaulting to simplified implementation seen in Mozilla Math.random() page; may be overriden for testing
+	var random = function(max: number): number {
+		return Math.floor(Math.random() * max);
+	}
+
 	// Temporary structure to hold element behaviour during the bootstrap process
 	class ElementBehavior {
 		leave: Array<Action> = [];
@@ -163,8 +180,8 @@ module StateJS {
 							results.push(t);
 						}
 					});
-	
-					transition = results.length !== 0 ? results[Math.round((results.length - 1) * Math.random())] : elseResult;
+
+					transition = results.length !== 0 ? results[random(results.length)] : elseResult;
 	
 					break;
 			}
@@ -221,7 +238,7 @@ module StateJS {
 			return result;
 		}
 	}
-	
+		
 	// initialises transitions after all elements have been bootstrapped
 	class InitialiseTransitions extends Visitor<(element: Element) => ElementBehavior> {
 		

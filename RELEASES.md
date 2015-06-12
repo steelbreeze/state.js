@@ -1,4 +1,6 @@
 ### Version 5.3.6 (not yet released)
+Fix a minor bug in choice pseudo states; where multiple transitions are found not all are chosen equally.
+
 Improve testing workflow: use mocha and istanbul; send findings to code climate.
 
 Add tests to improde coverage of untested capability:

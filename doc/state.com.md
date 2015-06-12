@@ -643,6 +643,18 @@ Tests a state machine instance to see if its lifecycle is complete. A state mach
 
 **Returns**: `boolean`, True if the state machine instance is complete.
 
+## Function: setRandom(generator) 
+
+Sets a method to select an integer random number less than the max value passed as a parameter.
+
+This is only useful when a custom random number generator is required; the default implementation is fine in most circumstances.
+
+**Parameters**
+
+**generator**: `function`, A function that takes a max value and returns a random number between 0 and max - 1.
+
+**Returns**: , A random number between 0 and max - 1
+
 
 
 * * *
