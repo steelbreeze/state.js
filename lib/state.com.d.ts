@@ -520,6 +520,8 @@ declare module StateJS {
          */
         accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any;
     }
+}
+declare module StateJS {
     /**
      * Implementation of a visitor pattern.
      * @class Visitor

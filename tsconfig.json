@@ -18,6 +18,7 @@
 		"src/FinalState.ts",
 		"src/StateMachine.ts",
 		"src/Transition.ts",
+		"src/Visitor.ts",
 
 		"src/IActiveStateConfiguration.ts",
 		"src/StateMachineInstance.ts",
