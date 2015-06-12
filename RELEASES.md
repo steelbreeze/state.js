@@ -1,3 +1,12 @@
+### Version 5.3.6 (not yet released)
+Improve testing workflow: use mocha and istanbul; send findings to code climate.
+
+Add tests to improde coverage of untested capability:
+* user defined behaviour
+* choice pseudo states
+
+Split source into smaller files.
+
 ### Version 5.3.5
 Minor refactoring based on Code Climate findings.
 
