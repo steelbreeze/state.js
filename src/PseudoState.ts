@@ -45,7 +45,7 @@ module StateJS {
 		 * @param {Element} parent The parent element that this pseudo state will be a child of.
 		 * @param {PseudoStateKind} kind Determines the behaviour of the PseudoState.
 		 */
-		public constructor(name: string, parent: any, kind: PseudoStateKind) {
+		public constructor(name: string, parent: any, kind: PseudoStateKind = PseudoStateKind.Initial) {
 			super(name, parent);
 	
 			this.kind = kind;

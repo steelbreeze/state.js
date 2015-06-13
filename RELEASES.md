@@ -1,6 +1,10 @@
 ### Version 5.3.6 (not yet released)
 Fix a minor bug in choice pseudo states; where multiple transitions are found not all are chosen equally.
 
+Fix a bug in terminate pseudo states where isTerminated was not being set when reaching a terminate pseudo state.
+
+Let PseudoStateKind.Initial be the default for the kind parameter in the PseudoState constructor.
+
 Improve testing workflow: use mocha and istanbul; send findings to code climate.
 
 Add tests to improde coverage of untested capability:

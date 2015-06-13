@@ -385,7 +385,7 @@ module StateJS {
 	
 			// terminate the state machine instance upon transition to a terminate pseudo state
 			if (pseudoState.kind === PseudoStateKind.Terminate) {
-				pseudoStateBehaviour.enter.push((message, stateMachineInstance) => {
+				pseudoStateBehaviour.beginEnter.push((message, stateMachineInstance) => {
 					stateMachineInstance.isTerminated = true;
 				});
 			}
