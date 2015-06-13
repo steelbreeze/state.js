@@ -47,18 +47,37 @@ simple.to(ortho).when(function(c) {
 var instance = new state.StateMachineInstance("instance");				
 state.initialise(model, instance);
 
+console.log("simple.isSimple = " + simple.isSimple());
+console.log("simple.isComposite = " + simple.isComposite());
+console.log("simple.isOrthogonal = " + simple.isOrthogonal());
+
+console.log("model.isSimple = " + model.isSimple());
+console.log("model.isComposite = " + model.isComposite());
+console.log("model.isOrthogonal = " + model.isOrthogonal());
+
+console.log("ortho.isSimple = " + ortho.isSimple());
+console.log("ortho.isComposite = " + ortho.isComposite());
+console.log("ortho.isOrthogonal = " + ortho.isOrthogonal());
+
+
 describe("test/muximise.js", function () {
 	describe("State type tests", function () {
-		it("State.isSimple", function () {
-			assert(true, simple.isSimple());
+		it("simple state isSimple", function () {
+			assert(simple.isSimple());
+			assert(!model.isSimple());
+			assert(!ortho.isSimple());			
 		});
 
 		it("State.isComposite", function () {
-			assert(true, ortho.isComposite());
+			assert(!simple.isComposite());
+			assert(model.isComposite());
+			assert(ortho.isComposite());
 		});
 
 		it("State.isOrthogonal", function () {
-			assert(true, ortho.isOrthogonal());
+			assert(!simple.isOrthogonal());
+			assert(!model.isOrthogonal());
+			assert(ortho.isOrthogonal());
 		});
 	});
 	
