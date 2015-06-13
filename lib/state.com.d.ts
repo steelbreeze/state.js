@@ -104,7 +104,7 @@ declare module StateJS {
          * @method getParent
          * @returns {Element} The parent element of the element.
          */
-        getParent(): Element;
+        getParent(): any;
         /**
          * Returns the root element within the state machine model.
          * @method getRoot

@@ -43,8 +43,7 @@ module StateJS {
 		 * @method getParent
 		 * @returns {Element} The parent element of the element.
 		 */
-		public getParent(): Element {
-			return;
+		public getParent(): any {
 		}
 	
 		/**
