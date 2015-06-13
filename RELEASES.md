@@ -1,4 +1,4 @@
-### Version 5.3.6 (not yet released)
+### Version 5.3.6
 Fix a minor bug in choice pseudo states; where multiple transitions are found not all are chosen equally.
 
 Fix a bug in terminate pseudo states where isTerminated was not being set when reaching a terminate pseudo state.
