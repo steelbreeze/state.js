@@ -14,7 +14,7 @@ function randRobin(max) {
 	return  result;
 }
 
-var model = new state.StateMachine("model").setLogger(console);
+var model = new state.StateMachine("model");
 var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
 var stateA = new state.State("stateA", model).exit(function (message, instance) {instance.calls += 1;} );
 var stateB = new state.State("stateB", model).entry(function (message, instance) {instance.calls += 2;});
