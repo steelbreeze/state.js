@@ -30,6 +30,6 @@ state.evaluate (model, instance, "end");
 
 describe("test/history.js", function () {
 	it("Test should result in a completed state", function(){
-		state.isComplete(model, instance);
+		assert.equal(true, state.isComplete(model, instance));
 	});
 });

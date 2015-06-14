@@ -1,9 +1,10 @@
 /* global describe, it */
 var assert = require("assert"),
 	state = require("../lib/state.com.js");
-var nextRand = [];
 
 // this test overrides the default implementation of the random selector for choices as we're not looking to test the randomness of hte numbers, but the application of them to choose different transtiions therefore we need to turn the non-deterministic into something deterministic
+var nextRand = [];
+
 function randRobin(max) {
 	var result = nextRand[max] || 0;
 	
@@ -16,18 +17,16 @@ function randRobin(max) {
 
 var model = new state.StateMachine("model");
 var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
-var stateA = new state.State("stateA", model).exit(function (message, instance) {instance.calls += 1;} );
-var stateB = new state.State("stateB", model).entry(function (message, instance) {instance.calls += 2;});
+var stateA = new state.State("stateA", model);
 var choice = new state.PseudoState("choice", model, state.PseudoStateKind.Choice);
 
 initial.to(stateA);
 
 stateA.to(choice).when(function(message) { return message === "choose"; });
-stateA.to(stateB).else();
 
-choice.to(stateA).effect(function (message, instance) { instance.path1++; })
-choice.to(stateA).effect(function (message, instance) { instance.path2++; })
-choice.to(stateA).effect(function (message, instance) { instance.path3++; })
+choice.to(stateA).effect(function (message, instance) { instance.path1++; });
+choice.to(stateA).effect(function (message, instance) { instance.path2++; });
+choice.to(stateA).effect(function (message, instance) { instance.path3++; });
 
 describe("test/choice.js", function () {
 	describe("With an random distribution, we process all messages (and test the true random nature)", function () {
@@ -42,8 +41,6 @@ describe("test/choice.js", function () {
 			state.evaluate(model, instance1, "choose");
 		}
 		
-		state.evaluate(model, instance1, "end");
-
 		it("choice pseudo state transitions all selected randomly", function () {			
 			assert.equal(99, instance1.path1 + instance1.path2 + instance1.path3);			
 		});

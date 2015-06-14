@@ -62,18 +62,21 @@ console.log("ortho.isOrthogonal = " + ortho.isOrthogonal());
 
 describe("test/muximise.js", function () {
 	describe("State type tests", function () {
+		// ensure only simple states return true for isSimple
 		it("simple state isSimple", function () {
 			assert(simple.isSimple());
 			assert(!model.isSimple());
 			assert(!ortho.isSimple());			
 		});
 
+		// ensure only composite states return true for isComposite
 		it("State.isComposite", function () {
 			assert(!simple.isComposite());
 			assert(model.isComposite());
 			assert(ortho.isComposite());
 		});
 
+		// ensure only orthogonal states return true for isOrthogonal
 		it("State.isOrthogonal", function () {
 			assert(!simple.isOrthogonal());
 			assert(!model.isOrthogonal());
@@ -82,6 +85,7 @@ describe("test/muximise.js", function () {
 	});
 	
 	describe("Orthogonal state completion", function () {
+		// ensure that completion transitions for orthogonal states are triggered after completion of all child regions
 		it("Completion transition fires once all regions of an orthogonal state are complete", function(){
 			state.evaluate(model, instance, "complete1");
 			state.evaluate(model, instance, "complete2");
