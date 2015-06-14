@@ -1,5 +1,5 @@
 ### Note on dynamic models
-state.js supports dynamic, additive changes to a state machine model at runtime. This can be, as you can imagine, a fairly complex construct to work with and debug.
+state.js supports dynamic, additive changes to a state machine model at runtime. This can be a fairly complex construct to work with and debug.
 
 You are fairly free to add the following at any time: vertices to regions, transtitions, behaviour. But do note that you may only **add new child regions to states if the state is not currently active** as this would cause extremely unpredictable behaviour.
 
