@@ -19,8 +19,9 @@ module StateJS {
 		// the behaviour required to initialise state machine instances; created when initialising the state machine model.
 		onInitialise: Array<Action>;
 	
-		// used to inject logging during the model initialisation process.
-		logger: Console;
+		// used to inject logging, warnings and errors.
+		logTo: Console;
+		warnTo: Console;
 		
 		/** 
 		 * Creates a new instance of the StateMachine class.
@@ -47,7 +48,20 @@ module StateJS {
 		 * @returns {StateMachine} Returns the state machine to enable fluent style API.
 		 */
 		public setLogger(value: Console = undefined): StateMachine {
-			this.logger = value;
+			this.logTo = value;
+			this.clean = false;
+	
+			return this;
+		}
+	
+		/**
+		 * Instructs the state machine model to direct warnings activity to an object supporting the Console interface.
+		 * @method setWarning
+		 * @param {Console} value Pass in console to log to the console, or any other object supporting the .warn method.
+		 * @returns {StateMachine} Returns the state machine to enable fluent style API.
+		 */
+		public setWarning(value: Console = undefined): StateMachine {
+			this.warnTo = value;
 			this.clean = false;
 	
 			return this;

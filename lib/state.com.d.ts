@@ -430,7 +430,8 @@ declare module StateJS {
     class StateMachine extends State {
         clean: boolean;
         onInitialise: Array<Action>;
-        logger: Console;
+        logTo: Console;
+        warnTo: Console;
         /**
          * Creates a new instance of the StateMachine class.
          * @param {string} name The name of the state machine.
@@ -451,6 +452,13 @@ declare module StateJS {
          */
         setLogger(value?: Console): StateMachine;
         /**
+         * Instructs the state machine model to direct warnings activity to an object supporting the Console interface.
+         * @method setWarning
+         * @param {Console} value Pass in console to log to the console, or any other object supporting the .warn method.
+         * @returns {StateMachine} Returns the state machine to enable fluent style API.
+         */
+        setWarning(value?: Console): StateMachine;
+        /**
          * Accepts an instance of a visitor and calls the visitStateMachine method on it.
          * @method accept
          * @param {Visitor<TArg1>} visitor The visitor instance.
@@ -460,6 +468,13 @@ declare module StateJS {
          * @returns {any} Any value can be returned by the visitor.
          */
         accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any;
+    }
+}
+declare module StateJS {
+    enum TransitionKind {
+        Internal = 0,
+        Local = 1,
+        External = 2,
     }
 }
 declare module StateJS {
@@ -481,6 +496,7 @@ declare module StateJS {
         guard: Guard;
         transitionBehavior: Array<Action>;
         traverse: Array<Action>;
+        kind: TransitionKind;
         /**
          * Creates a new instance of the Transition class.
          * @param {Vertex} source The source of the transition.

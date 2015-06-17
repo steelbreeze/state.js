@@ -23,8 +23,8 @@ module StateJS {
 			}
 	
 			// log as required
-			if (stateMachineModel.logger) {
-				stateMachineModel.logger.log("initialise " + stateMachineInstance);
+			if (stateMachineModel.logTo) {
+				stateMachineModel.logTo.log("initialise " + stateMachineInstance);
 			}
 	
 			// enter the state machine instance for the first time
@@ -33,8 +33,8 @@ module StateJS {
 			// initiaise a state machine model
 		} else {
 			// log as required
-			if (stateMachineModel.logger) {
-				stateMachineModel.logger.log("initialise " + stateMachineModel.name);
+			if (stateMachineModel.logTo) {
+				stateMachineModel.logTo.log("initialise " + stateMachineModel.name);
 			}
 	
 			stateMachineModel.accept(new InitialiseElements(), false);
@@ -52,8 +52,8 @@ module StateJS {
 	 */
 	export function evaluate(stateMachineModel: StateMachine, stateMachineInstance: IActiveStateConfiguration, message: any, autoInitialiseModel: boolean = true): boolean {
 		// log as required
-		if (stateMachineModel.logger) {
-			stateMachineModel.logger.log(stateMachineInstance + " evaluate " + message);
+		if (stateMachineModel.logTo) {
+			stateMachineModel.logTo.log(stateMachineInstance + " evaluate " + message);
 		}
 	
 		// initialise the state machine model if necessary
@@ -244,10 +244,10 @@ module StateJS {
 		
 		// determine the type of transition and use the appropriate initiliasition method
 		visitTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
-			if (!transition.target) {
+			if (transition.kind === TransitionKind.Internal) {
 				this.visitInternalTransition(transition);
-			} else if (transition.target.region === transition.source.region) {
-				this.visitLocalTransition(transition, behaviour);
+//			} else if (transition.target.region === transition.source.region) {
+//				this.visitLocalTransition(transition, behaviour);
 			} else {
 				this.visitExternalTransition(transition, behaviour);
 			}
@@ -259,9 +259,9 @@ module StateJS {
 		}
 	
 		// initialise local transitions: these do not leave the source/target parent region
-		visitLocalTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
-			transition.traverse = behaviour(transition.source).leave.concat(transition.transitionBehavior).concat(behaviour(transition.target).enter);
-		}
+//		visitLocalTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
+//			transition.traverse = behaviour(transition.source).leave.concat(transition.transitionBehavior).concat(behaviour(transition.target).enter);
+//		}
 	
 		// initialise external transitions: these are abritarily complex
 		visitExternalTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
@@ -323,9 +323,9 @@ module StateJS {
 	
 		// uncomment this method for debugging purposes
 		visitElement(element: Element, deepHistoryAbove: boolean) {
-			if (element.getRoot().logger) {
+			if (element.getRoot().logTo) {
 				var elementBehaviour = this.behaviour(element);
-				var logger = element.getRoot().logger;
+				var logger = element.getRoot().logTo;
 	
 				elementBehaviour.leave.push((message, instance) => { logger.log(instance + " leave " + element); });
 				elementBehaviour.beginEnter.push((message, instance) => { logger.log(instance + " enter " + element); });

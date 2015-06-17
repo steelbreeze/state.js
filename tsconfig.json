@@ -17,6 +17,7 @@
 		"src/State.ts",
 		"src/FinalState.ts",
 		"src/StateMachine.ts",
+		"src/TransitionKind.ts",
 		"src/Transition.ts",
 		"src/Visitor.ts",
 

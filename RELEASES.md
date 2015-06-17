@@ -1,3 +1,10 @@
+## Version 5.3.7 - under development
+Added a TransitionKind enumeration ready for future support for *local* transitions in addition to *external* transitions.
+
+Re-worked transition initialisation based on transition kind.
+
+Addded StateMachine.setWarning to enable handlers for warnings.
+
 ### Version 5.3.6
 Fix a minor bug in choice pseudo states; where multiple transitions are found not all are chosen equally.
 

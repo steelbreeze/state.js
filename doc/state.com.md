@@ -365,6 +365,16 @@ Instructs the state machine model to log activity to an object supporting the Co
 
 **Returns**: `StateMachine`, Returns the state machine to enable fluent style API.
 
+### StateMachine.setWarning(value) 
+
+Instructs the state machine model to direct warnings activity to an object supporting the Console interface.
+
+**Parameters**
+
+**value**: `Console`, Pass in console to log to the console, or any other object supporting the .warn method.
+
+**Returns**: `StateMachine`, Returns the state machine to enable fluent style API.
+
 ### StateMachine.accept(visitor, arg1, arg2, arg3) 
 
 Accepts an instance of a visitor and calls the visitStateMachine method on it.

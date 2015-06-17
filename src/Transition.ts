@@ -29,6 +29,8 @@ module StateJS {
 		// the collected actions to perform when traversing the transition (includes exiting states, traversal, and state entry)
 		traverse: Array<Action> = [];
 	
+		public kind: TransitionKind;
+	
 		/** 
 		 * Creates a new instance of the Transition class.
 		 * @param {Vertex} source The source of the transition.
@@ -36,6 +38,22 @@ module StateJS {
 		 */
 		public constructor(public source: Vertex, public target?: Vertex) {
 			this.guard = message => { return message === this.source; };
+				
+			// force transition kind for internal transitions
+			this.kind = target ? TransitionKind.External : TransitionKind.Internal;
+	
+			// validation logic for when caller supplies kind	
+			if (this.kind === TransitionKind.Local) {
+				if (this.target.ancestors().indexOf(this.source) === -1) {
+					var warnTo = this.source.getRoot().warnTo;
+					
+					if (warnTo) {
+						warnTo.warn("Transition cannot be local as source is not in the ancestry of target")
+					}
+					
+					this.kind = TransitionKind.External;
+				}
+			}
 		}
 	
 		/**
@@ -50,7 +68,7 @@ module StateJS {
 	
 			return this;
 		}
-	
+
 		/**
 		 * Defines the guard condition for the transition.
 		 * @method when
