@@ -124,6 +124,59 @@ module StateJS {
 	class Evaluator extends Visitor<IActiveStateConfiguration> {
 		static instance = new Evaluator();
 	
+		invokeTransition(transition: Transition, instance: IActiveStateConfiguration, message: any): void {			
+			var transitionBehavior = transition.traverse;
+
+			while (transition.target && transition.target.isJunction()) {
+				transition = this.selectJunctionTransition(transition.target, instance, message);
+			
+				transitionBehavior = transitionBehavior.concat(transition.traverse);
+			}
+		
+			invoke(transitionBehavior, message, instance);
+		}
+
+		selectJunctionTransition(vertex: Vertex, stateMachineInstance: IActiveStateConfiguration, message: any): Transition {
+			var result: Transition, elseResult: Transition;
+
+			vertex.transitions.forEach(t=> {
+				if (t.guard === Transition.isElse) {
+					if (elseResult) {
+						throw "Multiple outbound transitions evaluated true";
+					}
+
+					elseResult = t;
+				} else if (t.guard(message, stateMachineInstance)) {
+					if (result) {
+						throw "Multiple outbound transitions evaluated true";
+					}
+
+					result = t;
+				}
+			});
+
+			return result || elseResult;
+		}
+
+		selectChoiceTransition(vertex: Vertex, stateMachineInstance: IActiveStateConfiguration, message: any): Transition {
+			var results: Array<Transition> = [];
+			var elseResult: Transition;
+
+			vertex.transitions.forEach(t => {
+				if (t.guard === Transition.isElse) {
+					if (elseResult) {
+						throw "Multiple outbound else transitions found at " + this + " for " + message;
+					}
+
+					elseResult = t;
+				} else if (t.guard(message, stateMachineInstance)) {
+					results.push(t);
+				}
+			});
+
+			return results.length !== 0 ? results[random(results.length)] : elseResult;
+		}
+
 		visitRegion(region: Region, stateMachineInstance: IActiveStateConfiguration, message: any): boolean {
 			return stateMachineInstance.getCurrent(region).accept(this, stateMachineInstance, message);
 		}
@@ -144,45 +197,11 @@ module StateJS {
 					break;
 	
 				case PseudoStateKind.Junction:
-					var result: Transition, elseResult: Transition;
-	
-					pseudoState.transitions.forEach(t=> {
-						if (t.guard === Transition.isElse) {
-							if (elseResult) {
-								throw "Multiple outbound transitions evaluated true";
-							}
-	
-							elseResult = t;
-						} else if (t.guard(message, stateMachineInstance)) {
-							if (result) {
-								throw "Multiple outbound transitions evaluated true";
-							}
-	
-							result = t;
-						}
-					});
-	
-					transition = result || elseResult;
-	
+					transition = this.selectJunctionTransition(pseudoState, stateMachineInstance, message);	
 					break;
 	
 				case PseudoStateKind.Choice:
-					var results: Array<Transition> = [];
-	
-					pseudoState.transitions.forEach(t => {
-						if (t.guard === Transition.isElse) {
-							if (elseResult) {
-								throw "Multiple outbound else transitions found at " + this + " for " + message;
-							}
-	
-							elseResult = t;
-						} else if (t.guard(message, stateMachineInstance)) {
-							results.push(t);
-						}
-					});
-
-					transition = results.length !== 0 ? results[random(results.length)] : elseResult;
-	
+					transition = this.selectChoiceTransition(pseudoState, stateMachineInstance, message);
 					break;
 			}
 	
@@ -190,11 +209,11 @@ module StateJS {
 				return false;
 			}
 	
-			invoke(transition.traverse, message, stateMachineInstance);
+			this.invokeTransition(transition, stateMachineInstance, message);
 	
 			return true;
 		}
-	
+		
 		visitState(state: State, stateMachineInstance: IActiveStateConfiguration, message: any): boolean {
 			var result = false;
 			
@@ -224,7 +243,7 @@ module StateJS {
 				});
 	
 				if (transition) {
-					invoke(transition.traverse, message, stateMachineInstance);
+					this.invokeTransition(transition, stateMachineInstance, message);
 	
 					result = true;
 				}
@@ -246,8 +265,6 @@ module StateJS {
 		visitTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
 			if (transition.kind === TransitionKind.Internal) {
 				this.visitInternalTransition(transition);
-//			} else if (transition.target.region === transition.source.region) {
-//				this.visitLocalTransition(transition, behaviour);
 			} else {
 				this.visitExternalTransition(transition, behaviour);
 			}
@@ -257,11 +274,6 @@ module StateJS {
 		visitInternalTransition(transition: Transition) {
 			transition.traverse = transition.transitionBehavior;
 		}
-	
-		// initialise local transitions: these do not leave the source/target parent region
-//		visitLocalTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
-//			transition.traverse = behaviour(transition.source).leave.concat(transition.transitionBehavior).concat(behaviour(transition.target).enter);
-//		}
 	
 		// initialise external transitions: these are abritarily complex
 		visitExternalTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
@@ -364,25 +376,22 @@ module StateJS {
 			// merge begin and end enter behaviour
 			regionBehaviour.enter = regionBehaviour.beginEnter.concat(regionBehaviour.endEnter);
 		}
-	
-		visitVertex(vertex: Vertex, deepHistoryAbove: boolean) {
-			// add element behaviour (debug)
-			this.visitElement(vertex, deepHistoryAbove);
-	
-			// evaluate comppletion transitions once vertex entry is complete
-			this.behaviour(vertex).endEnter.push((message, stateMachineInstance) => {
-				if (isComplete(vertex, stateMachineInstance)) {
-					vertex.accept(Evaluator.instance, stateMachineInstance, vertex);
-				}
-			});
-		}
-	
+		
 		visitPseudoState(pseudoState: PseudoState, deepHistoryAbove: boolean) {
 			var pseudoStateBehaviour = this.behaviour(pseudoState);
 			
 			// add vertex behaviour (debug and testing completion transitions)
 			this.visitVertex(pseudoState, deepHistoryAbove);
 	
+			// evaluate comppletion transitions once vertex entry is complete
+			if (pseudoState.kind !== PseudoStateKind.Junction) {
+				this.behaviour(pseudoState).endEnter.push((message, stateMachineInstance) => {
+					if (isComplete(pseudoState, stateMachineInstance)) {
+						pseudoState.accept(Evaluator.instance, stateMachineInstance, pseudoState);
+					}
+				});
+			}
+
 			// terminate the state machine instance upon transition to a terminate pseudo state
 			if (pseudoState.kind === PseudoStateKind.Terminate) {
 				pseudoStateBehaviour.beginEnter.push((message, stateMachineInstance) => {
@@ -412,6 +421,13 @@ module StateJS {
 	
 			// add vertex behaviour (debug and testing completion transitions)
 			this.visitVertex(state, deepHistoryAbove);
+	
+			// evaluate comppletion transitions once vertex entry is complete
+			this.behaviour(state).endEnter.push((message, stateMachineInstance) => {
+				if (isComplete(state, stateMachineInstance)) {
+					state.accept(Evaluator.instance, stateMachineInstance, state);
+				}
+			});
 	
 			// add the user defined behaviour when entering and exiting states
 			stateBehaviour.leave = stateBehaviour.leave.concat(state.exitBehavior);

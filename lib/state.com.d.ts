@@ -224,6 +224,7 @@ declare module StateJS {
          * @returns {Element} The parent element of the vertex.
          */
         getParent(): Element;
+        isJunction(): boolean;
         /**
          * Creates a new transition from this vertex.
          * Newly created transitions are completion transitions; they will be evaluated after a vertex has been entered if it is deemed to be complete.
@@ -281,6 +282,7 @@ declare module StateJS {
          * @returns {boolean} True if the pseudo state is an initial pseudo state.
          */
         isInitial(): boolean;
+        isJunction(): boolean;
         /**
          * Accepts an instance of a visitor and calls the visitPseudoState method on it.
          * @method accept

@@ -69,6 +69,11 @@ module StateJS {
 			return this.region;
 		}
 		
+		// TODO: find a clean way to remove this
+		public isJunction(): boolean {
+			return false;
+		}
+		
 		/**
 		 * Creates a new transition from this vertex.
 		 * Newly created transitions are completion transitions; they will be evaluated after a vertex has been entered if it is deemed to be complete.

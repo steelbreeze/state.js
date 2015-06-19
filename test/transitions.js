@@ -19,8 +19,8 @@ subInitial.to(subEnd);
 initial.to(activity1);
 activity1.to(activity2);
 activity2.to(junction1);
-junction1.to(junction2);
-junction2.to(activity3);
+junction1.to(junction2).else();
+junction2.to(activity3).else();
 activity3.to(end);
 
 var instance = new state.StateMachineInstance("instance");
