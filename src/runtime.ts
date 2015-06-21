@@ -121,11 +121,16 @@ module StateJS {
 	}
 	
 	// traverses a transition
-	function  traverse(transition: Transition, instance: IActiveStateConfiguration, message: any): void {			
+	function traverse(transition: Transition, instance: IActiveStateConfiguration, message: any): boolean {			
 		var transitionBehavior = transition.traverse;
 
 		while (transition.target && transition.target.isJunction()) {
 			transition = selectJunctionTransition(transition.target, instance, message);
+		
+			if(!transition) {
+				// TODO: generate an error
+				return false;
+			}
 		
 			transitionBehavior = transitionBehavior.concat(transition.traverse);
 		}
@@ -135,6 +140,8 @@ module StateJS {
 		if (transition.target.isChoice()) {
 			traverse(selectChoiceTransition(transition.target, instance, message), instance, message);
 		}
+		
+		return true;
 	}
 
 	function selectJunctionTransition(vertex: Vertex, stateMachineInstance: IActiveStateConfiguration, message: any): Transition {
@@ -187,36 +194,15 @@ module StateJS {
 		}
 	
 		visitPseudoState(pseudoState: PseudoState, stateMachineInstance: IActiveStateConfiguration, message: any): boolean {
-			var transition: Transition;
-	
-			switch (pseudoState.kind) {
-				case PseudoStateKind.Initial:
-				case PseudoStateKind.DeepHistory:
-				case PseudoStateKind.ShallowHistory:
-					if (pseudoState.transitions.length === 1) {
-						transition = pseudoState.transitions[0];
-					} else {
-						throw "Initial transition must have a single outbound transition from " + pseudoState;
-					}
-	
-					break;
-	
-				case PseudoStateKind.Junction:
-					transition = selectJunctionTransition(pseudoState, stateMachineInstance, message);	
-					break;
-	
-				case PseudoStateKind.Choice:
-					transition = selectChoiceTransition(pseudoState, stateMachineInstance, message);
-					break;
+			if (pseudoState.isInitial()) {
+				if (pseudoState.transitions.length === 1) {
+					return traverse(pseudoState.transitions[0], stateMachineInstance, message);
+				} else {
+					throw "Initial transition must have a single outbound transition from " + pseudoState;
+				}
 			}
 	
-			if (!transition) {
-				return false;
-			}
-	
-			traverse(transition, stateMachineInstance, message);
-	
-			return true;
+			return false;
 		}
 		
 		visitState(state: State, stateMachineInstance: IActiveStateConfiguration, message: any): boolean {
@@ -248,9 +234,7 @@ module StateJS {
 				});
 	
 				if (transition) {
-					traverse(transition, stateMachineInstance, message);
-	
-					result = true;
+					result = traverse(transition, stateMachineInstance, message);	
 				}
 			}
 	

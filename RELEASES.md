@@ -1,4 +1,7 @@
-## Version 5.4.0
+## Version 5.4.1 - currently under development
+Remove a litte redundant from the runtime given the refactoring of Choice and Junction pseudp states; a little post 5.4 refactoring.
+
+### Version 5.4.0
 NOTE: while the API to state.js has not explicitly changes in this release, the changes made *may* impact the behaviour of your state machines hence the bump to 5.4 indicating a potentially breaking change. See the release notes pertaining to Junction and Choice pseudo states where the message passed to guards and user defined transition effect behaviour will be the same for transitions after the pseudo state as transitions before the pseudo state (previously, the message was the pseudo state itself).
 
 Fixed bug #13 - Junction transitions now properly implement a *static dynamic branch* (guards on transitions before and after the junction pseudo state are evaluated before traversing the transition before the junction pseudo state) rather than a *dynamic conditional branch* (where the transition effect on prior to the pseudo state can be observed in the guards after the pseudo state).

@@ -2,7 +2,7 @@
 var state = require("../../lib/state.com.js"); // use this form if local
 
 // create the state machine model elements
-var model = new state.StateMachine("model").setLogger(console);
+var model = new state.StateMachine("model").setLogger(console).setWarning(console);
 var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
 var junction = new state.PseudoState("junction", model, state.PseudoStateKind.Junction);
 var stateA = new state.State("stateA", model);

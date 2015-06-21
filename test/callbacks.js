@@ -6,7 +6,7 @@ var instance = new state.StateMachineInstance("test");
 instance.calls = 0;
 instance.logs = 0;
 
-var model = new state.StateMachine("model").setLogger({ log: function (text) { instance.logs++; } });
+var model = new state.StateMachine("model").setLogger({ log: function (text) { instance.logs++; } }).setWarning(console);
 var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
 var stateA = new state.State("stateA", model).exit(function (message, instance) {instance.calls += 1;} );
 var stateB = new state.State("stateB", model).entry(function (message, instance) {instance.calls += 2;});
