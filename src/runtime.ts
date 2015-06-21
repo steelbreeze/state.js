@@ -110,73 +110,78 @@ module StateJS {
 		enter: Array<Action> = [];
 	}
 	
+	// determines if a state is currently active
+	function isActive(state: State, stateMachineInstance: IActiveStateConfiguration): boolean {
+		return state.region ? (isActive(state.region.state, stateMachineInstance) && (stateMachineInstance.getCurrent(state.region) === state)) : true;
+	}
+
 	// invokes behaviour
 	function invoke(behavior: Array<Action>, message: any, stateMachineInstance: IActiveStateConfiguration, history: boolean = false): void {
 		behavior.forEach(action => { action(message, stateMachineInstance, history) });
 	}
 	
-	// determines if a state is currently active
-	function isActive(state: State, stateMachineInstance: IActiveStateConfiguration): boolean {
-		return state.region ? (isActive(state.region.state, stateMachineInstance) && (stateMachineInstance.getCurrent(state.region) === state)) : true;
-	}
+	// traverses a transition
+	function  traverse(transition: Transition, instance: IActiveStateConfiguration, message: any): void {			
+		var transitionBehavior = transition.traverse;
+
+		while (transition.target && transition.target.isJunction()) {
+			transition = selectJunctionTransition(transition.target, instance, message);
+		
+			transitionBehavior = transitionBehavior.concat(transition.traverse);
+		}
 	
+		invoke(transitionBehavior, message, instance);
+		
+		if (transition.target.isChoice()) {
+			traverse(selectChoiceTransition(transition.target, instance, message), instance, message);
+		}
+	}
+
+	function selectJunctionTransition(vertex: Vertex, stateMachineInstance: IActiveStateConfiguration, message: any): Transition {
+		var result: Transition, elseResult: Transition;
+
+		vertex.transitions.forEach(t=> {
+			if (t.guard === Transition.isElse) {
+				if (elseResult) {
+					throw "Multiple outbound transitions evaluated true";
+				}
+
+				elseResult = t;
+			} else if (t.guard(message, stateMachineInstance)) {
+				if (result) {
+					throw "Multiple outbound transitions evaluated true";
+				}
+
+				result = t;
+			}
+		});
+
+		return result || elseResult;
+	}
+
+	function selectChoiceTransition(vertex: Vertex, stateMachineInstance: IActiveStateConfiguration, message: any): Transition {
+		var results: Array<Transition> = [];
+		var elseResult: Transition;
+
+		vertex.transitions.forEach(t => {
+			if (t.guard === Transition.isElse) {
+				if (elseResult) {
+					throw "Multiple outbound else transitions found at " + this + " for " + message;
+				}
+
+				elseResult = t;
+			} else if (t.guard(message, stateMachineInstance)) {
+				results.push(t);
+			}
+		});
+
+		return results.length !== 0 ? results[random(results.length)] : elseResult;
+	}
+
 	// evaluates messages against a state machine, executing transitions as appropriate
 	class Evaluator extends Visitor<IActiveStateConfiguration> {
 		static instance = new Evaluator();
 	
-		invokeTransition(transition: Transition, instance: IActiveStateConfiguration, message: any): void {			
-			var transitionBehavior = transition.traverse;
-
-			while (transition.target && transition.target.isJunction()) {
-				transition = this.selectJunctionTransition(transition.target, instance, message);
-			
-				transitionBehavior = transitionBehavior.concat(transition.traverse);
-			}
-		
-			invoke(transitionBehavior, message, instance);
-		}
-
-		selectJunctionTransition(vertex: Vertex, stateMachineInstance: IActiveStateConfiguration, message: any): Transition {
-			var result: Transition, elseResult: Transition;
-
-			vertex.transitions.forEach(t=> {
-				if (t.guard === Transition.isElse) {
-					if (elseResult) {
-						throw "Multiple outbound transitions evaluated true";
-					}
-
-					elseResult = t;
-				} else if (t.guard(message, stateMachineInstance)) {
-					if (result) {
-						throw "Multiple outbound transitions evaluated true";
-					}
-
-					result = t;
-				}
-			});
-
-			return result || elseResult;
-		}
-
-		selectChoiceTransition(vertex: Vertex, stateMachineInstance: IActiveStateConfiguration, message: any): Transition {
-			var results: Array<Transition> = [];
-			var elseResult: Transition;
-
-			vertex.transitions.forEach(t => {
-				if (t.guard === Transition.isElse) {
-					if (elseResult) {
-						throw "Multiple outbound else transitions found at " + this + " for " + message;
-					}
-
-					elseResult = t;
-				} else if (t.guard(message, stateMachineInstance)) {
-					results.push(t);
-				}
-			});
-
-			return results.length !== 0 ? results[random(results.length)] : elseResult;
-		}
-
 		visitRegion(region: Region, stateMachineInstance: IActiveStateConfiguration, message: any): boolean {
 			return stateMachineInstance.getCurrent(region).accept(this, stateMachineInstance, message);
 		}
@@ -197,11 +202,11 @@ module StateJS {
 					break;
 	
 				case PseudoStateKind.Junction:
-					transition = this.selectJunctionTransition(pseudoState, stateMachineInstance, message);	
+					transition = selectJunctionTransition(pseudoState, stateMachineInstance, message);	
 					break;
 	
 				case PseudoStateKind.Choice:
-					transition = this.selectChoiceTransition(pseudoState, stateMachineInstance, message);
+					transition = selectChoiceTransition(pseudoState, stateMachineInstance, message);
 					break;
 			}
 	
@@ -209,7 +214,7 @@ module StateJS {
 				return false;
 			}
 	
-			this.invokeTransition(transition, stateMachineInstance, message);
+			traverse(transition, stateMachineInstance, message);
 	
 			return true;
 		}
@@ -243,7 +248,7 @@ module StateJS {
 				});
 	
 				if (transition) {
-					this.invokeTransition(transition, stateMachineInstance, message);
+					traverse(transition, stateMachineInstance, message);
 	
 					result = true;
 				}
@@ -384,7 +389,8 @@ module StateJS {
 			this.visitVertex(pseudoState, deepHistoryAbove);
 	
 			// evaluate comppletion transitions once vertex entry is complete
-			if (pseudoState.kind !== PseudoStateKind.Junction) {
+//			if (pseudoState.kind !== PseudoStateKind.Junction) {
+			if (pseudoState.isInitial() ) {
 				this.behaviour(pseudoState).endEnter.push((message, stateMachineInstance) => {
 					if (isComplete(pseudoState, stateMachineInstance)) {
 						pseudoState.accept(Evaluator.instance, stateMachineInstance, pseudoState);

@@ -28,17 +28,17 @@ module StateJS {
 		
 		// the collected actions to perform when traversing the transition (includes exiting states, traversal, and state entry)
 		traverse: Array<Action> = [];
-	
+
 		public kind: TransitionKind;
-	
+
 		/** 
 		 * Creates a new instance of the Transition class.
 		 * @param {Vertex} source The source of the transition.
 		 * @param {Vertex} source The target of the transition.
 		 */
 		public constructor(public source: Vertex, public target?: Vertex) {
-			this.guard = message => { return message === this.source; };
-				
+			this.guard = source instanceof PseudoState ? (() => { return true; }) : (message => { return message === this.source; });
+
 			// force transition kind for internal transitions
 			this.kind = target ? TransitionKind.External : TransitionKind.Internal;
 	
