@@ -1,7 +1,15 @@
-## Version 5.3.7 - under development
+## Version 5.4.0
+NOTE: while the API to state.js has not explicitly changes in this release, the changes made *may* impact the behaviour of your state machines hence the bump to 5.4 indicating a potentially breaking change. See the release notes pertaining to Junction and Choice pseudo states where the message passed to guards and user defined transition effect behaviour will be the same for transitions after the pseudo state as transitions before the pseudo state (previously, the message was the pseudo state itself).
+
+Fixed bug #13 - Junction transitions now properly implement a *static dynamic branch* (guards on transitions before and after the junction pseudo state are evaluated before traversing the transition before the junction pseudo state) rather than a *dynamic conditional branch* (where the transition effect on prior to the pseudo state can be observed in the guards after the pseudo state).
+
+For consistency with Junction, re-implemented the logic for Choice transitions to ensure that the message passed into guards and user supplied behaviour is the triggering message and not the source vertex.
+
 Added a TransitionKind enumeration ready for future support for *local* transitions in addition to *external* transitions.
 
-Re-worked transition initialisation based on transition kind.
+Add a kind member to Transition which defaults to External (or Internal if no target vertex is supplied in constructor).
+
+Re-worked transition initialisation logic based on transition kind.
 
 Addded StateMachine.setWarning to enable handlers for warnings.
 
