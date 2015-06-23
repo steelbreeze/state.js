@@ -56,8 +56,8 @@ module StateJS {
 		}
 	
 		// The ancestors are returned as an array of elements, staring with the root element and ending with this elemenet.
-		ancestors(): Array<Element> {
-			return (this.getParent() ? this.getParent().ancestors() : []).concat(this);
+		getAncestors(): Array<Element> {
+			return (this.getParent() ? this.getParent().getAncestors() : []).concat(this);
 		}
 	
 		/**

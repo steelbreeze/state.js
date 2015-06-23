@@ -73,6 +73,33 @@ declare module StateJS {
 }
 declare module StateJS {
     /**
+     * An enumeration of static constants that dictates the precise behaviour of transitions.
+     *
+     * Use these constants as the `kind` parameter when creating new `Transition` instances.
+     * @class TransitionKind
+     */
+    enum TransitionKind {
+        /**
+         * The transition, if triggered, occurs without exiting or entering the source state.
+         * Thus, it does not cause a state change. This means that the entry or exit condition of the source state will not be invoked.
+         * An internal transition can be taken even if the state machine is in one or more regions nested within this state.
+         * @member {TransitionKind} Internal
+         */
+        Internal = 0,
+        /**
+         * The transition, if triggered, will not exit the composite (source) state, but it will apply to any state within the composite state, and these will be exited and entered.
+         * @member {TransitionKind} Local
+         */
+        Local = 1,
+        /**
+         * The transition, if triggered, will exit the source vertex.
+         * @member {TransitionKind} Local
+         */
+        External = 2,
+    }
+}
+declare module StateJS {
+    /**
      * An abstract class used as the base for the Region and Vertex classes.
      * An element is any part of the tree structure that represents a composite state machine model.
      * @class Element
@@ -111,7 +138,7 @@ declare module StateJS {
          * @returns {StateMachine} The root state machine element.
          */
         getRoot(): StateMachine;
-        ancestors(): Array<Element>;
+        getAncestors(): Array<Element>;
         /**
          * Accepts an instance of a visitor.
          * @method accept
@@ -436,6 +463,7 @@ declare module StateJS {
         onInitialise: Array<Action>;
         logTo: Console;
         warnTo: Console;
+        errorTo: Console;
         /**
          * Creates a new instance of the StateMachine class.
          * @param {string} name The name of the state machine.
@@ -463,6 +491,13 @@ declare module StateJS {
          */
         setWarning(value?: Console): StateMachine;
         /**
+         * Instructs the state machine model to direct error messages to an object supporting the Console interface.
+         * @method setError
+         * @param {Console} value Pass in console to log to the console, or any other object supporting the .error method.
+         * @returns {StateMachine} Returns the state machine to enable fluent style API.
+         */
+        setError(value?: Console): StateMachine;
+        /**
          * Accepts an instance of a visitor and calls the visitStateMachine method on it.
          * @method accept
          * @param {Visitor<TArg1>} visitor The visitor instance.
@@ -472,13 +507,6 @@ declare module StateJS {
          * @returns {any} Any value can be returned by the visitor.
          */
         accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any;
-    }
-}
-declare module StateJS {
-    enum TransitionKind {
-        Internal = 0,
-        Local = 1,
-        External = 2,
     }
 }
 declare module StateJS {
@@ -504,9 +532,10 @@ declare module StateJS {
         /**
          * Creates a new instance of the Transition class.
          * @param {Vertex} source The source of the transition.
-         * @param {Vertex} source The target of the transition.
+         * @param {Vertex} source The target of the transition; this is an optional parameter, omitting it will create an Internal transition.
+         * @param {TransitionKink} kind The kind the transition; use this to set Local or External (the default if omitted) transition semantics.
          */
-        constructor(source: Vertex, target?: Vertex);
+        constructor(source: Vertex, target?: Vertex, kind?: TransitionKind);
         /**
          * Turns a transition into an else transition.
          *

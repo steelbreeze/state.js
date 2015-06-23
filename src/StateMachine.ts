@@ -22,6 +22,7 @@ module StateJS {
 		// used to inject logging, warnings and errors.
 		logTo: Console;
 		warnTo: Console;
+		errorTo: Console = <Console>{ error: function(message) { throw message; } };
 		
 		/** 
 		 * Creates a new instance of the StateMachine class.
@@ -62,6 +63,19 @@ module StateJS {
 		 */
 		public setWarning(value: Console = undefined): StateMachine {
 			this.warnTo = value;
+			this.clean = false;
+	
+			return this;
+		}
+	
+		/**
+		 * Instructs the state machine model to direct error messages to an object supporting the Console interface.
+		 * @method setError
+		 * @param {Console} value Pass in console to log to the console, or any other object supporting the .error method.
+		 * @returns {StateMachine} Returns the state machine to enable fluent style API.
+		 */
+		public setError(value: Console = undefined): StateMachine {
+			this.errorTo = value;
 			this.clean = false;
 	
 			return this;

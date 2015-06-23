@@ -34,17 +34,18 @@ module StateJS {
 		/** 
 		 * Creates a new instance of the Transition class.
 		 * @param {Vertex} source The source of the transition.
-		 * @param {Vertex} source The target of the transition.
+		 * @param {Vertex} source The target of the transition; this is an optional parameter, omitting it will create an Internal transition.
+		 * @param {TransitionKink} kind The kind the transition; use this to set Local or External (the default if omitted) transition semantics.
 		 */
-		public constructor(public source: Vertex, public target?: Vertex) {
+		public constructor(public source: Vertex, public target?: Vertex, kind: TransitionKind = TransitionKind.External) {
 			this.guard = source instanceof PseudoState ? (() => { return true; }) : (message => { return message === this.source; });
 
 			// force transition kind for internal transitions
-			this.kind = target ? TransitionKind.External : TransitionKind.Internal;
+			this.kind = target ? kind : TransitionKind.Internal;
 	
-			// validation logic for when caller supplies kind	
+			// validate user specifying a local transition; target must be in the source ancestry
 			if (this.kind === TransitionKind.Local) {
-				if (this.target.ancestors().indexOf(this.source) === -1) {
+				if (this.target.getAncestors().indexOf(this.source) === -1) {
 					var warnTo = this.source.getRoot().warnTo;
 					
 					if (warnTo) {

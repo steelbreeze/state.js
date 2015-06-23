@@ -23,9 +23,7 @@ module StateJS {
 			}
 	
 			// log as required
-			if (stateMachineModel.logTo) {
-				stateMachineModel.logTo.log("initialise " + stateMachineInstance);
-			}
+			raiseLog(stateMachineModel, "initialise " + stateMachineInstance);
 	
 			// enter the state machine instance for the first time
 			invoke(stateMachineModel.onInitialise, undefined, stateMachineInstance);
@@ -33,9 +31,7 @@ module StateJS {
 			// initiaise a state machine model
 		} else {
 			// log as required
-			if (stateMachineModel.logTo) {
-				stateMachineModel.logTo.log("initialise " + stateMachineModel.name);
-			}
+			raiseLog(stateMachineModel, "initialise " + stateMachineModel.name);
 	
 			stateMachineModel.accept(new InitialiseElements(), false);
 			stateMachineModel.clean = true;
@@ -52,9 +48,7 @@ module StateJS {
 	 */
 	export function evaluate(stateMachineModel: StateMachine, stateMachineInstance: IActiveStateConfiguration, message: any, autoInitialiseModel: boolean = true): boolean {
 		// log as required
-		if (stateMachineModel.logTo) {
-			stateMachineModel.logTo.log(stateMachineInstance + " evaluate " + message);
-		}
+		raiseLog(stateMachineModel, stateMachineInstance + " evaluate " + message);
 	
 		// initialise the state machine model if necessary
 		if (autoInitialiseModel && stateMachineModel.clean === false) {
@@ -109,6 +103,20 @@ module StateJS {
 		endEnter: Array<Action> = [];
 		enter: Array<Action> = [];
 	}
+
+	// generates an error calling the user specified error handler
+	function raiseLog(model: StateMachine, text: string): void {
+		if(model.logTo) {
+			model.logTo.log(text);
+		}
+	}
+	
+	// generates an error calling the user specified error handler
+	function raiseError(model: StateMachine, text: string): void {
+		if(model.errorTo) {
+			model.errorTo.error(text);
+		}
+	}
 	
 	// determines if a state is currently active
 	function isActive(state: State, stateMachineInstance: IActiveStateConfiguration): boolean {
@@ -121,14 +129,14 @@ module StateJS {
 	}
 	
 	// traverses a transition
-	function traverse(transition: Transition, instance: IActiveStateConfiguration, message: any): boolean {			
+	function traverse(transition: Transition, instance: IActiveStateConfiguration, message: any): boolean {
+		// TODO: need to implement run-to-completion from here to end of the method
 		var transitionBehavior = transition.traverse;
 
 		while (transition.target && transition.target.isJunction()) {
 			transition = selectJunctionTransition(transition.target, instance, message);
-		
-			if(!transition) {
-				// TODO: generate an error
+			
+			if(!transition) {				
 				return false;
 			}
 		
@@ -138,7 +146,13 @@ module StateJS {
 		invoke(transitionBehavior, message, instance);
 		
 		if (transition.target.isChoice()) {
-			traverse(selectChoiceTransition(transition.target, instance, message), instance, message);
+			transition = selectChoiceTransition(transition.target, instance, message);
+			
+			if(!transition) {
+				return false;
+			}
+			
+			traverse(transition, instance, message);
 		}
 		
 		return true;
@@ -150,13 +164,13 @@ module StateJS {
 		vertex.transitions.forEach(t=> {
 			if (t.guard === Transition.isElse) {
 				if (elseResult) {
-					throw "Multiple outbound transitions evaluated true";
+					raiseError(vertex.getRoot(), "Multiple outbound transitions evaluated true");
 				}
 
 				elseResult = t;
 			} else if (t.guard(message, stateMachineInstance)) {
 				if (result) {
-					throw "Multiple outbound transitions evaluated true";
+					raiseError(vertex.getRoot(), "Multiple outbound transitions evaluated true");
 				}
 
 				result = t;
@@ -173,7 +187,7 @@ module StateJS {
 		vertex.transitions.forEach(t => {
 			if (t.guard === Transition.isElse) {
 				if (elseResult) {
-					throw "Multiple outbound else transitions found at " + this + " for " + message;
+					raiseError(vertex.getRoot(), "Multiple outbound else transitions found at " + this + " for " + message);
 				}
 
 				elseResult = t;
@@ -198,7 +212,7 @@ module StateJS {
 				if (pseudoState.transitions.length === 1) {
 					return traverse(pseudoState.transitions[0], stateMachineInstance, message);
 				} else {
-					throw "Initial transition must have a single outbound transition from " + pseudoState;
+					raiseError(pseudoState.getRoot(), "Initial transition must have a single outbound transition from " + pseudoState);
 				}
 			}
 	
@@ -226,7 +240,7 @@ module StateJS {
 				state.transitions.forEach(t => {
 					if (t.guard(message, stateMachineInstance)) {
 						if (transition) {
-							throw new Error("Multiple outbound transitions evaluated true");
+							raiseError(state.getRoot(), "Multiple outbound transitions evaluated true");
 						}
 	
 						transition = t;
@@ -246,16 +260,24 @@ module StateJS {
 			return result;
 		}
 	}
-		
+
 	// initialises transitions after all elements have been bootstrapped
 	class InitialiseTransitions extends Visitor<(element: Element) => ElementBehavior> {
 		
 		// determine the type of transition and use the appropriate initiliasition method
 		visitTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
-			if (transition.kind === TransitionKind.Internal) {
-				this.visitInternalTransition(transition);
-			} else {
-				this.visitExternalTransition(transition, behaviour);
+			switch(transition.kind) {
+				case TransitionKind.Internal:
+					this.visitInternalTransition(transition);
+					break;
+					
+				case TransitionKind.Local:
+					this.visitLocalTransition(transition, behaviour);
+					break;
+					
+				case TransitionKind.External:
+					this.visitExternalTransition(transition, behaviour);
+					break;
 			}
 		}
 	
@@ -264,10 +286,14 @@ module StateJS {
 			transition.traverse = transition.transitionBehavior;
 		}
 	
+		// initialise internal transitions: these do not leave the source state
+		visitLocalTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
+		}
+	
 		// initialise external transitions: these are abritarily complex
 		visitExternalTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
-			var sourceAncestors = transition.source.ancestors();
-			var targetAncestors = transition.target.ancestors();
+			var sourceAncestors = transition.source.getAncestors();
+			var targetAncestors = transition.target.getAncestors();
 			var i = 0, l = Math.min(sourceAncestors.length, targetAncestors.length);
 	
 			// find the index of the first uncommon ancestor
@@ -316,7 +342,7 @@ module StateJS {
 		// returns the behavior for a given element; creates one if not present
 		private behaviour(element: Element): ElementBehavior {
 			if (!element.qualifiedName) {
-				element.qualifiedName = element.ancestors().map<string>((e) => { return e.name; }).join(Element.namespaceSeparator);
+				element.qualifiedName = element.getAncestors().map<string>((e) => { return e.name; }).join(Element.namespaceSeparator);
 			}
 	
 			return this.behaviours[element.qualifiedName] || (this.behaviours[element.qualifiedName] = new ElementBehavior());
@@ -324,9 +350,10 @@ module StateJS {
 	
 		// uncomment this method for debugging purposes
 		visitElement(element: Element, deepHistoryAbove: boolean) {
-			if (element.getRoot().logTo) {
+			var logger = element.getRoot().logTo;
+
+			if (logger) {
 				var elementBehaviour = this.behaviour(element);
-				var logger = element.getRoot().logTo;
 	
 				elementBehaviour.leave.push((message, instance) => { logger.log(instance + " leave " + element); });
 				elementBehaviour.beginEnter.push((message, instance) => { logger.log(instance + " enter " + element); });
@@ -373,7 +400,6 @@ module StateJS {
 			this.visitVertex(pseudoState, deepHistoryAbove);
 	
 			// evaluate comppletion transitions once vertex entry is complete
-//			if (pseudoState.kind !== PseudoStateKind.Junction) {
 			if (pseudoState.isInitial() ) {
 				this.behaviour(pseudoState).endEnter.push((message, stateMachineInstance) => {
 					if (isComplete(pseudoState, stateMachineInstance)) {

@@ -38,9 +38,15 @@ module StateJS {
 			super(name, parent);
 		}
 	
-		// override Vertex.to to throw an exception when trying to create a transition from a final state.
+		// override Vertex.to to generate an error when trying to create a transition from a final state.
 		public to(target?: Vertex): Transition {
-			throw "A FinalState cannot be the source of a transition.";
+//			var errorTo = this.getRoot().errorTo;
+//			
+//			if (errorTo) {
+//				errorTo.error("A FinalState cannot be the source of a transition.");
+//			}
+			
+			return;
 		}
 	
 		/**

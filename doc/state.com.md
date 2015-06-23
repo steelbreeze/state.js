@@ -30,6 +30,19 @@ if many or none evaluate true, and there is no 'else transition' defined, the ma
 
 **Terminate**: `PseudoStateKind` , Entering a terminate `PseudoState` implies that the execution of this state machine by means of its state object is terminated.
 
+## Class: TransitionKind
+An enumeration of static constants that dictates the precise behaviour of transitions.
+
+Use these constants as the `kind` parameter when creating new `Transition` instances.
+
+**Internal**: `TransitionKind` , The transition, if triggered, occurs without exiting or entering the source state.
+Thus, it does not cause a state change. This means that the entry or exit condition of the source state will not be invoked.
+An internal transition can be taken even if the state machine is in one or more regions nested within this state.
+
+**Local**: `TransitionKind` , The transition, if triggered, will not exit the composite (source) state, but it will apply to any state within the composite state, and these will be exited and entered.
+
+**Local**: `TransitionKind` , The transition, if triggered, will exit the source vertex.
+
 ## Class: Element
 An abstract class used as the base for the Region and Vertex classes.
 An element is any part of the tree structure that represents a composite state machine model.
@@ -375,6 +388,16 @@ Instructs the state machine model to direct warnings activity to an object suppo
 
 **Returns**: `StateMachine`, Returns the state machine to enable fluent style API.
 
+### StateMachine.setError(value) 
+
+Instructs the state machine model to direct error messages to an object supporting the Console interface.
+
+**Parameters**
+
+**value**: `Console`, Pass in console to log to the console, or any other object supporting the .error method.
+
+**Returns**: `StateMachine`, Returns the state machine to enable fluent style API.
+
 ### StateMachine.accept(visitor, arg1, arg2, arg3) 
 
 Accepts an instance of a visitor and calls the visitStateMachine method on it.
@@ -402,7 +425,7 @@ external transitions are more complex in nature as they cross region boundaries,
 
 Entering a composite state will cause the entry of the child regions within the composite state; this in turn may trigger more transitions.
 
-### Transition.Transition(source, source) 
+### Transition.Transition(source, source, kind) 
 
 Creates a new instance of the Transition class.
 
@@ -410,7 +433,9 @@ Creates a new instance of the Transition class.
 
 **source**: `Vertex`, The source of the transition.
 
-**source**: `Vertex`, The target of the transition.
+**source**: `Vertex`, The target of the transition; this is an optional parameter, omitting it will create an Internal transition.
+
+**kind**: `TransitionKink`, The kind the transition; use this to set Local or External (the default if omitted) transition semantics.
 
 
 ### Transition.else() 

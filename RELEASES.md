@@ -1,6 +1,12 @@
 ## Version 5.4.1 - currently under development
 Remove a litte redundant from the runtime given the refactoring of Choice and Junction pseudp states; a little post 5.4 refactoring.
 
+Added explicit testing of static conditional branch implementation for junction pseudo states.
+
+Addded StateMachine.setError to enable custom handlers for errors; defaults to throwing an exception.
+
+Renamed Element.ancestors to Element.getAncestors in line with other getter methods. This is not supposed to be a part of the public API hence no breaking change.
+
 ### Version 5.4.0
 NOTE: while the API to state.js has not explicitly changes in this release, the changes made *may* impact the behaviour of your state machines hence the bump to 5.4 indicating a potentially breaking change. See the release notes pertaining to Junction and Choice pseudo states where the message passed to guards and user defined transition effect behaviour will be the same for transitions after the pseudo state as transitions before the pseudo state (previously, the message was the pseudo state itself).
 

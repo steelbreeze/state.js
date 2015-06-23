@@ -10,6 +10,7 @@
 		"src/Guard.ts",
 		"src/Action.ts",
 		"src/PseudoStateKind.ts",
+		"src/TransitionKind.ts",
 		"src/Element.ts",
 		"src/Region.ts",
 		"src/Vertex.ts",
@@ -17,7 +18,6 @@
 		"src/State.ts",
 		"src/FinalState.ts",
 		"src/StateMachine.ts",
-		"src/TransitionKind.ts",
 		"src/Transition.ts",
 		"src/Visitor.ts",
 
