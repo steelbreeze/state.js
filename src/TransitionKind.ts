@@ -28,7 +28,7 @@ module StateJS {
 		
 		/**
 		 * The transition, if triggered, will exit the source vertex.
-		 * @member {TransitionKind} Local
+		 * @member {TransitionKind} External
 		 */
 		External
 	}

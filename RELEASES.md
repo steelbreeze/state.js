@@ -1,4 +1,8 @@
-## Version 5.4.1 - currently under development
+## Version 5.4.1
+Fix internal transition bug.
+
+Add an internal transition test case.
+
 Remove a litte redundant from the runtime given the refactoring of Choice and Junction pseudp states; a little post 5.4 refactoring.
 
 Added explicit testing of static conditional branch implementation for junction pseudo states.

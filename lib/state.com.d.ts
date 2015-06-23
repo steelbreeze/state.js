@@ -93,7 +93,7 @@ declare module StateJS {
         Local = 1,
         /**
          * The transition, if triggered, will exit the source vertex.
-         * @member {TransitionKind} Local
+         * @member {TransitionKind} External
          */
         External = 2,
     }
@@ -535,7 +535,7 @@ declare module StateJS {
          * @param {Vertex} source The target of the transition; this is an optional parameter, omitting it will create an Internal transition.
          * @param {TransitionKink} kind The kind the transition; use this to set Local or External (the default if omitted) transition semantics.
          */
-        constructor(source: Vertex, target?: Vertex, kind?: TransitionKind);
+        constructor(source: Vertex, target?: Vertex);
         /**
          * Turns a transition into an else transition.
          *

@@ -41,7 +41,7 @@ An internal transition can be taken even if the state machine is in one or more 
 
 **Local**: `TransitionKind` , The transition, if triggered, will not exit the composite (source) state, but it will apply to any state within the composite state, and these will be exited and entered.
 
-**Local**: `TransitionKind` , The transition, if triggered, will exit the source vertex.
+**External**: `TransitionKind` , The transition, if triggered, will exit the source vertex.
 
 ## Class: Element
 An abstract class used as the base for the Region and Vertex classes.
