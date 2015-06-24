@@ -718,6 +718,35 @@ declare module StateJS {
 }
 declare module StateJS {
     /**
+     * Sets a method to select an integer random number less than the max value passed as a parameter.
+     *
+     * This is only useful when a custom random number generator is required; the default implementation is fine in most circumstances.
+     * @function setRandom
+     * @param {function} generator A function that takes a max value and returns a random number between 0 and max - 1.
+     * @returns A random number between 0 and max - 1
+     */
+    function setRandom(generator: (max: number) => number): void;
+    /**
+     * Returns the current method used to select an integer random number less than the max value passed as a parameter.
+     *
+     * This is only useful when a custom random number generator is required; the default implementation is fine in most circumstances.
+     * @function getRandom
+     * @returns {function} The function that takes a max value and returns a random number between 0 and max - 1.
+     */
+    function getRandom(): (max: number) => number;
+}
+declare module StateJS {
+    /**
+     * Tests a state machine instance to see if its lifecycle is complete. A state machine instance is complete if all regions belonging to the state machine root have curent states that are final states.
+     * @function isComplete
+     * @param {StateMachine} stateMachineModel The state machine model.
+     * @param {IActiveStateConfiguration} stateMachineInstance The instance of the state machine model to test for completeness.
+     * @returns {boolean} True if the state machine instance is complete.
+     */
+    function isComplete(vertex: Vertex, stateMachineInstance: IActiveStateConfiguration): boolean;
+}
+declare module StateJS {
+    /**
      * Initialises a state machine and/or state machine model.
      *
      * Passing just the state machine model will initialise the model, passing the model and instance will initialse the instance and if necessary, the model.
@@ -736,22 +765,5 @@ declare module StateJS {
      * @returns {boolean} True if the message triggered a state transition.
      */
     function evaluate(stateMachineModel: StateMachine, stateMachineInstance: IActiveStateConfiguration, message: any, autoInitialiseModel?: boolean): boolean;
-    /**
-     * Tests a state machine instance to see if its lifecycle is complete. A state machine instance is complete if all regions belonging to the state machine root have curent states that are final states.
-     * @function isComplete
-     * @param {StateMachine} stateMachineModel The state machine model.
-     * @param {IActiveStateConfiguration} stateMachineInstance The instance of the state machine model to test for completeness.
-     * @returns {boolean} True if the state machine instance is complete.
-     */
-    function isComplete(vertex: Vertex, stateMachineInstance: IActiveStateConfiguration): boolean;
-    /**
-     * Sets a method to select an integer random number less than the max value passed as a parameter.
-     *
-     * This is only useful when a custom random number generator is required; the default implementation is fine in most circumstances.
-     * @function setRandom
-     * @param {function} generator A function that takes a max value and returns a random number between 0 and max - 1.
-     * @returns A random number between 0 and max - 1
-     */
-    function setRandom(generator: (max: number) => number): void;
 }
 declare var module: any;

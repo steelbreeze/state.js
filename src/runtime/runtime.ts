@@ -23,15 +23,19 @@ module StateJS {
 			}
 	
 			// log as required
-			raiseLog(stateMachineModel, "initialise " + stateMachineInstance);
-	
+			if (stateMachineModel.logTo) {
+				stateMachineModel.logTo.log(stateMachineModel, "initialise " + stateMachineInstance);
+			}
+			
 			// enter the state machine instance for the first time
-			invoke(stateMachineModel.onInitialise, undefined, stateMachineInstance);
+			stateMachineModel.onInitialise.forEach(action => { action(undefined, stateMachineInstance); });
 	
 			// initiaise a state machine model
 		} else {
 			// log as required
-			raiseLog(stateMachineModel, "initialise " + stateMachineModel.name);
+			if (stateMachineModel.logTo) {
+				stateMachineModel.logTo.log(stateMachineModel, "initialise " + stateMachineModel.name);
+			}
 
 			stateMachineModel.accept(new InitialiseElements(), false);
 			stateMachineModel.clean = true;
@@ -48,8 +52,10 @@ module StateJS {
 	 */
 	export function evaluate(stateMachineModel: StateMachine, stateMachineInstance: IActiveStateConfiguration, message: any, autoInitialiseModel: boolean = true): boolean {
 		// log as required
-		raiseLog(stateMachineModel, stateMachineInstance + " evaluate " + message);
-	
+		if (stateMachineModel.logTo) {
+			stateMachineModel.logTo.log(stateMachineModel, stateMachineInstance + " evaluate " + message);
+		}
+		
 		// initialise the state machine model if necessary
 		if (autoInitialiseModel && stateMachineModel.clean === false) {
 			initialise(stateMachineModel);
@@ -63,38 +69,6 @@ module StateJS {
 		// evaluate the message using the Evaluator visitor
 		return stateMachineModel.accept(Evaluator.instance, stateMachineInstance, message);
 	}
-	
-	/**
-	 * Tests a state machine instance to see if its lifecycle is complete. A state machine instance is complete if all regions belonging to the state machine root have curent states that are final states.
-	 * @function isComplete
-	 * @param {StateMachine} stateMachineModel The state machine model. 
-	 * @param {IActiveStateConfiguration} stateMachineInstance The instance of the state machine model to test for completeness.
-	 * @returns {boolean} True if the state machine instance is complete.
-	 */
-	export function isComplete(vertex: Vertex, stateMachineInstance: IActiveStateConfiguration): boolean {
-		if (vertex instanceof State) {
-			return (<State>vertex).regions.every(region => { return stateMachineInstance.getCurrent(region).isFinal(); });
-		}
-
-		return true;
-	}
-	
-	/**
-	 * Sets a method to select an integer random number less than the max value passed as a parameter.
-	 * 
-	 * This is only useful when a custom random number generator is required; the default implementation is fine in most circumstances.
-	 * @function setRandom
-	 * @param {function} generator A function that takes a max value and returns a random number between 0 and max - 1.
-	 * @returns A random number between 0 and max - 1
-	 */
-	export function setRandom(generator: (max: number) => number): void {
-		random = generator;
-	}
-
-	// the method used to produce a random number; defaulting to simplified implementation seen in Mozilla Math.random() page; may be overriden for testing
-	var random = function(max: number): number {
-		return Math.floor(Math.random() * max);
-	}
 
 	// Temporary structure to hold element behaviour during the bootstrap process
 	class ElementBehavior {
@@ -103,29 +77,10 @@ module StateJS {
 		endEnter: Array<Action> = [];
 		enter: Array<Action> = [];
 	}
-
-	// generates an error calling the user specified error handler
-	function raiseLog(model: StateMachine, text: string): void {
-		if (model.logTo) {
-			model.logTo.log(text);
-		}
-	}
-	
-	// generates an error calling the user specified error handler
-	function raiseError(model: StateMachine, text: string): void {
-		if (model.errorTo) {
-			model.errorTo.error(text);
-		}
-	}
 	
 	// determines if a state is currently active
 	function isActive(state: State, stateMachineInstance: IActiveStateConfiguration): boolean {
 		return state.region ? (isActive(state.region.state, stateMachineInstance) && (stateMachineInstance.getCurrent(state.region) === state)) : true;
-	}
-
-	// invokes behaviour
-	function invoke(behavior: Array<Action>, message: any, stateMachineInstance: IActiveStateConfiguration, history: boolean = false): void {
-		behavior.forEach(action => { action(message, stateMachineInstance, history) });
 	}
 	
 	// traverses a transition
@@ -143,7 +98,7 @@ module StateJS {
 			transitionBehavior = transitionBehavior.concat(transition.traverse);
 		}
 
-		invoke(transitionBehavior, message, instance);
+		transitionBehavior.forEach(action => { action(message, instance); });
 
 		if (transition.target && transition.target.isChoice()) {
 			transition = selectChoiceTransition(transition.target, instance, message);
@@ -164,13 +119,17 @@ module StateJS {
 		vertex.transitions.forEach(t=> {
 			if (t.guard === Transition.isElse) {
 				if (elseResult) {
-					raiseError(vertex.getRoot(), "Multiple outbound transitions evaluated true");
+					if (vertex.getRoot().errorTo) {
+						vertex.getRoot().errorTo.error(vertex.getRoot(), "Multiple outbound transitions evaluated true");
+					}
 				}
 
 				elseResult = t;
 			} else if (t.guard(message, stateMachineInstance)) {
 				if (result) {
-					raiseError(vertex.getRoot(), "Multiple outbound transitions evaluated true");
+					if (vertex.getRoot().errorTo) {
+						vertex.getRoot().errorTo.error(vertex.getRoot(), "Multiple outbound transitions evaluated true");
+					}
 				}
 
 				result = t;
@@ -187,7 +146,9 @@ module StateJS {
 		vertex.transitions.forEach(t => {
 			if (t.guard === Transition.isElse) {
 				if (elseResult) {
-					raiseError(vertex.getRoot(), "Multiple outbound else transitions found at " + this + " for " + message);
+					if (vertex.getRoot().errorTo) {
+						vertex.getRoot().errorTo.error(vertex.getRoot(), "Multiple outbound else transitions found at " + this + " for " + message);
+					}
 				}
 
 				elseResult = t;
@@ -196,7 +157,7 @@ module StateJS {
 			}
 		});
 
-		return results.length !== 0 ? results[random(results.length)] : elseResult;
+		return results.length !== 0 ? results[getRandom()(results.length)] : elseResult;
 	}
 
 	// evaluates messages against a state machine, executing transitions as appropriate
@@ -212,7 +173,9 @@ module StateJS {
 				if (pseudoState.transitions.length === 1) {
 					return traverse(pseudoState.transitions[0], stateMachineInstance, message);
 				} else {
-					raiseError(pseudoState.getRoot(), "Initial transition must have a single outbound transition from " + pseudoState);
+					if (pseudoState.getRoot().errorTo) {
+						pseudoState.getRoot().errorTo.error(pseudoState.getRoot(), "Initial transition must have a single outbound transition from " + pseudoState);
+					}
 				}
 			}
 
@@ -240,9 +203,11 @@ module StateJS {
 				state.transitions.forEach(t => {
 					if (t.guard(message, stateMachineInstance)) {
 						if (transition) {
-							raiseError(state.getRoot(), "Multiple outbound transitions evaluated true");
+							if (state.getRoot().errorTo) {
+								state.getRoot().errorTo.error(state.getRoot(), "Multiple outbound transitions evaluated true");
+							}
 						}
-
+						
 						transition = t;
 					}
 				});
@@ -368,7 +333,7 @@ module StateJS {
 	
 			// leave the curent active child state when exiting the region
 			regionBehaviour.leave.push((message, stateMachineInstance) => {
-				invoke(this.behaviour(stateMachineInstance.getCurrent(region)).leave, message, stateMachineInstance); // NOTE: current state needs to be evaluated at runtime
+				this.behaviour(stateMachineInstance.getCurrent(region)).leave.forEach(action => { action(message, stateMachineInstance); });
 			});
 	
 			// enter the appropriate initial child vertex when entering the region
@@ -380,7 +345,8 @@ module StateJS {
 						initial = stateMachineInstance.getCurrent(region) || region.initial;
 					}
 
-					invoke(this.behaviour(initial).enter, message, stateMachineInstance, history || region.initial.kind === PseudoStateKind.DeepHistory);
+					var cascadedHistory = history || region.initial.kind === PseudoStateKind.DeepHistory;
+					this.behaviour(initial).enter.forEach(action => { action(message, stateMachineInstance, cascadedHistory); });
 				});
 			} else {
 				regionBehaviour.endEnter = regionBehaviour.endEnter.concat(this.behaviour(region.initial).enter);

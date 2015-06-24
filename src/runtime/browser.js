@@ -16,5 +16,5 @@
 	}
 
 	// bind the state.js API to the specified name or use "fsm"" as a default
-	target[script.attributes.target ? script.attributes.target.textContent : "fsm"] = require("../lib/state.com.js");
+	target[script.attributes.target ? script.attributes.target.textContent : "fsm"] = require("../../lib/state.com.js");
 })(window);

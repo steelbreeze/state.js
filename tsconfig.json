@@ -7,25 +7,26 @@
 		"out": "lib/state.com.js"
 	},
 	"files": [
-		"src/Guard.ts",
-		"src/Action.ts",
-		"src/PseudoStateKind.ts",
-		"src/TransitionKind.ts",
-		"src/Element.ts",
-		"src/Region.ts",
-		"src/Vertex.ts",
-		"src/PseudoState.ts",
-		"src/State.ts",
-		"src/FinalState.ts",
-		"src/StateMachine.ts",
-		"src/Transition.ts",
-		"src/Visitor.ts",
-
-		"src/IActiveStateConfiguration.ts",
-		"src/StateMachineInstance.ts",
+		"src/model/Guard.ts",
+		"src/model/Action.ts",
+		"src/model/PseudoStateKind.ts",
+		"src/model/TransitionKind.ts",
+		"src/model/Element.ts",
+		"src/model/Region.ts",
+		"src/model/Vertex.ts",
+		"src/model/PseudoState.ts",
+		"src/model/State.ts",
+		"src/model/FinalState.ts",
+		"src/model/StateMachine.ts",
+		"src/model/Transition.ts",
+		"src/model/Visitor.ts",
 		
-		"src/runtime.ts",
-
-		"src/module.ts"
+		"src/instance/IActiveStateConfiguration.ts",
+		"src/instance/StateMachineInstance.ts",
+		
+		"src/runtime/random.ts",
+		"src/runtime/isComplete.ts",
+		"src/runtime/runtime.ts",
+		"src/runtime/commonjs.ts"
 	]
 }

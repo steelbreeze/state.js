@@ -637,6 +637,38 @@ Returns the name of the state machine instance.
 
 **Returns**: `string`, The name of the state machine instance.
 
+## Function: setRandom(generator) 
+
+Sets a method to select an integer random number less than the max value passed as a parameter.
+
+This is only useful when a custom random number generator is required; the default implementation is fine in most circumstances.
+
+**Parameters**
+
+**generator**: `function`, A function that takes a max value and returns a random number between 0 and max - 1.
+
+**Returns**: , A random number between 0 and max - 1
+
+## Function: getRandom() 
+
+Returns the current method used to select an integer random number less than the max value passed as a parameter.
+
+This is only useful when a custom random number generator is required; the default implementation is fine in most circumstances.
+
+**Returns**: `function`, The function that takes a max value and returns a random number between 0 and max - 1.
+
+## Function: isComplete(stateMachineModel, stateMachineInstance) 
+
+Tests a state machine instance to see if its lifecycle is complete. A state machine instance is complete if all regions belonging to the state machine root have curent states that are final states.
+
+**Parameters**
+
+**stateMachineModel**: `StateMachine`, The state machine model.
+
+**stateMachineInstance**: `IActiveStateConfiguration`, The instance of the state machine model to test for completeness.
+
+**Returns**: `boolean`, True if the state machine instance is complete.
+
 ## Function: initialise(stateMachineModel, stateMachineInstance, autoInitialiseModel) 
 
 Initialises a state machine and/or state machine model.
@@ -665,30 +697,6 @@ Passes a message to a state machine for evaluation; messages trigger state trans
 **autoInitialiseModel**: `boolean`, Defaulting to true, this will cause the model to be initialised prior to initialising the instance if the model has changed.
 
 **Returns**: `boolean`, True if the message triggered a state transition.
-
-## Function: isComplete(stateMachineModel, stateMachineInstance) 
-
-Tests a state machine instance to see if its lifecycle is complete. A state machine instance is complete if all regions belonging to the state machine root have curent states that are final states.
-
-**Parameters**
-
-**stateMachineModel**: `StateMachine`, The state machine model.
-
-**stateMachineInstance**: `IActiveStateConfiguration`, The instance of the state machine model to test for completeness.
-
-**Returns**: `boolean`, True if the state machine instance is complete.
-
-## Function: setRandom(generator) 
-
-Sets a method to select an integer random number less than the max value passed as a parameter.
-
-This is only useful when a custom random number generator is required; the default implementation is fine in most circumstances.
-
-**Parameters**
-
-**generator**: `function`, A function that takes a max value and returns a random number between 0 and max - 1.
-
-**Returns**: , A random number between 0 and max - 1
 
 
 
