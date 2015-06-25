@@ -24,7 +24,7 @@ module StateJS {
 	
 			// log as required
 			if (stateMachineModel.logTo) {
-				stateMachineModel.logTo.log(stateMachineModel, "initialise " + stateMachineInstance);
+				stateMachineModel.logTo.log("initialise " + stateMachineInstance);
 			}
 			
 			// enter the state machine instance for the first time
@@ -34,14 +34,14 @@ module StateJS {
 		} else {
 			// log as required
 			if (stateMachineModel.logTo) {
-				stateMachineModel.logTo.log(stateMachineModel, "initialise " + stateMachineModel.name);
+				stateMachineModel.logTo.log("initialise " + stateMachineModel.name);
 			}
 
 			stateMachineModel.accept(new InitialiseElements(), false);
 			stateMachineModel.clean = true;
 		}
 	}
-		
+
 	/**
 	 * Passes a message to a state machine for evaluation; messages trigger state transitions.
 	 * @function evaluate
@@ -53,7 +53,7 @@ module StateJS {
 	export function evaluate(stateMachineModel: StateMachine, stateMachineInstance: IActiveStateConfiguration, message: any, autoInitialiseModel: boolean = true): boolean {
 		// log as required
 		if (stateMachineModel.logTo) {
-			stateMachineModel.logTo.log(stateMachineModel, stateMachineInstance + " evaluate " + message);
+			stateMachineModel.logTo.log(stateMachineInstance + " evaluate " + message);
 		}
 		
 		// initialise the state machine model if necessary
@@ -65,9 +65,54 @@ module StateJS {
 		if (stateMachineInstance.isTerminated) {
 			return false;
 		}
-	
-		// evaluate the message using the Evaluator visitor
-		return stateMachineModel.accept(Evaluator.instance, stateMachineInstance, message);
+
+		return evaluateState(stateMachineModel, stateMachineInstance, message);
+	}
+
+	// evaluates messages against a state, executing transitions as appropriate
+	function evaluateState(state: State, stateMachineInstance: IActiveStateConfiguration, message: any): boolean {
+		var result = false;
+		
+		// delegate to child regions first
+		state.regions.every(region => {
+			if (evaluateState(stateMachineInstance.getCurrent(region), stateMachineInstance, message)) {
+				result = true;
+
+				if (!isActive(state, stateMachineInstance)) {
+					return false;
+				}
+			}
+			
+			return true;
+		});
+		
+		//if still unprocessed, try to find one here
+		if (!result) {
+			var transition: Transition;
+
+			state.transitions.forEach(t => {
+				if (t.guard(message, stateMachineInstance)) {
+					if (transition) {
+						if (state.getRoot().errorTo) {
+							state.getRoot().errorTo.error("Multiple outbound transitions evaluated true");
+						}
+					}
+
+					transition = t;
+				}
+			});
+
+			if (transition) {
+				result = traverse(transition, stateMachineInstance, message);
+			}
+		}
+
+		// if a transition occured, check for completions
+		if (result && (message !== state) && isComplete(state, stateMachineInstance)) {
+			evaluateState(state, stateMachineInstance, state);
+		}
+
+		return result;
 	}
 
 	// Temporary structure to hold element behaviour during the bootstrap process
@@ -84,7 +129,7 @@ module StateJS {
 	}
 	
 	// traverses a transition
-	function traverse(transition: Transition, instance: IActiveStateConfiguration, message: any): boolean {
+	function traverse(transition: Transition, instance: IActiveStateConfiguration, message?: any): boolean {
 		// TODO: need to implement run-to-completion from here to end of the method
 		var transitionBehavior = transition.traverse;
 
@@ -120,7 +165,7 @@ module StateJS {
 			if (t.guard === Transition.isElse) {
 				if (elseResult) {
 					if (vertex.getRoot().errorTo) {
-						vertex.getRoot().errorTo.error(vertex.getRoot(), "Multiple outbound transitions evaluated true");
+						vertex.getRoot().errorTo.error("Multiple outbound transitions evaluated true");
 					}
 				}
 
@@ -128,7 +173,7 @@ module StateJS {
 			} else if (t.guard(message, stateMachineInstance)) {
 				if (result) {
 					if (vertex.getRoot().errorTo) {
-						vertex.getRoot().errorTo.error(vertex.getRoot(), "Multiple outbound transitions evaluated true");
+						vertex.getRoot().errorTo.error("Multiple outbound transitions evaluated true");
 					}
 				}
 
@@ -147,7 +192,7 @@ module StateJS {
 			if (t.guard === Transition.isElse) {
 				if (elseResult) {
 					if (vertex.getRoot().errorTo) {
-						vertex.getRoot().errorTo.error(vertex.getRoot(), "Multiple outbound else transitions found at " + this + " for " + message);
+						vertex.getRoot().errorTo.error("Multiple outbound else transitions found at " + this + " for " + message);
 					}
 				}
 
@@ -158,72 +203,6 @@ module StateJS {
 		});
 
 		return results.length !== 0 ? results[getRandom()(results.length)] : elseResult;
-	}
-
-	// evaluates messages against a state machine, executing transitions as appropriate
-	class Evaluator extends Visitor<IActiveStateConfiguration> {
-		static instance = new Evaluator();
-
-		visitRegion(region: Region, stateMachineInstance: IActiveStateConfiguration, message: any): boolean {
-			return stateMachineInstance.getCurrent(region).accept(this, stateMachineInstance, message);
-		}
-
-		visitPseudoState(pseudoState: PseudoState, stateMachineInstance: IActiveStateConfiguration, message: any): boolean {
-			if (pseudoState.isInitial()) {
-				if (pseudoState.transitions.length === 1) {
-					return traverse(pseudoState.transitions[0], stateMachineInstance, message);
-				} else {
-					if (pseudoState.getRoot().errorTo) {
-						pseudoState.getRoot().errorTo.error(pseudoState.getRoot(), "Initial transition must have a single outbound transition from " + pseudoState);
-					}
-				}
-			}
-
-			return false;
-		}
-
-		visitState(state: State, stateMachineInstance: IActiveStateConfiguration, message: any): boolean {
-			var result = false;
-			
-			// delegate to child regions first
-			for (var i = 0, l = state.regions.length; i < l; i++) { // NOTE: use of break means this needs to stay as a for loop
-				if (state.regions[i].accept(this, stateMachineInstance, message)) {
-					result = true;
-
-					if (!isActive(state, stateMachineInstance)) {
-						break;
-					}
-				}
-			}
-			
-			//if still unprocessed, try to find one here
-			if (!result) {
-				var transition: Transition;
-
-				state.transitions.forEach(t => {
-					if (t.guard(message, stateMachineInstance)) {
-						if (transition) {
-							if (state.getRoot().errorTo) {
-								state.getRoot().errorTo.error(state.getRoot(), "Multiple outbound transitions evaluated true");
-							}
-						}
-						
-						transition = t;
-					}
-				});
-
-				if (transition) {
-					result = traverse(transition, stateMachineInstance, message);
-				}
-			}
-	
-			// if a transition occured, check for completions
-			if (result && (message !== state) && isComplete(state, stateMachineInstance)) {
-				this.visitState(state, stateMachineInstance, state);
-			}
-
-			return result;
-		}
 	}
 
 	// initialises transitions after all elements have been bootstrapped
@@ -369,7 +348,7 @@ module StateJS {
 			if (pseudoState.isInitial()) {
 				this.behaviour(pseudoState).endEnter.push((message, stateMachineInstance) => {
 					if (isComplete(pseudoState, stateMachineInstance)) {
-						pseudoState.accept(Evaluator.instance, stateMachineInstance, pseudoState);
+						traverse(pseudoState.transitions[0], stateMachineInstance);
 					}
 				});
 			}
@@ -407,7 +386,7 @@ module StateJS {
 			// evaluate comppletion transitions once vertex entry is complete
 			this.behaviour(state).endEnter.push((message, stateMachineInstance) => {
 				if (isComplete(state, stateMachineInstance)) {
-					state.accept(Evaluator.instance, stateMachineInstance, state);
+					evaluateState(state, stateMachineInstance, state); // TODO: should this move to evaluate?
 				}
 			});
 	

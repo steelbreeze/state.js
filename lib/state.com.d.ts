@@ -533,9 +533,9 @@ declare module StateJS {
          * Creates a new instance of the Transition class.
          * @param {Vertex} source The source of the transition.
          * @param {Vertex} source The target of the transition; this is an optional parameter, omitting it will create an Internal transition.
-         * @param {TransitionKink} kind The kind the transition; use this to set Local or External (the default if omitted) transition semantics.
+         * @param {TransitionKind} kind The kind the transition; use this to set Local or External (the default if omitted) transition semantics.
          */
-        constructor(source: Vertex, target?: Vertex);
+        constructor(source: Vertex, target?: Vertex, kind?: TransitionKind);
         /**
          * Turns a transition into an else transition.
          *
