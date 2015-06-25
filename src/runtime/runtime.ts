@@ -82,7 +82,7 @@ module StateJS {
 					return false;
 				}
 			}
-			
+
 			return true;
 		});
 		
@@ -130,7 +130,6 @@ module StateJS {
 	
 	// traverses a transition
 	function traverse(transition: Transition, instance: IActiveStateConfiguration, message?: any): boolean {
-		// TODO: need to implement run-to-completion from here to end of the method
 		var transitionBehavior = transition.traverse;
 
 		while (transition.target && transition.target.isJunction()) {
@@ -144,6 +143,14 @@ module StateJS {
 		}
 
 		transitionBehavior.forEach(action => { action(message, instance); });
+
+		if (transition.target && transition.target instanceof State) {
+			var state = <State>transition.target;
+			
+			if (isComplete(state, instance)) {
+				evaluateState(state, instance, state);
+			}
+		}
 
 		if (transition.target && transition.target.isChoice()) {
 			transition = selectChoiceTransition(transition.target, instance, message);
@@ -382,13 +389,6 @@ module StateJS {
 	
 			// add vertex behaviour (debug and testing completion transitions)
 			this.visitVertex(state, deepHistoryAbove);
-	
-			// evaluate comppletion transitions once vertex entry is complete
-			this.behaviour(state).endEnter.push((message, stateMachineInstance) => {
-				if (isComplete(state, stateMachineInstance)) {
-					evaluateState(state, stateMachineInstance, state); // TODO: should this move to evaluate?
-				}
-			});
 	
 			// add the user defined behaviour when entering and exiting states
 			stateBehaviour.leave = stateBehaviour.leave.concat(state.exitBehavior);
