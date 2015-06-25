@@ -86,8 +86,14 @@ module StateJS {
 			return true;
 		});
 		
-		//if still unprocessed, try to find one here
-		if (!result) {
+		// if a transition occured in a child region, check for completions
+		if (result) {
+			if ((message !== state) && isComplete(state, stateMachineInstance)) {
+				evaluateState(state, stateMachineInstance, state);
+			}
+			
+		// otherwise look for a transition from this state
+		} else {
 			var transition: Transition;
 
 			state.transitions.forEach(t => {
@@ -106,21 +112,8 @@ module StateJS {
 				result = traverse(transition, stateMachineInstance, message);
 			}
 		}
-
-		// if a transition occured, check for completions
-		if (result && (message !== state) && isComplete(state, stateMachineInstance)) {
-			evaluateState(state, stateMachineInstance, state);
-		}
-
+		
 		return result;
-	}
-
-	// Temporary structure to hold element behaviour during the bootstrap process
-	class ElementBehavior {
-		leave: Array<Action> = [];
-		beginEnter: Array<Action> = [];
-		endEnter: Array<Action> = [];
-		enter: Array<Action> = [];
 	}
 	
 	// determines if a state is currently active
@@ -132,6 +125,7 @@ module StateJS {
 	function traverse(transition: Transition, instance: IActiveStateConfiguration, message?: any): boolean {
 		var transitionBehavior = transition.traverse;
 
+		// process static conditional branches
 		while (transition.target && transition.target.isJunction()) {
 			transition = selectJunctionTransition(transition.target, instance, message);
 
@@ -142,16 +136,10 @@ module StateJS {
 			transitionBehavior = transitionBehavior.concat(transition.traverse);
 		}
 
+		// execute the transition behaviour
 		transitionBehavior.forEach(action => { action(message, instance); });
 
-		if (transition.target && transition.target instanceof State) {
-			var state = <State>transition.target;
-			
-			if (isComplete(state, instance)) {
-				evaluateState(state, instance, state);
-			}
-		}
-
+		// process dynamic conditional branches
 		if (transition.target && transition.target.isChoice()) {
 			transition = selectChoiceTransition(transition.target, instance, message);
 
@@ -160,6 +148,14 @@ module StateJS {
 			}
 
 			traverse(transition, instance, message);
+		
+		// test for completion transitions for 
+		} else if (transition.target && transition.target instanceof State) {
+			var state = <State>transition.target;
+			
+			if (isComplete(state, instance)) {
+				evaluateState(state, instance, state);
+			}
 		}
 
 		return true;
@@ -212,6 +208,14 @@ module StateJS {
 		return results.length !== 0 ? results[getRandom()(results.length)] : elseResult;
 	}
 
+	// Temporary structure to hold element behaviour during the bootstrap process
+	class ElementBehavior {
+		leave: Array<Action> = [];
+		beginEnter: Array<Action> = [];
+		endEnter: Array<Action> = [];
+		enter: Array<Action> = [];
+	}
+
 	// initialises transitions after all elements have been bootstrapped
 	class InitialiseTransitions extends Visitor<(element: Element) => ElementBehavior> {
 		
@@ -261,7 +265,7 @@ module StateJS {
 			if (i >= targetAncestors.length) {
 				transition.traverse = transition.traverse.concat(behaviour(transition.target).beginEnter);
 			}
-							
+
 			// enter the target ancestry
 			while (i < targetAncestors.length) {
 				this.cascadeElementEntry(transition, behaviour, targetAncestors[i++], i < targetAncestors.length ? targetAncestors[i] : undefined);
@@ -347,21 +351,18 @@ module StateJS {
 
 		visitPseudoState(pseudoState: PseudoState, deepHistoryAbove: boolean) {
 			var pseudoStateBehaviour = this.behaviour(pseudoState);
-			
+
 			// add vertex behaviour (debug and testing completion transitions)
 			this.visitVertex(pseudoState, deepHistoryAbove);
-	
+
 			// evaluate comppletion transitions once vertex entry is complete
 			if (pseudoState.isInitial()) {
 				this.behaviour(pseudoState).endEnter.push((message, stateMachineInstance) => {
-					if (isComplete(pseudoState, stateMachineInstance)) {
-						traverse(pseudoState.transitions[0], stateMachineInstance);
-					}
+					traverse(pseudoState.transitions[0], stateMachineInstance);
 				});
-			}
 
 			// terminate the state machine instance upon transition to a terminate pseudo state
-			if (pseudoState.kind === PseudoStateKind.Terminate) {
+			} else if (pseudoState.kind === PseudoStateKind.Terminate) {
 				pseudoStateBehaviour.beginEnter.push((message, stateMachineInstance) => {
 					stateMachineInstance.isTerminated = true;
 				});
