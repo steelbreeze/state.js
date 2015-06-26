@@ -92,7 +92,7 @@ module StateJS {
 				evaluateState(state, stateMachineInstance, state);
 			}
 			
-		// otherwise look for a transition from this state
+			// otherwise look for a transition from this state
 		} else {
 			var transition: Transition;
 
@@ -112,7 +112,7 @@ module StateJS {
 				result = traverse(transition, stateMachineInstance, message);
 			}
 		}
-		
+
 		return result;
 	}
 	
@@ -127,13 +127,7 @@ module StateJS {
 
 		// process static conditional branches
 		while (transition.target && transition.target.isJunction()) {
-			transition = selectJunctionTransition(transition.target, instance, message);
-
-			if (!transition) {
-				return false;
-			}
-
-			transitionBehavior = transitionBehavior.concat(transition.traverse);
+			transitionBehavior = transitionBehavior.concat((transition = selectJunctionTransition(transition.target, instance, message)).traverse);
 		}
 
 		// execute the transition behaviour
@@ -141,18 +135,13 @@ module StateJS {
 
 		// process dynamic conditional branches
 		if (transition.target && transition.target.isChoice()) {
-			transition = selectChoiceTransition(transition.target, instance, message);
-
-			if (!transition) {
-				return false;
-			}
-
-			traverse(transition, instance, message);
+			traverse(transition = selectChoiceTransition(transition.target, instance, message), instance, message);
+		}
 		
 		// test for completion transitions for 
-		} else if (transition.target && transition.target instanceof State) {
+		if (transition.target && transition.target instanceof State) {
 			var state = <State>transition.target;
-			
+
 			if (isComplete(state, instance)) {
 				evaluateState(state, instance, state);
 			}
@@ -216,10 +205,8 @@ module StateJS {
 		enter: Array<Action> = [];
 	}
 
-	// initialises transitions after all elements have been bootstrapped
+	// determine the type of transition and use the appropriate initiliasition method
 	class InitialiseTransitions extends Visitor<(element: Element) => ElementBehavior> {
-		
-		// determine the type of transition and use the appropriate initiliasition method
 		visitTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
 			switch (transition.kind) {
 				case TransitionKind.Internal:
@@ -289,6 +276,12 @@ module StateJS {
 			}
 		}
 	}
+
+	class QualifiedName extends Visitor<any> {
+		visitElement(element: Element, deepHistoryAbove: boolean) {
+			element.qualifiedName = element.getAncestors().map((ancestor) => { return ancestor.name; }).join(Element.namespaceSeparator);
+		}
+	}
 	
 	// bootstraps all the elements within a state machine model
 	class InitialiseElements extends Visitor<boolean> {
@@ -296,10 +289,6 @@ module StateJS {
 	
 		// returns the behavior for a given element; creates one if not present
 		private behaviour(element: Element): ElementBehavior {
-			if (!element.qualifiedName) {
-				element.qualifiedName = element.getAncestors().map<string>((e) => { return e.name; }).join(Element.namespaceSeparator);
-			}
-
 			return this.behaviours[element.qualifiedName] || (this.behaviours[element.qualifiedName] = new ElementBehavior());
 		}
 	
@@ -357,15 +346,11 @@ module StateJS {
 
 			// evaluate comppletion transitions once vertex entry is complete
 			if (pseudoState.isInitial()) {
-				this.behaviour(pseudoState).endEnter.push((message, stateMachineInstance) => {
-					traverse(pseudoState.transitions[0], stateMachineInstance);
-				});
+				this.behaviour(pseudoState).endEnter.push((message, stateMachineInstance) => { traverse(pseudoState.transitions[0], stateMachineInstance); });
 
-			// terminate the state machine instance upon transition to a terminate pseudo state
+				// terminate the state machine instance upon transition to a terminate pseudo state
 			} else if (pseudoState.kind === PseudoStateKind.Terminate) {
-				pseudoStateBehaviour.beginEnter.push((message, stateMachineInstance) => {
-					stateMachineInstance.isTerminated = true;
-				});
+				pseudoStateBehaviour.beginEnter.push((message, stateMachineInstance) => { stateMachineInstance.isTerminated = true; });
 			}
 	
 			// merge begin and end enter behaviour
@@ -407,6 +392,10 @@ module StateJS {
 		}
 
 		visitStateMachine(stateMachine: StateMachine, deepHistoryAbove: boolean) {
+			// create the qualified names for all the model elements
+			stateMachine.accept(new QualifiedName());
+
+			// perform all the state initialisation
 			this.visitState(stateMachine, deepHistoryAbove);
 	
 			// initiaise all the transitions once all the elements have been initialised
