@@ -1,6 +1,6 @@
   [![state.js Logo](http://state.software/images/logos/state_50.png)](http://www.steelbreeze.net/state.js/)
 
-  Hierarchical finite state machine for [Node.js](http://nodejs.org) and [HTML scripting](https://cdn.rawgit.com/steelbreeze/state.js/master/examples/browser/test.html).
+  Executable state machine for [Node.js](http://nodejs.org) and [HTML scripting](https://cdn.rawgit.com/steelbreeze/state.js/master/examples/browser/test.html).
 
   [![NPM Version][npm-image]][npm-url]
   [![NPM Downloads][downloads-image]][downloads-url]
