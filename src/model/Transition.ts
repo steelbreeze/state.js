@@ -19,19 +19,19 @@ module StateJS {
 	export class Transition {
 		// used as the guard condition for else tranitions
 		static isElse = () => { return false; };
-	
+
 		// guard condition for this transition.
 		guard: Guard;
-		
+
 		// user defined behaviour (via effect) executed when traversing this transition.
 		transitionBehavior: Array<Action> = [];
-		
+
 		// the collected actions to perform when traversing the transition (includes exiting states, traversal, and state entry)
 		traverse: Array<Action> = [];
 
 		public kind: TransitionKind;
 
-		/** 
+		/**
 		 * Creates a new instance of the Transition class.
 		 * @param {Vertex} source The source of the transition.
 		 * @param {Vertex} source The target of the transition; this is an optional parameter, omitting it will create an Internal transition.
@@ -41,8 +41,8 @@ module StateJS {
 			this.guard = source instanceof PseudoState ? (() => { return true; }) : (message => { return message === this.source; });
 
 			// force transition kind for internal transitions
-			this.kind = target ? TransitionKind.External : TransitionKind.Internal;
-	
+			this.kind = target ? kind : TransitionKind.Internal;
+
 			// validate user specifying a local transition; target must be in the source ancestry
 			if (this.kind === TransitionKind.Local) {
 				if (this.target.getAncestors().indexOf(this.source) === -1) {
@@ -54,7 +54,7 @@ module StateJS {
 				}
 			}
 		}
-	
+
 		/**
 		 * Turns a transition into an else transition.
 		 *
@@ -71,7 +71,7 @@ module StateJS {
 		/**
 		 * Defines the guard condition for the transition.
 		 * @method when
-		 * @param {Guard} guard The guard condition that must evaluate true for the transition to be traversed. 
+		 * @param {Guard} guard The guard condition that must evaluate true for the transition to be traversed.
 		 * @returns {Transition} Returns the transition object to enable the fluent API.
 		 */
 		public when(guard: Guard): Transition {
@@ -79,7 +79,7 @@ module StateJS {
 
 			return this;
 		}
-	
+
 		/**
 		 * Add behaviour to a transition.
 		 * @method effect
@@ -93,7 +93,7 @@ module StateJS {
 
 			return this;
 		}
-	
+
 		/**
 		 * Accepts an instance of a visitor and calls the visitTransition method on it.
 		 * @method accept

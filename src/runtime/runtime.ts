@@ -7,7 +7,7 @@
 module StateJS {
 	/**
 	 * Initialises a state machine and/or state machine model.
-	 * 
+	 *
 	 * Passing just the state machine model will initialise the model, passing the model and instance will initialse the instance and if necessary, the model.
 	 * @function initialise
 	 * @param {StateMachine} stateMachineModel The state machine model. If autoInitialiseModel is true (or no instance is specified) and the model has changed, the model will be initialised.
@@ -21,15 +21,15 @@ module StateJS {
 			if (autoInitialiseModel && stateMachineModel.clean === false) {
 				initialise(stateMachineModel);
 			}
-	
+
 			// log as required
 			if (stateMachineModel.logTo) {
 				stateMachineModel.logTo.log("initialise " + stateMachineInstance);
 			}
-			
+
 			// enter the state machine instance for the first time
 			stateMachineModel.onInitialise.forEach(action => { action(undefined, stateMachineInstance); });
-	
+
 			// initiaise a state machine model
 		} else {
 			// log as required
@@ -55,12 +55,12 @@ module StateJS {
 		if (stateMachineModel.logTo) {
 			stateMachineModel.logTo.log(stateMachineInstance + " evaluate " + message);
 		}
-		
+
 		// initialise the state machine model if necessary
 		if (autoInitialiseModel && stateMachineModel.clean === false) {
 			initialise(stateMachineModel);
 		}
-	
+
 		// terminated state machine instances will not evaluate messages
 		if (stateMachineInstance.isTerminated) {
 			return false;
@@ -72,7 +72,7 @@ module StateJS {
 	// evaluates messages against a state, executing transitions as appropriate
 	function evaluateState(state: State, stateMachineInstance: IActiveStateConfiguration, message: any): boolean {
 		var result = false;
-		
+
 		// delegate to child regions first
 		state.regions.every(region => {
 			if (evaluateState(stateMachineInstance.getCurrent(region), stateMachineInstance, message)) {
@@ -85,13 +85,13 @@ module StateJS {
 
 			return true;
 		});
-		
+
 		// if a transition occured in a child region, check for completions
 		if (result) {
 			if ((message !== state) && isComplete(state, stateMachineInstance)) {
 				evaluateState(state, stateMachineInstance, state);
 			}
-			
+
 			// otherwise look for a transition from this state
 		} else {
 			var transition: Transition;
@@ -115,12 +115,12 @@ module StateJS {
 
 		return result;
 	}
-	
+
 	// determines if a state is currently active
 	function isActive(state: State, stateMachineInstance: IActiveStateConfiguration): boolean {
 		return state.region ? (isActive(state.region.state, stateMachineInstance) && (stateMachineInstance.getCurrent(state.region) === state)) : true;
 	}
-	
+
 	// traverses a transition
 	function traverse(transition: Transition, instance: IActiveStateConfiguration, message?: any): boolean {
 		var transitionBehavior = transition.traverse;
@@ -137,8 +137,8 @@ module StateJS {
 		if (transition.target && transition.target.isChoice()) {
 			traverse(transition = selectChoiceTransition(transition.target, instance, message), instance, message);
 		}
-		
-		// test for completion transitions for 
+
+		// test for completion transitions for
 		if (transition.target && transition.target instanceof State) {
 			var state = <State>transition.target;
 
@@ -222,30 +222,32 @@ module StateJS {
 					break;
 			}
 		}
-	
+
 		// initialise internal transitions: these do not leave the source state
 		visitInternalTransition(transition: Transition) {
 			transition.traverse = transition.transitionBehavior;
 		}
-	
+
 		// initialise internal transitions: these do not leave the source state
 		visitLocalTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
-		}
-	
-		// initialise external transitions: these are abritarily complex
-		visitExternalTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
+			// NOTE: if isActive is truly required, the whole transition behaviour can be delegated to runtime through a single action pushed to the traverse behaviour.
+
 			var sourceAncestors = transition.source.getAncestors();
 			var targetAncestors = transition.target.getAncestors();
 			var i = 0, l = Math.min(sourceAncestors.length, targetAncestors.length);
-	
+
 			// find the index of the first uncommon ancestor
 			while ((i < l) && (sourceAncestors[i] === targetAncestors[i])) {
 				i++;
 			}
-			
-			// leave the first uncommon ancestor
-			transition.traverse = behaviour(i < sourceAncestors.length ? sourceAncestors[i] : transition.source).leave.slice(0);
-	
+
+			// leave the sibling active state in the target ancestry
+			var region = <Region>targetAncestors[i++];
+
+			transition.traverse.push((message, instance) => {
+				behaviour(instance.getCurrent(region)).leave.forEach(action => { action(message, instance); });;
+			});
+
 			// perform the transition action
 			transition.traverse = transition.traverse.concat(transition.transitionBehavior);
 
@@ -257,7 +259,37 @@ module StateJS {
 			while (i < targetAncestors.length) {
 				this.cascadeElementEntry(transition, behaviour, targetAncestors[i++], i < targetAncestors.length ? targetAncestors[i] : undefined);
 			}
-	
+
+			// trigger cascade
+			transition.traverse = transition.traverse.concat(behaviour(transition.target).endEnter);
+		}
+
+		// initialise external transitions: these are abritarily complex
+		visitExternalTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
+			var sourceAncestors = transition.source.getAncestors();
+			var targetAncestors = transition.target.getAncestors();
+			var i = 0, l = Math.min(sourceAncestors.length, targetAncestors.length);
+
+			// find the index of the first uncommon ancestor
+			while ((i < l) && (sourceAncestors[i] === targetAncestors[i])) {
+				i++;
+			}
+
+			// leave the first uncommon ancestor
+			transition.traverse = behaviour(i < sourceAncestors.length ? sourceAncestors[i] : transition.source).leave.slice(0);
+
+			// perform the transition action
+			transition.traverse = transition.traverse.concat(transition.transitionBehavior);
+
+			if (i >= targetAncestors.length) {
+				transition.traverse = transition.traverse.concat(behaviour(transition.target).beginEnter);
+			}
+
+			// enter the target ancestry
+			while (i < targetAncestors.length) {
+				this.cascadeElementEntry(transition, behaviour, targetAncestors[i++], i < targetAncestors.length ? targetAncestors[i] : undefined);
+			}
+
 			// trigger cascade
 			transition.traverse = transition.traverse.concat(behaviour(transition.target).endEnter);
 		}
@@ -282,16 +314,16 @@ module StateJS {
 			element.qualifiedName = element.getAncestors().map((ancestor) => { return ancestor.name; }).join(Element.namespaceSeparator);
 		}
 	}
-	
+
 	// bootstraps all the elements within a state machine model
 	class InitialiseElements extends Visitor<boolean> {
 		private behaviours: any = {};
-	
+
 		// returns the behavior for a given element; creates one if not present
 		private behaviour(element: Element): ElementBehavior {
 			return this.behaviours[element.qualifiedName] || (this.behaviours[element.qualifiedName] = new ElementBehavior());
 		}
-	
+
 		// uncomment this method for debugging purposes
 		visitElement(element: Element, deepHistoryAbove: boolean) {
 			var logger = element.getRoot().logTo;
@@ -306,15 +338,15 @@ module StateJS {
 
 		visitRegion(region: Region, deepHistoryAbove: boolean) {
 			var regionBehaviour = this.behaviour(region);
-	
+
 			// chain initiaisation of child vertices
 			region.vertices.forEach(vertex => { vertex.accept(this, deepHistoryAbove || (region.initial && region.initial.kind === PseudoStateKind.DeepHistory)); });
-	
+
 			// leave the curent active child state when exiting the region
 			regionBehaviour.leave.push((message, stateMachineInstance) => {
 				this.behaviour(stateMachineInstance.getCurrent(region)).leave.forEach(action => { action(message, stateMachineInstance); });
 			});
-	
+
 			// enter the appropriate initial child vertex when entering the region
 			if (deepHistoryAbove || !region.initial || region.initial.isHistory()) { // NOTE: history needs to be determined at runtime
 				regionBehaviour.endEnter.push((message, stateMachineInstance, history) => {
@@ -330,10 +362,10 @@ module StateJS {
 			} else {
 				regionBehaviour.endEnter = regionBehaviour.endEnter.concat(this.behaviour(region.initial).enter);
 			}
-	
+
 			// add element behaviour (debug)
 			this.visitElement(region, deepHistoryAbove);
-			
+
 			// merge begin and end enter behaviour
 			regionBehaviour.enter = regionBehaviour.beginEnter.concat(regionBehaviour.endEnter);
 		}
@@ -352,7 +384,7 @@ module StateJS {
 			} else if (pseudoState.kind === PseudoStateKind.Terminate) {
 				pseudoStateBehaviour.beginEnter.push((message, stateMachineInstance) => { stateMachineInstance.isTerminated = true; });
 			}
-	
+
 			// merge begin and end enter behaviour
 			pseudoStateBehaviour.enter = pseudoStateBehaviour.beginEnter.concat(pseudoStateBehaviour.endEnter);
 		}
@@ -362,31 +394,31 @@ module StateJS {
 
 			state.regions.forEach(region => {
 				var regionBehaviour = this.behaviour(region);
-	
+
 				// chain initiaisation of child regions
 				region.accept(this, deepHistoryAbove);
-	
+
 				// leave child regions when leaving the state
 				stateBehaviour.leave = stateBehaviour.leave.concat(regionBehaviour.leave);
-	
+
 				// enter child regions when entering the state
 				stateBehaviour.endEnter = stateBehaviour.endEnter.concat(regionBehaviour.enter);
 			});
-	
+
 			// add vertex behaviour (debug and testing completion transitions)
 			this.visitVertex(state, deepHistoryAbove);
-	
+
 			// add the user defined behaviour when entering and exiting states
 			stateBehaviour.leave = stateBehaviour.leave.concat(state.exitBehavior);
 			stateBehaviour.beginEnter = stateBehaviour.beginEnter.concat(state.entryBehavior);
-	
+
 			// update the parent regions current state
 			stateBehaviour.beginEnter.push((message, stateMachineInstance) => {
 				if (state.region) {
 					stateMachineInstance.setCurrent(state.region, state);
 				}
 			});
-	
+
 			// merge begin and end enter behaviour
 			stateBehaviour.enter = stateBehaviour.beginEnter.concat(stateBehaviour.endEnter);
 		}
@@ -397,10 +429,10 @@ module StateJS {
 
 			// perform all the state initialisation
 			this.visitState(stateMachine, deepHistoryAbove);
-	
+
 			// initiaise all the transitions once all the elements have been initialised
 			stateMachine.accept(new InitialiseTransitions(), (element: Element) => { return this.behaviour(element); });
-	
+
 			// define the behaviour for initialising a state machine instance
 			stateMachine.onInitialise = this.behaviour(stateMachine).enter;
 		}

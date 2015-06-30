@@ -4,20 +4,28 @@ var state = require("../../lib/state.com.js"); // use this form if local
 // create the state machine model elements
 var model = new state.StateMachine("model").setLogger(console).setWarning(console);
 var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
-var junction = new state.PseudoState("junction", model, state.PseudoStateKind.Junction);
 var stateA = new state.State("stateA", model);
 var stateB = new state.State("stateB", model);
 
+var bInitial = new state.PseudoState("bInitial", stateB);
+var bStateI = new state.State("bStateI", stateB);
+var bStateII = new state.State("bStateII", stateB);
+
 // create the state machine model transitions
 initial.to(stateA);
-stateA.to(junction).when(function (message) { return message === "move"; });
-junction.to(stateB).else();
+stateA.to(stateB).when(function (message) { return message === "move"; });
+
+bInitial.to(bStateI);
+
+stateB.to(bStateII, state.TransitionKind.Local).when(function(message) { return message === "local"; });
 
 // create a state machine instance
-var instance = new state.StateMachineInstance("test");
+var instance = new state.StateMachineInstance("instance");
 
 // initialise the model and instance
 state.initialise(model, instance);
 
 // send the machine instance a message for evaluation, this will trigger the transition from stateA to stateB
 state.evaluate(model, instance, "move");
+
+state.evaluate(model, instance, "local");

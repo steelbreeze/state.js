@@ -1,5 +1,11 @@
 ## Version 5.4.2 - in progress
-Add a folder structure to the src directory
+Experimental support for Local transitions:
+* Added kind parameter to the Transtion constructor and Vertex.to methods.
+* First iteration of the implementation to adhere to local transition semantics; as usual, there's a lot more completity than the UML specification implies (in particular, the parent region of the first non active state in the target state ancestry needs its sibling active state exiting before entering).
+
+Add a folder structure to the src directory.
+
+Much code refactoring post the 5.4 release.
 
 ### Version 5.4.1
 Fix internal transition bug.
@@ -137,7 +143,7 @@ Remove assert function as it was used only once.
 ## Version 5.0.1
 Fix bug relating to external transitions and orthogonal regions that could result in an invalid current active state.
 
-Remove protected keywords due to a lack of tool support for it. 
+Remove protected keywords due to a lack of tool support for it.
 
 ## Version 5.0.0
 Version 5 is a complete re-write from version 4.x.x:

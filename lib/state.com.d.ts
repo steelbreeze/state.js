@@ -259,9 +259,10 @@ declare module StateJS {
          * Transitions can be converted to be event triggered by adding a guard condition via the transitions `where` method.
          * @method to
          * @param {Vertex} target The destination of the transition; omit for internal transitions.
+         * @param {TransitionKind} kind The kind the transition; use this to set Local or External (the default if omitted) transition semantics.
          * @returns {Transition} The new transition object.
          */
-        to(target?: Vertex): Transition;
+        to(target?: Vertex, kind?: TransitionKind): Transition;
     }
 }
 declare module StateJS {
