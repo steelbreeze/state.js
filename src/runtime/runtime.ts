@@ -230,38 +230,49 @@ module StateJS {
 
 		// initialise internal transitions: these do not leave the source state
 		visitLocalTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
-			// NOTE: if isActive is truly required, the whole transition behaviour can be delegated to runtime through a single action pushed to the traverse behaviour.
-
-			var sourceAncestors = transition.source.getAncestors();
-			var targetAncestors = transition.target.getAncestors();
-			var i = 0, l = Math.min(sourceAncestors.length, targetAncestors.length);
-
-			// find the index of the first uncommon ancestor
-			while ((i < l) && (sourceAncestors[i] === targetAncestors[i])) {
-				i++;
-			}
-
-			// leave the sibling active state in the target ancestry
-			var region = <Region>targetAncestors[i++];
-
 			transition.traverse.push((message, instance) => {
-				behaviour(instance.getCurrent(region)).leave.forEach(action => { action(message, instance); });;
+				var targetAncestors = transition.target.getAncestors();
+				var i = 0;
+
+				// find the first inactive state in the target ancestry
+				while(isActive(<State>targetAncestors[i], instance)) {
+					i += 2;
+				}
+
+				// exit the active sibling
+				behaviour(instance.getCurrent(<Region>targetAncestors[i].getParent())).leave.forEach(action => { action(message, instance); });
+
+				// perform the transition action;
+				transition.transitionBehavior.forEach(action => { action(message, instance); });
+
+				// enter the target ancestry
+				// TODO: Merge this with the pre-compiled version
+				while (i < targetAncestors.length) {
+					var element = targetAncestors[i];
+
+					behaviour(element).beginEnter.forEach(action => { action(message, instance); });
+
+					if (element instanceof State) {
+						var state = <State>element;
+						var next = i < targetAncestors.length ? targetAncestors[i] : undefined;
+
+						if(next) {
+							if (state.isOrthogonal()) {
+								state.regions.forEach(region => {
+									if (region !== next) {
+										behaviour(region).enter.forEach(action => { action(message, instance); });
+									}
+								});
+							}
+						}
+					}
+
+					i++;
+				}
+
+				// trigger cascade
+				behaviour(transition.target).endEnter.forEach(action => { action(message, instance); });
 			});
-
-			// perform the transition action
-			transition.traverse = transition.traverse.concat(transition.transitionBehavior);
-
-			if (i >= targetAncestors.length) {
-				transition.traverse = transition.traverse.concat(behaviour(transition.target).beginEnter);
-			}
-
-			// enter the target ancestry
-			while (i < targetAncestors.length) {
-				this.cascadeElementEntry(transition, behaviour, targetAncestors[i++], i < targetAncestors.length ? targetAncestors[i] : undefined);
-			}
-
-			// trigger cascade
-			transition.traverse = transition.traverse.concat(behaviour(transition.target).endEnter);
 		}
 
 		// initialise external transitions: these are abritarily complex
@@ -303,8 +314,10 @@ module StateJS {
 		}
 
 		cascadeOrthogonalRegionEntry(transition: Transition, behaviour: (element: Element) => ElementBehavior, state: State, next: Element): void {
-			if (state.isOrthogonal()) {
-				state.regions.forEach(region => { if (region !== next) { transition.traverse = transition.traverse.concat(behaviour(region).enter); } });
+			if(next) {
+				if (state.isOrthogonal()) {
+					state.regions.forEach(region => { if (region !== next) { transition.traverse = transition.traverse.concat(behaviour(region).enter); } });
+				}
 			}
 		}
 	}
