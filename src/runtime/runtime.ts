@@ -246,28 +246,8 @@ module StateJS {
 				transition.transitionBehavior.forEach(action => { action(message, instance); });
 
 				// enter the target ancestry
-				// TODO: Merge this with the pre-compiled version
 				while (i < targetAncestors.length) {
-					var element = targetAncestors[i];
-
-					behaviour(element).beginEnter.forEach(action => { action(message, instance); });
-
-					if (element instanceof State) {
-						var state = <State>element;
-						var next = i < targetAncestors.length ? targetAncestors[i] : undefined;
-
-						if(next) {
-							if (state.isOrthogonal()) {
-								state.regions.forEach(region => {
-									if (region !== next) {
-										behaviour(region).enter.forEach(action => { action(message, instance); });
-									}
-								});
-							}
-						}
-					}
-
-					i++;
+					this.cascadeElementEntry(transition, behaviour, targetAncestors[i++], i < targetAncestors.length ? targetAncestors[i] : undefined, (actions: Array<Action>) => { actions.forEach(action => { action(message, instance); } )} );
 				}
 
 				// trigger cascade
@@ -298,25 +278,29 @@ module StateJS {
 
 			// enter the target ancestry
 			while (i < targetAncestors.length) {
-				this.cascadeElementEntry(transition, behaviour, targetAncestors[i++], i < targetAncestors.length ? targetAncestors[i] : undefined);
+				this.cascadeElementEntry(transition, behaviour, targetAncestors[i++], i < targetAncestors.length ? targetAncestors[i] : undefined, (actions: Array<Action>) => { transition.traverse = transition.traverse.concat(actions); });
 			}
 
 			// trigger cascade
 			transition.traverse = transition.traverse.concat(behaviour(transition.target).endEnter);
 		}
 
-		cascadeElementEntry(transition: Transition, behaviour: (element: Element) => ElementBehavior, element: Element, next: Element): void {
-			transition.traverse = transition.traverse.concat(behaviour(element).beginEnter);
+		cascadeElementEntry(transition: Transition, behaviour: (element: Element) => ElementBehavior, element: Element, next: Element, task: (actions: Array<Action>) => void): void {
+			task(behaviour(element).beginEnter);
 
 			if (element instanceof State) {
-				this.cascadeOrthogonalRegionEntry(transition, behaviour, <State>element, next);
+				this.cascadeOrthogonalRegionEntry(transition, behaviour, <State>element, next, task);
 			}
 		}
 
-		cascadeOrthogonalRegionEntry(transition: Transition, behaviour: (element: Element) => ElementBehavior, state: State, next: Element): void {
+		cascadeOrthogonalRegionEntry(transition: Transition, behaviour: (element: Element) => ElementBehavior, state: State, next: Element, task: (actions: Array<Action>) => void): void {
 			if(next) {
 				if (state.isOrthogonal()) {
-					state.regions.forEach(region => { if (region !== next) { transition.traverse = transition.traverse.concat(behaviour(region).enter); } });
+					state.regions.forEach(region => {
+						if (region !== next) {
+							task(behaviour(region).enter);
+						}
+					});
 				}
 			}
 		}
