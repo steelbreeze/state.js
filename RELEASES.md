@@ -1,4 +1,4 @@
-## Version 5.4.2 - in progress
+## Version 5.4.2
 Experimental support for Local transitions:
 * Added kind parameter to the Transtion constructor and Vertex.to methods.
 * First iteration of the implementation to adhere to local transition semantics; as usual, there's a lot more completity than the UML specification implies (in particular, the parent region of the first non active state in the target state ancestry needs its sibling active state exiting before entering).
