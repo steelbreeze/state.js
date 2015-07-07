@@ -1,4 +1,9 @@
-## Version 5.4.2
+## Version 5.4.3
+Bug fix: there was an issue with external transitions whose target was a child of a composite state; the composite state was exited but not reentered.
+
+Added a test for local vs. external transitions.
+
+### Version 5.4.2
 Experimental support for Local transitions:
 * Added kind parameter to the Transtion constructor and Vertex.to methods.
 * First iteration of the implementation to adhere to local transition semantics; as usual, there's a lot more completity than the UML specification implies (in particular, the parent region of the first non active state in the target state ancestry needs its sibling active state exiting before entering).

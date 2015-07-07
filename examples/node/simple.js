@@ -7,17 +7,9 @@ var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Init
 var stateA = new state.State("stateA", model);
 var stateB = new state.State("stateB", model);
 
-var bInitial = new state.PseudoState("bInitial", stateB);
-var bStateI = new state.State("bStateI", stateB);
-var bStateII = new state.State("bStateII", stateB);
-
 // create the state machine model transitions
 initial.to(stateA);
 stateA.to(stateB).when(function (message) { return message === "move"; });
-
-bInitial.to(bStateI);
-
-stateB.to(bStateII, state.TransitionKind.Local).when(function(message) { return message === "local"; });
 
 // create a state machine instance
 var instance = new state.StateMachineInstance("instance");
@@ -27,5 +19,3 @@ state.initialise(model, instance);
 
 // send the machine instance a message for evaluation, this will trigger the transition from stateA to stateB
 state.evaluate(model, instance, "move");
-
-state.evaluate(model, instance, "local");

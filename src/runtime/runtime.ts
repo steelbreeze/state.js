@@ -266,19 +266,17 @@ module StateJS {
 				i++;
 			}
 
-			// leave the first uncommon ancestor
-			transition.traverse = behaviour(i < sourceAncestors.length ? sourceAncestors[i] : transition.source).leave.slice(0);
-
-			// perform the transition action
-			transition.traverse = transition.traverse.concat(transition.transitionBehavior);
-
-			if (i >= targetAncestors.length) {
-				transition.traverse = transition.traverse.concat(behaviour(transition.target).beginEnter);
+			// we went beyond the source or target, step back up one level
+			if( i === l ) {
+				i--;
 			}
+
+			// leave source ancestry as required and perform the transition effect
+			transition.traverse = behaviour(sourceAncestors[i]).leave.concat(transition.transitionBehavior);
 
 			// enter the target ancestry
 			while (i < targetAncestors.length) {
-				this.cascadeElementEntry(transition, behaviour, targetAncestors[i++], i < targetAncestors.length ? targetAncestors[i] : undefined, (actions: Array<Action>) => { transition.traverse = transition.traverse.concat(actions); });
+				this.cascadeElementEntry(transition, behaviour, targetAncestors[i++], targetAncestors[i], actions => { transition.traverse = transition.traverse.concat(actions); });
 			}
 
 			// trigger cascade
