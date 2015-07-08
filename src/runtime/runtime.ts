@@ -230,7 +230,7 @@ module StateJS {
 				var i = 0;
 
 				// find the first inactive state in the target ancestry
-				while(isActive(<State>targetAncestors[i], instance)) {
+				while (isActive(<State>targetAncestors[i], instance)) {
 					i += 2;
 				}
 
@@ -242,7 +242,7 @@ module StateJS {
 
 				// enter the target ancestry
 				while (i < targetAncestors.length) {
-					this.cascadeElementEntry(transition, behaviour, targetAncestors[i++], i < targetAncestors.length ? targetAncestors[i] : undefined, (actions: Array<Action>) => { actions.forEach(action => { action(message, instance); } )} );
+					this.cascadeElementEntry(transition, behaviour, targetAncestors[i++], i < targetAncestors.length ? targetAncestors[i] : undefined, (actions: Array<Action>) => { actions.forEach(action => { action(message, instance); }) });
 				}
 
 				// trigger cascade
@@ -262,7 +262,7 @@ module StateJS {
 			}
 
 			// we went beyond the source or target, step back up one level
-			if( i === l ) {
+			if (i === l) {
 				i--;
 			}
 
@@ -287,7 +287,7 @@ module StateJS {
 		}
 
 		cascadeOrthogonalRegionEntry(transition: Transition, behaviour: (element: Element) => ElementBehavior, state: State, next: Element, task: (actions: Array<Action>) => void): void {
-			if(next) {
+			if (next) {
 				if (state.isOrthogonal()) {
 					state.regions.forEach(region => {
 						if (region !== next) {

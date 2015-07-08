@@ -15,21 +15,21 @@ module StateJS {
 	 * @augments State
 	 */
 	export class FinalState extends State {
-		/** 
+		/**
 		 * Creates a new instance of the FinalState class.
 		 * @param {string} name The name of the final state.
 		 * @param {Region} parent The parent region that owns the final state.
 		 */
 		public constructor(name: string, parent: Region);
-		
-		/** 
+
+		/**
 		 * Creates a new instance of the FinalState class.
 		 * @param {string} name The name of the final state.
 		 * @param {State} parent The parent state that owns the final state.
 		 */
 		public constructor(name: string, parent: State);
-		
-		/** 
+
+		/**
 		 * Creates a new instance of the FinalState class.
 		 * @param {string} name The name of the final state.
 		 * @param {Element} parent The parent element that owns the final state.
@@ -37,16 +37,16 @@ module StateJS {
 		public constructor(name: string, parent: any) {
 			super(name, parent);
 		}
-	
+
 		// override Vertex.to to generate an error when trying to create a transition from a final state.
 		public to(target?: Vertex): Transition {
 			if (this.getRoot().warnTo) {
 				this.getRoot().warnTo.error("A FinalState cannot be the source of a transition; transition not accepted");
 			}
-			
+
 			return;
 		}
-	
+
 		/**
 		 * Accepts an instance of a visitor and calls the visitFinalState method on it.
 		 * @method accept

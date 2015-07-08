@@ -9,7 +9,7 @@
 	var script = document.currentScript;
 
 	// for browsers that do not support currentScript, get via other means
-	if(!script) {
+	if (!script) {
 		var scripts = document.getElementsByTagName("script");
 
 		script = scripts[scripts.length - 1];

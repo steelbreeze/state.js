@@ -15,23 +15,23 @@ module StateJS {
 	export class StateMachine extends State {
 		// flag used to indicate that the state machine model has has structural changes and therefore requires initialising.
 		clean = false;
-	
+
 		// the behaviour required to initialise state machine instances; created when initialising the state machine model.
 		onInitialise: Array<Action>;
-	
+
 		// used to inject logging, warnings and errors.
 		logTo: Console;
 		warnTo: Console;
 		errorTo: Console = <Console>{ error: function(message) { throw message; } };
-		
-		/** 
+
+		/**
 		 * Creates a new instance of the StateMachine class.
 		 * @param {string} name The name of the state machine.
 		 */
 		public constructor(name: string) {
 			super(name, undefined);
 		}
-	
+
 		/**
 		 * Returns the root element within the state machine model.
 		 * Note that if this state machine is embeded within another state machine, the ultimate root element will be returned.
@@ -41,7 +41,7 @@ module StateJS {
 		public getRoot(): StateMachine {
 			return this.region ? this.region.getRoot() : this;
 		}
-	
+
 		/**
 		 * Instructs the state machine model to log activity to an object supporting the Console interface.
 		 * @method setLogger
@@ -51,10 +51,10 @@ module StateJS {
 		public setLogger(value: Console = undefined): StateMachine {
 			this.logTo = value;
 			this.clean = false;
-	
+
 			return this;
 		}
-	
+
 		/**
 		 * Instructs the state machine model to direct warnings activity to an object supporting the Console interface.
 		 * @method setWarning
@@ -64,10 +64,10 @@ module StateJS {
 		public setWarning(value: Console = undefined): StateMachine {
 			this.warnTo = value;
 			this.clean = false;
-	
+
 			return this;
 		}
-	
+
 		/**
 		 * Instructs the state machine model to direct error messages to an object supporting the Console interface.
 		 * @method setError
@@ -77,10 +77,10 @@ module StateJS {
 		public setError(value: Console = undefined): StateMachine {
 			this.errorTo = value;
 			this.clean = false;
-	
+
 			return this;
 		}
-	
+
 		/**
 		 * Accepts an instance of a visitor and calls the visitStateMachine method on it.
 		 * @method accept

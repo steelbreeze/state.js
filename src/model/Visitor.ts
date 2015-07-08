@@ -21,7 +21,7 @@ module StateJS {
 		 */
 		public visitElement(element: Element, arg1?: TArg1, arg2?: any, arg3?: any): any {
 		}
-	
+
 		/**
 		 * Visits a region within a state machine model.
 		 * @method visitRegion
@@ -33,12 +33,12 @@ module StateJS {
 		 */
 		public visitRegion(region: Region, arg1?: TArg1, arg2?: any, arg3?: any): any {
 			var result = this.visitElement(region, arg1, arg2, arg3);
-	
+
 			region.vertices.forEach(vertex => { vertex.accept(this, arg1, arg2, arg3) });
-	
+
 			return result;
 		}
-	
+
 		/**
 		 * Visits a vertex within a state machine model.
 		 * @method visitVertex
@@ -50,12 +50,12 @@ module StateJS {
 		 */
 		public visitVertex(vertex: Vertex, arg1?: TArg1, arg2?: any, arg3?: any): any {
 			var result = this.visitElement(vertex, arg1, arg2, arg3);
-	
+
 			vertex.transitions.forEach(transition => { transition.accept(this, arg1, arg2, arg3) });
-	
+
 			return result;
 		}
-	
+
 		/**
 		 * Visits a pseudo state within a state machine model.
 		 * @method visitPseudoState
@@ -68,7 +68,7 @@ module StateJS {
 		public visitPseudoState(pseudoState: PseudoState, arg1?: TArg1, arg2?: any, arg3?: any): any {
 			return this.visitVertex(pseudoState, arg1, arg2, arg3);
 		}
-	
+
 		/**
 		 * Visits a state within a state machine model.
 		 * @method visitState
@@ -80,12 +80,12 @@ module StateJS {
 		 */
 		public visitState(state: State, arg1?: TArg1, arg2?: any, arg3?: any): any {
 			var result = this.visitVertex(state, arg1, arg2, arg3);
-	
+
 			state.regions.forEach(region => { region.accept(this, arg1, arg2, arg3) });
-	
+
 			return result;
 		}
-	
+
 		/**
 		 * Visits a final state within a state machine model.
 		 * @method visitFinal
@@ -98,7 +98,7 @@ module StateJS {
 		public visitFinalState(finalState: FinalState, arg1?: TArg1, arg2?: any, arg3?: any): any {
 			return this.visitState(finalState, arg1, arg2, arg3);
 		}
-	
+
 		/**
 		 * Visits a state machine within a state machine model.
 		 * @method visitVertex
@@ -111,7 +111,7 @@ module StateJS {
 		public visitStateMachine(stateMachine: StateMachine, arg1?: TArg1, arg2?: any, arg3?: any): any {
 			return this.visitState(stateMachine, arg1, arg2, arg3);
 		}
-	
+
 		/**
 		 * Visits a transition within a state machine model.
 		 * @method visitTransition
