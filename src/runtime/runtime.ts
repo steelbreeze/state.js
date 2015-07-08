@@ -229,20 +229,20 @@ module StateJS {
 				var targetAncestors = transition.target.getAncestors();
 				var i = 0;
 
-				// find the first inactive state in the target ancestry
-				while (isActive(<State>targetAncestors[i], instance)) {
-					i += 2;
+				// find the first inactive element in the target ancestry
+				while (isActive(targetAncestors[i], instance)) {
+					i++;
 				}
 
 				// exit the active sibling
-				behaviour(instance.getCurrent(<Region>targetAncestors[i].getParent())).leave.forEach(action => { action(message, instance); });
+				behaviour(instance.getCurrent(targetAncestors[i].getParent())).leave.forEach(action => { action(message, instance); });
 
 				// perform the transition action;
 				transition.transitionBehavior.forEach(action => { action(message, instance); });
 
 				// enter the target ancestry
 				while (i < targetAncestors.length) {
-					this.cascadeElementEntry(transition, behaviour, targetAncestors[i++], i < targetAncestors.length ? targetAncestors[i] : undefined, (actions: Array<Action>) => { actions.forEach(action => { action(message, instance); }) });
+					this.cascadeElementEntry(transition, behaviour, targetAncestors[i++], i < targetAncestors.length ? targetAncestors[i] : undefined, actions => { actions.forEach(action => { action(message, instance); }) });
 				}
 
 				// trigger cascade

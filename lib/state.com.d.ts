@@ -753,6 +753,14 @@ declare module StateJS {
      * @returns {boolean} True if the region is active.
      */
     function isActive(region: Region, stateMachineInstance: IActiveStateConfiguration): boolean;
+    /**
+     * Determines if an element is currently active; that it has been entered but not yet exited.
+     * @function isActive
+     * @param {Element} element The state to test.
+     * @param {IActiveStateConfiguration} instance The instance of the state machine model.
+     * @returns {boolean} True if the element is active.
+     */
+    function isActive(element: Element, stateMachineInstance: IActiveStateConfiguration): boolean;
 }
 declare module StateJS {
     /**
