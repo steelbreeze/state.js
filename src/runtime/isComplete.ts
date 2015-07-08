@@ -6,17 +6,35 @@
  */
 module StateJS {
 	/**
-	 * Tests a state machine instance to see if its lifecycle is complete. A state machine instance is complete if all regions belonging to the state machine root have curent states that are final states.
+	 * Tests a vertex within a state machine instance to see if its lifecycle is complete.
 	 * @function isComplete
-	 * @param {StateMachine} stateMachineModel The state machine model. 
-	 * @param {IActiveStateConfiguration} stateMachineInstance The instance of the state machine model to test for completeness.
-	 * @returns {boolean} True if the state machine instance is complete.
+	 * @param {Vertex} vertex The vertex to test.
+	 * @param {IActiveStateConfiguration} instance The instance of the state machine model to test for completeness.
+	 * @returns {boolean} True if the vertex is complete.
 	 */
-	export function isComplete(vertex: Vertex, stateMachineInstance: IActiveStateConfiguration): boolean {
-		if (vertex instanceof State) {
-			return (<State>vertex).regions.every(region => { return stateMachineInstance.getCurrent(region).isFinal(); });
-		}
+	export function isComplete(vertex: Vertex, instance: IActiveStateConfiguration): boolean;
 
-		return true;
+	/**
+	 * Tests a region within a state machine instance to see if its lifecycle is complete.
+	 * @function isComplete
+	 * @param {Region} region The region to test.
+	 * @param {IActiveStateConfiguration} instance The instance of the state machine model to test for completeness.
+	 * @returns {boolean} True if the region is complete.
+	 */
+	export function isComplete(region: Region, instance: IActiveStateConfiguration): boolean;
+
+	/**
+	 * Tests an element within a state machine instance to see if its lifecycle is complete.
+	 * @function isComplete
+	 * @param {Element} element The element to test.
+	 * @param {IActiveStateConfiguration} instance The instance of the state machine model to test for completeness.
+	 * @returns {boolean} True if the element is complete.
+	 */
+	export function isComplete(element: Element, instance: IActiveStateConfiguration): boolean {
+		if(element instanceof Vertex) {
+			return element instanceof State ? element.regions.every(region => { return isComplete(region, instance); }) : true;
+		} else if(element instanceof Region) {
+			return instance.getCurrent(element).isFinal();
+		}
 	}
 }

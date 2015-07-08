@@ -738,13 +738,39 @@ declare module StateJS {
 }
 declare module StateJS {
     /**
-     * Tests a state machine instance to see if its lifecycle is complete. A state machine instance is complete if all regions belonging to the state machine root have curent states that are final states.
-     * @function isComplete
-     * @param {StateMachine} stateMachineModel The state machine model.
-     * @param {IActiveStateConfiguration} stateMachineInstance The instance of the state machine model to test for completeness.
-     * @returns {boolean} True if the state machine instance is complete.
+     * Determines if a state is currently active; that it has been entered but not yet exited.
+     * @function isActive
+     * @param {State} state The state to test.
+     * @param {IActiveStateConfiguration} instance The instance of the state machine model.
+     * @returns {boolean} True if the state is active.
      */
-    function isComplete(vertex: Vertex, stateMachineInstance: IActiveStateConfiguration): boolean;
+    function isActive(state: State, stateMachineInstance: IActiveStateConfiguration): boolean;
+    /**
+     * Determines if a region is currently active; that it has been entered but not yet exited.
+     * @function isActive
+     * @param {Region} region The state to test.
+     * @param {IActiveStateConfiguration} instance The instance of the state machine model.
+     * @returns {boolean} True if the region is active.
+     */
+    function isActive(region: Region, stateMachineInstance: IActiveStateConfiguration): boolean;
+}
+declare module StateJS {
+    /**
+     * Tests a vertex within a state machine instance to see if its lifecycle is complete.
+     * @function isComplete
+     * @param {Vertex} vertex The vertex to test.
+     * @param {IActiveStateConfiguration} instance The instance of the state machine model to test for completeness.
+     * @returns {boolean} True if the vertex is complete.
+     */
+    function isComplete(vertex: Vertex, instance: IActiveStateConfiguration): boolean;
+    /**
+     * Tests a region within a state machine instance to see if its lifecycle is complete.
+     * @function isComplete
+     * @param {Region} region The region to test.
+     * @param {IActiveStateConfiguration} instance The instance of the state machine model to test for completeness.
+     * @returns {boolean} True if the region is complete.
+     */
+    function isComplete(region: Region, instance: IActiveStateConfiguration): boolean;
 }
 declare module StateJS {
     /**

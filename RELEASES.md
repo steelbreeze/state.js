@@ -1,3 +1,10 @@
+### Version 5.4.4 - work in progress
+Expose isActive in the public API; allow it to be called for both Regions and States.
+
+Allow isComplete function to be called for both Regions and Vertices.
+
+Remove unnecessary casts following instanceof tests.
+
 ## Version 5.4.3
 Bug fix: there was an issue with external transitions whose target was a child of a composite state; the composite state was exited but not reentered.
 

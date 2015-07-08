@@ -659,17 +659,29 @@ This is only useful when a custom random number generator is required; the defau
 
 **Returns**: `function`, The function that takes a max value and returns a random number between 0 and max - 1.
 
-## Function: isComplete(stateMachineModel, stateMachineInstance)
+## Function: isActive(element, instance)
 
-Tests a state machine instance to see if its lifecycle is complete. A state machine instance is complete if all regions belonging to the state machine root have curent states that are final states.
+Determines if an element is currently active; that it has been entered but not yet exited.
 
 **Parameters**
 
-**stateMachineModel**: `StateMachine`, The state machine model.
+**element**: `Element`, The state to test.
 
-**stateMachineInstance**: `IActiveStateConfiguration`, The instance of the state machine model to test for completeness.
+**instance**: `IActiveStateConfiguration`, The instance of the state machine model.
 
-**Returns**: `boolean`, True if the state machine instance is complete.
+**Returns**: `boolean`, True if the element is active.
+
+## Function: isComplete(element, instance)
+
+Tests an element within a state machine instance to see if its lifecycle is complete.
+
+**Parameters**
+
+**element**: `Element`, The element to test.
+
+**instance**: `IActiveStateConfiguration`, The instance of the state machine model to test for completeness.
+
+**Returns**: `boolean`, True if the element is complete.
 
 ## Function: initialise(stateMachineModel, stateMachineInstance, autoInitialiseModel)
 

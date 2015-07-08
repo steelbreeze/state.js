@@ -116,11 +116,6 @@ module StateJS {
 		return result;
 	}
 
-	// determines if a state is currently active
-	function isActive(state: State, stateMachineInstance: IActiveStateConfiguration): boolean {
-		return state.region ? (isActive(state.region.state, stateMachineInstance) && (stateMachineInstance.getCurrent(state.region) === state)) : true;
-	}
-
 	// traverses a transition
 	function traverse(transition: Transition, instance: IActiveStateConfiguration, message?: any): boolean {
 		var transitionBehavior = transition.traverse;
@@ -287,7 +282,7 @@ module StateJS {
 			task(behaviour(element).beginEnter);
 
 			if (element instanceof State) {
-				this.cascadeOrthogonalRegionEntry(transition, behaviour, <State>element, next, task);
+				this.cascadeOrthogonalRegionEntry(transition, behaviour, element, next, task);
 			}
 		}
 
