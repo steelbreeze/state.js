@@ -321,8 +321,13 @@ module StateJS {
 			if (logger) {
 				var elementBehaviour = this.behaviour(element);
 
-				elementBehaviour.leave.push((message, instance) => { logger.log(instance + " leave " + element); });
-				elementBehaviour.beginEnter.push((message, instance) => { logger.log(instance + " enter " + element); });
+				elementBehaviour.leave.push((message, instance) => {
+					logger.log(instance + " leave " + element);
+				});
+
+				elementBehaviour.beginEnter.push((message, instance) => {
+					logger.log(instance + " enter " + element);
+				});
 			}
 		}
 
@@ -341,15 +346,8 @@ module StateJS {
 
 			// enter the appropriate initial child vertex when entering the region
 			if (deepHistoryAbove || !region.initial || region.initial.isHistory()) { // NOTE: history needs to be determined at runtime
-				regionBehaviour.endEnter.push((message, stateMachineInstance, history) => {
-					var initial: Vertex = region.initial;
-
-					if (history || region.initial.isHistory()) {
-						initial = stateMachineInstance.getCurrent(region) || region.initial;
-					}
-
-					var cascadedHistory = history || region.initial.kind === PseudoStateKind.DeepHistory;
-					invoke(this.behaviour(initial).enter, message, stateMachineInstance, cascadedHistory);
+				regionBehaviour.endEnter.push((message, stateMachineInstance, history) => { // TODO: can we remove any of these tests?
+					invoke(this.behaviour((history || region.initial.isHistory()) ? stateMachineInstance.getCurrent(region) || region.initial : region.initial).enter, message, stateMachineInstance, history || region.initial.kind === PseudoStateKind.DeepHistory);
 				});
 			} else {
 				regionBehaviour.endEnter = regionBehaviour.endEnter.concat(this.behaviour(region.initial).enter);
@@ -370,11 +368,15 @@ module StateJS {
 
 			// evaluate comppletion transitions once vertex entry is complete
 			if (pseudoState.isInitial()) {
-				this.behaviour(pseudoState).endEnter.push((message, stateMachineInstance) => { traverse(pseudoState.transitions[0], stateMachineInstance); });
+				this.behaviour(pseudoState).endEnter.push((message, stateMachineInstance) => {
+					traverse(pseudoState.transitions[0], stateMachineInstance);
+				});
 
 				// terminate the state machine instance upon transition to a terminate pseudo state
 			} else if (pseudoState.kind === PseudoStateKind.Terminate) {
-				pseudoStateBehaviour.beginEnter.push((message, stateMachineInstance) => { stateMachineInstance.isTerminated = true; });
+				pseudoStateBehaviour.beginEnter.push((message, stateMachineInstance) => {
+					stateMachineInstance.isTerminated = true;
+				});
 			}
 
 			// merge begin and end enter behaviour
