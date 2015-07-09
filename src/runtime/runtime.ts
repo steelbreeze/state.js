@@ -287,20 +287,12 @@ module StateJS {
 		cascadeElementEntry(transition: Transition, behaviour: (element: Element) => ElementBehavior, element: Element, next: Element, task: (actions: Array<Action>) => any) {
 			task(behaviour(element).beginEnter);
 
-			if (element instanceof State) {
-				this.cascadeOrthogonalRegionEntry(transition, behaviour, element, next, task);
-			}
-		}
-
-		cascadeOrthogonalRegionEntry(transition: Transition, behaviour: (element: Element) => ElementBehavior, state: State, next: Element, task: (actions: Array<Action>) => any) {
-			if (next) {
-				if (state.isOrthogonal()) {
-					state.regions.forEach(region => {
-						if (region !== next) {
-							task(behaviour(region).enter);
-						}
-					});
-				}
+			if (next && element instanceof State && element.isOrthogonal()) {
+				element.regions.forEach(region => {
+					if (region !== next) {
+						task(behaviour(region).enter);
+					}
+				});
 			}
 		}
 	}
