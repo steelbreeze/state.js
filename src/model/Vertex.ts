@@ -57,6 +57,9 @@ module StateJS {
 			if (this.region) {
 				this.region.vertices.push(this);
 				this.region.getRoot().clean = false;
+				this.qualifiedName = this.region.qualifiedName + "." + name;
+			} else {
+				this.qualifiedName = name;
 			}
 		}
 

@@ -28,7 +28,7 @@ module StateJS {
 			}
 
 			// enter the state machine instance for the first time
-			stateMachineModel.onInitialise.forEach(action => { action(undefined, stateMachineInstance); });
+			invoke(stateMachineModel.onInitialise, undefined, stateMachineInstance);
 
 			// initiaise a state machine model
 		} else {
@@ -116,6 +116,12 @@ module StateJS {
 		return result;
 	}
 
+	function invoke(actions: Array<Action>, message: any, instance?: IActiveStateConfiguration, history?: boolean) {
+		actions.forEach(action => {
+			action(message, instance, history);
+		});
+	}
+
 	// traverses a transition
 	function traverse(transition: Transition, instance: IActiveStateConfiguration, message?: any): boolean {
 		var transitionBehavior = transition.traverse;
@@ -126,7 +132,7 @@ module StateJS {
 		}
 
 		// execute the transition behaviour
-		transitionBehavior.forEach(action => { action(message, instance); });
+		invoke(transitionBehavior, message, instance);
 
 		// process dynamic conditional branches
 		if (transition.target && transition.target.isChoice()) {
@@ -235,18 +241,18 @@ module StateJS {
 				}
 
 				// exit the active sibling
-				behaviour(instance.getCurrent(targetAncestors[i].getParent())).leave.forEach(action => { action(message, instance); });
+				invoke(behaviour(instance.getCurrent(targetAncestors[i].getParent())).leave, message, instance);
 
 				// perform the transition action;
-				transition.transitionBehavior.forEach(action => { action(message, instance); });
+				invoke(transition.transitionBehavior, message, instance);
 
 				// enter the target ancestry
 				while (i < targetAncestors.length) {
-					this.cascadeElementEntry(transition, behaviour, targetAncestors[i++], i < targetAncestors.length ? targetAncestors[i] : undefined, actions => { actions.forEach(action => { action(message, instance); }) });
+					this.cascadeElementEntry(transition, behaviour, targetAncestors[i++], i < targetAncestors.length ? targetAncestors[i] : undefined, actions => { invoke(actions, message, instance); });
 				}
 
 				// trigger cascade
-				behaviour(transition.target).endEnter.forEach(action => { action(message, instance); });
+				invoke(behaviour(transition.target).endEnter, message, instance);
 			});
 		}
 
@@ -278,7 +284,7 @@ module StateJS {
 			transition.traverse = transition.traverse.concat(behaviour(transition.target).endEnter);
 		}
 
-		cascadeElementEntry(transition: Transition, behaviour: (element: Element) => ElementBehavior, element: Element, next: Element, task: (actions: Array<Action>) => void): void {
+		cascadeElementEntry(transition: Transition, behaviour: (element: Element) => ElementBehavior, element: Element, next: Element, task: (actions: Array<Action>) => any) {
 			task(behaviour(element).beginEnter);
 
 			if (element instanceof State) {
@@ -286,7 +292,7 @@ module StateJS {
 			}
 		}
 
-		cascadeOrthogonalRegionEntry(transition: Transition, behaviour: (element: Element) => ElementBehavior, state: State, next: Element, task: (actions: Array<Action>) => void): void {
+		cascadeOrthogonalRegionEntry(transition: Transition, behaviour: (element: Element) => ElementBehavior, state: State, next: Element, task: (actions: Array<Action>) => any) {
 			if (next) {
 				if (state.isOrthogonal()) {
 					state.regions.forEach(region => {
@@ -296,12 +302,6 @@ module StateJS {
 					});
 				}
 			}
-		}
-	}
-
-	class QualifiedName extends Visitor<any> {
-		visitElement(element: Element, deepHistoryAbove: boolean) {
-			element.qualifiedName = element.getAncestors().map((ancestor) => { return ancestor.name; }).join(Element.namespaceSeparator);
 		}
 	}
 
@@ -330,11 +330,13 @@ module StateJS {
 			var regionBehaviour = this.behaviour(region);
 
 			// chain initiaisation of child vertices
-			region.vertices.forEach(vertex => { vertex.accept(this, deepHistoryAbove || (region.initial && region.initial.kind === PseudoStateKind.DeepHistory)); });
+			region.vertices.forEach(vertex => {
+				vertex.accept(this, deepHistoryAbove || (region.initial && region.initial.kind === PseudoStateKind.DeepHistory));
+			});
 
 			// leave the curent active child state when exiting the region
 			regionBehaviour.leave.push((message, stateMachineInstance) => {
-				this.behaviour(stateMachineInstance.getCurrent(region)).leave.forEach(action => { action(message, stateMachineInstance); });
+				invoke(this.behaviour(stateMachineInstance.getCurrent(region)).leave, message, stateMachineInstance);
 			});
 
 			// enter the appropriate initial child vertex when entering the region
@@ -347,7 +349,7 @@ module StateJS {
 					}
 
 					var cascadedHistory = history || region.initial.kind === PseudoStateKind.DeepHistory;
-					this.behaviour(initial).enter.forEach(action => { action(message, stateMachineInstance, cascadedHistory); });
+					invoke(this.behaviour(initial).enter, message, stateMachineInstance, cascadedHistory);
 				});
 			} else {
 				regionBehaviour.endEnter = regionBehaviour.endEnter.concat(this.behaviour(region.initial).enter);
@@ -414,9 +416,6 @@ module StateJS {
 		}
 
 		visitStateMachine(stateMachine: StateMachine, deepHistoryAbove: boolean) {
-			// create the qualified names for all the model elements
-			stateMachine.accept(new QualifiedName());
-
 			// perform all the state initialisation
 			this.visitState(stateMachine, deepHistoryAbove);
 

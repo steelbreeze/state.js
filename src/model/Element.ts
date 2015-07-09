@@ -17,19 +17,19 @@ module StateJS {
 		 * @member {string}
 		 */
 		public static namespaceSeparator = ".";
-		
+
 		/**
 		 * The name of the element.
 		 * @member {string}
 		 */
 		public name: string;
-		
+
 		/**
 		 * The fully qualified name of the element.
 		 * @member {string}
 		 */
 		public qualifiedName: string;
-	
+
 		/**
 		 * Creates a new instance of the element class.
 		 * @param {string} name The name of the element.
@@ -37,7 +37,7 @@ module StateJS {
 		public constructor(name: string) {
 			this.name = name;
 		}
-	
+
 		/**
 		 * Returns the parent element of this element.
 		 * @method getParent
@@ -45,7 +45,7 @@ module StateJS {
 		 */
 		public getParent(): any {
 		}
-	
+
 		/**
 		 * Returns the root element within the state machine model.
 		 * @method getRoot
@@ -54,12 +54,12 @@ module StateJS {
 		public getRoot(): StateMachine {
 			return this.getParent().getRoot();
 		}
-	
+
 		// The ancestors are returned as an array of elements, staring with the root element and ending with this elemenet.
 		getAncestors(): Array<Element> {
 			return (this.getParent() ? this.getParent().getAncestors() : []).concat(this);
 		}
-	
+
 		/**
 		 * Accepts an instance of a visitor.
 		 * @method accept
@@ -68,7 +68,7 @@ module StateJS {
 		 * @returns {any} Any value can be returned by the visitor.
 		 */
 		public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any { /* virtual method */ }
-	
+
 		/**
 		 * Returns a the element name as a fully qualified namespace.
 		 * @method toString

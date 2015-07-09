@@ -52,6 +52,8 @@ module StateJS {
 
 			this.state = state;
 
+			this.qualifiedName = state.qualifiedName + "." + name;
+
 			this.state.regions.push(this);
 
 			this.state.getRoot().clean = false;
