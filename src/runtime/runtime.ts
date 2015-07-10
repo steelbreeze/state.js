@@ -260,15 +260,10 @@ module StateJS {
 		visitExternalTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
 			var sourceAncestors = transition.source.getAncestors();
 			var targetAncestors = transition.target.getAncestors();
-			var i = 0, l = Math.min(sourceAncestors.length, targetAncestors.length);
+			var i = Math.min(sourceAncestors.length, targetAncestors.length) - 1;
 
-			// find the index of the first uncommon ancestor
-			while ((i < l) && (sourceAncestors[i] === targetAncestors[i])) {
-				i++;
-			}
-
-			// we went beyond the source or target, step back up one level
-			if (i === l) {
+			// find the index of the first uncommon ancestor (or for external transitions, the source)
+			while (sourceAncestors[i - 1] !== targetAncestors[i - 1]) {
 				i--;
 			}
 
