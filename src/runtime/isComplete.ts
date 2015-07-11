@@ -6,24 +6,6 @@
  */
 module StateJS {
 	/**
-	 * Tests a vertex within a state machine instance to see if its lifecycle is complete.
-	 * @function isComplete
-	 * @param {Vertex} vertex The vertex to test.
-	 * @param {IActiveStateConfiguration} instance The instance of the state machine model to test for completeness.
-	 * @returns {boolean} True if the vertex is complete.
-	 */
-	export function isComplete(vertex: Vertex, instance: IActiveStateConfiguration): boolean;
-
-	/**
-	 * Tests a region within a state machine instance to see if its lifecycle is complete.
-	 * @function isComplete
-	 * @param {Region} region The region to test.
-	 * @param {IActiveStateConfiguration} instance The instance of the state machine model to test for completeness.
-	 * @returns {boolean} True if the region is complete.
-	 */
-	export function isComplete(region: Region, instance: IActiveStateConfiguration): boolean;
-
-	/**
 	 * Tests an element within a state machine instance to see if its lifecycle is complete.
 	 * @function isComplete
 	 * @param {Element} element The element to test.

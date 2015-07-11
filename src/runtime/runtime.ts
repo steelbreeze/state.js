@@ -128,7 +128,7 @@ module StateJS {
 
 		// process static conditional branches
 		while (transition.target && transition.target.isJunction()) {
-			transitionBehavior = transitionBehavior.concat((transition = selectJunctionTransition(transition.target, instance, message)).traverse);
+			Array.prototype.push.apply(transitionBehavior, (transition = selectJunctionTransition(transition.target, instance, message)).traverse);
 		}
 
 		// execute the transition behaviour
@@ -268,15 +268,18 @@ module StateJS {
 			}
 
 			// leave source ancestry as required and perform the transition effect
-			transition.traverse = behaviour(sourceAncestors[i]).leave.concat(transition.transitionBehavior);
+			Array.prototype.push.apply(transition.traverse, behaviour(sourceAncestors[i]).leave);
+			Array.prototype.push.apply(transition.traverse, transition.transitionBehavior);
 
 			// enter the target ancestry
 			while (i < targetAncestors.length) {
-				this.cascadeElementEntry(transition, behaviour, targetAncestors[i++], targetAncestors[i], actions => { transition.traverse = transition.traverse.concat(actions); });
+				this.cascadeElementEntry(transition, behaviour, targetAncestors[i++], targetAncestors[i], actions => {
+					Array.prototype.push.apply(transition.traverse, actions);
+				});
 			}
 
 			// trigger cascade
-			transition.traverse = transition.traverse.concat(behaviour(transition.target).endEnter);
+			Array.prototype.push.apply(transition.traverse, behaviour(transition.target).endEnter);
 		}
 
 		cascadeElementEntry(transition: Transition, behaviour: (element: Element) => ElementBehavior, element: Element, next: Element, task: (actions: Array<Action>) => any) {
@@ -337,7 +340,7 @@ module StateJS {
 					invoke(this.behaviour((history || region.initial.isHistory()) ? stateMachineInstance.getCurrent(region) || region.initial : region.initial).enter, message, stateMachineInstance, history || region.initial.kind === PseudoStateKind.DeepHistory);
 				});
 			} else {
-				regionBehaviour.endEnter = regionBehaviour.endEnter.concat(this.behaviour(region.initial).enter);
+				Array.prototype.push.apply(regionBehaviour.endEnter, this.behaviour(region.initial).enter);
 			}
 
 			// add element behaviour (debug)
@@ -380,18 +383,18 @@ module StateJS {
 				region.accept(this, deepHistoryAbove);
 
 				// leave child regions when leaving the state
-				stateBehaviour.leave = stateBehaviour.leave.concat(regionBehaviour.leave);
+				Array.prototype.push.apply(stateBehaviour.leave, regionBehaviour.leave);
 
 				// enter child regions when entering the state
-				stateBehaviour.endEnter = stateBehaviour.endEnter.concat(regionBehaviour.enter);
+				Array.prototype.push.apply(stateBehaviour.endEnter, regionBehaviour.enter);
 			});
 
 			// add vertex behaviour (debug and testing completion transitions)
 			this.visitVertex(state, deepHistoryAbove);
 
 			// add the user defined behaviour when entering and exiting states
-			stateBehaviour.leave = stateBehaviour.leave.concat(state.exitBehavior);
-			stateBehaviour.beginEnter = stateBehaviour.beginEnter.concat(state.entryBehavior);
+			Array.prototype.push.apply(stateBehaviour.leave, state.exitBehavior);
+			Array.prototype.push.apply(stateBehaviour.beginEnter, state.entryBehavior);
 
 			// update the parent regions current state
 			stateBehaviour.beginEnter.push((message, stateMachineInstance) => {
