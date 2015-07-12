@@ -4,5 +4,6 @@
  * Licensed under the MIT and GPL v3 licences
  * http://www.steelbreeze.net/state.cs
  */
-var module: any = <any>module;
+var module: any = module;
+
 module.exports = StateJS;
