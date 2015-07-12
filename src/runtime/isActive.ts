@@ -13,10 +13,11 @@ module StateJS {
 	 * @returns {boolean} True if the element is active.
 	 */
 	export function isActive(element: Element, stateMachineInstance: IActiveStateConfiguration): boolean {
-		if (element instanceof State) {
-			return element.region ? (isActive(element.region, stateMachineInstance) && (stateMachineInstance.getCurrent(element.region) === element)) : true;
-		} else if (element instanceof Region) {
+		if (element instanceof Region) {
 			return isActive(element.state, stateMachineInstance);
+		}
+		else if (element instanceof State) {
+			return element.region ? (isActive(element.region, stateMachineInstance) && (stateMachineInstance.getCurrent(element.region) === element)) : true;
 		}
 	}
 }

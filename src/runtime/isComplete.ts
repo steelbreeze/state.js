@@ -13,10 +13,14 @@ module StateJS {
 	 * @returns {boolean} True if the element is complete.
 	 */
 	export function isComplete(element: Element, instance: IActiveStateConfiguration): boolean {
-		if (element instanceof Vertex) {
-			return element instanceof State ? element.regions.every(region => { return isComplete(region, instance); }) : true;
-		} else if (element instanceof Region) {
+		if (element instanceof Region) {
 			return instance.getCurrent(element).isFinal();
 		}
+
+		else if (element instanceof State) {
+			return element.regions.every(region => { return isComplete(region, instance); });
+		}
+
+		return true;
 	}
 }
