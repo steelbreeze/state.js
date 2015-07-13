@@ -20,8 +20,8 @@ module StateJS {
 		onInitialise: Array<Action>;
 
 		// used to inject logging, warnings and errors.
-		logTo: Console;
-		warnTo: Console;
+		logTo: Console = <Console>{ log: function(message) { } }
+		warnTo: Console = <Console>{ warn: function(message) { } };
 		errorTo: Console = <Console>{ error: function(message) { throw message; } };
 
 		/**
@@ -48,7 +48,7 @@ module StateJS {
 		 * @param {Console} value Pass in console to log to the console, or any other object supporting the .log method.
 		 * @returns {StateMachine} Returns the state machine to enable fluent style API.
 		 */
-		public setLogger(value: Console = undefined): StateMachine {
+		public setLogger(value: Console): StateMachine {
 			this.logTo = value;
 			this.clean = false;
 
@@ -61,7 +61,7 @@ module StateJS {
 		 * @param {Console} value Pass in console to log to the console, or any other object supporting the .warn method.
 		 * @returns {StateMachine} Returns the state machine to enable fluent style API.
 		 */
-		public setWarning(value: Console = undefined): StateMachine {
+		public setWarning(value: Console): StateMachine {
 			this.warnTo = value;
 			this.clean = false;
 
@@ -74,7 +74,7 @@ module StateJS {
 		 * @param {Console} value Pass in console to log to the console, or any other object supporting the .error method.
 		 * @returns {StateMachine} Returns the state machine to enable fluent style API.
 		 */
-		public setError(value: Console = undefined): StateMachine {
+		public setError(value: Console): StateMachine {
 			this.errorTo = value;
 			this.clean = false;
 

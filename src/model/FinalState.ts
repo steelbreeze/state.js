@@ -40,9 +40,7 @@ module StateJS {
 
 		// override Vertex.to to generate an error when trying to create a transition from a final state.
 		public to(target?: Vertex): Transition {
-			if (this.getRoot().warnTo) {
-				this.getRoot().warnTo.error("A FinalState cannot be the source of a transition; transition not accepted");
-			}
+			this.getRoot().warnTo.error("A FinalState cannot be the source of a transition; transition not accepted");
 
 			return;
 		}

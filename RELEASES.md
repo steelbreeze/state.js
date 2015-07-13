@@ -6,7 +6,6 @@ Allow isComplete function to be called for both Regions and Vertices.
 Remove unnecessary casts following instanceof tests.
 
 General refactoring
-* including the use of Array.prototype.push.apply rather than Array.concat
 
 ## Version 5.4.3
 Bug fix: there was an issue with external transitions whose target was a child of a composite state; the composite state was exited but not reentered.

@@ -23,9 +23,7 @@ module StateJS {
 			}
 
 			// log as required
-			if (stateMachineModel.logTo) {
-				stateMachineModel.logTo.log("initialise " + stateMachineInstance);
-			}
+			stateMachineModel.logTo.log("initialise " + stateMachineInstance);
 
 			// enter the state machine instance for the first time
 			stateMachineModel.onInitialise.forEach(action => action(undefined, stateMachineInstance));
@@ -33,9 +31,7 @@ module StateJS {
 			// initiaise a state machine model
 		} else {
 			// log as required
-			if (stateMachineModel.logTo) {
-				stateMachineModel.logTo.log("initialise " + stateMachineModel.name);
-			}
+			stateMachineModel.logTo.log("initialise " + stateMachineModel.name);
 
 			stateMachineModel.accept(new InitialiseElements(), false);
 			stateMachineModel.clean = true;
@@ -52,9 +48,7 @@ module StateJS {
 	 */
 	export function evaluate(stateMachineModel: StateMachine, stateMachineInstance: IActiveStateConfiguration, message: any, autoInitialiseModel: boolean = true): boolean {
 		// log as required
-		if (stateMachineModel.logTo) {
-			stateMachineModel.logTo.log(stateMachineInstance + " evaluate " + message);
-		}
+		stateMachineModel.logTo.log(stateMachineInstance + " evaluate " + message);
 
 		// initialise the state machine model if necessary
 		if (autoInitialiseModel && stateMachineModel.clean === false) {
@@ -100,9 +94,7 @@ module StateJS {
 			state.transitions.forEach(t => {
 				if (t.guard(message, stateMachineInstance)) {
 					if (transition) {
-						if (state.getRoot().errorTo) {
-							state.getRoot().errorTo.error("Multiple outbound transitions evaluated true");
-						}
+						state.getRoot().errorTo.error("Multiple outbound transitions evaluated true");
 					}
 
 					transition = t;
@@ -154,9 +146,7 @@ module StateJS {
 			vertex.transitions.forEach(t => {
 				if (t.guard === Transition.isElse) {
 					if (elseResult) {
-						if (vertex.getRoot().errorTo) {
-							vertex.getRoot().errorTo.error("Multiple outbound else transitions found at " + this + " for " + message);
-						}
+						vertex.getRoot().errorTo.error("Multiple outbound else transitions found at " + this + " for " + message);
 					}
 
 					elseResult = t;
@@ -171,9 +161,7 @@ module StateJS {
 
 			else if (vertex.kind === PseudoStateKind.Junction) {
 				if (results.length > 1) {
-					if (vertex.getRoot().errorTo) {
-						vertex.getRoot().errorTo.error("Multiple outbound transition guards returned true at " + this + " for " + message);
-					}
+					vertex.getRoot().errorTo.error("Multiple outbound transition guards returned true at " + this + " for " + message);
 				}
 
 				return results[0] || elseResult;
@@ -284,14 +272,10 @@ module StateJS {
 
 		// uncomment this method for debugging purposes
 		visitElement(element: Element, deepHistoryAbove: boolean) {
-			var logger = element.getRoot().logTo;
+			var elementBehaviour = this.behaviour(element);
 
-			if (logger) {
-				var elementBehaviour = this.behaviour(element);
-
-				elementBehaviour.leave.push((message, instance) => logger.log(instance + " leave " + element));
-				elementBehaviour.beginEnter.push((message, instance) => logger.log(instance + " enter " + element));
-			}
+			elementBehaviour.leave.push((message, instance) => element.getRoot().logTo.log(instance + " leave " + element));
+			elementBehaviour.beginEnter.push((message, instance) => element.getRoot().logTo.log(instance + " enter " + element));
 		}
 
 		visitRegion(region: Region, deepHistoryAbove: boolean) {
@@ -380,7 +364,9 @@ module StateJS {
 			this.visitState(stateMachine, deepHistoryAbove);
 
 			// initiaise all the transitions once all the elements have been initialised
-			stateMachine.accept(new InitialiseTransitions(), (element: Element): ElementBehavior => { return this.behaviour(element); });
+			stateMachine.accept(new InitialiseTransitions(), (element: Element): ElementBehavior => {
+				return this.behaviour(element);
+			});
 
 			// define the behaviour for initialising a state machine instance
 			stateMachine.onInitialise = this.behaviour(stateMachine).enter;
