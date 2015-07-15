@@ -80,11 +80,6 @@ module StateJS {
 			return this.kind === PseudoStateKind.Junction;
 		}
 
-		// TODO: find a clean way to remove this
-		public isChoice(): boolean {
-			return this.kind === PseudoStateKind.Choice;
-		}
-
 		/**
 		 * Accepts an instance of a visitor and calls the visitPseudoState method on it.
 		 * @method accept
