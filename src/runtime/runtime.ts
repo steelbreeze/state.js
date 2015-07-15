@@ -111,8 +111,8 @@ module StateJS {
 			target = transition.target;
 
 		// process static conditional branches
-		while (target && target.isJunction()) {
-			transition = selectTransition(<PseudoState>target, instance, message);
+		while (target && target instanceof PseudoState && target.kind === PseudoStateKind.Junction) {
+			transition = selectTransition(<PseudoState>target, instance, message); // TODO: remove this cast
 			target = transition.target;
 
 			Array.prototype.push.apply(transitionBehavior, transition.traverse);
@@ -124,13 +124,9 @@ module StateJS {
 		// process dynamic conditional branches
 		if (target && (target instanceof PseudoState) && (target.kind === PseudoStateKind.Choice)) {
 			traverse(selectTransition(target, instance, message), instance, message);
-		}
-
-		// test for completion transitions
-		if (target && target instanceof State) {
-			if (isComplete(target, instance)) {
-				evaluateState(target, instance, target);
-			}
+		} else if (target && target instanceof State && isComplete(target, instance)) {
+			// test for completion transitions
+			evaluateState(target, instance, target);
 		}
 
 		return true;

@@ -1,5 +1,9 @@
-### Version 5.4.4 - work in progress
+### Version 5.4.4
+Fix a bug where completion transitions of states could be checked muptiple times if the transition to the state was via a choice pseudo state.
+
 Expose isActive in the public API; allow it to be called for both Regions and States.
+
+Remove the isChoice and isJunction methods on Vertex and children.
 
 Allow isComplete function to be called for both Regions and Vertices.
 

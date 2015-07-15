@@ -75,11 +75,6 @@ module StateJS {
 			return this.kind === PseudoStateKind.Initial || this.isHistory();
 		}
 
-		// TODO: find a clean way to remove this
-		public isJunction(): boolean {
-			return this.kind === PseudoStateKind.Junction;
-		}
-
 		/**
 		 * Accepts an instance of a visitor and calls the visitPseudoState method on it.
 		 * @method accept
