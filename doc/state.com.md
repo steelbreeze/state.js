@@ -376,7 +376,7 @@ Instructs the state machine model to log activity to an object supporting the Co
 
 **Parameters**
 
-**value**: `Console`, Pass in console to log to the console, or any other object supporting the .log method.
+**value**: `LogTo`, Pass in console to log to the console, or any other object supporting the .log method.
 
 **Returns**: `StateMachine`, Returns the state machine to enable fluent style API.
 
@@ -386,7 +386,7 @@ Instructs the state machine model to direct warnings activity to an object suppo
 
 **Parameters**
 
-**value**: `Console`, Pass in console to log to the console, or any other object supporting the .warn method.
+**value**: `WarnTo`, Pass in console to log to the console, or any other object supporting the .warn method.
 
 **Returns**: `StateMachine`, Returns the state machine to enable fluent style API.
 
@@ -396,7 +396,7 @@ Instructs the state machine model to direct error messages to an object supporti
 
 **Parameters**
 
-**value**: `Console`, Pass in console to log to the console, or any other object supporting the .error method.
+**value**: `ErrorTo`, Pass in console to log to the console, or any other object supporting the .error method.
 
 **Returns**: `StateMachine`, Returns the state machine to enable fluent style API.
 

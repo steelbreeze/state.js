@@ -108,7 +108,7 @@ module StateJS {
 	// traverses a transition
 	function traverse(transition: Transition, instance: IActiveStateConfiguration, message?: any): boolean {
 		var transitionBehavior = transition.traverse,
-			target = transition.target;
+		    target = transition.target;
 
 		// process static conditional branches
 		while (target && target instanceof PseudoState && target.kind === PseudoStateKind.Junction) {
@@ -262,10 +262,12 @@ module StateJS {
 
 		// uncomment this method for debugging purposes
 		visitElement(element: Element, deepHistoryAbove: boolean) {
-			var elementBehaviour = this.behaviour(element);
+			if(element.getRoot().logTo !== defaultConsole) {
+				var elementBehaviour = this.behaviour(element);
 
-			elementBehaviour.leave.push((message, instance) => element.getRoot().logTo.log(instance + " leave " + element));
-			elementBehaviour.beginEnter.push((message, instance) => element.getRoot().logTo.log(instance + " enter " + element));
+				elementBehaviour.leave.push((message, instance) => element.getRoot().logTo.log(instance + " leave " + element));
+				elementBehaviour.beginEnter.push((message, instance) => element.getRoot().logTo.log(instance + " enter " + element));
+			}
 		}
 
 		visitRegion(region: Region, deepHistoryAbove: boolean) {
@@ -279,10 +281,8 @@ module StateJS {
 
 			// enter the appropriate initial child vertex when entering the region
 			if (deepHistoryAbove || !region.initial || region.initial.isHistory()) { // NOTE: history needs to be determined at runtime
-				regionBehaviour.endEnter.push((message, stateMachineInstance, history) => { // TODO: can we remove any of these tests?
-					var h = history || region.initial.kind === PseudoStateKind.DeepHistory;
-
-					this.behaviour((history || region.initial.isHistory()) ? stateMachineInstance.getCurrent(region) || region.initial : region.initial).enter.forEach(action=> action(message, stateMachineInstance, h));
+				regionBehaviour.endEnter.push((message, stateMachineInstance, history) => {
+					this.behaviour((history || region.initial.isHistory()) ? stateMachineInstance.getCurrent(region) || region.initial : region.initial).enter.forEach(action=> action(message, stateMachineInstance, history || region.initial.kind === PseudoStateKind.DeepHistory));
 				});
 			} else {
 				Array.prototype.push.apply(regionBehaviour.endEnter, this.behaviour(region.initial).enter);

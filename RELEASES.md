@@ -1,4 +1,9 @@
-### Version 5.4.4
+### Version 5.4.5
+Fix issue where final state calls the error method instead of a warning.
+
+Refactor logging, wanrings and errors; remove need for casting in TypeScript and ensure the logging, wanring and error object passed will have the correct methods.
+
+## Version 5.4.4
 Fix a bug where completion transitions of states could be checked muptiple times if the transition to the state was via a choice pseudo state.
 
 Expose isActive in the public API; allow it to be called for both Regions and States.
