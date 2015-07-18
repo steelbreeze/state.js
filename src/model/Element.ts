@@ -18,6 +18,14 @@ module StateJS {
 		 */
 		public static namespaceSeparator = ".";
 
+
+
+		/**
+		 * The parent element of this element.
+		 * @member {Element}
+		 */
+		public parent: Element;
+
 		/**
 		 * The name of the element.
 		 * @member {string}
@@ -34,16 +42,10 @@ module StateJS {
 		 * Creates a new instance of the element class.
 		 * @param {string} name The name of the element.
 		 */
-		public constructor(name: string) {
+		public constructor(name: string, parent: Element) {
+			this.parent = parent;
 			this.name = name;
-		}
-
-		/**
-		 * Returns the parent element of this element.
-		 * @method getParent
-		 * @returns {Element} The parent element of the element.
-		 */
-		public getParent(): any {
+			this.qualifiedName = parent ? (parent.qualifiedName + "." + name) : name;
 		}
 
 		/**
@@ -52,12 +54,12 @@ module StateJS {
 		 * @returns {StateMachine} The root state machine element.
 		 */
 		public getRoot(): StateMachine {
-			return this.getParent().getRoot();
+			return this.parent.getRoot();
 		}
 
 		// The ancestors are returned as an array of elements, staring with the root element and ending with this elemenet.
 		getAncestors(): Array<Element> {
-			return (this.getParent() ? this.getParent().getAncestors() : []).concat(this);
+			return (this.parent ? this.parent.getAncestors() : []).concat(this);
 		}
 
 		/**

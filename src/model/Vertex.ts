@@ -43,33 +43,17 @@ module StateJS {
 		/**
 		 * Creates a new instance of the Vertex class.
 		 * @param {string} name The name of the vertex.
-		 * @param {Region|State} parent The parent region or state.
+		 * @param {Element} parent The parent region or state.
 		 */
 		public constructor(name: string, parent: any) {
-			super(name);
+			super(name, parent = parent instanceof State ? parent.defaultRegion() : parent);
 
-			if (parent instanceof Region) {
-				this.region = parent;
-			} else if (parent instanceof State) {
-				this.region = parent.defaultRegion();
-			}
+			if (this.region = parent) {
 
-			if (this.region) {
 				this.region.vertices.push(this);
-				this.region.getRoot().clean = false;
-				this.qualifiedName = this.region.qualifiedName + "." + name;
-			} else {
-				this.qualifiedName = name;
-			}
-		}
 
-		/**
-		 * Returns the parent element of this vertex.
-		 * @method getParent
-		 * @returns {Element} The parent element of the vertex.
-		 */
-		public getParent(): Element {
-			return this.region;
+				this.region.getRoot().clean = false;
+			}
 		}
 
 		/**

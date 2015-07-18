@@ -48,24 +48,13 @@ module StateJS {
 		 * @param {State} state The parent state that this region will be a child of.
 		 */
 		public constructor(name: string, state: State) {
-			super(name);
+			super(name, state);
 
 			this.state = state;
-
-			this.qualifiedName = state.qualifiedName + "." + name;
 
 			this.state.regions.push(this);
 
 			this.state.getRoot().clean = false;
-		}
-
-		/**
-		 * Returns the parent element of this region.
-		 * @method getParent
-		 * @returns {Element} The parent element of the region.
-		 */
-		public getParent(): Element {
-			return this.state;
 		}
 
 		/**

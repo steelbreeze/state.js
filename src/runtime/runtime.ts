@@ -136,15 +136,15 @@ module StateJS {
 	function selectTransition(pseudoState: PseudoState, stateMachineInstance: IActiveStateConfiguration, message: any): Transition {
 		var results: Array<Transition> = [], elseResult: Transition;
 
-		pseudoState.transitions.forEach(t => {
-			if (t.guard === Transition.isElse) {
+		pseudoState.transitions.forEach(transition => {
+			if (transition.guard === Transition.isElse) {
 				if (elseResult) {
 					pseudoState.getRoot().errorTo.error("Multiple outbound else transitions found at " + this + " for " + message);
 				}
 
-				elseResult = t;
-			} else if (t.guard(message, stateMachineInstance)) {
-				results.push(t);
+				elseResult = transition;
+			} else if (transition.guard(message, stateMachineInstance)) {
+				results.push(transition);
 			}
 		});
 
@@ -197,7 +197,7 @@ module StateJS {
 				}
 
 				// exit the active sibling
-				behaviour(instance.getCurrent(targetAncestors[i].getParent())).leave.forEach(action => action(message, instance));
+				behaviour(instance.getCurrent(<any>targetAncestors[i].parent)).leave.forEach(action => action(message, instance)); // TODO: remove this cast
 
 				// perform the transition action;
 				transition.transitionBehavior.forEach(action => action(message, instance));
