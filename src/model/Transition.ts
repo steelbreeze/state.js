@@ -44,13 +44,6 @@ module StateJS {
 			this.kind = target ? kind : TransitionKind.Internal;
 
 			// validate user specifying a local transition; target must be in the source ancestry
-			if (this.kind === TransitionKind.Local) {
-				if (this.target.getAncestors().indexOf(this.source) === -1) {
-					this.source.getRoot().warnTo.warn("Transition cannot be local as source is not in the ancestry of target")
-
-					this.kind = TransitionKind.External;
-				}
-			}
 		}
 
 		/**

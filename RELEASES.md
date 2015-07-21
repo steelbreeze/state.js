@@ -1,8 +1,9 @@
 ## Version 5.5.0 - work in progress
 Tidy the creation of qualifiedName.
 
-Tidy up some of unnecessary methods in the model
-* Remove getParent(), relpace with parent attribute.
+Tidy up some of unnecessary methods in the model interface
+* Remove Element.getParent, relpace with parent attribute.
+* Remove Element.getAncestors.
 
 ## Version 5.4.5
 Fix issue where final state calls the error method instead of a warning.

@@ -18,8 +18,6 @@ module StateJS {
 		 */
 		public static namespaceSeparator = ".";
 
-
-
 		/**
 		 * The parent element of this element.
 		 * @member {Element}
@@ -54,12 +52,7 @@ module StateJS {
 		 * @returns {StateMachine} The root state machine element.
 		 */
 		public getRoot(): StateMachine {
-			return this.parent.getRoot();
-		}
-
-		// The ancestors are returned as an array of elements, staring with the root element and ending with this elemenet.
-		getAncestors(): Array<Element> {
-			return (this.parent ? this.parent.getAncestors() : []).concat(this);
+			return this.parent.getRoot(); // NOTE: need to keep this dynamic as a state machine may be embedded within another
 		}
 
 		/**

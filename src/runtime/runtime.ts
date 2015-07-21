@@ -108,7 +108,7 @@ module StateJS {
 	// traverses a transition
 	function traverse(transition: Transition, instance: IActiveStateConfiguration, message?: any): boolean {
 		var transitionBehavior = transition.traverse,
-		    target = transition.target;
+			target = transition.target;
 
 		// process static conditional branches
 		while (target && target instanceof PseudoState && target.kind === PseudoStateKind.Junction) {
@@ -188,16 +188,16 @@ module StateJS {
 		// initialise internal transitions: these do not leave the source state
 		visitLocalTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
 			transition.traverse.push((message, instance) => {
-				var targetAncestors = transition.target.getAncestors();
+				var targetAncestors = getAncestors(transition.target);
 				var i = 0;
 
 				// find the first inactive element in the target ancestry
 				while (isActive(targetAncestors[i], instance)) {
-					i++;
+					i+=2; // first inactive element will be a vertex as all regions are active in an active composite state
 				}
 
 				// exit the active sibling
-				behaviour(instance.getCurrent(<any>targetAncestors[i].parent)).leave.forEach(action => action(message, instance)); // TODO: remove this cast
+				behaviour(instance.getCurrent((<Vertex>targetAncestors[i]).region)).leave.forEach(action => action(message, instance)); // TODO: remove this cast
 
 				// perform the transition action;
 				transition.transitionBehavior.forEach(action => action(message, instance));
@@ -214,8 +214,8 @@ module StateJS {
 
 		// initialise external transitions: these are abritarily complex
 		visitExternalTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
-			var sourceAncestors = transition.source.getAncestors();
-			var targetAncestors = transition.target.getAncestors();
+			var sourceAncestors = getAncestors(transition.source);
+			var targetAncestors = getAncestors(transition.target);
 			var i = Math.min(sourceAncestors.length, targetAncestors.length) - 1;
 
 			// find the index of the first uncommon ancestor (or for external transitions, the source)
@@ -253,7 +253,7 @@ module StateJS {
 
 	// bootstraps all the elements within a state machine model
 	class InitialiseElements extends Visitor<boolean> {
-		private behaviours: any = {};
+		private behaviours: any = {}; // TODO: remove any
 
 		// returns the behavior for a given element; creates one if not present
 		private behaviour(element: Element): ElementBehavior {
@@ -262,7 +262,7 @@ module StateJS {
 
 		// uncomment this method for debugging purposes
 		visitElement(element: Element, deepHistoryAbove: boolean) {
-			if(element.getRoot().logTo !== defaultConsole) {
+			if (element.getRoot().logTo !== defaultConsole) {
 				var elementBehaviour = this.behaviour(element);
 
 				elementBehaviour.leave.push((message, instance) => element.getRoot().logTo.log(instance + " leave " + element));
@@ -359,5 +359,9 @@ module StateJS {
 			// define the behaviour for initialising a state machine instance
 			stateMachine.onInitialise = this.behaviour(stateMachine).enter;
 		}
+	}
+
+	function getAncestors(element: Element): Array<Element> {
+		return (element.parent ? getAncestors(element.parent) : []).concat(element);
 	}
 }
