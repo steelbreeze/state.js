@@ -197,7 +197,7 @@ module StateJS {
 				}
 
 				// exit the active sibling
-				behaviour(instance.getCurrent((<Vertex>targetAncestors[i]).region)).leave.forEach(action => action(message, instance)); // TODO: remove this cast
+				behaviour(instance.getCurrent((<Vertex>targetAncestors[i]).region)).leave.forEach(action => action(message, instance));
 
 				// perform the transition action;
 				transition.transitionBehavior.forEach(action => action(message, instance));
