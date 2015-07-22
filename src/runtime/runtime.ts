@@ -173,8 +173,8 @@ module StateJS {
 	}
 
 	// determine the type of transition and use the appropriate initiliasition method
-	class InitialiseTransitions extends Visitor<(element: Element) => ElementBehavior> {
-		visitTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
+	class InitialiseTransitions extends Visitor<ElementBehaviors> {
+		visitTransition(transition: Transition, behaviour: ElementBehaviors) {
 			switch (transition.kind) {
 				case TransitionKind.Internal:
 					transition.traverse = transition.transitionBehavior;
@@ -191,7 +191,7 @@ module StateJS {
 		}
 
 		// initialise internal transitions: these do not leave the source state
-		visitLocalTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
+		visitLocalTransition(transition: Transition, behaviour: ElementBehaviors) {
 			transition.traverse.push((message, instance) => {
 				var targetAncestors = getAncestors(transition.target);
 				var i = 0;
@@ -202,7 +202,7 @@ module StateJS {
 				}
 
 				// exit the active sibling
-				behaviour(instance.getCurrent((<Vertex>targetAncestors[i]).region)).leave.forEach(action => action(message, instance)); // TODO: cast
+				behaviour[instance.getCurrent((<Vertex>targetAncestors[i]).region).qualifiedName].leave.forEach(action => action(message, instance)); // TODO: cast
 
 				// perform the transition action;
 				transition.transitionBehavior.forEach(action => action(message, instance));
@@ -213,12 +213,12 @@ module StateJS {
 				}
 
 				// trigger cascade
-				behaviour(transition.target).endEnter.forEach(action => action(message, instance));
+				behaviour[transition.target.qualifiedName].endEnter.forEach(action => action(message, instance));
 			});
 		}
 
 		// initialise external transitions: these are abritarily complex
-		visitExternalTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
+		visitExternalTransition(transition: Transition, behaviour: ElementBehaviors) {
 			var sourceAncestors = getAncestors(transition.source);
 			var targetAncestors = getAncestors(transition.target);
 			var i = Math.min(sourceAncestors.length, targetAncestors.length) - 1;
@@ -229,7 +229,7 @@ module StateJS {
 			}
 
 			// leave source ancestry as required and perform the transition effect
-			Array.prototype.push.apply(transition.traverse, behaviour(sourceAncestors[i]).leave);
+			Array.prototype.push.apply(transition.traverse, behaviour[sourceAncestors[i].qualifiedName].leave);
 			Array.prototype.push.apply(transition.traverse, transition.transitionBehavior);
 
 			// enter the target ancestry
@@ -240,16 +240,16 @@ module StateJS {
 			}
 
 			// trigger cascade
-			Array.prototype.push.apply(transition.traverse, behaviour(transition.target).endEnter);
+			Array.prototype.push.apply(transition.traverse, behaviour[transition.target.qualifiedName].endEnter);
 		}
 
-		cascadeElementEntry(transition: Transition, behaviour: (element: Element) => ElementBehavior, element: Element, next: Element, task: (actions: Array<Action>) => any) {
-			task(behaviour(element).beginEnter);
+		cascadeElementEntry(transition: Transition, behaviour: ElementBehaviors, element: Element, next: Element, task: (actions: Array<Action>) => any) {
+			task(behaviour[element.qualifiedName].beginEnter);
 
 			if (next && element instanceof State && element.isOrthogonal()) {
 				element.regions.forEach(region => {
 					if (region !== next) {
-						task(behaviour(region).enter);
+						task(behaviour[region.qualifiedName].enter);
 					}
 				});
 			}
@@ -357,9 +357,7 @@ module StateJS {
 			this.visitState(stateMachine, deepHistoryAbove);
 
 			// initiaise all the transitions once all the elements have been initialised
-			stateMachine.accept(new InitialiseTransitions(), (element: Element): ElementBehavior => {
-				return this.behaviour(element);
-			});
+			stateMachine.accept(new InitialiseTransitions(), this.behaviours);
 
 			// define the behaviour for initialising a state machine instance
 			stateMachine.onInitialise = this.behaviour(stateMachine).enter;
