@@ -167,6 +167,11 @@ module StateJS {
 		enter: Array<Action> = [];
 	}
 
+	// type to manage an array of element behaviours
+	interface ElementBehaviors {
+		[index: string]: ElementBehavior;
+	}
+
 	// determine the type of transition and use the appropriate initiliasition method
 	class InitialiseTransitions extends Visitor<(element: Element) => ElementBehavior> {
 		visitTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
@@ -197,7 +202,7 @@ module StateJS {
 				}
 
 				// exit the active sibling
-				behaviour(instance.getCurrent(<any>targetAncestors[i].parent)).leave.forEach(action => action(message, instance));
+				behaviour(instance.getCurrent((<Vertex>targetAncestors[i]).region)).leave.forEach(action => action(message, instance)); // TODO: cast
 
 				// perform the transition action;
 				transition.transitionBehavior.forEach(action => action(message, instance));
@@ -253,7 +258,7 @@ module StateJS {
 
 	// bootstraps all the elements within a state machine model
 	class InitialiseElements extends Visitor<boolean> {
-		private behaviours: any = {}; // TODO: remove any
+		private behaviours: ElementBehaviors = {};
 
 		// returns the behavior for a given element; creates one if not present
 		private behaviour(element: Element): ElementBehavior {

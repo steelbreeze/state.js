@@ -5,6 +5,8 @@ Tidy up some of unnecessary methods in the model interface
 * Remove Element.getParent, relpace with parent attribute.
 * Remove Element.getAncestors.
 
+Reduce use of any type.
+
 ## Version 5.4.5
 Fix issue where final state calls the error method instead of a warning.
 

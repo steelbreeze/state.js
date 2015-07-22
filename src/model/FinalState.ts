@@ -34,7 +34,7 @@ module StateJS {
 		 * @param {string} name The name of the final state.
 		 * @param {Element} parent The parent element that owns the final state.
 		 */
-		public constructor(name: string, parent: any) {
+		public constructor(name: string, parent: any) { // TODO: remove any
 			super(name, parent);
 		}
 
