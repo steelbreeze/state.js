@@ -44,6 +44,17 @@ module StateJS {
 			this.kind = target ? kind : TransitionKind.Internal;
 
 			// validate user specifying a local transition; target must be in the source ancestry
+			if (this.kind === TransitionKind.Local) {
+				var element: Element = target;
+
+				do {
+					if (element === source) {
+						return;
+					}
+				} while (element = element.parent);
+
+				source.getRoot().errorTo.error(target + " is not a descendant of " + source);
+			}
 		}
 
 		/**

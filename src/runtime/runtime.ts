@@ -193,11 +193,11 @@ module StateJS {
 
 				// find the first inactive element in the target ancestry
 				while (isActive(targetAncestors[i], instance)) {
-					i+=2; // first inactive element will be a vertex as all regions are active in an active composite state
+					i++;
 				}
 
 				// exit the active sibling
-				behaviour(instance.getCurrent((<Vertex>targetAncestors[i]).region)).leave.forEach(action => action(message, instance));
+				behaviour(instance.getCurrent(<any>targetAncestors[i].parent)).leave.forEach(action => action(message, instance));
 
 				// perform the transition action;
 				transition.transitionBehavior.forEach(action => action(message, instance));
