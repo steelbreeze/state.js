@@ -234,16 +234,14 @@ module StateJS {
 
 			// enter the target ancestry
 			while (i < targetAncestors.length) {
-				this.cascadeElementEntry(transition, behaviour, targetAncestors[i++], targetAncestors[i], actions => {
-					Array.prototype.push.apply(transition.traverse, actions);
-				});
+				this.cascadeElementEntry(transition, behaviour, targetAncestors[i++], targetAncestors[i], actions => { Array.prototype.push.apply(transition.traverse, actions) });
 			}
 
 			// trigger cascade
 			Array.prototype.push.apply(transition.traverse, behaviour[transition.target.qualifiedName].endEnter);
 		}
 
-		cascadeElementEntry(transition: Transition, behaviour: ElementBehaviors, element: Element, next: Element, task: (actions: Array<Action>) => any) {
+		cascadeElementEntry(transition: Transition, behaviour: ElementBehaviors, element: Element, next: Element, task: (actions: Array<Action>) => void) {
 			task(behaviour[element.qualifiedName].beginEnter);
 
 			if (next && element instanceof State && element.isOrthogonal()) {

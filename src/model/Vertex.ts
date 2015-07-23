@@ -46,9 +46,9 @@ module StateJS {
 		 * @param {Element} parent The parent region or state.
 		 */
 		public constructor(name: string, parent: any) {
-			super(name, parent = parent instanceof State ? parent.defaultRegion() : parent);
+			super(name, parent instanceof State ? parent.defaultRegion() : parent);
 
-			if (this.region = parent) {
+			if (this.region = <Region>this.parent) {
 
 				this.region.vertices.push(this);
 

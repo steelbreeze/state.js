@@ -103,9 +103,9 @@ module StateJS {
 		/**
 		 * Log an informational message
 		 * @method log
-		 * @param {String} message The informational message to log.
+		 * @param {string} message The informational message to log.
 		 */
-		log(message: String): void;
+		log(message: string): void;
 	}
 
 	/**
@@ -116,9 +116,9 @@ module StateJS {
 		/**
 		 * Log a warning message
 		 * @method warn
-		 * @param {String} message The warning message to log.
+		 * @param {string} message The warning message to log.
 		 */
-		warn(message: String): void;
+		warn(message: string): void;
 	}
 
 	/**
@@ -129,14 +129,14 @@ module StateJS {
 		/**
 		 * Raise an error message
 		 * @method warn
-		 * @param {String} message The warning message to raise.
+		 * @param {string} message The warning message to raise.
 		 */
-		error(message: String): void;
+		error(message: string): void;
 	}
 
 	export var defaultConsole = {
-		log: function(message: String): void { },
-		warn: function(message: String): void { },
-		error: function(message: String): void { throw message; }
+		log: function(message: string): void { },
+		warn: function(message: string): void { },
+		error: function(message: string): void { throw message; }
 	}
 }

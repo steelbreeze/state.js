@@ -5,7 +5,7 @@
  * http://www.steelbreeze.net/state.cs
  */
 module StateJS {
-
+	// interface to type the last known state
 	interface States {
 		[index: string]: State;
 	}
