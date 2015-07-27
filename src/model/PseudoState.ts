@@ -49,10 +49,6 @@ module StateJS {
 			super(name, parent);
 
 			this.kind = kind;
-
-			if (this.isInitial()) {
-				this.region.initial = this;
-			}
 		}
 
 		/**

@@ -1,6 +1,8 @@
 ## Version 5.5.0 - work in progress
 Tidy the creation of qualifiedName.
 
+Remove Region.initial property and replaced with Region.getInitial() method that selects the initial pseudo state from the set of vertices.
+
 Tidy up some of unnecessary methods in the model interface
 * Remove Element.getParent, relpace with parent attribute.
 * Remove Element.getAncestors.

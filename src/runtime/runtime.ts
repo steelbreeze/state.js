@@ -275,20 +275,21 @@ module StateJS {
 
 		visitRegion(region: Region, deepHistoryAbove: boolean) {
 			var regionBehaviour = this.behaviour(region);
+			var regionInitial = region.getInitial();
 
 			// chain initiaisation of child vertices
-			region.vertices.forEach(vertex => vertex.accept(this, deepHistoryAbove || (region.initial && region.initial.kind === PseudoStateKind.DeepHistory)));
+			region.vertices.forEach(vertex => vertex.accept(this, deepHistoryAbove || (regionInitial && regionInitial.kind === PseudoStateKind.DeepHistory)));
 
 			// leave the curent active child state when exiting the region
 			regionBehaviour.leave.push((message, stateMachineInstance) => this.behaviour(stateMachineInstance.getCurrent(region)).leave.forEach(action=> action(message, stateMachineInstance)));
 
-			// enter the appropriate initial child vertex when entering the region
-			if (deepHistoryAbove || !region.initial || region.initial.isHistory()) { // NOTE: history needs to be determined at runtime
+			// enter the appropriate child vertex when entering the region
+			if (deepHistoryAbove || !regionInitial || regionInitial.isHistory()) { // NOTE: history needs to be determined at runtime
 				regionBehaviour.endEnter.push((message, stateMachineInstance, history) => {
-					this.behaviour((history || region.initial.isHistory()) ? stateMachineInstance.getCurrent(region) || region.initial : region.initial).enter.forEach(action=> action(message, stateMachineInstance, history || region.initial.kind === PseudoStateKind.DeepHistory));
+					this.behaviour((history || regionInitial.isHistory()) ? stateMachineInstance.getCurrent(region) || regionInitial : regionInitial).enter.forEach(action=> action(message, stateMachineInstance, history || regionInitial.kind === PseudoStateKind.DeepHistory));
 				});
 			} else {
-				Array.prototype.push.apply(regionBehaviour.endEnter, this.behaviour(region.initial).enter);
+				Array.prototype.push.apply(regionBehaviour.endEnter, this.behaviour(regionInitial).enter);
 			}
 
 			// add element behaviour (debug)

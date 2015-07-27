@@ -37,12 +37,6 @@ module StateJS {
 		public vertices: Array<Vertex> = [];
 
 		/**
-		 * The pseudo state that will be in initial starting state when entering the region explicitly.
-		 * @member {PseudoState}
-		 */
-		public initial: PseudoState;
-
-		/**
 		 * Creates a new instance of the Region class.
 		 * @param {string} name The name of the region.
 		 * @param {State} state The parent state that this region will be a child of.
@@ -55,6 +49,27 @@ module StateJS {
 			this.state.regions.push(this);
 
 			this.state.getRoot().clean = false;
+		}
+
+		/**
+		 * The pseudo state that will be in initial starting state when entering the region explicitly.
+		 * @method {getInitial}
+		 * @returns {PseudoState} The initial starting pseudo state if one is defined.
+		 */
+		public getInitial(): PseudoState {
+			var initial: PseudoState;
+
+			this.vertices.forEach(vertex => {
+				if (vertex instanceof PseudoState && vertex.isInitial()) {
+					if (initial) {
+						this.getRoot().errorTo.error("Multiple initial pseudo states defined for region: " + this.qualifiedName);
+					}
+
+					initial = vertex;
+				}
+			});
+
+			return initial;
 		}
 
 		/**
