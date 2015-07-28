@@ -1,4 +1,6 @@
 ## Version 5.5.0 - work in progress
+A rollup release of all the public API changes I've been wanting to do for a while; many of these are small and will probably not impact a well writtern machine.
+
 Tidy the creation of qualifiedName.
 
 Remove Region.initial property and replaced with Region.getInitial() method that selects the initial pseudo state from the set of vertices.
