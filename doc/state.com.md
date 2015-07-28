@@ -134,7 +134,7 @@ An abstract element within a state machine model that can be the source or targe
 
 Vertex extends the Element class and inherits its public interface.
 
-**transitions**: `Array.&lt;Transition&gt;` , The set of transitions from this vertex.
+**outgoing**: `Array.&lt;Transition&gt;` , The set of transitions from this vertex.
 ### Vertex.Vertex(name, parent)
 
 Creates a new instance of the Vertex class.

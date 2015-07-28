@@ -87,7 +87,7 @@ module StateJS {
 			// otherwise look for a transition from this state
 			var transition: Transition;
 
-			state.transitions.forEach(t => {
+			state.outgoing.forEach(t => {
 				if (t.guard(message, stateMachineInstance)) {
 					if (transition) {
 						state.getRoot().errorTo.error("Multiple outbound transitions evaluated true");
@@ -136,7 +136,7 @@ module StateJS {
 	function selectTransition(pseudoState: PseudoState, stateMachineInstance: IActiveStateConfiguration, message: any): Transition {
 		var results: Array<Transition> = [], elseResult: Transition;
 
-		pseudoState.transitions.forEach(transition => {
+		pseudoState.outgoing.forEach(transition => {
 			if (transition.guard === Transition.isElse) {
 				if (elseResult) {
 					pseudoState.getRoot().errorTo.error("Multiple outbound else transitions found at " + this + " for " + message);
@@ -307,7 +307,7 @@ module StateJS {
 
 			// evaluate comppletion transitions once vertex entry is complete
 			if (pseudoState.isInitial()) {
-				this.behaviour(pseudoState).endEnter.push((message, stateMachineInstance) => traverse(pseudoState.transitions[0], stateMachineInstance));
+				this.behaviour(pseudoState).endEnter.push((message, stateMachineInstance) => traverse(pseudoState.outgoing[0], stateMachineInstance));
 			} else if (pseudoState.kind === PseudoStateKind.Terminate) {
 				// terminate the state machine instance upon transition to a terminate pseudo state
 				pseudoStateBehaviour.beginEnter.push((message, stateMachineInstance) => stateMachineInstance.isTerminated = true);

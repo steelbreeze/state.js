@@ -62,7 +62,7 @@ module StateJS {
 		 * @returns {boolean} True if the state is a final state.
 		 */
 		public isFinal(): boolean {
-			return this.transitions.length === 0;
+			return this.outgoing.length === 0;
 		}
 
 		/**

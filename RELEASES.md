@@ -5,6 +5,8 @@ Remove the unnecessary TypeScript overloads from Vertex constructor and all deri
 
 Tidy the creation of qualifiedName.
 
+Rename Vertex.transitions to Vertex.outgoing to more closely align to UML specification.
+
 Remove Region.initial property and replaced with Region.getInitial() method that selects the initial pseudo state from the set of vertices.
 
 Tidy up some of unnecessary methods in the model interface

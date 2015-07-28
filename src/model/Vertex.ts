@@ -23,7 +23,7 @@ module StateJS {
 		 * The set of transitions from this vertex.
 		 * @member {Array<Transition>}
 		 */
-		public transitions: Array<Transition> = [];
+		public outgoing: Array<Transition> = [];
 
 		/**
 		 * Creates a new instance of the Vertex class.
@@ -53,7 +53,7 @@ module StateJS {
 		public to(target?: Vertex, kind: TransitionKind = TransitionKind.External): Transition {
 			var transition = new Transition(this, target, target ? kind : TransitionKind.Internal);
 
-			this.transitions.push(transition);
+			this.outgoing.push(transition);
 			this.getRoot().clean = false;
 
 			return transition;

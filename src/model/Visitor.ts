@@ -51,7 +51,7 @@ module StateJS {
 		public visitVertex(vertex: Vertex, arg1?: TArg1, arg2?: any, arg3?: any): any {
 			var result = this.visitElement(vertex, arg1, arg2, arg3);
 
-			vertex.transitions.forEach(transition => { transition.accept(this, arg1, arg2, arg3) });
+			vertex.outgoing.forEach(transition => { transition.accept(this, arg1, arg2, arg3) });
 
 			return result;
 		}
