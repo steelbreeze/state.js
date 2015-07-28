@@ -19,13 +19,13 @@ module StateJS {
 		 * @member {TransitionKind} Internal
 		 */
 		Internal,
-		
+
 		/**
-		 * The transition, if triggered, will not exit the composite (source) state, but it will apply to any state within the composite state, and these will be exited and entered.
+		 * The transition, if triggered, will not exit the composite (source) state, but will enter the non-active target vertex ancestry.
 		 * @member {TransitionKind} Local
 		 */
 		Local,
-		
+
 		/**
 		 * The transition, if triggered, will exit the source vertex.
 		 * @member {TransitionKind} External

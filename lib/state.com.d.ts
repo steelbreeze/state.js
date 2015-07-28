@@ -87,7 +87,7 @@ declare module StateJS {
          */
         Internal = 0,
         /**
-         * The transition, if triggered, will not exit the composite (source) state, but it will apply to any state within the composite state, and these will be exited and entered.
+         * The transition, if triggered, will not exit the composite (source) state, but will enter the non-active target vertex ancestry.
          * @member {TransitionKind} Local
          */
         Local = 1,
@@ -101,7 +101,7 @@ declare module StateJS {
 declare module StateJS {
     /**
      * An abstract class used as the base for the Region and Vertex classes.
-     * An element is any part of the tree structure that represents a composite state machine model.
+     * An element is a node within the tree structure that represents a composite state machine model.
      * @class Element
      */
     class Element {
@@ -437,21 +437,21 @@ declare module StateJS {
         /**
          * Instructs the state machine model to log activity to an object supporting the Console interface.
          * @method setLogger
-         * @param {LogTo} value Pass in console to log to the console, or any other object supporting the .log method.
+         * @param {LogTo} value Pass in console to log to the console, or another other object implementing the LogTo interface.
          * @returns {StateMachine} Returns the state machine to enable fluent style API.
          */
         setLogger(value: LogTo): StateMachine;
         /**
          * Instructs the state machine model to direct warnings activity to an object supporting the Console interface.
          * @method setWarning
-         * @param {WarnTo} value Pass in console to log to the console, or any other object supporting the .warn method.
+         * @param {WarnTo} value Pass in console to log to the console, or another other object implementing the WarnTo interface.
          * @returns {StateMachine} Returns the state machine to enable fluent style API.
          */
         setWarning(value: WarnTo): StateMachine;
         /**
          * Instructs the state machine model to direct error messages to an object supporting the Console interface.
          * @method setError
-         * @param {ErrorTo} value Pass in console to log to the console, or any other object supporting the .error method.
+         * @param {ErrorTo} value Pass in console to log to the console, or another other object implementing the ErrorTo interface.
          * @returns {StateMachine} Returns the state machine to enable fluent style API.
          */
         setError(value: ErrorTo): StateMachine;
@@ -688,7 +688,7 @@ declare module StateJS {
      * Default working implementation of a state machine instance class.
      *
      * Implements the `IActiveStateConfiguration` interface.
-     * It is possible to create other custom instance classes to manage state machine state in any way (e.g. as serialisable JSON); just implement the same members and methods as this class.
+     * It is possible to create other custom instance classes to manage state machine state in other ways (e.g. as serialisable JSON); just implement the same members and methods as this class.
      * @class StateMachineInstance
      * @implements IActiveStateConfiguration
      */

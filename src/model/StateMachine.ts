@@ -45,7 +45,7 @@ module StateJS {
 		/**
 		 * Instructs the state machine model to log activity to an object supporting the Console interface.
 		 * @method setLogger
-		 * @param {LogTo} value Pass in console to log to the console, or any other object supporting the .log method.
+		 * @param {LogTo} value Pass in console to log to the console, or another other object implementing the LogTo interface.
 		 * @returns {StateMachine} Returns the state machine to enable fluent style API.
 		 */
 		public setLogger(value: LogTo): StateMachine {
@@ -58,7 +58,7 @@ module StateJS {
 		/**
 		 * Instructs the state machine model to direct warnings activity to an object supporting the Console interface.
 		 * @method setWarning
-		 * @param {WarnTo} value Pass in console to log to the console, or any other object supporting the .warn method.
+		 * @param {WarnTo} value Pass in console to log to the console, or another other object implementing the WarnTo interface.
 		 * @returns {StateMachine} Returns the state machine to enable fluent style API.
 		 */
 		public setWarning(value: WarnTo): StateMachine {
@@ -71,7 +71,7 @@ module StateJS {
 		/**
 		 * Instructs the state machine model to direct error messages to an object supporting the Console interface.
 		 * @method setError
-		 * @param {ErrorTo} value Pass in console to log to the console, or any other object supporting the .error method.
+		 * @param {ErrorTo} value Pass in console to log to the console, or another other object implementing the ErrorTo interface.
 		 * @returns {StateMachine} Returns the state machine to enable fluent style API.
 		 */
 		public setError(value: ErrorTo): StateMachine {

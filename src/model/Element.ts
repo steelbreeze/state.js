@@ -7,7 +7,7 @@
 module StateJS {
 	/**
 	 * An abstract class used as the base for the Region and Vertex classes.
-	 * An element is any part of the tree structure that represents a composite state machine model.
+	 * An element is a node within the tree structure that represents a composite state machine model.
 	 * @class Element
 	 */
 	export class Element {
