@@ -26,26 +26,11 @@ module StateJS {
 		public transitions: Array<Transition> = [];
 
 		/**
-		 * Creates a new instance of the Vertex class within a given parent region.
-		 * @param {string} name The name of the vertex.
-		 * @param {Region} parent The parent region.
-		 */
-		public constructor(name: string, parent: Region);
-
-		/**
-		 * Creates a new instance of the Vertex class within a given parent state.
-		 * Note, this will create the vertex within the parent states default region.
-		 * @param {string} name The name of the vertex.
-		 * @param {State} parent The parent state.
-		 */
-		public constructor(name: string, parent: State);
-
-		/**
 		 * Creates a new instance of the Vertex class.
 		 * @param {string} name The name of the vertex.
 		 * @param {Element} parent The parent region or state.
 		 */
-		public constructor(name: string, parent: any) {
+		public constructor(name: string, parent: Element) {
 			super(name, parent instanceof State ? parent.defaultRegion() : parent);
 
 			if (this.region = <Region>this.parent) {

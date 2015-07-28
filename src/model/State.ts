@@ -31,23 +31,9 @@ module StateJS {
 		/**
 		 * Creates a new instance of the State class.
 		 * @param {string} name The name of the state.
-		 * @param {Region} parent The parent region that owns the state.
-		 */
-		public constructor(name: string, parent: Region);
-
-		/**
-		 * Creates a new instance of the State class.
-		 * @param {string} name The name of the state.
-		 * @param {State} parent The parent state that owns the state.
-		 */
-		public constructor(name: string, parent: State);
-
-		/**
-		 * Creates a new instance of the State class.
-		 * @param {string} name The name of the state.
 		 * @param {Element} parent The parent state that owns the state.
 		 */
-		public constructor(name: string, parent: any) {
+		public constructor(name: string, parent: Element) {
 			super(name, parent);
 		}
 

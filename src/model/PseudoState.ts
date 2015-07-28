@@ -26,26 +26,10 @@ module StateJS {
 		/**
 		 * Creates a new instance of the PseudoState class.
 		 * @param {string} name The name of the pseudo state.
-		 * @param {Region} parent The parent region that this pseudo state will be a child of.
-		 * @param {PseudoStateKind} kind Determines the behaviour of the PseudoState.
-		 */
-		public constructor(name: string, parent: Region, kind: PseudoStateKind);
-
-		/**
-		 * Creates a new instance of the PseudoState class.
-		 * @param {string} name The name of the pseudo state.
-		 * @param {State} parent The parent state that this pseudo state will be a child of.
-		 * @param {PseudoStateKind} kind Determines the behaviour of the PseudoState.
-		 */
-		public constructor(name: string, parent: State, kind: PseudoStateKind);
-
-		/**
-		 * Creates a new instance of the PseudoState class.
-		 * @param {string} name The name of the pseudo state.
 		 * @param {Element} parent The parent element that this pseudo state will be a child of.
 		 * @param {PseudoStateKind} kind Determines the behaviour of the PseudoState.
 		 */
-		public constructor(name: string, parent: any, kind: PseudoStateKind = PseudoStateKind.Initial) {
+		public constructor(name: string, parent: Element, kind: PseudoStateKind = PseudoStateKind.Initial) {
 			super(name, parent);
 
 			this.kind = kind;

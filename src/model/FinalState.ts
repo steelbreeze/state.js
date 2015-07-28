@@ -18,23 +18,9 @@ module StateJS {
 		/**
 		 * Creates a new instance of the FinalState class.
 		 * @param {string} name The name of the final state.
-		 * @param {Region} parent The parent region that owns the final state.
-		 */
-		public constructor(name: string, parent: Region);
-
-		/**
-		 * Creates a new instance of the FinalState class.
-		 * @param {string} name The name of the final state.
-		 * @param {State} parent The parent state that owns the final state.
-		 */
-		public constructor(name: string, parent: State);
-
-		/**
-		 * Creates a new instance of the FinalState class.
-		 * @param {string} name The name of the final state.
 		 * @param {Element} parent The parent element that owns the final state.
 		 */
-		public constructor(name: string, parent: any) {
+		public constructor(name: string, parent: Element) {
 			super(name, parent);
 		}
 
