@@ -42,6 +42,15 @@ module StateJS {
 		}
 
 		/**
+		 * Returns the root element within the state machine model.
+		 * @method getRoot
+		 * @returns {StateMachine} The root state machine element.
+		 */
+		public getRoot(): StateMachine {
+			return this.region.getRoot(); // NOTE: need to keep this dynamic as a state machine may be embedded within another
+		}
+
+		/**
 		 * Creates a new transition from this vertex.
 		 * Newly created transitions are completion transitions; they will be evaluated after a vertex has been entered if it is deemed to be complete.
 		 * Transitions can be converted to be event triggered by adding a guard condition via the transitions `where` method.

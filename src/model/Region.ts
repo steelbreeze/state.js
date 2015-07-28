@@ -52,6 +52,15 @@ module StateJS {
 		}
 
 		/**
+		 * Returns the root element within the state machine model.
+		 * @method getRoot
+		 * @returns {StateMachine} The root state machine element.
+		 */
+		public getRoot(): StateMachine {
+			return this.state.getRoot(); // NOTE: need to keep this dynamic as a state machine may be embedded within another
+		}
+
+		/**
 		 * The pseudo state that will be in initial starting state when entering the region explicitly.
 		 * @method {getInitial}
 		 * @returns {PseudoState} The initial starting pseudo state if one is defined.

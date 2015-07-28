@@ -58,12 +58,6 @@ Creates a new instance of the element class.
 **name**: `string`, The name of the element.
 
 
-### Element.getRoot()
-
-Returns the root element within the state machine model.
-
-**Returns**: `StateMachine`, The root state machine element.
-
 ### Element.accept(visitor, arg)
 
 Accepts an instance of a visitor.
@@ -106,6 +100,12 @@ Creates a new instance of the Region class.
 **state**: `State`, The parent state that this region will be a child of.
 
 
+### Region.getRoot()
+
+Returns the root element within the state machine model.
+
+**Returns**: `StateMachine`, The root state machine element.
+
 ### Region.{getInitial}()
 
 The pseudo state that will be in initial starting state when entering the region explicitly.
@@ -145,6 +145,12 @@ Creates a new instance of the Vertex class.
 
 **parent**: `Element`, The parent region or state.
 
+
+### Vertex.getRoot()
+
+Returns the root element within the state machine model.
+
+**Returns**: `StateMachine`, The root state machine element.
 
 ### Vertex.to(target, kind)
 

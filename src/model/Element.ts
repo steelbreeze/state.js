@@ -47,15 +47,6 @@ module StateJS {
 		}
 
 		/**
-		 * Returns the root element within the state machine model.
-		 * @method getRoot
-		 * @returns {StateMachine} The root state machine element.
-		 */
-		public getRoot(): StateMachine {
-			return this.parent.getRoot(); // NOTE: need to keep this dynamic as a state machine may be embedded within another
-		}
-
-		/**
 		 * Accepts an instance of a visitor.
 		 * @method accept
 		 * @param {Visitor<TArg>} visitor The visitor instance.

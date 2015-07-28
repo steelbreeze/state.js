@@ -132,12 +132,6 @@ declare module StateJS {
          */
         constructor(name: string, parent: Element);
         /**
-         * Returns the root element within the state machine model.
-         * @method getRoot
-         * @returns {StateMachine} The root state machine element.
-         */
-        getRoot(): StateMachine;
-        /**
          * Accepts an instance of a visitor.
          * @method accept
          * @param {Visitor<TArg>} visitor The visitor instance.
@@ -189,6 +183,12 @@ declare module StateJS {
          */
         constructor(name: string, state: State);
         /**
+         * Returns the root element within the state machine model.
+         * @method getRoot
+         * @returns {StateMachine} The root state machine element.
+         */
+        getRoot(): StateMachine;
+        /**
          * The pseudo state that will be in initial starting state when entering the region explicitly.
          * @method {getInitial}
          * @returns {PseudoState} The initial starting pseudo state if one is defined.
@@ -231,6 +231,12 @@ declare module StateJS {
          * @param {Element} parent The parent region or state.
          */
         constructor(name: string, parent: Element);
+        /**
+         * Returns the root element within the state machine model.
+         * @method getRoot
+         * @returns {StateMachine} The root state machine element.
+         */
+        getRoot(): StateMachine;
         /**
          * Creates a new transition from this vertex.
          * Newly created transitions are completion transitions; they will be evaluated after a vertex has been entered if it is deemed to be complete.

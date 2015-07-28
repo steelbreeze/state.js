@@ -9,6 +9,8 @@ Rename Vertex.transitions to Vertex.outgoing to more closely align to UML specif
 
 Remove Region.initial property and replaced with Region.getInitial() method that selects the initial pseudo state from the set of vertices.
 
+Remove Element.getRoot and implement it as Vertex.getRoot and Region.getRoot; thereby making Element closer to NamedElement in UML.
+
 Tidy up some of unnecessary methods in the model interface
 * Remove Element.getParent, relpace with parent attribute.
 * Remove Element.getAncestors.

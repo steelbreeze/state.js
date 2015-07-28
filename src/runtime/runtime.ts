@@ -263,16 +263,6 @@ module StateJS {
 			return this.behaviours[element.qualifiedName] || (this.behaviours[element.qualifiedName] = new ElementBehavior());
 		}
 
-		// uncomment this method for debugging purposes
-		visitElement(element: Element, deepHistoryAbove: boolean) {
-			if (element.getRoot().logTo !== defaultConsole) {
-				var elementBehaviour = this.behaviour(element);
-
-				elementBehaviour.leave.push((message, instance) => element.getRoot().logTo.log(instance + " leave " + element));
-				elementBehaviour.beginEnter.push((message, instance) => element.getRoot().logTo.log(instance + " enter " + element));
-			}
-		}
-
 		visitRegion(region: Region, deepHistoryAbove: boolean) {
 			var regionBehaviour = this.behaviour(region);
 			var regionInitial = region.getInitial();
@@ -293,10 +283,22 @@ module StateJS {
 			}
 
 			// add element behaviour (debug)
-			this.visitElement(region, deepHistoryAbove);
+			if (region.getRoot().logTo !== defaultConsole) {
+				regionBehaviour.leave.push((message, instance) => region.getRoot().logTo.log(instance + " leave " + region));
+				regionBehaviour.beginEnter.push((message, instance) => region.getRoot().logTo.log(instance + " enter " + region));
+			}
 
 			// merge begin and end enter behaviour
 			regionBehaviour.enter = regionBehaviour.beginEnter.concat(regionBehaviour.endEnter);
+		}
+
+		visitVertex(vertex: Vertex, deepHistoryAbove: boolean) {
+			if (vertex.getRoot().logTo !== defaultConsole) {
+				var vertexBehaviour = this.behaviour(vertex);
+
+				vertexBehaviour.leave.push((message, instance) => vertex.getRoot().logTo.log(instance + " leave " + vertex));
+				vertexBehaviour.beginEnter.push((message, instance) => vertex.getRoot().logTo.log(instance + " enter " + vertex));
+			}
 		}
 
 		visitPseudoState(pseudoState: PseudoState, deepHistoryAbove: boolean) {
