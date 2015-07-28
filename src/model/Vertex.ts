@@ -33,7 +33,7 @@ module StateJS {
 		public constructor(name: string, parent: Element) {
 			super(name, parent instanceof State ? parent.defaultRegion() : parent);
 
-			if (this.region = <Region>this.parent) {
+			if (this.region = <Region>this.parent) { // NOTE: this.parent will be a Region due to the conditional logic in the super call above
 
 				this.region.vertices.push(this);
 
