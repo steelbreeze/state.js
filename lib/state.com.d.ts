@@ -112,11 +112,6 @@ declare module StateJS {
          */
         static namespaceSeparator: string;
         /**
-         * The parent element of this element.
-         * @member {Element}
-         */
-        parent: Element;
-        /**
          * The name of the element.
          * @member {string}
          */

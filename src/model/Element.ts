@@ -19,12 +19,6 @@ module StateJS {
 		public static namespaceSeparator = ".";
 
 		/**
-		 * The parent element of this element.
-		 * @member {Element}
-		 */
-		public parent: Element;
-
-		/**
 		 * The name of the element.
 		 * @member {string}
 		 */
@@ -41,7 +35,6 @@ module StateJS {
 		 * @param {string} name The name of the element.
 		 */
 		public constructor(name: string, parent: Element) {
-			this.parent = parent;
 			this.name = name;
 			this.qualifiedName = parent ? (parent.qualifiedName + "." + name) : name;
 		}

@@ -365,7 +365,7 @@ module StateJS {
 		}
 	}
 
-	function getAncestors(element: Element): Array<Element> {
-		return (element.parent ? getAncestors(element.parent) : []).concat(element);
+	function getAncestors(vertex: Vertex): Array<Element> {
+		return (vertex.region ? getAncestors(vertex.region.state).concat(vertex.region) : []).concat(vertex);
 	}
 }

@@ -45,13 +45,13 @@ module StateJS {
 
 			// validate user specifying a local transition; target must be in the source ancestry
 			if (this.kind === TransitionKind.Local) {
-				var element: Element = target;
+				var vertex: Vertex = target;
 
 				do {
-					if (element === source) {
+					if (vertex === source) {
 						return;
 					}
-				} while (element = element.parent);
+				} while (vertex = vertex.region ? vertex.region.state : undefined);
 
 				source.getRoot().errorTo.error(target + " is not a descendant of " + source);
 			}
