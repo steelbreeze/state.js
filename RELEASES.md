@@ -13,6 +13,8 @@ Remove Element.getRoot and implement it as Vertex.getRoot and Region.getRoot; th
 
 Remove Elemenet.accept and implement to remove state machine specifics from Element.
 
+Rename LogTo, WarnTo and ErrorTo interfaces to ILogTo, IWarnTo and IErrorTo respectively.
+
 Add Vertex.accept.
 
 Tidy up some of unnecessary methods in the model interface

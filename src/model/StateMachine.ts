@@ -20,9 +20,9 @@ module StateJS {
 		onInitialise: Array<Action>;
 
 		// used to inject logging, warnings and errors.
-		logTo: LogTo = defaultConsole;
-		warnTo: WarnTo = defaultConsole;
-		errorTo: ErrorTo = defaultConsole;
+		logTo: ILogTo = defaultConsole;
+		warnTo: IWarnTo = defaultConsole;
+		errorTo: IErrorTo = defaultConsole;
 
 		/**
 		 * Creates a new instance of the StateMachine class.
@@ -45,10 +45,10 @@ module StateJS {
 		/**
 		 * Instructs the state machine model to log activity to an object supporting the Console interface.
 		 * @method setLogger
-		 * @param {LogTo} value Pass in console to log to the console, or another other object implementing the LogTo interface.
+		 * @param {ILogTo} value Pass in console to log to the console, or another other object implementing the LogTo interface.
 		 * @returns {StateMachine} Returns the state machine to enable fluent style API.
 		 */
-		public setLogger(value: LogTo): StateMachine {
+		public setLogger(value: ILogTo): StateMachine {
 			this.logTo = value;
 			this.clean = false;
 
@@ -58,10 +58,10 @@ module StateJS {
 		/**
 		 * Instructs the state machine model to direct warnings activity to an object supporting the Console interface.
 		 * @method setWarning
-		 * @param {WarnTo} value Pass in console to log to the console, or another other object implementing the WarnTo interface.
+		 * @param {IWarnTo} value Pass in console to log to the console, or another other object implementing the WarnTo interface.
 		 * @returns {StateMachine} Returns the state machine to enable fluent style API.
 		 */
-		public setWarning(value: WarnTo): StateMachine {
+		public setWarning(value: IWarnTo): StateMachine {
 			this.warnTo = value;
 			this.clean = false;
 
@@ -71,10 +71,10 @@ module StateJS {
 		/**
 		 * Instructs the state machine model to direct error messages to an object supporting the Console interface.
 		 * @method setError
-		 * @param {ErrorTo} value Pass in console to log to the console, or another other object implementing the ErrorTo interface.
+		 * @param {IErrorTo} value Pass in console to log to the console, or another other object implementing the ErrorTo interface.
 		 * @returns {StateMachine} Returns the state machine to enable fluent style API.
 		 */
-		public setError(value: ErrorTo): StateMachine {
+		public setError(value: IErrorTo): StateMachine {
 			this.errorTo = value;
 			this.clean = false;
 
@@ -97,9 +97,9 @@ module StateJS {
 
 	/**
 	 * Interface that must be conformed to for logging messages
-	 * @interface LogTo
+	 * @interface ILogTo
 	 */
-	export interface LogTo {
+	export interface ILogTo {
 		/**
 		 * Log an informational message
 		 * @method log
@@ -110,9 +110,9 @@ module StateJS {
 
 	/**
 	 * Interface that must be conformed to for warning messages
-	 * @interface WarnTo
+	 * @interface IWarnTo
 	 */
-	export interface WarnTo {
+	export interface IWarnTo {
 		/**
 		 * Log a warning message
 		 * @method warn
@@ -123,9 +123,9 @@ module StateJS {
 
 	/**
 	 * Interface that must be conformed to for error messages
-	 * @interface WarnTo
+	 * @interface IWarnTo
 	 */
-	export interface ErrorTo {
+	export interface IErrorTo {
 		/**
 		 * Raise an error message
 		 * @method warn
