@@ -132,14 +132,6 @@ declare module StateJS {
          */
         constructor(name: string, parent: Element);
         /**
-         * Accepts an instance of a visitor.
-         * @method accept
-         * @param {Visitor<TArg>} visitor The visitor instance.
-         * @param {TArg} arg An optional argument to pass into the visitor.
-         * @returns {any} Any value can be returned by the visitor.
-         */
-        accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any;
-        /**
          * Returns a the element name as a fully qualified namespace.
          * @method toString
          * @returns {string}
@@ -247,6 +239,14 @@ declare module StateJS {
          * @returns {Transition} The new transition object.
          */
         to(target?: Vertex, kind?: TransitionKind): Transition;
+        /**
+         * Accepts an instance of a visitor.
+         * @method accept
+         * @param {Visitor<TArg>} visitor The visitor instance.
+         * @param {TArg} arg An optional argument to pass into the visitor.
+         * @returns {any} Any value can be returned by the visitor.
+         */
+        accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any;
     }
 }
 declare module StateJS {

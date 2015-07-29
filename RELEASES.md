@@ -11,6 +11,10 @@ Remove Region.initial property and replaced with Region.getInitial() method that
 
 Remove Element.getRoot and implement it as Vertex.getRoot and Region.getRoot; thereby making Element closer to NamedElement in UML.
 
+Remove Elemenet.accept and implement to remove state machine specifics from Element.
+
+Add Vertex.accept.
+
 Tidy up some of unnecessary methods in the model interface
 * Remove Element.getParent, relpace with parent attribute.
 * Remove Element.getAncestors.

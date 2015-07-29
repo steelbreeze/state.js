@@ -67,5 +67,14 @@ module StateJS {
 
 			return transition;
 		}
+
+		/**
+		 * Accepts an instance of a visitor.
+		 * @method accept
+		 * @param {Visitor<TArg>} visitor The visitor instance.
+		 * @param {TArg} arg An optional argument to pass into the visitor.
+		 * @returns {any} Any value can be returned by the visitor.
+		 */
+		public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any { /* virtual method */ }
 	}
 }
