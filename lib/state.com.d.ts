@@ -528,6 +528,10 @@ declare module StateJS {
         guard: Guard;
         transitionBehavior: Array<Action>;
         traverse: Array<Action>;
+        /**
+         * The kind of the transition which determines its behaviour.
+         * @member {TransitionKind}
+         */
         kind: TransitionKind;
         /**
          * Creates a new instance of the Transition class.

@@ -29,6 +29,10 @@ module StateJS {
 		// the collected actions to perform when traversing the transition (includes exiting states, traversal, and state entry)
 		traverse: Array<Action> = [];
 
+		/**
+		 * The kind of the transition which determines its behaviour.
+		 * @member {TransitionKind}
+		 */
 		public kind: TransitionKind;
 
 		/**
@@ -38,6 +42,7 @@ module StateJS {
 		 * @param {TransitionKind} kind The kind the transition; use this to set Local or External (the default if omitted) transition semantics.
 		 */
 		public constructor(public source: Vertex, public target?: Vertex, kind: TransitionKind = TransitionKind.External) {
+			// default the guard condition
 			this.guard = source instanceof PseudoState ? (() => { return true; }) : (message => { return message === this.source; });
 
 			// force transition kind for internal transitions
