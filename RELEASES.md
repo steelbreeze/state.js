@@ -25,6 +25,8 @@ Tidy up some of unnecessary methods in the model interface
 
 Reduce use of any type.
 
+Move a litte logic from Vertex.to to Transition constructor to allow explicit creation of Transitions as well as Vertex.to.
+
 ## Version 5.4.5
 Fix issue where final state calls the error method instead of a warning.
 

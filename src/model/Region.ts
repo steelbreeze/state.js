@@ -57,7 +57,7 @@ module StateJS {
 		 * @returns {StateMachine} The root state machine element.
 		 */
 		public getRoot(): StateMachine {
-			return this.state.getRoot(); // NOTE: need to keep this dynamic as a state machine may be embedded within another
+			return this.state.getRoot();
 		}
 
 		/**

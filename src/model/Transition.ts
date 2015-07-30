@@ -55,6 +55,10 @@ module StateJS {
 
 				source.getRoot().errorTo.error(target + " is not a descendant of " + source);
 			}
+
+			this.source.outgoing.push(this);
+
+			this.source.getRoot().clean = false;
 		}
 
 		/**

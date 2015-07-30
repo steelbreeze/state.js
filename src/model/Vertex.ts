@@ -60,12 +60,7 @@ module StateJS {
 		 * @returns {Transition} The new transition object.
 		 */
 		public to(target?: Vertex, kind: TransitionKind = TransitionKind.External): Transition {
-			var transition = new Transition(this, target, target ? kind : TransitionKind.Internal);
-
-			this.outgoing.push(transition);
-			this.getRoot().clean = false;
-
-			return transition;
+			return new Transition(this, target, target ? kind : TransitionKind.Internal);
 		}
 
 		/**
