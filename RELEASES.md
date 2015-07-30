@@ -27,6 +27,8 @@ Reduce use of any type.
 
 Move a litte logic from Vertex.to to Transition constructor to allow explicit creation of Transitions as well as Vertex.to.
 
+Other internal general refactoring.
+
 ## Version 5.4.5
 Fix issue where final state calls the error method instead of a warning.
 

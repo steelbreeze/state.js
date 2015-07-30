@@ -107,7 +107,7 @@ module StateJS {
 
 	// traverses a transition
 	function traverse(transition: Transition, instance: IActiveStateConfiguration, message?: any): boolean {
-		var transitionBehavior = transition.traverse,
+		var onTraverse = transition.onTraverse,
 			target = transition.target;
 
 		// process static conditional branches
@@ -115,11 +115,11 @@ module StateJS {
 			transition = selectTransition(<PseudoState>target, instance, message); // TODO: remove this cast
 			target = transition.target;
 
-			Array.prototype.push.apply(transitionBehavior, transition.traverse);
+			Array.prototype.push.apply(onTraverse, transition.onTraverse);
 		}
 
 		// execute the transition behaviour
-		transitionBehavior.forEach(action => action(message, instance));
+		onTraverse.forEach(action => action(message, instance));
 
 		// process dynamic conditional branches
 		if (target && (target instanceof PseudoState) && (target.kind === PseudoStateKind.Choice)) {
@@ -177,7 +177,7 @@ module StateJS {
 		visitTransition(transition: Transition, behaviour: ElementBehaviors) {
 			switch (transition.kind) {
 				case TransitionKind.Internal:
-					transition.traverse = transition.transitionBehavior;
+					transition.onTraverse = transition.transitionBehavior;
 					break;
 
 				case TransitionKind.Local:
@@ -192,7 +192,7 @@ module StateJS {
 
 		// initialise internal transitions: these do not leave the source state
 		visitLocalTransition(transition: Transition, behaviour: ElementBehaviors) {
-			transition.traverse.push((message, instance) => {
+			transition.onTraverse.push((message, instance) => {
 				var targetAncestors = getAncestors(transition.target);
 				var i = 0;
 
@@ -229,16 +229,16 @@ module StateJS {
 			}
 
 			// leave source ancestry as required and perform the transition effect
-			Array.prototype.push.apply(transition.traverse, behaviour[sourceAncestors[i].qualifiedName].leave);
-			Array.prototype.push.apply(transition.traverse, transition.transitionBehavior);
+			Array.prototype.push.apply(transition.onTraverse, behaviour[sourceAncestors[i].qualifiedName].leave);
+			Array.prototype.push.apply(transition.onTraverse, transition.transitionBehavior);
 
 			// enter the target ancestry
 			while (i < targetAncestors.length) {
-				this.cascadeElementEntry(transition, behaviour, targetAncestors[i++], targetAncestors[i], actions => { Array.prototype.push.apply(transition.traverse, actions) });
+				this.cascadeElementEntry(transition, behaviour, targetAncestors[i++], targetAncestors[i], actions => { Array.prototype.push.apply(transition.onTraverse, actions) });
 			}
 
 			// trigger cascade
-			Array.prototype.push.apply(transition.traverse, behaviour[transition.target.qualifiedName].endEnter);
+			Array.prototype.push.apply(transition.onTraverse, behaviour[transition.target.qualifiedName].endEnter);
 		}
 
 		cascadeElementEntry(transition: Transition, behaviour: ElementBehaviors, element: Element, next: Element, task: (actions: Array<Action>) => void) {

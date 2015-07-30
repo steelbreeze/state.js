@@ -27,7 +27,7 @@ module StateJS {
 		transitionBehavior: Array<Action> = [];
 
 		// the collected actions to perform when traversing the transition (includes exiting states, traversal, and state entry)
-		traverse: Array<Action> = [];
+		onTraverse: Array<Action> = [];
 
 		/**
 		 * The kind of the transition which determines its behaviour.

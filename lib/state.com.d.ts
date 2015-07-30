@@ -527,7 +527,7 @@ declare module StateJS {
         static isElse: () => boolean;
         guard: Guard;
         transitionBehavior: Array<Action>;
-        traverse: Array<Action>;
+        onTraverse: Array<Action>;
         /**
          * The kind of the transition which determines its behaviour.
          * @member {TransitionKind}
