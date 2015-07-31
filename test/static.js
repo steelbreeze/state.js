@@ -17,18 +17,20 @@ junction1.to(fail).else();
 junction2.to(pass).when(function(message, instance) { return instance.counter === 0; }).effect(function(message, instance) { return instance.counter++; });
 junction2.to(fail).else();
 
+state.validate(model);
+
 var instance = new state.StateMachineInstance();
 instance.counter = 0;
 
 describe("test/static.js", function () {
 	it("Junction transitions implement a static conditional branch", function(){
 		state.initialise(model, instance);
-		
+
 		assert.equal(pass, instance.getCurrent(model.defaultRegion()));
 	});
 
 	it("Junction transitions call all transition behaviour after guards have been tested", function(){
-		
+
 		assert.equal(2, instance.counter);
 	});
 });

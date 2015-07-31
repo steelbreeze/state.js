@@ -10,9 +10,11 @@ initial.to(stateA);
 
 var instance = new state.StateMachineInstance("instance");
 
+state.validate(model);
+
 state.initialise(model, instance);
 
-//describe("test/callbacks.js", function () {	
+//describe("test/callbacks.js", function () {
 //	describe("With half the model defined:", function () {
 //		it("Model will not respond to events", function () {
 			assert.equal(false, state.evaluate(model, instance, "move"));
@@ -22,10 +24,10 @@ state.initialise(model, instance);
 	var stateB = new state.State("stateB", model).entry(function (message, instance) {instance.calls += 2;});
 
 	stateA.to(stateB).when(function (message) { return message === "move"; }).effect(function (message, instance) {instance.calls += 4;});
-	
+
 //	describe("With the full model defined:", function () {
 //		it("Model will respond to events", function () {
 			assert.equal(true, state.evaluate(model, instance, "move"));
 //		});
-//	});	
+//	});
 //});

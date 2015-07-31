@@ -1,6 +1,8 @@
 ## Version 5.5.0 - work in progress
 A rollup release of all the public API changes I've been wanting to do for a while; many of these are small and will probably not impact a well writtern machine.
 
+Added a Validator class (implementation of a Visitor) and moved any validation logic there. Better validation can be performed after the full model is built. A call of validate(stateMachine) will perform validation.
+
 Remove the unnecessary TypeScript overloads from Vertex constructor and all derived class constructors.
 
 Tidy the creation of qualifiedName.

@@ -1,7 +1,7 @@
 /* global describe, it */
 var assert = require("assert"),
 	state = require("../lib/state.com.js");
-	
+
 var model = new state.StateMachine( "model" );
 
 var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
@@ -44,7 +44,9 @@ simple.to(ortho).when(function(c) {
     return c === "back";
 });
 
-var instance = new state.StateMachineInstance("instance");				
+state.validate(model);
+
+var instance = new state.StateMachineInstance("instance");
 state.initialise(model, instance);
 
 console.log("simple.isSimple = " + simple.isSimple());
@@ -66,7 +68,7 @@ describe("test/muximise.js", function () {
 		it("simple state isSimple", function () {
 			assert(simple.isSimple());
 			assert(!model.isSimple());
-			assert(!ortho.isSimple());			
+			assert(!ortho.isSimple());
 		});
 
 		// ensure only composite states return true for isComposite
@@ -83,13 +85,13 @@ describe("test/muximise.js", function () {
 			assert(ortho.isOrthogonal());
 		});
 	});
-	
+
 	describe("Orthogonal state completion", function () {
 		// ensure that completion transitions for orthogonal states are triggered after completion of all child regions
 		it("Completion transition fires once all regions of an orthogonal state are complete", function(){
 			state.evaluate(model, instance, "complete1");
 			state.evaluate(model, instance, "complete2");
-		
+
 			assert.equal(true, state.isComplete(model, instance));
 		});
 	});

@@ -70,10 +70,6 @@ module StateJS {
 
 			this.vertices.forEach(vertex => {
 				if (vertex instanceof PseudoState && vertex.isInitial()) {
-					if (initial) {
-						this.getRoot().errorTo.error("Multiple initial pseudo states defined for region: " + this.qualifiedName);
-					}
-
 					initial = vertex;
 				}
 			});

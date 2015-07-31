@@ -23,6 +23,8 @@ junction1.to(junction2).else();
 junction2.to(activity3).else();
 activity3.to(end);
 
+state.validate(model);
+
 var instance = new state.StateMachineInstance("instance");
 state.initialise(model, instance);
 

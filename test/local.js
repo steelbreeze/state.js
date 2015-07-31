@@ -21,6 +21,8 @@ bInitial.to(bStateI);
 stateB.to(bStateII, state.TransitionKind.Local).when(function (message) { return message === "local"; });
 stateB.to(bStateII, state.TransitionKind.External).when(function (message) { return message === "external"; });
 
+state.validate(model);
+
 // create a state machine instance
 var instance = new state.StateMachineInstance("instance");
 instance.stateBExitCount = 0;

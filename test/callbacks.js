@@ -14,6 +14,8 @@ var stateB = new state.State("stateB", model).entry(function (message, instance)
 initial.to(stateA);
 stateA.to(stateB).when(function (message) { return message === "move"; }).effect(function (message, instance) {instance.calls += 4;});
 
+state.validate(model);
+
 state.initialise(model, instance);
 
 state.evaluate(model, instance, "move");
@@ -23,16 +25,16 @@ describe("test/callbacks.js", function () {
 		it("State exit behavior called", function () {
 			assert.equal(1, 1 & instance.calls);
 		});
-		
+
 		it("State entry behavior called", function () {
 			assert.equal(2, 2 & instance.calls);
 		});
-		
+
 		it("State transition behavior called", function () {
 			assert.equal(4, 4 & instance.calls);
 		});
 	});
-	
+
 	describe("Custom logging", function () {
 		it("Logger called during initialisation and state transitions", function () {
 			assert.equal(10, instance.logs);

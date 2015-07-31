@@ -16,6 +16,8 @@ instance.entryCount = 0;
 instance.exitCount = 0;
 instance.transitionCount = 0;
 
+state.validate(model);
+
 state.initialise(model, instance);
 
 describe("test/internal.js", function () {

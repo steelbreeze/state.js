@@ -24,13 +24,6 @@ module StateJS {
 			super(name, parent);
 		}
 
-		// override Vertex.to to generate an error when trying to create a transition from a final state.
-		public to(target?: Vertex): Transition {
-			this.getRoot().warnTo.warn("A FinalState cannot be the source of a transition; transition not accepted");
-
-			return;
-		}
-
 		/**
 		 * Accepts an instance of a visitor and calls the visitFinalState method on it.
 		 * @method accept

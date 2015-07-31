@@ -42,24 +42,8 @@ module StateJS {
 		 * @param {TransitionKind} kind The kind the transition; use this to set Local or External (the default if omitted) transition semantics.
 		 */
 		public constructor(public source: Vertex, public target?: Vertex, kind: TransitionKind = TransitionKind.External) {
-			// default the guard condition
 			this.guard = source instanceof PseudoState ? (() => { return true; }) : (message => { return message === this.source; });
-
-			// force transition kind for internal transitions
 			this.kind = target ? kind : TransitionKind.Internal;
-
-			// validate user specifying a local transition; target must be in the source ancestry
-			if (this.kind === TransitionKind.Local) {
-				var vertex: Vertex = target;
-
-				do {
-					if (vertex === source) {
-						return;
-					}
-				} while (vertex = vertex.region ? vertex.region.state : undefined);
-
-				source.getRoot().errorTo.error(target + " is not a descendant of " + source);
-			}
 
 			this.source.outgoing.push(this);
 
@@ -116,6 +100,15 @@ module StateJS {
 		 */
 		public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any {
 			return visitor.visitTransition(this, arg1, arg2, arg3);
+		}
+
+		/**
+		 * Returns a the transition name.
+		 * @method toString
+		 * @returns {string}
+		 */
+		public toString(): string {
+			return "[" + (this.target? (this.source + " -> " + this.target) : this.source) + "]";
 		}
 	}
 }

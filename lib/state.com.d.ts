@@ -398,7 +398,6 @@ declare module StateJS {
          * @param {Element} parent The parent element that owns the final state.
          */
         constructor(name: string, parent: Element);
-        to(target?: Vertex): Transition;
         /**
          * Accepts an instance of a visitor and calls the visitFinalState method on it.
          * @method accept
@@ -572,6 +571,12 @@ declare module StateJS {
          * @returns {any} Any value can be returned by the visitor.
          */
         accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any;
+        /**
+         * Returns a the transition name.
+         * @method toString
+         * @returns {string}
+         */
+        toString(): string;
     }
 }
 declare module StateJS {
@@ -760,6 +765,7 @@ declare module StateJS {
     function isComplete(element: Element, instance: IActiveStateConfiguration): boolean;
 }
 declare module StateJS {
+    function validate(stateMachineModel: StateMachine): void;
     /**
      * Initialises a state machine and/or state machine model.
      *

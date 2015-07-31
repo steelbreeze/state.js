@@ -16,6 +16,8 @@ choice.to(junction).when(function(message, instance) { return !instance.hello })
 choice.to(finalState).else();
 junction.to(choice).when(function(message, instance) { return !instance.world }).effect(function (message, instance) {instance.world = "world"; });
 
+state.validate(model);
+
 var instance = new state.StateMachineInstance("instance");
 
 state.initialise(model, instance);

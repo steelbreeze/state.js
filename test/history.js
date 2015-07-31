@@ -1,7 +1,7 @@
 /* global describe, it */
 var assert = require("assert"),
 	state = require("../lib/state.com.js");
-	
+
 var model = new state.StateMachine( "history" );
 
 var initial = new state.PseudoState( "initial", model, state.PseudoStateKind.Initial);
@@ -18,6 +18,8 @@ s1.to(s2).when(function(c) { return c === "move";} );
 shallow.to(deep).when(function(c) { return c === "go deep";} );
 deep.to(shallow).when(function(c) { return c === "go shallow";} );
 s2.to(end).when(function(c) { return c === "end"; } );
+
+state.validate(model);
 
 var instance = new state.StateMachineInstance("instance");
 

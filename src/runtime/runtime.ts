@@ -5,6 +5,10 @@
  * http://www.steelbreeze.net/state.cs
  */
 module StateJS {
+	export function validate(stateMachineModel: StateMachine) {
+		stateMachineModel.accept(new Validator());
+	}
+
 	/**
 	 * Initialises a state machine and/or state machine model.
 	 *
@@ -367,5 +371,61 @@ module StateJS {
 
 	function getAncestors(vertex: Vertex): Array<Element> {
 		return (vertex.region ? getAncestors(vertex.region.state).concat(vertex.region) : []).concat(vertex);
+	}
+
+	class Validator extends Visitor<string> {
+		public visitRegion(region: Region): any {
+			super.visitRegion(region);
+
+			// [1] A region can have at most one initial vertex.
+			// [2] A region can have at most one deep history vertex.
+			// [3] A region can have at most one shallow history vertex.
+			var initial: PseudoState;
+
+			region.vertices.forEach(vertex => {
+				if (vertex instanceof PseudoState && vertex.isInitial()) {
+					if (initial) {
+				region.getRoot().errorTo.error(region + ": regions may have at most one initial pseudo state.");
+					}
+
+					initial = vertex;
+				}
+			});
+		}
+
+		public visitFinalState(finalState: FinalState): any {
+			super.visitFinalState(finalState);
+
+			// [1] A final state cannot have any outgoing transitions.
+			if (finalState.outgoing.length !== 0) {
+				finalState.getRoot().errorTo.error(finalState + ": final states must not have outgoing transitions.");
+			}
+
+			// [2] A final state cannot have regions.
+			if (finalState.regions.length !== 0) {
+				finalState.getRoot().errorTo.error(finalState + ": final states must not have child regions.");
+			}
+
+			// [4] A final state has no entry behavior.
+			if (finalState.entryBehavior.length !== 0) {
+				finalState.getRoot().warnTo.warn(finalState + ": final states may not have entry behavior.");
+			}
+
+			// [5] A final state has no exit behavior.
+			if (finalState.exitBehavior.length !== 0) {
+				finalState.getRoot().warnTo.warn(finalState + ": final states may not have exit behavior.");
+			}
+		}
+
+		public visitTransition(transition: Transition): any {
+			super.visitTransition(transition);
+
+			// Local transition target vertices must be a child of the source vertex
+			if (transition.kind === TransitionKind.Local) {
+				if(getAncestors(transition.target).indexOf(transition.source) === -1) {
+					transition.source.getRoot().errorTo.error(transition + ": local transition target vertices must be a child of the source composite sate.");
+				}
+			}
+		}
 	}
 }
