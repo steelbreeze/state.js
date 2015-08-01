@@ -5,6 +5,11 @@
  * http://www.steelbreeze.net/state.cs
  */
 module StateJS {
+	/***
+	 * Validates a state machine model for correctness (see the constraints defined within the UML Superstructure specification).
+	 * @function validate
+	 * @param {StateMachine} stateMachineModel The state machine model to validate.
+	 */
 	export function validate(stateMachineModel: StateMachine) {
 		stateMachineModel.accept(new Validator());
 	}
@@ -141,7 +146,7 @@ module StateJS {
 		var results: Array<Transition> = [], elseResult: Transition;
 
 		pseudoState.outgoing.forEach(transition => {
-			if (transition.guard === Transition.isElse) {
+			if (transition.guard === Transition.FalseGuard) {
 				if (elseResult) {
 					pseudoState.getRoot().errorTo.error("Multiple outbound else transitions found at " + this + " for " + message);
 				}
@@ -374,6 +379,30 @@ module StateJS {
 	}
 
 	class Validator extends Visitor<string> {
+
+		public visitPseudoState(pseudoState: PseudoState): any {
+			super.visitPseudoState(pseudoState);
+
+			if (pseudoState.isInitial() ) {
+				if (pseudoState.outgoing.length !== 1) {
+					// [1] An initial vertex can have at most one outgoing transition.
+					// [2] History vertices can have at most one outgoing transition.
+					pseudoState.getRoot().errorTo.error(pseudoState + ": initial pseudo states must have one outgoing transition.");
+				} else {
+					// [9] The outgoing transition from an initial vertex may have a behavior, but not a trigger or guard.
+					if (pseudoState.outgoing[0].guard !== Transition.TrueGuard) {
+						pseudoState.getRoot().errorTo.error(pseudoState + ": initial pseudo states cannot have a guard condition.");
+					}
+				}
+			} else if (pseudoState.kind === PseudoStateKind.Choice || pseudoState.kind === PseudoStateKind.Junction) {
+				// [7] In a complete statemachine, a junction vertex must have at least one incoming and one outgoing transition.
+				// [8] In a complete statemachine, a choice vertex must have at least one incoming and one outgoing transition.
+				if (pseudoState.outgoing.length === 0) {
+					pseudoState.getRoot().errorTo.error(pseudoState + ": " + pseudoState.kind + " pseudo states must have at least one outgoing transition.");
+				}
+			}
+		}
+
 		public visitRegion(region: Region): any {
 			super.visitRegion(region);
 
@@ -385,7 +414,7 @@ module StateJS {
 			region.vertices.forEach(vertex => {
 				if (vertex instanceof PseudoState && vertex.isInitial()) {
 					if (initial) {
-				region.getRoot().errorTo.error(region + ": regions may have at most one initial pseudo state.");
+						region.getRoot().errorTo.error(region + ": regions may have at most one initial pseudo state.");
 					}
 
 					initial = vertex;
@@ -422,7 +451,7 @@ module StateJS {
 
 			// Local transition target vertices must be a child of the source vertex
 			if (transition.kind === TransitionKind.Local) {
-				if(getAncestors(transition.target).indexOf(transition.source) === -1) {
+				if (getAncestors(transition.target).indexOf(transition.source) === -1) {
 					transition.source.getRoot().errorTo.error(transition + ": local transition target vertices must be a child of the source composite sate.");
 				}
 			}

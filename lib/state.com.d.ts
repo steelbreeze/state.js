@@ -523,7 +523,8 @@ declare module StateJS {
     class Transition {
         source: Vertex;
         target: Vertex;
-        static isElse: () => boolean;
+        static TrueGuard: () => boolean;
+        static FalseGuard: () => boolean;
         guard: Guard;
         transitionBehavior: Array<Action>;
         onTraverse: Array<Action>;
@@ -765,6 +766,11 @@ declare module StateJS {
     function isComplete(element: Element, instance: IActiveStateConfiguration): boolean;
 }
 declare module StateJS {
+    /***
+     * Validates a state machine model for correctness (see the constraints defined within the UML Superstructure specification).
+     * @function validate
+     * @param {StateMachine} stateMachineModel The state machine model to validate.
+     */
     function validate(stateMachineModel: StateMachine): void;
     /**
      * Initialises a state machine and/or state machine model.

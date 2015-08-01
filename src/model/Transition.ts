@@ -17,8 +17,11 @@ module StateJS {
 	 * @class Transition
 	 */
 	export class Transition {
+		// the default guard condition for pseudo states
+		static TrueGuard = () => { return true; };
+
 		// used as the guard condition for else tranitions
-		static isElse = () => { return false; };
+		static FalseGuard = () => { return false; };
 
 		// guard condition for this transition.
 		guard: Guard;
@@ -42,7 +45,7 @@ module StateJS {
 		 * @param {TransitionKind} kind The kind the transition; use this to set Local or External (the default if omitted) transition semantics.
 		 */
 		public constructor(public source: Vertex, public target?: Vertex, kind: TransitionKind = TransitionKind.External) {
-			this.guard = source instanceof PseudoState ? (() => { return true; }) : (message => { return message === this.source; });
+			this.guard = source instanceof PseudoState ? Transition.TrueGuard : (message => { return message === this.source; });
 			this.kind = target ? kind : TransitionKind.Internal;
 
 			this.source.outgoing.push(this);
@@ -58,7 +61,7 @@ module StateJS {
 		 * @returns {Transition} Returns the transition object to enable the fluent API.
 		 */
 		public else(): Transition {
-			this.guard = Transition.isElse;
+			this.guard = Transition.FalseGuard;
 
 			return this;
 		}

@@ -478,6 +478,12 @@ Accepts an instance of a visitor and calls the visitTransition method on it.
 
 **Returns**: `any`, Any value can be returned by the visitor.
 
+### Transition.toString()
+
+Returns a the transition name.
+
+**Returns**: `string`
+
 
 ## Class: Visitor
 Implementation of a visitor pattern.
