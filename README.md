@@ -51,7 +51,8 @@ var instance = new state.StateMachineInstance("instance");
 state.initialise(model, instance);
 
 // send the machine instance a message for evaluation, this will trigger the transition from stateA to stateB
-state.evaluate(model, instance, "move");```
+state.evaluate(model, instance, "move");
+```
 
 ### HTML scripting
 
