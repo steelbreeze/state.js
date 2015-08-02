@@ -1,4 +1,4 @@
-//var fsm = require("state.js"); // use this form if installed via NPM
+//var state = require("state.js"); // use this form if installed via NPM
 var state = require("../../lib/state.com.js"); // use this form if local
 
 // create the state machine model elements
