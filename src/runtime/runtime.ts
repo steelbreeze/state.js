@@ -121,7 +121,10 @@ module StateJS {
 
 		// process static conditional branches
 		while (target && target instanceof PseudoState && target.kind === PseudoStateKind.Junction) {
-			transition = selectTransition(<PseudoState>target, instance, message); // TODO: remove this cast
+			if (target instanceof PseudoState) { // coerce the TS compiler into casting target for the selectTransition call
+				transition = selectTransition(target, instance, message);
+			}
+
 			target = transition.target;
 
 			Array.prototype.push.apply(onTraverse, transition.onTraverse);
@@ -211,7 +214,13 @@ module StateJS {
 				}
 
 				// exit the active sibling
-				behaviour[instance.getCurrent((<Vertex>targetAncestors[i]).region).qualifiedName].leave.forEach(action => action(message, instance)); // TODO: cast
+				var sibling = targetAncestors[i];
+
+				if (sibling instanceof Vertex) {
+					behaviour[instance.getCurrent(sibling.region).qualifiedName].leave.forEach(action => action(message, instance));
+				} else if (sibling instanceof Region) {
+					behaviour[instance.getCurrent(sibling).qualifiedName].leave.forEach(action => action(message, instance));
+				}
 
 				// perform the transition action;
 				transition.transitionBehavior.forEach(action => action(message, instance));
@@ -383,7 +392,7 @@ module StateJS {
 		public visitPseudoState(pseudoState: PseudoState): any {
 			super.visitPseudoState(pseudoState);
 
-			if (pseudoState.isInitial() ) {
+			if (pseudoState.isInitial()) {
 				if (pseudoState.outgoing.length !== 1) {
 					// [1] An initial vertex can have at most one outgoing transition.
 					// [2] History vertices can have at most one outgoing transition.

@@ -1,3 +1,7 @@
+## Version 5.5.1 - under development on master
+More minor refactoring.
+
+
 ## Version 5.5.0
 A rollup release of all the public API changes I've been wanting to do for a while; many of these are small and will probably not impact a well writtern machine.
 
