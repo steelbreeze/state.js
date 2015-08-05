@@ -176,7 +176,10 @@ module StateJS {
 		leave: Array<Action> = [];
 		beginEnter: Array<Action> = [];
 		endEnter: Array<Action> = [];
-		enter: Array<Action> = [];
+
+		enter(): Array<Action> {
+			return this.beginEnter.concat(this.endEnter);
+		}
 	}
 
 	// type to manage an array of element behaviours
@@ -295,10 +298,10 @@ module StateJS {
 			// enter the appropriate child vertex when entering the region
 			if (deepHistoryAbove || !regionInitial || regionInitial.isHistory()) { // NOTE: history needs to be determined at runtime
 				regionBehaviour.endEnter.push((message, stateMachineInstance, history) => {
-					this.behaviour((history || regionInitial.isHistory()) ? stateMachineInstance.getCurrent(region) || regionInitial : regionInitial).enter.forEach(action=> action(message, stateMachineInstance, history || regionInitial.kind === PseudoStateKind.DeepHistory));
+					this.behaviour((history || regionInitial.isHistory()) ? stateMachineInstance.getCurrent(region) || regionInitial : regionInitial).enter().forEach(action=> action(message, stateMachineInstance, history || regionInitial.kind === PseudoStateKind.DeepHistory));
 				});
 			} else {
-				Array.prototype.push.apply(regionBehaviour.endEnter, this.behaviour(regionInitial).enter);
+				Array.prototype.push.apply(regionBehaviour.endEnter, this.behaviour(regionInitial).enter());
 			}
 
 			// add element behaviour (debug)
@@ -306,9 +309,6 @@ module StateJS {
 				regionBehaviour.leave.push((message, instance) => region.getRoot().logTo.log(instance + " leave " + region));
 				regionBehaviour.beginEnter.push((message, instance) => region.getRoot().logTo.log(instance + " enter " + region));
 			}
-
-			// merge begin and end enter behaviour
-			regionBehaviour.enter = regionBehaviour.beginEnter.concat(regionBehaviour.endEnter);
 		}
 
 		visitVertex(vertex: Vertex, deepHistoryAbove: boolean) {
@@ -333,9 +333,6 @@ module StateJS {
 				// terminate the state machine instance upon transition to a terminate pseudo state
 				pseudoStateBehaviour.beginEnter.push((message, stateMachineInstance) => stateMachineInstance.isTerminated = true);
 			}
-
-			// merge begin and end enter behaviour
-			pseudoStateBehaviour.enter = pseudoStateBehaviour.beginEnter.concat(pseudoStateBehaviour.endEnter);
 		}
 
 		visitState(state: State, deepHistoryAbove: boolean) {
@@ -351,7 +348,7 @@ module StateJS {
 				Array.prototype.push.apply(stateBehaviour.leave, regionBehaviour.leave);
 
 				// enter child regions when entering the state
-				Array.prototype.push.apply(stateBehaviour.endEnter, regionBehaviour.enter);
+				Array.prototype.push.apply(stateBehaviour.endEnter, regionBehaviour.enter());
 			});
 
 			// add vertex behaviour (debug and testing completion transitions)
@@ -367,9 +364,6 @@ module StateJS {
 					stateMachineInstance.setCurrent(state.region, state);
 				}
 			});
-
-			// merge begin and end enter behaviour
-			stateBehaviour.enter = stateBehaviour.beginEnter.concat(stateBehaviour.endEnter);
 		}
 
 		visitStateMachine(stateMachine: StateMachine, deepHistoryAbove: boolean) {
@@ -380,12 +374,11 @@ module StateJS {
 			stateMachine.accept(new InitialiseTransitions(), this.behaviours);
 
 			// define the behaviour for initialising a state machine instance
-			stateMachine.onInitialise = this.behaviour(stateMachine).enter;
+			stateMachine.onInitialise = this.behaviour(stateMachine).enter();
 		}
 	}
 
 	class Validator extends Visitor<string> {
-
 		public visitPseudoState(pseudoState: PseudoState): any {
 			super.visitPseudoState(pseudoState);
 
