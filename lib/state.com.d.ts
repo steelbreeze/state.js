@@ -766,12 +766,6 @@ declare module StateJS {
     function isComplete(element: Element, instance: IActiveStateConfiguration): boolean;
 }
 declare module StateJS {
-    /***
-     * Validates a state machine model for correctness (see the constraints defined within the UML Superstructure specification).
-     * @function validate
-     * @param {StateMachine} stateMachineModel The state machine model to validate.
-     */
-    function validate(stateMachineModel: StateMachine): void;
     /**
      * Initialises a state machine and/or state machine model.
      *
@@ -791,5 +785,11 @@ declare module StateJS {
      * @returns {boolean} True if the message triggered a state transition.
      */
     function evaluate(stateMachineModel: StateMachine, stateMachineInstance: IActiveStateConfiguration, message: any, autoInitialiseModel?: boolean): boolean;
+    /***
+     * Validates a state machine model for correctness (see the constraints defined within the UML Superstructure specification).
+     * @function validate
+     * @param {StateMachine} stateMachineModel The state machine model to validate.
+     */
+    function validate(stateMachineModel: StateMachine): void;
 }
 declare var module: any;

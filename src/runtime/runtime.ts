@@ -5,15 +5,6 @@
  * http://www.steelbreeze.net/state.cs
  */
 module StateJS {
-	/***
-	 * Validates a state machine model for correctness (see the constraints defined within the UML Superstructure specification).
-	 * @function validate
-	 * @param {StateMachine} stateMachineModel The state machine model to validate.
-	 */
-	export function validate(stateMachineModel: StateMachine) {
-		stateMachineModel.accept(new Validator());
-	}
-
 	/**
 	 * Initialises a state machine and/or state machine model.
 	 *
@@ -68,6 +59,15 @@ module StateJS {
 		}
 
 		return evaluateState(stateMachineModel, stateMachineInstance, message);
+	}
+
+	/***
+	 * Validates a state machine model for correctness (see the constraints defined within the UML Superstructure specification).
+	 * @function validate
+	 * @param {StateMachine} stateMachineModel The state machine model to validate.
+	 */
+	export function validate(stateMachineModel: StateMachine): void {
+		stateMachineModel.accept(new Validator());
 	}
 
 	// evaluates messages against a state, executing transitions as appropriate
@@ -184,6 +184,11 @@ module StateJS {
 		[index: string]: ElementBehavior;
 	}
 
+	// get all the vertex ancestors of a vertex (including the vertex itself)
+	function ancestors(vertex: Vertex): Array<Vertex> {
+		return (vertex.region ? ancestors(vertex.region.state) : []).concat(vertex);
+	}
+
 	// determine the type of transition and use the appropriate initiliasition method
 	class InitialiseTransitions extends Visitor<ElementBehaviors> {
 		visitTransition(transition: Transition, behaviour: ElementBehaviors) {
@@ -205,22 +210,14 @@ module StateJS {
 		// initialise internal transitions: these do not leave the source state
 		visitLocalTransition(transition: Transition, behaviour: ElementBehaviors) {
 			transition.onTraverse.push((message, instance) => {
-				var targetAncestors = getAncestors(transition.target);
+				var targetAncestors = ancestors(transition.target);
 				var i = 0;
 
 				// find the first inactive element in the target ancestry
-				while (isActive(targetAncestors[i], instance)) {
-					i++;
-				}
+				while (isActive(targetAncestors[i], instance)) { ++i; }
 
 				// exit the active sibling
-				var sibling = targetAncestors[i];
-
-				if (sibling instanceof Vertex) {
-					behaviour[instance.getCurrent(sibling.region).qualifiedName].leave.forEach(action => action(message, instance));
-				} else if (sibling instanceof Region) {
-					behaviour[instance.getCurrent(sibling).qualifiedName].leave.forEach(action => action(message, instance));
-				}
+				behaviour[instance.getCurrent(targetAncestors[i].region).qualifiedName].leave.forEach(action => action(message, instance));
 
 				// perform the transition action;
 				transition.transitionBehavior.forEach(action => action(message, instance));
@@ -237,17 +234,17 @@ module StateJS {
 
 		// initialise external transitions: these are abritarily complex
 		visitExternalTransition(transition: Transition, behaviour: ElementBehaviors) {
-			var sourceAncestors = getAncestors(transition.source);
-			var targetAncestors = getAncestors(transition.target);
+			var sourceAncestors = ancestors(transition.source);
+			var targetAncestors = ancestors(transition.target);
 			var i = Math.min(sourceAncestors.length, targetAncestors.length) - 1;
 
 			// find the index of the first uncommon ancestor (or for external transitions, the source)
-			while (sourceAncestors[i - 1] !== targetAncestors[i - 1]) {
-				i--;
-			}
+			while (sourceAncestors[i - 1] !== targetAncestors[i - 1]) { --i; }
 
-			// leave source ancestry as required and perform the transition effect
+			// leave source ancestry as required
 			Array.prototype.push.apply(transition.onTraverse, behaviour[sourceAncestors[i].qualifiedName].leave);
+
+			// perform the transition effect
 			Array.prototype.push.apply(transition.onTraverse, transition.transitionBehavior);
 
 			// enter the target ancestry
@@ -259,15 +256,19 @@ module StateJS {
 			Array.prototype.push.apply(transition.onTraverse, behaviour[transition.target.qualifiedName].endEnter);
 		}
 
-		cascadeElementEntry(transition: Transition, behaviour: ElementBehaviors, element: Element, next: Element, task: (actions: Array<Action>) => void) {
+		cascadeElementEntry(transition: Transition, behaviour: ElementBehaviors, element: Vertex, next: Vertex, task: (actions: Array<Action>) => void) {
 			task(behaviour[element.qualifiedName].beginEnter);
 
-			if (next && element instanceof State && element.isOrthogonal()) {
-				element.regions.forEach(region => {
-					if (region !== next) {
-						task(behaviour[region.qualifiedName].enter);
-					}
-				});
+			if (next) {
+				if (element instanceof State) {
+					element.regions.forEach(region => {
+						task(behaviour[region.qualifiedName].beginEnter);
+
+						if (region !== next.region) {
+							task(behaviour[region.qualifiedName].endEnter);
+						}
+					});
+				}
 			}
 		}
 	}
@@ -383,10 +384,6 @@ module StateJS {
 		}
 	}
 
-	function getAncestors(vertex: Vertex): Array<Element> {
-		return (vertex.region ? getAncestors(vertex.region.state).concat(vertex.region) : []).concat(vertex);
-	}
-
 	class Validator extends Visitor<string> {
 
 		public visitPseudoState(pseudoState: PseudoState): any {
@@ -460,7 +457,7 @@ module StateJS {
 
 			// Local transition target vertices must be a child of the source vertex
 			if (transition.kind === TransitionKind.Local) {
-				if (getAncestors(transition.target).indexOf(transition.source) === -1) {
+				if (ancestors(transition.target).indexOf(transition.source) === -1) {
 					transition.source.getRoot().errorTo.error(transition + ": local transition target vertices must be a child of the source composite sate.");
 				}
 			}
