@@ -146,28 +146,17 @@ module StateJS {
 
 	// select next leg of composite transitions after choice and junction pseudo states
 	function selectTransition(pseudoState: PseudoState, stateMachineInstance: IActiveStateConfiguration, message: any): Transition {
-		var results: Array<Transition> = [], elseResult: Transition;
-
-		pseudoState.outgoing.forEach(transition => {
-			if (transition.guard === Transition.FalseGuard) {
-				if (elseResult) {
-					pseudoState.getRoot().errorTo.error("Multiple outbound else transitions found at " + this + " for " + message);
-				}
-
-				elseResult = transition;
-			} else if (transition.guard(message, stateMachineInstance)) {
-				results.push(transition);
-			}
-		});
+		var results = pseudoState.outgoing.filter(transition => { return transition.guard(message, stateMachineInstance); });
+		var elseResult = pseudoState.outgoing.filter(transition => { return transition.guard === Transition.FalseGuard; })[0];
 
 		if (pseudoState.kind === PseudoStateKind.Choice) {
 			return results.length !== 0 ? results[getRandom()(results.length)] : elseResult;
-		} else if (pseudoState.kind === PseudoStateKind.Junction) {
+		} else {
 			if (results.length > 1) {
 				pseudoState.getRoot().errorTo.error("Multiple outbound transition guards returned true at " + this + " for " + message);
+			} else {
+				return results[0] || elseResult;
 			}
-
-			return results[0] || elseResult;
 		}
 	}
 
@@ -300,11 +289,11 @@ module StateJS {
 				Array.prototype.push.apply(this.behaviour(region).endEnter, this.behaviour(regionInitial).enter());
 			}
 
-			this.addLogging (region, region.getRoot().logTo );
+			this.addLogging(region, region.getRoot().logTo);
 		}
 
 		visitVertex(vertex: Vertex, deepHistoryAbove: boolean) {
-			this.addLogging (vertex, vertex.getRoot().logTo);
+			this.addLogging(vertex, vertex.getRoot().logTo);
 		}
 
 		visitPseudoState(pseudoState: PseudoState, deepHistoryAbove: boolean) {
@@ -371,6 +360,10 @@ module StateJS {
 				// [8] In a complete statemachine, a choice vertex must have at least one incoming and one outgoing transition.
 				if (pseudoState.outgoing.length === 0) {
 					pseudoState.getRoot().errorTo.error(pseudoState + ": " + pseudoState.kind + " pseudo states must have at least one outgoing transition.");
+				}
+
+				if (pseudoState.outgoing.filter((transition: Transition) => { return transition.guard === Transition.FalseGuard; }).length > 1) {
+					pseudoState.getRoot().errorTo.error(pseudoState + ": " + pseudoState.kind + " pseudo states cannot have more than one Else transitions.");
 				}
 			}
 		}
