@@ -333,18 +333,12 @@ module StateJS {
 			state.regions.forEach(region => {
 				var regionBehaviour = this.behaviour(region);
 
-				// chain initiaisation of child regions
-//				region.accept(this, deepHistoryAbove);
-
 				// leave child regions when leaving the state
 				Array.prototype.push.apply(stateBehaviour.leave, regionBehaviour.leave);
 
 				// enter child regions when entering the state
 				Array.prototype.push.apply(stateBehaviour.endEnter, regionBehaviour.enter());
 			});
-
-			// add vertex behaviour (debug and testing completion transitions)
-//			this.visitVertex(state, deepHistoryAbove);
 
 			// add the user defined behaviour when entering and exiting states
 			Array.prototype.push.apply(stateBehaviour.leave, state.exitBehavior);
