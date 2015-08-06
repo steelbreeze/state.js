@@ -272,13 +272,19 @@ module StateJS {
 	class InitialiseElements extends Visitor<boolean> {
 		private behaviours: ElementBehaviors = {};
 
-		// returns the behavior for a given element; creates one if not present
 		private behaviour(element: Element): ElementBehavior {
 			return this.behaviours[element.qualifiedName] || (this.behaviours[element.qualifiedName] = new ElementBehavior());
 		}
 
+		private addLogging(element: Element, logTo: ILogTo) {
+			if (logTo !== defaultConsole) {
+				this.behaviour(element).leave.push((message, instance) => logTo.log(instance + " leave " + element));
+				this.behaviour(element).beginEnter.push((message, instance) => logTo.log(instance + " enter " + element));
+			}
+		}
+
 		visitRegion(region: Region, deepHistoryAbove: boolean) {
-			var regionInitial = region.getInitial();
+			var regionInitial = region.getInitial(); // NOTE: this is an expensive operation and result is used heavily
 
 			super.visitRegion(region, regionInitial && regionInitial.kind === PseudoStateKind.DeepHistory);
 
@@ -294,18 +300,11 @@ module StateJS {
 				Array.prototype.push.apply(this.behaviour(region).endEnter, this.behaviour(regionInitial).enter());
 			}
 
-			// add element behaviour
-			if (region.getRoot().logTo !== defaultConsole) {
-				this.behaviour(region).leave.push((message, instance) => region.getRoot().logTo.log(instance + " leave " + region));
-				this.behaviour(region).beginEnter.push((message, instance) => region.getRoot().logTo.log(instance + " enter " + region));
-			}
+			this.addLogging (region, region.getRoot().logTo );
 		}
 
 		visitVertex(vertex: Vertex, deepHistoryAbove: boolean) {
-			if (vertex.getRoot().logTo !== defaultConsole) {
-				this.behaviour(vertex).leave.push((message, instance) => vertex.getRoot().logTo.log(instance + " leave " + vertex));
-				this.behaviour(vertex).beginEnter.push((message, instance) => vertex.getRoot().logTo.log(instance + " enter " + vertex));
-			}
+			this.addLogging (vertex, vertex.getRoot().logTo);
 		}
 
 		visitPseudoState(pseudoState: PseudoState, deepHistoryAbove: boolean) {
@@ -323,11 +322,9 @@ module StateJS {
 		visitState(state: State, deepHistoryAbove: boolean) {
 			super.visitState(state, deepHistoryAbove);
 
+			// configure the child region exit and entry cascade
 			state.regions.forEach(region => {
-				// leave child regions when leaving the state
 				Array.prototype.push.apply(this.behaviour(state).leave, this.behaviour(region).leave);
-
-				// enter child regions when entering the state
 				Array.prototype.push.apply(this.behaviour(state).endEnter, this.behaviour(region).enter());
 			});
 
