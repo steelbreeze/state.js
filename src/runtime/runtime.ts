@@ -147,17 +147,20 @@ module StateJS {
 	// select next leg of composite transitions after choice and junction pseudo states
 	function selectTransition(pseudoState: PseudoState, stateMachineInstance: IActiveStateConfiguration, message: any): Transition {
 		var results = pseudoState.outgoing.filter(transition => { return transition.guard(message, stateMachineInstance); });
-		var elseResult = pseudoState.outgoing.filter(transition => { return transition.guard === Transition.FalseGuard; })[0];
 
 		if (pseudoState.kind === PseudoStateKind.Choice) {
-			return results.length !== 0 ? results[getRandom()(results.length)] : elseResult;
+			return results.length !== 0 ? results[getRandom()(results.length)] : findElse(pseudoState);
 		} else {
 			if (results.length > 1) {
 				pseudoState.getRoot().errorTo.error("Multiple outbound transition guards returned true at " + this + " for " + message);
 			} else {
-				return results[0] || elseResult;
+				return results[0] || findElse(pseudoState);
 			}
 		}
+	}
+
+	function findElse(pseudoState: PseudoState): Transition {
+		return pseudoState.outgoing.filter(transition => { return transition.guard === Transition.FalseGuard; })[0];
 	}
 
 	// Temporary structure to hold element behaviour during the bootstrap process
