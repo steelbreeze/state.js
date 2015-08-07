@@ -159,6 +159,7 @@ module StateJS {
 		}
 	}
 
+	// look for else transitins from a junction or choice
 	function findElse(pseudoState: PseudoState): Transition {
 		return pseudoState.outgoing.filter(transition => { return transition.guard === Transition.FalseGuard; })[0];
 	}
@@ -347,26 +348,34 @@ module StateJS {
 		public visitPseudoState(pseudoState: PseudoState): any {
 			super.visitPseudoState(pseudoState);
 
-			if (pseudoState.isInitial()) {
-				if (pseudoState.outgoing.length !== 1) {
-					// [1] An initial vertex can have at most one outgoing transition.
-					// [2] History vertices can have at most one outgoing transition.
-					pseudoState.getRoot().errorTo.error(pseudoState + ": initial pseudo states must have one outgoing transition.");
-				} else {
-					// [9] The outgoing transition from an initial vertex may have a behavior, but not a trigger or guard.
-					if (pseudoState.outgoing[0].guard !== Transition.TrueGuard) {
-						pseudoState.getRoot().errorTo.error(pseudoState + ": initial pseudo states cannot have a guard condition.");
-					}
-				}
-			} else if (pseudoState.kind === PseudoStateKind.Choice || pseudoState.kind === PseudoStateKind.Junction) {
+			if (pseudoState.kind === PseudoStateKind.Choice || pseudoState.kind === PseudoStateKind.Junction) {
 				// [7] In a complete statemachine, a junction vertex must have at least one incoming and one outgoing transition.
 				// [8] In a complete statemachine, a choice vertex must have at least one incoming and one outgoing transition.
 				if (pseudoState.outgoing.length === 0) {
 					pseudoState.getRoot().errorTo.error(pseudoState + ": " + pseudoState.kind + " pseudo states must have at least one outgoing transition.");
 				}
 
+				// choice and junction pseudo state can have at most one else transition
 				if (pseudoState.outgoing.filter((transition: Transition) => { return transition.guard === Transition.FalseGuard; }).length > 1) {
 					pseudoState.getRoot().errorTo.error(pseudoState + ": " + pseudoState.kind + " pseudo states cannot have more than one Else transitions.");
+				}
+			} else {
+				// non choice/junction pseudo state may not have else transitions
+				if (pseudoState.outgoing.filter((transition: Transition) => { return transition.guard === Transition.FalseGuard; }).length !== 0) {
+					pseudoState.getRoot().errorTo.error(pseudoState + ": " + pseudoState.kind + " pseudo states cannot have Else transitions.");
+				}
+
+				if (pseudoState.isInitial()) {
+					if (pseudoState.outgoing.length !== 1) {
+						// [1] An initial vertex can have at most one outgoing transition.
+						// [2] History vertices can have at most one outgoing transition.
+						pseudoState.getRoot().errorTo.error(pseudoState + ": initial pseudo states must have one outgoing transition.");
+					} else {
+						// [9] The outgoing transition from an initial vertex may have a behavior, but not a trigger or guard.
+						if (pseudoState.outgoing[0].guard !== Transition.TrueGuard) {
+							pseudoState.getRoot().errorTo.error(pseudoState + ": initial pseudo states cannot have a guard condition.");
+						}
+					}
 				}
 			}
 		}
