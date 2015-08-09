@@ -28,6 +28,7 @@
 		"src/runtime/isActive.ts",
 		"src/runtime/isComplete.ts",
 		"src/runtime/runtime.ts",
+		"src/runtime/validate.ts",
 
 		"src/commonjs.ts"
 	]

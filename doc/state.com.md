@@ -712,6 +712,15 @@ Passes a message to a state machine for evaluation; messages trigger state trans
 
 **Returns**: `boolean`, True if the message triggered a state transition.
 
+## Function: validate(stateMachineModel)
+
+Validates a state machine model for correctness (see the constraints defined within the UML Superstructure specification).
+
+**Parameters**
+
+**stateMachineModel**: `StateMachine`, The state machine model to validate.
+
+
 
 
 * * *
