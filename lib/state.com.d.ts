@@ -785,7 +785,7 @@ declare module StateJS {
      * @returns {boolean} True if the message triggered a state transition.
      */
     function evaluate(stateMachineModel: StateMachine, stateMachineInstance: IActiveStateConfiguration, message: any, autoInitialiseModel?: boolean): boolean;
-    /***
+    /**
      * Validates a state machine model for correctness (see the constraints defined within the UML Superstructure specification).
      * @function validate
      * @param {StateMachine} stateMachineModel The state machine model to validate.

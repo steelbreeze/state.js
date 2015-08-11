@@ -61,7 +61,7 @@ module StateJS {
 		return evaluateState(stateMachineModel, stateMachineInstance, message);
 	}
 
-	/***
+	/**
 	 * Validates a state machine model for correctness (see the constraints defined within the UML Superstructure specification).
 	 * @function validate
 	 * @param {StateMachine} stateMachineModel The state machine model to validate.
