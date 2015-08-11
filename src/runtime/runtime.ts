@@ -70,9 +70,7 @@ module StateJS {
 			if (evaluateState(stateMachineInstance.getCurrent(region), stateMachineInstance, message)) {
 				result = true;
 
-				if (!isActive(state, stateMachineInstance)) {
-					return false; // NOTE: this just controls the every loop
-				}
+				return isActive(state, stateMachineInstance); // NOTE: this just controls the every loop; also isActive is a litte costly so using sparingly
 			}
 
 			return true; // NOTE: this just controls the every loop
@@ -85,20 +83,14 @@ module StateJS {
 			}
 		} else {
 			// otherwise look for a transition from this state
-			var transition: Transition;
+			var transitions = state.outgoing.filter(transition => { return transition.guard(message, stateMachineInstance); });
 
-			state.outgoing.forEach(t => {
-				if (t.guard(message, stateMachineInstance)) {
-					if (transition) {
-						state.getRoot().errorTo.error("Multiple outbound transitions evaluated true");
-					}
-
-					transition = t;
-				}
-			});
-
-			if (transition) {
-				result = traverse(transition, stateMachineInstance, message);
+			if (transitions.length === 1) {
+				// execute if a single transition was found
+				result = traverse(transitions[0], stateMachineInstance, message);
+			} else if( transitions.length > 1) {
+				// error if multiple transitions evaluated true
+				state.getRoot().errorTo.error(state + ": multiple outbound transitions evaluated true for message " + message);
 			}
 		}
 
@@ -107,17 +99,13 @@ module StateJS {
 
 	// traverses a transition
 	function traverse(transition: Transition, instance: IActiveStateConfiguration, message?: any): boolean {
-		var onTraverse = transition.onTraverse,
-			target = transition.target;
+		var onTraverse = transition.onTraverse, target = transition.target;
 
 		// process static conditional branches
 		while (target && target instanceof PseudoState && target.kind === PseudoStateKind.Junction) {
-			if (target instanceof PseudoState) { // coerce the TS compiler into casting target for the selectTransition call
-				transition = selectTransition(target, instance, message);
-			}
+			target = (transition = selectTransition(<PseudoState>target, instance, message)).target;
 
-			target = transition.target;
-
+			// concatenate behaviour before and after junctions
 			Array.prototype.push.apply(onTraverse, transition.onTraverse);
 		}
 
@@ -191,8 +179,8 @@ module StateJS {
 		// initialise internal transitions: these do not leave the source state
 		visitLocalTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
 			transition.onTraverse.push((message, instance) => {
-				var targetAncestors = ancestors(transition.target);
-				var i = 0;
+				var targetAncestors = ancestors(transition.target),
+				    i = 0;
 
 				// find the first inactive element in the target ancestry
 				while (isActive(targetAncestors[i], instance)) { ++i; }
@@ -215,9 +203,9 @@ module StateJS {
 
 		// initialise external transitions: these are abritarily complex
 		visitExternalTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
-			var sourceAncestors = ancestors(transition.source);
-			var targetAncestors = ancestors(transition.target);
-			var i = Math.min(sourceAncestors.length, targetAncestors.length) - 1;
+			var sourceAncestors = ancestors(transition.source),
+			    targetAncestors = ancestors(transition.target),
+				i = Math.min(sourceAncestors.length, targetAncestors.length) - 1;
 
 			// find the index of the first uncommon ancestor (or for external transitions, the source)
 			while (sourceAncestors[i - 1] !== targetAncestors[i - 1]) { --i; }
