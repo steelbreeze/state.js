@@ -1,4 +1,9 @@
-## Version 5.5.1 - under development on master
+## Version 5.5.2
+Fix an issue in the 5.5.1 release with the sequence of logging across state and region entry.
+
+More refactoring.
+
+## Version 5.5.1
 Minor refactoring post 5.5.0 release.
 
 ## Version 5.5.0
