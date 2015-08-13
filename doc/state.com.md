@@ -94,12 +94,6 @@ Returns the root element within the state machine model.
 
 **Returns**: `StateMachine`, The root state machine element.
 
-### Region.{getInitial}()
-
-The pseudo state that will be in initial starting state when entering the region explicitly.
-
-**Returns**: `PseudoState`, The initial starting pseudo state if one is defined.
-
 ### Region.accept(visitor, arg1, arg2, arg3)
 
 Accepts an instance of a visitor and calls the visitRegion method on it.

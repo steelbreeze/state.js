@@ -176,12 +176,6 @@ declare module StateJS {
          */
         getRoot(): StateMachine;
         /**
-         * The pseudo state that will be in initial starting state when entering the region explicitly.
-         * @method {getInitial}
-         * @returns {PseudoState} The initial starting pseudo state if one is defined.
-         */
-        getInitial(): PseudoState;
-        /**
          * Accepts an instance of a visitor and calls the visitRegion method on it.
          * @method accept
          * @param {Visitor<TArg1>} visitor The visitor instance.
