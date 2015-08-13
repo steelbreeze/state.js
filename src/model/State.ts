@@ -44,15 +44,7 @@ module StateJS {
 		 * @returns {Region} The default region.
 		 */
 		public defaultRegion(): Region {
-			var region: Region;
-
-			this.regions.forEach(r => { if (r.name === Region.defaultName) { region = r; } });
-
-			if (!region) {
-				region = new Region(Region.defaultName, this);
-			}
-
-			return region;
+			return this.regions.reduce((result, region) => region.name === Region.defaultName ? region : result, undefined) || new Region(Region.defaultName, this);
 		}
 
 		/**

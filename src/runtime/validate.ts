@@ -72,6 +72,13 @@ module StateJS {
 				}
 			});
 		}
+		public visitState(state: State): any {
+			super.visitState(state);
+
+			if(state.regions.filter(state => state.name === Region.defaultName).length > 1){
+				state.getRoot().errorTo.error(state + ": a state cannot have more than one region named " + Region.defaultName);
+			}
+		}
 
 		public visitFinalState(finalState: FinalState): any {
 			super.visitFinalState(finalState);

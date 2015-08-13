@@ -3,6 +3,11 @@ Fix a possible issue where deep history semantics were not properly propigated t
 
 Remove Region.getInitial and inline the code to the region bootstrap as it was really an internal use method.
 
+Refactoring.
+
+Added a more testg in the validator:
+* Check there are not multiple regions with the default region name.
+
 ## Version 5.5.2
 Fix an issue in the 5.5.1 release with the sequence of logging across state and region entry.
 
