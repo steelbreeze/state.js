@@ -22,13 +22,13 @@ module StateJS {
 			}
 
 			// log as required
-			logTo.log("initialise " + stateMachineInstance);
+			logger.log("initialise " + stateMachineInstance);
 
 			// enter the state machine instance for the first time
 			stateMachineModel.onInitialise.forEach(action => action(undefined, stateMachineInstance));
 		} else {
 			// log as required
-			logTo.log("initialise " + stateMachineModel.name);
+			logger.log("initialise " + stateMachineModel.name);
 
 			// initialise the state machine model
 			stateMachineModel.accept(new InitialiseElements(), false);
@@ -46,7 +46,7 @@ module StateJS {
 	 */
 	export function evaluate(stateMachineModel: StateMachine, stateMachineInstance: IActiveStateConfiguration, message: any, autoInitialiseModel: boolean = true): boolean {
 		// log as required
-		logTo.log(stateMachineInstance + " evaluate " + message);
+		logger.log(stateMachineInstance + " evaluate " + message);
 
 		// initialise the state machine model if necessary
 		if (autoInitialiseModel && stateMachineModel.clean === false) {
@@ -88,9 +88,9 @@ module StateJS {
 			if (transitions.length === 1) {
 				// execute if a single transition was found
 				result = traverse(transitions[0], stateMachineInstance, message);
-			} else if (transitions.length > 1) {
+			} else if( transitions.length > 1) {
 				// error if multiple transitions evaluated true
-				errorTo.error(state + ": multiple outbound transitions evaluated true for message " + message);
+				logger.error(state + ": multiple outbound transitions evaluated true for message " + message);
 			}
 		}
 
@@ -131,7 +131,7 @@ module StateJS {
 			return results.length !== 0 ? results[getRandom()(results.length)] : findElse(pseudoState);
 		} else {
 			if (results.length > 1) {
-				errorTo.error("Multiple outbound transition guards returned true at " + this + " for " + message);
+				logger.error("Multiple outbound transition guards returned true at " + this + " for " + message);
 			} else {
 				return results[0] || findElse(pseudoState);
 			}
@@ -140,7 +140,7 @@ module StateJS {
 
 	// look for else transitins from a junction or choice
 	function findElse(pseudoState: PseudoState): Transition {
-		return pseudoState.outgoing.filter(transition => transition.guard === Transition.FalseGuard)[0]; // NOTE: validator will ensure max one else transition
+		return pseudoState.outgoing.filter(transition =>  transition.guard === Transition.FalseGuard)[0];
 	}
 
 	// Temporary structure to hold element behaviour during the bootstrap process
@@ -180,7 +180,7 @@ module StateJS {
 		visitLocalTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
 			transition.onTraverse.push((message, instance) => {
 				var targetAncestors = ancestors(transition.target),
-					i = 0;
+				    i = 0;
 
 				// find the first inactive element in the target ancestry
 				while (isActive(targetAncestors[i], instance)) { ++i; }
@@ -204,7 +204,7 @@ module StateJS {
 		// initialise external transitions: these are abritarily complex
 		visitExternalTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
 			var sourceAncestors = ancestors(transition.source),
-				targetAncestors = ancestors(transition.target),
+			    targetAncestors = ancestors(transition.target),
 				i = Math.min(sourceAncestors.length, targetAncestors.length) - 1;
 
 			// find the index of the first uncommon ancestor (or for external transitions, the source)
@@ -248,29 +248,35 @@ module StateJS {
 			return this.behaviours[element.qualifiedName] || (this.behaviours[element.qualifiedName] = new ElementBehavior());
 		}
 
-		visitElement(element: Element, deepHistoryAbove: boolean) {
-			if (logTo !== defaultConsole) {
+		private addLogging(element: Element, logTo: ILogger) {
+			if (logTo !== defaultLogger) {
 				this.behaviour(element).leave.push((message, instance) => logTo.log(instance + " leave " + element));
 				this.behaviour(element).beginEnter.push((message, instance) => logTo.log(instance + " enter " + element));
 			}
 		}
 
 		visitRegion(region: Region, deepHistoryAbove: boolean) {
-			var initial = region.vertices.reduce<PseudoState>((result, vertex) => vertex instanceof PseudoState && vertex.isInitial() ? vertex : result, undefined);
+			var regionInitial = region.vertices.reduce<PseudoState>((result, vertex) => vertex instanceof PseudoState && vertex.isInitial() ? vertex : result, undefined);
 
-			super.visitRegion(region, deepHistoryAbove || (initial && initial.kind === PseudoStateKind.DeepHistory));
+			super.visitRegion(region, deepHistoryAbove || (regionInitial && regionInitial.kind === PseudoStateKind.DeepHistory));
 
 			// leave the curent active child state when exiting the region
 			this.behaviour(region).leave.push((message, stateMachineInstance) => this.behaviour(stateMachineInstance.getCurrent(region)).leave.forEach(action=> action(message, stateMachineInstance)));
 
 			// enter the appropriate child vertex when entering the region
-			if (deepHistoryAbove || !initial || initial.isHistory()) { // NOTE: history needs to be determined at runtime
+			if (deepHistoryAbove || !regionInitial || regionInitial.isHistory()) { // NOTE: history needs to be determined at runtime
 				this.behaviour(region).endEnter.push((message, stateMachineInstance, history) => {
-					this.behaviour((history || initial.isHistory()) ? stateMachineInstance.getCurrent(region) || initial : initial).enter().forEach(action=> action(message, stateMachineInstance, history || initial.kind === PseudoStateKind.DeepHistory));
+					this.behaviour((history || regionInitial.isHistory()) ? stateMachineInstance.getCurrent(region) || regionInitial : regionInitial).enter().forEach(action=> action(message, stateMachineInstance, history || regionInitial.kind === PseudoStateKind.DeepHistory));
 				});
 			} else {
-				Array.prototype.push.apply(this.behaviour(region).endEnter, this.behaviour(initial).enter());
+				Array.prototype.push.apply(this.behaviour(region).endEnter, this.behaviour(regionInitial).enter());
 			}
+
+			this.addLogging(region, logger);
+		}
+
+		visitVertex(vertex: Vertex, deepHistoryAbove: boolean) {
+			this.addLogging(vertex, logger);
 		}
 
 		visitPseudoState(pseudoState: PseudoState, deepHistoryAbove: boolean) {
@@ -318,69 +324,17 @@ module StateJS {
 			stateMachine.onInitialise = this.behaviour(stateMachine).enter();
 		}
 	}
-
-	/**
-	 * Interface that must be conformed to for logging messages
-	 * @interface ILogTo
-	 */
-	export interface ILogTo {
-		/**
-		 * Log an informational message
-		 * @method log
-		 * @param {string} message The informational message to log.
-		 */
+	export interface ILogger {
 		log(message: string): void;
-	}
-
-	/**
-	 * Interface that must be conformed to for warning messages
-	 * @interface IWarnTo
-	 */
-	export interface IWarnTo {
-		/**
-		 * Log a warning message
-		 * @method warn
-		 * @param {string} message The warning message to log.
-		 */
 		warn(message: string): void;
-	}
-
-	/**
-	 * Interface that must be conformed to for error messages
-	 * @interface IWarnTo
-	 */
-	export interface IErrorTo {
-		/**
-		 * Raise an error message
-		 * @method warn
-		 * @param {string} message The warning message to raise.
-		 */
 		error(message: string): void;
 	}
 
-	var defaultConsole = {
+	var defaultLogger = {
 		log: function(message: string): void { },
 		warn: function(message: string): void { },
 		error: function(message: string): void { throw message; }
 	}
 
-	/**
-	 * The object used to send log messages to. Point this to another object if you wish to implement custom logging.
-	 * @member {ILogTo}
-	 */
-	export var logTo: ILogTo = defaultConsole;
-
-	/**
-	 * The object used to send warning messages to. Point this to another object if you wish to implement custom warnings.
-	 * @member {IWarnTo}
-	 */
-	export var warnTo: IWarnTo = defaultConsole;
-
-	/**
-	 * The object used to send error messages to. Point this to another object if you wish to implement custom warnings.
-	 *
-	 * Default behaviour for error messages is to throw an exception.
-	 * @member {IErrorTo}
-	 */
-	export var errorTo: IErrorTo = defaultConsole;
+	export var logger: ILogger = defaultLogger;
 }

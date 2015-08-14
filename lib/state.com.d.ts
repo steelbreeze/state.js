@@ -176,6 +176,11 @@ declare module StateJS {
          */
         getRoot(): StateMachine;
         /**
+         * The pseudo state that will be in initial starting state when entering the region explicitly.
+         * @method {getInitial}
+         * @returns {PseudoState} The initial starting pseudo state if one is defined.
+         */
+        /**
          * Accepts an instance of a visitor and calls the visitRegion method on it.
          * @method accept
          * @param {Visitor<TArg1>} visitor The visitor instance.
@@ -714,59 +719,12 @@ declare module StateJS {
      * @returns {boolean} True if the message triggered a state transition.
      */
     function evaluate(stateMachineModel: StateMachine, stateMachineInstance: IActiveStateConfiguration, message: any, autoInitialiseModel?: boolean): boolean;
-    /**
-     * Interface that must be conformed to for logging messages
-     * @interface ILogTo
-     */
-    interface ILogTo {
-        /**
-         * Log an informational message
-         * @method log
-         * @param {string} message The informational message to log.
-         */
+    interface ILogger {
         log(message: string): void;
-    }
-    /**
-     * Interface that must be conformed to for warning messages
-     * @interface IWarnTo
-     */
-    interface IWarnTo {
-        /**
-         * Log a warning message
-         * @method warn
-         * @param {string} message The warning message to log.
-         */
         warn(message: string): void;
-    }
-    /**
-     * Interface that must be conformed to for error messages
-     * @interface IWarnTo
-     */
-    interface IErrorTo {
-        /**
-         * Raise an error message
-         * @method warn
-         * @param {string} message The warning message to raise.
-         */
         error(message: string): void;
     }
-    /**
-     * The object used to send log messages to. Point this to another object if you wish to implement custom logging.
-     * @member {ILogTo}
-     */
-    var logTo: ILogTo;
-    /**
-     * The object used to send warning messages to. Point this to another object if you wish to implement custom warnings.
-     * @member {IWarnTo}
-     */
-    var warnTo: IWarnTo;
-    /**
-     * The object used to send error messages to. Point this to another object if you wish to implement custom warnings.
-     *
-     * Default behaviour for error messages is to throw an exception.
-     * @member {IErrorTo}
-     */
-    var errorTo: IErrorTo;
+    var logger: ILogger;
 }
 declare module StateJS {
     /**

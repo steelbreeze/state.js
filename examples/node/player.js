@@ -1,8 +1,10 @@
 //var fsm = require("state.js"); // use this form if installed via NPM
 var state = require("../../lib/state.com.js"); // use this form if local
 
+state.logger = console;
+
 // create the state machine model elements
-var model = new state.StateMachine ("model").setLogger(console);
+var model = new state.StateMachine ("model");
 var initial = new state.PseudoState ("initial", model, state.PseudoStateKind.Initial);
 var operational = new state.State ("operational", model);
 var flipped = new state.State ("flipped", model);
@@ -15,7 +17,7 @@ var paused = new state.State ("paused", active);
 
 // create the state machine model transitions
 initial.to (operational);
-deepHistory.to (stopped);		
+deepHistory.to (stopped);
 stopped.to (running).when (function (s) { return s === "play"; });
 active.to (stopped).when (function (s) { return s === "stop"; });
 running.to (paused).when (function (s) { return s === "pause"; });

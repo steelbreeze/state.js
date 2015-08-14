@@ -1,8 +1,10 @@
 //var state = require("state.js"); // use this form if installed via NPM
 var state = require("../../lib/state.com.js"); // use this form if local
 
+state.logger = console;
+
 // create the state machine model elements
-var model = new state.StateMachine("model").setLogger(console).setWarning(console);
+var model = new state.StateMachine("model");
 var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
 var stateA = new state.State("stateA", model);
 var stateB = new state.State("stateB", model);
