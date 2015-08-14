@@ -34,8 +34,11 @@ $ npm install state.js
 ```js
 var state = require("state.js");
 
+// send log messages, warnings and errors to the console
+state.logger = console;
+
 // create the state machine model elements
-var model = new state.StateMachine("model").setLogger(console).setWarning(console);
+var model = new state.StateMachine("model");
 var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
 var stateA = new state.State("stateA", model);
 var stateB = new state.State("stateB", model);
@@ -71,8 +74,11 @@ Use [lib/state.js](https://github.com/steelbreeze/state.js/blob/master/lib/state
 
 ```html
 <script>
+	// send log messages, warnings and errors to the console
+	state.logger = console;
+
 	// create the state machine model elements
-	var model = new state.StateMachine("model").setLogger(console);
+	var model = new state.StateMachine("model");
 	var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
 	var stateA = new state.State("stateA", model);
 	var stateB = new state.State("stateB", model);

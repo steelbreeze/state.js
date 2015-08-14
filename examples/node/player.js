@@ -1,6 +1,7 @@
 //var fsm = require("state.js"); // use this form if installed via NPM
 var state = require("../../lib/state.com.js"); // use this form if local
 
+// send log messages, warnings and errors to the console
 state.logger = console;
 
 // create the state machine model elements
