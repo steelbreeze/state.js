@@ -358,36 +358,6 @@ Note that if this state machine is embeded within another state machine, the ult
 
 **Returns**: `StateMachine`, The root state machine element.
 
-### StateMachine.setLogger(value)
-
-Instructs the state machine model to log activity to an object supporting the Console interface.
-
-**Parameters**
-
-**value**: `ILogTo`, Pass in console to log to the console, or another other object implementing the LogTo interface.
-
-**Returns**: `StateMachine`, Returns the state machine to enable fluent style API.
-
-### StateMachine.setWarning(value)
-
-Instructs the state machine model to direct warnings activity to an object supporting the Console interface.
-
-**Parameters**
-
-**value**: `IWarnTo`, Pass in console to log to the console, or another other object implementing the WarnTo interface.
-
-**Returns**: `StateMachine`, Returns the state machine to enable fluent style API.
-
-### StateMachine.setError(value)
-
-Instructs the state machine model to direct error messages to an object supporting the Console interface.
-
-**Parameters**
-
-**value**: `IErrorTo`, Pass in console to log to the console, or another other object implementing the ErrorTo interface.
-
-**Returns**: `StateMachine`, Returns the state machine to enable fluent style API.
-
 ### StateMachine.accept(visitor, arg1, arg2, arg3)
 
 Accepts an instance of a visitor and calls the visitStateMachine method on it.
@@ -618,6 +588,8 @@ Implements the `IActiveStateConfiguration` interface.
 It is possible to create other custom instance classes to manage state machine state in other ways (e.g. as serialisable JSON); just implement the same members and methods as this class.
 
 **isTerminated**:  , Indicates that the state manchine instance reached was terminated by reaching a Terminate pseudo state.
+
+Default behaviour for error messages is to throw an exception.
 ### StateMachineInstance.StateMachineInstance(name)
 
 Creates a new instance of the state machine instance class.
@@ -714,6 +686,14 @@ Validates a state machine model for correctness (see the constraints defined wit
 
 **stateMachineModel**: `StateMachine`, The state machine model to validate.
 
+## Property: logTo
+**logTo**: `ILogTo` , The object used to send log messages to. Point this to another object if you wish to implement custom logging.
+
+## Property: warnTo
+**warnTo**: `IWarnTo` , The object used to send warning messages to. Point this to another object if you wish to implement custom warnings.
+
+## Property: errorTo
+**errorTo**: `IErrorTo` , The object used to send error messages to. Point this to another object if you wish to implement custom warnings.
 
 
 
