@@ -413,9 +413,6 @@ declare module StateJS {
     class StateMachine extends State {
         clean: boolean;
         onInitialise: Array<Action>;
-        logTo: ILogTo;
-        warnTo: IWarnTo;
-        errorTo: IErrorTo;
         /**
          * Creates a new instance of the StateMachine class.
          * @param {string} name The name of the state machine.
@@ -429,27 +426,6 @@ declare module StateJS {
          */
         getRoot(): StateMachine;
         /**
-         * Instructs the state machine model to log activity to an object supporting the Console interface.
-         * @method setLogger
-         * @param {ILogTo} value Pass in console to log to the console, or another other object implementing the LogTo interface.
-         * @returns {StateMachine} Returns the state machine to enable fluent style API.
-         */
-        setLogger(value: ILogTo): StateMachine;
-        /**
-         * Instructs the state machine model to direct warnings activity to an object supporting the Console interface.
-         * @method setWarning
-         * @param {IWarnTo} value Pass in console to log to the console, or another other object implementing the WarnTo interface.
-         * @returns {StateMachine} Returns the state machine to enable fluent style API.
-         */
-        setWarning(value: IWarnTo): StateMachine;
-        /**
-         * Instructs the state machine model to direct error messages to an object supporting the Console interface.
-         * @method setError
-         * @param {IErrorTo} value Pass in console to log to the console, or another other object implementing the ErrorTo interface.
-         * @returns {StateMachine} Returns the state machine to enable fluent style API.
-         */
-        setError(value: IErrorTo): StateMachine;
-        /**
          * Accepts an instance of a visitor and calls the visitStateMachine method on it.
          * @method accept
          * @param {Visitor<TArg1>} visitor The visitor instance.
@@ -460,47 +436,6 @@ declare module StateJS {
          */
         accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any;
     }
-    /**
-     * Interface that must be conformed to for logging messages
-     * @interface ILogTo
-     */
-    interface ILogTo {
-        /**
-         * Log an informational message
-         * @method log
-         * @param {string} message The informational message to log.
-         */
-        log(message: string): void;
-    }
-    /**
-     * Interface that must be conformed to for warning messages
-     * @interface IWarnTo
-     */
-    interface IWarnTo {
-        /**
-         * Log a warning message
-         * @method warn
-         * @param {string} message The warning message to log.
-         */
-        warn(message: string): void;
-    }
-    /**
-     * Interface that must be conformed to for error messages
-     * @interface IWarnTo
-     */
-    interface IErrorTo {
-        /**
-         * Raise an error message
-         * @method warn
-         * @param {string} message The warning message to raise.
-         */
-        error(message: string): void;
-    }
-    var defaultConsole: {
-        log: (message: string) => void;
-        warn: (message: string) => void;
-        error: (message: string) => void;
-    };
 }
 declare module StateJS {
     /**
@@ -779,6 +714,59 @@ declare module StateJS {
      * @returns {boolean} True if the message triggered a state transition.
      */
     function evaluate(stateMachineModel: StateMachine, stateMachineInstance: IActiveStateConfiguration, message: any, autoInitialiseModel?: boolean): boolean;
+    /**
+     * Interface that must be conformed to for logging messages
+     * @interface ILogTo
+     */
+    interface ILogTo {
+        /**
+         * Log an informational message
+         * @method log
+         * @param {string} message The informational message to log.
+         */
+        log(message: string): void;
+    }
+    /**
+     * Interface that must be conformed to for warning messages
+     * @interface IWarnTo
+     */
+    interface IWarnTo {
+        /**
+         * Log a warning message
+         * @method warn
+         * @param {string} message The warning message to log.
+         */
+        warn(message: string): void;
+    }
+    /**
+     * Interface that must be conformed to for error messages
+     * @interface IWarnTo
+     */
+    interface IErrorTo {
+        /**
+         * Raise an error message
+         * @method warn
+         * @param {string} message The warning message to raise.
+         */
+        error(message: string): void;
+    }
+    /**
+     * The object used to send log messages to. Point this to another object if you wish to implement custom logging.
+     * @member {ILogTo}
+     */
+    var logTo: ILogTo;
+    /**
+     * The object used to send warning messages to. Point this to another object if you wish to implement custom warnings.
+     * @member {IWarnTo}
+     */
+    var warnTo: IWarnTo;
+    /**
+     * The object used to send error messages to. Point this to another object if you wish to implement custom warnings.
+     *
+     * Default behaviour for error messages is to throw an exception.
+     * @member {IErrorTo}
+     */
+    var errorTo: IErrorTo;
 }
 declare module StateJS {
     /**

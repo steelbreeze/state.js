@@ -2,7 +2,7 @@
 var assert = require("assert"),
 	state = require("../lib/state.com.js");
 
-var model = new state.StateMachine("model").setLogger(console);
+var model = new state.StateMachine("model");
 
 var initial = new state.PseudoState("initial", model);
 

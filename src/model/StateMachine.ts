@@ -19,11 +19,6 @@ module StateJS {
 		// the behaviour required to initialise state machine instances; created when initialising the state machine model.
 		onInitialise: Array<Action>;
 
-		// used to inject logging, warnings and errors.
-		logTo: ILogTo = defaultConsole;
-		warnTo: IWarnTo = defaultConsole;
-		errorTo: IErrorTo = defaultConsole;
-
 		/**
 		 * Creates a new instance of the StateMachine class.
 		 * @param {string} name The name of the state machine.
@@ -43,45 +38,6 @@ module StateJS {
 		}
 
 		/**
-		 * Instructs the state machine model to log activity to an object supporting the Console interface.
-		 * @method setLogger
-		 * @param {ILogTo} value Pass in console to log to the console, or another other object implementing the LogTo interface.
-		 * @returns {StateMachine} Returns the state machine to enable fluent style API.
-		 */
-		public setLogger(value: ILogTo): StateMachine {
-			this.logTo = value;
-			this.clean = false;
-
-			return this;
-		}
-
-		/**
-		 * Instructs the state machine model to direct warnings activity to an object supporting the Console interface.
-		 * @method setWarning
-		 * @param {IWarnTo} value Pass in console to log to the console, or another other object implementing the WarnTo interface.
-		 * @returns {StateMachine} Returns the state machine to enable fluent style API.
-		 */
-		public setWarning(value: IWarnTo): StateMachine {
-			this.warnTo = value;
-			this.clean = false;
-
-			return this;
-		}
-
-		/**
-		 * Instructs the state machine model to direct error messages to an object supporting the Console interface.
-		 * @method setError
-		 * @param {IErrorTo} value Pass in console to log to the console, or another other object implementing the ErrorTo interface.
-		 * @returns {StateMachine} Returns the state machine to enable fluent style API.
-		 */
-		public setError(value: IErrorTo): StateMachine {
-			this.errorTo = value;
-			this.clean = false;
-
-			return this;
-		}
-
-		/**
 		 * Accepts an instance of a visitor and calls the visitStateMachine method on it.
 		 * @method accept
 		 * @param {Visitor<TArg1>} visitor The visitor instance.
@@ -93,50 +49,5 @@ module StateJS {
 		public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any {
 			return visitor.visitStateMachine(this, arg1, arg2, arg3);
 		}
-	}
-
-	/**
-	 * Interface that must be conformed to for logging messages
-	 * @interface ILogTo
-	 */
-	export interface ILogTo {
-		/**
-		 * Log an informational message
-		 * @method log
-		 * @param {string} message The informational message to log.
-		 */
-		log(message: string): void;
-	}
-
-	/**
-	 * Interface that must be conformed to for warning messages
-	 * @interface IWarnTo
-	 */
-	export interface IWarnTo {
-		/**
-		 * Log a warning message
-		 * @method warn
-		 * @param {string} message The warning message to log.
-		 */
-		warn(message: string): void;
-	}
-
-	/**
-	 * Interface that must be conformed to for error messages
-	 * @interface IWarnTo
-	 */
-	export interface IErrorTo {
-		/**
-		 * Raise an error message
-		 * @method warn
-		 * @param {string} message The warning message to raise.
-		 */
-		error(message: string): void;
-	}
-
-	export var defaultConsole = {
-		log: function(message: string): void { },
-		warn: function(message: string): void { },
-		error: function(message: string): void { throw message; }
 	}
 }

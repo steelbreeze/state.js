@@ -26,28 +26,28 @@ module StateJS {
 				// [7] In a complete statemachine, a junction vertex must have at least one incoming and one outgoing transition.
 				// [8] In a complete statemachine, a choice vertex must have at least one incoming and one outgoing transition.
 				if (pseudoState.outgoing.length === 0) {
-					pseudoState.getRoot().errorTo.error(pseudoState + ": " + pseudoState.kind + " pseudo states must have at least one outgoing transition.");
+					errorTo.error(pseudoState + ": " + pseudoState.kind + " pseudo states must have at least one outgoing transition.");
 				}
 
 				// choice and junction pseudo state can have at most one else transition
 				if (pseudoState.outgoing.filter((transition: Transition) => { return transition.guard === Transition.FalseGuard; }).length > 1) {
-					pseudoState.getRoot().errorTo.error(pseudoState + ": " + pseudoState.kind + " pseudo states cannot have more than one Else transitions.");
+					errorTo.error(pseudoState + ": " + pseudoState.kind + " pseudo states cannot have more than one Else transitions.");
 				}
 			} else {
 				// non choice/junction pseudo state may not have else transitions
 				if (pseudoState.outgoing.filter((transition: Transition) => { return transition.guard === Transition.FalseGuard; }).length !== 0) {
-					pseudoState.getRoot().errorTo.error(pseudoState + ": " + pseudoState.kind + " pseudo states cannot have Else transitions.");
+					errorTo.error(pseudoState + ": " + pseudoState.kind + " pseudo states cannot have Else transitions.");
 				}
 
 				if (pseudoState.isInitial()) {
 					if (pseudoState.outgoing.length !== 1) {
 						// [1] An initial vertex can have at most one outgoing transition.
 						// [2] History vertices can have at most one outgoing transition.
-						pseudoState.getRoot().errorTo.error(pseudoState + ": initial pseudo states must have one outgoing transition.");
+						errorTo.error(pseudoState + ": initial pseudo states must have one outgoing transition.");
 					} else {
 						// [9] The outgoing transition from an initial vertex may have a behavior, but not a trigger or guard.
 						if (pseudoState.outgoing[0].guard !== Transition.TrueGuard) {
-							pseudoState.getRoot().errorTo.error(pseudoState + ": initial pseudo states cannot have a guard condition.");
+							errorTo.error(pseudoState + ": initial pseudo states cannot have a guard condition.");
 						}
 					}
 				}
@@ -65,7 +65,7 @@ module StateJS {
 			region.vertices.forEach(vertex => {
 				if (vertex instanceof PseudoState && vertex.isInitial()) {
 					if (initial) {
-						region.getRoot().errorTo.error(region + ": regions may have at most one initial pseudo state.");
+						errorTo.error(region + ": regions may have at most one initial pseudo state.");
 					}
 
 					initial = vertex;
@@ -76,7 +76,7 @@ module StateJS {
 			super.visitState(state);
 
 			if(state.regions.filter(state => state.name === Region.defaultName).length > 1){
-				state.getRoot().errorTo.error(state + ": a state cannot have more than one region named " + Region.defaultName);
+				errorTo.error(state + ": a state cannot have more than one region named " + Region.defaultName);
 			}
 		}
 
@@ -85,22 +85,22 @@ module StateJS {
 
 			// [1] A final state cannot have any outgoing transitions.
 			if (finalState.outgoing.length !== 0) {
-				finalState.getRoot().errorTo.error(finalState + ": final states must not have outgoing transitions.");
+				errorTo.error(finalState + ": final states must not have outgoing transitions.");
 			}
 
 			// [2] A final state cannot have regions.
 			if (finalState.regions.length !== 0) {
-				finalState.getRoot().errorTo.error(finalState + ": final states must not have child regions.");
+				errorTo.error(finalState + ": final states must not have child regions.");
 			}
 
 			// [4] A final state has no entry behavior.
 			if (finalState.entryBehavior.length !== 0) {
-				finalState.getRoot().warnTo.warn(finalState + ": final states may not have entry behavior.");
+				warnTo.warn(finalState + ": final states may not have entry behavior.");
 			}
 
 			// [5] A final state has no exit behavior.
 			if (finalState.exitBehavior.length !== 0) {
-				finalState.getRoot().warnTo.warn(finalState + ": final states may not have exit behavior.");
+				warnTo.warn(finalState + ": final states may not have exit behavior.");
 			}
 		}
 
@@ -110,7 +110,7 @@ module StateJS {
 			// Local transition target vertices must be a child of the source vertex
 			if (transition.kind === TransitionKind.Local) {
 				if (ancestors(transition.target).indexOf(transition.source) === -1) {
-					transition.source.getRoot().errorTo.error(transition + ": local transition target vertices must be a child of the source composite sate.");
+					errorTo.error(transition + ": local transition target vertices must be a child of the source composite sate.");
 				}
 			}
 		}

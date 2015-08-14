@@ -33,10 +33,10 @@
 		<script>
 			/* global $, state */
 			$(document).ready(function() {
-				var logger = { log: function(text) { $("#log").prepend(text + "<br/>"); } };
+				state.logTo = { log: function(text) { $("#log").prepend(text + "<br/>"); } };
 
 				/* create the state machine model elements */
-				var model = new state.StateMachine("model").setLogger(logger);
+				var model = new state.StateMachine("model");
 				var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
 				var operational = new state.State("operational", model);
 				var flipped = new state.State("flipped", model);

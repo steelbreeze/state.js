@@ -111,7 +111,7 @@ module StateJS {
 		 * @returns {string}
 		 */
 		public toString(): string {
-			return "[" + (this.target? (this.source + " -> " + this.target) : this.source) + "]";
+			return "[" + (this.target ? (this.source + " -> " + this.target) : this.source) + "]";
 		}
 	}
 }

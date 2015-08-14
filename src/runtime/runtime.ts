@@ -22,13 +22,13 @@ module StateJS {
 			}
 
 			// log as required
-			stateMachineModel.logTo.log("initialise " + stateMachineInstance);
+			logTo.log("initialise " + stateMachineInstance);
 
 			// enter the state machine instance for the first time
 			stateMachineModel.onInitialise.forEach(action => action(undefined, stateMachineInstance));
 		} else {
 			// log as required
-			stateMachineModel.logTo.log("initialise " + stateMachineModel.name);
+			logTo.log("initialise " + stateMachineModel.name);
 
 			// initialise the state machine model
 			stateMachineModel.accept(new InitialiseElements(), false);
@@ -46,7 +46,7 @@ module StateJS {
 	 */
 	export function evaluate(stateMachineModel: StateMachine, stateMachineInstance: IActiveStateConfiguration, message: any, autoInitialiseModel: boolean = true): boolean {
 		// log as required
-		stateMachineModel.logTo.log(stateMachineInstance + " evaluate " + message);
+		logTo.log(stateMachineInstance + " evaluate " + message);
 
 		// initialise the state machine model if necessary
 		if (autoInitialiseModel && stateMachineModel.clean === false) {
@@ -90,7 +90,7 @@ module StateJS {
 				result = traverse(transitions[0], stateMachineInstance, message);
 			} else if (transitions.length > 1) {
 				// error if multiple transitions evaluated true
-				state.getRoot().errorTo.error(state + ": multiple outbound transitions evaluated true for message " + message);
+				errorTo.error(state + ": multiple outbound transitions evaluated true for message " + message);
 			}
 		}
 
@@ -131,7 +131,7 @@ module StateJS {
 			return results.length !== 0 ? results[getRandom()(results.length)] : findElse(pseudoState);
 		} else {
 			if (results.length > 1) {
-				pseudoState.getRoot().errorTo.error("Multiple outbound transition guards returned true at " + this + " for " + message);
+				errorTo.error("Multiple outbound transition guards returned true at " + this + " for " + message);
 			} else {
 				return results[0] || findElse(pseudoState);
 			}
@@ -140,7 +140,7 @@ module StateJS {
 
 	// look for else transitins from a junction or choice
 	function findElse(pseudoState: PseudoState): Transition {
-		return pseudoState.outgoing.filter(transition => transition.guard === Transition.FalseGuard)[0];
+		return pseudoState.outgoing.filter(transition => transition.guard === Transition.FalseGuard)[0]; // NOTE: validator will ensure max one else transition
 	}
 
 	// Temporary structure to hold element behaviour during the bootstrap process
@@ -248,7 +248,7 @@ module StateJS {
 			return this.behaviours[element.qualifiedName] || (this.behaviours[element.qualifiedName] = new ElementBehavior());
 		}
 
-		private addLogging(element: Element, logTo: ILogTo) {
+		visitElement(element: Element, deepHistoryAbove: boolean) {
 			if (logTo !== defaultConsole) {
 				this.behaviour(element).leave.push((message, instance) => logTo.log(instance + " leave " + element));
 				this.behaviour(element).beginEnter.push((message, instance) => logTo.log(instance + " enter " + element));
@@ -271,12 +271,6 @@ module StateJS {
 			} else {
 				Array.prototype.push.apply(this.behaviour(region).endEnter, this.behaviour(initial).enter());
 			}
-
-			this.addLogging(region, region.getRoot().logTo);
-		}
-
-		visitVertex(vertex: Vertex, deepHistoryAbove: boolean) {
-			this.addLogging(vertex, vertex.getRoot().logTo);
 		}
 
 		visitPseudoState(pseudoState: PseudoState, deepHistoryAbove: boolean) {
@@ -324,4 +318,69 @@ module StateJS {
 			stateMachine.onInitialise = this.behaviour(stateMachine).enter();
 		}
 	}
+
+	/**
+	 * Interface that must be conformed to for logging messages
+	 * @interface ILogTo
+	 */
+	export interface ILogTo {
+		/**
+		 * Log an informational message
+		 * @method log
+		 * @param {string} message The informational message to log.
+		 */
+		log(message: string): void;
+	}
+
+	/**
+	 * Interface that must be conformed to for warning messages
+	 * @interface IWarnTo
+	 */
+	export interface IWarnTo {
+		/**
+		 * Log a warning message
+		 * @method warn
+		 * @param {string} message The warning message to log.
+		 */
+		warn(message: string): void;
+	}
+
+	/**
+	 * Interface that must be conformed to for error messages
+	 * @interface IWarnTo
+	 */
+	export interface IErrorTo {
+		/**
+		 * Raise an error message
+		 * @method warn
+		 * @param {string} message The warning message to raise.
+		 */
+		error(message: string): void;
+	}
+
+	var defaultConsole = {
+		log: function(message: string): void { },
+		warn: function(message: string): void { },
+		error: function(message: string): void { throw message; }
+	}
+
+	/**
+	 * The object used to send log messages to. Point this to another object if you wish to implement custom logging.
+	 * @member {ILogTo}
+	 */
+	export var logTo: ILogTo = defaultConsole;
+
+	/**
+	 * The object used to send warning messages to. Point this to another object if you wish to implement custom warnings.
+	 * @member {IWarnTo}
+	 */
+	export var warnTo: IWarnTo = defaultConsole;
+
+	/**
+	 * The object used to send error messages to. Point this to another object if you wish to implement custom warnings.
+	 *
+	 * Default behaviour for error messages is to throw an exception.
+	 * @member {IErrorTo}
+	 */
+	export var errorTo: IErrorTo = defaultConsole;
 }
