@@ -6,5 +6,4 @@ languages:
 
 # Exclude the code emitted by tsc and browserify
 exclude_paths:
-- "lib/state.js"
-- "lib/state.com.js"
+- "lib/*"
