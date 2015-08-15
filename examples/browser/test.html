@@ -33,7 +33,7 @@
 		<script>
 			/* global $, state */
 			$(document).ready(function() {
-				state.logger = { log: function(text) { $("#log").prepend(text + "<br/>"); } };
+				state.console = { log: function(text) { $("#log").prepend(text + "<br/>"); } };
 
 				/* create the state machine model elements */
 				var model = new state.StateMachine("model");

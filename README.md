@@ -35,7 +35,7 @@ $ npm install state.js
 var state = require("state.js");
 
 // send log messages, warnings and errors to the console
-state.logger = console;
+state.console = console;
 
 // create the state machine model elements
 var model = new state.StateMachine("model");
@@ -75,7 +75,7 @@ Use [lib/state.js](https://github.com/steelbreeze/state.js/blob/master/lib/state
 ```html
 <script>
 	// send log messages, warnings and errors to the console
-	state.logger = console;
+	state.console = console;
 
 	// create the state machine model elements
 	var model = new state.StateMachine("model");

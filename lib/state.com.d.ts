@@ -719,12 +719,31 @@ declare module StateJS {
      * @returns {boolean} True if the message triggered a state transition.
      */
     function evaluate(stateMachineModel: StateMachine, stateMachineInstance: IActiveStateConfiguration, message: any, autoInitialiseModel?: boolean): boolean;
-    interface ILogger {
-        log(message: string): void;
-        warn(message: string): void;
-        error(message: string): void;
+    /**
+     * The methods that state.js may use from a console implementation. Create objects that ahdere to this interface for custom logging, warnings and error handling.
+     * @interface IConsole
+     */
+    interface IConsole {
+        /**
+         * Outputs a message.
+         * @method log
+         * @param {any} message The object to log.
+         */
+        log(message?: any, ...optionalParams: any[]): void;
+        /**
+         * Outputs a warnnig warning.
+         * @method log
+         * @param {any} message The object to log.
+         */
+        warn(message?: any, ...optionalParams: any[]): void;
+        /**
+         * Outputs an error message.
+         * @method log
+         * @param {any} message The object to log.
+         */
+        error(message?: any, ...optionalParams: any[]): void;
     }
-    var logger: ILogger;
+    var console: IConsole;
 }
 declare module StateJS {
     /**

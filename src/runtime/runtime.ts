@@ -5,9 +5,16 @@
  * http://www.steelbreeze.net/state.cs
  */
 module StateJS {
-	function invoke(actions: Array<Action>, message: any, instance: IActiveStateConfiguration, history: boolean = false): void {
+	interface BehaviourBase extends Array<Action> {
+	}
+
+	function invoke(actions: BehaviourBase, message: any, instance: IActiveStateConfiguration, history: boolean = false): void {
 		actions.forEach(action => action(message, instance, history));
 	}
+
+	//	Behaviour.prototype.invoke = (message: any, instance: IActiveStateConfiguration, history: boolean = false): void {
+	//		this.forEach(action => action(message, instance, history));
+	//	}
 
 	/**
 	 * Initialises a state machine and/or state machine model.
@@ -26,13 +33,13 @@ module StateJS {
 			}
 
 			// log as required
-			logger.log("initialise " + stateMachineInstance);
+			console.log("initialise " + stateMachineInstance);
 
 			// enter the state machine instance for the first time
 			invoke(stateMachineModel.onInitialise, undefined, stateMachineInstance);
 		} else {
 			// log as required
-			logger.log("initialise " + stateMachineModel.name);
+			console.log("initialise " + stateMachineModel.name);
 
 			// initialise the state machine model
 			stateMachineModel.accept(new InitialiseElements(), false);
@@ -50,7 +57,7 @@ module StateJS {
 	 */
 	export function evaluate(stateMachineModel: StateMachine, stateMachineInstance: IActiveStateConfiguration, message: any, autoInitialiseModel: boolean = true): boolean {
 		// log as required
-		logger.log(stateMachineInstance + " evaluate " + message);
+		console.log(stateMachineInstance + " evaluate " + message);
 
 		// initialise the state machine model if necessary
 		if (autoInitialiseModel && stateMachineModel.clean === false) {
@@ -94,7 +101,7 @@ module StateJS {
 				result = traverse(transitions[0], stateMachineInstance, message);
 			} else if (transitions.length > 1) {
 				// error if multiple transitions evaluated true
-				logger.error(state + ": multiple outbound transitions evaluated true for message " + message);
+				console.error(state + ": multiple outbound transitions evaluated true for message " + message);
 			}
 		}
 
@@ -135,7 +142,7 @@ module StateJS {
 			return results.length !== 0 ? results[getRandom()(results.length)] : findElse(pseudoState);
 		} else {
 			if (results.length > 1) {
-				logger.error("Multiple outbound transition guards returned true at " + this + " for " + message);
+				console.error("Multiple outbound transition guards returned true at " + this + " for " + message);
 			} else {
 				return results[0] || findElse(pseudoState);
 			}
@@ -252,8 +259,8 @@ module StateJS {
 			return this.behaviours[element.qualifiedName] || (this.behaviours[element.qualifiedName] = new ElementBehavior());
 		}
 
-		private addLogging(element: Element, logTo: ILogger) {
-			if (logTo !== defaultLogger) {
+		private addLogging(element: Element, logTo: IConsole) {
+			if (logTo !== defaultConsole) {
 				this.behaviour(element).leave.push((message, instance) => logTo.log(instance + " leave " + element));
 				this.behaviour(element).beginEnter.push((message, instance) => logTo.log(instance + " enter " + element));
 			}
@@ -276,11 +283,11 @@ module StateJS {
 				Array.prototype.push.apply(this.behaviour(region).endEnter, this.behaviour(regionInitial).enter());
 			}
 
-			this.addLogging(region, logger);
+			this.addLogging(region, console);
 		}
 
 		visitVertex(vertex: Vertex, deepHistoryAbove: boolean) {
-			this.addLogging(vertex, logger);
+			this.addLogging(vertex, console);
 		}
 
 		visitPseudoState(pseudoState: PseudoState, deepHistoryAbove: boolean) {
@@ -329,17 +336,38 @@ module StateJS {
 		}
 	}
 
-	export interface ILogger {
-		log(message: string): void;
-		warn(message: string): void;
-		error(message: string): void;
+	/**
+	 * The methods that state.js may use from a console implementation. Create objects that ahdere to this interface for custom logging, warnings and error handling.
+	 * @interface IConsole
+	 */
+	export interface IConsole {
+		/**
+		 * Outputs a message.
+		 * @method log
+		 * @param {any} message The object to log.
+		 */
+		log(message?: any, ...optionalParams: any[]): void;
+
+		/**
+		 * Outputs a warnnig warning.
+		 * @method log
+		 * @param {any} message The object to log.
+		 */
+		warn(message?: any, ...optionalParams: any[]): void;
+
+		/**
+		 * Outputs an error message.
+		 * @method log
+		 * @param {any} message The object to log.
+		 */
+		error(message?: any, ...optionalParams: any[]): void;
 	}
 
-	var defaultLogger = {
-		log: function(message: string): void { },
-		warn: function(message: string): void { },
-		error: function(message: string): void { throw message; }
+	var defaultConsole = {
+		log(message?: any, ...optionalParams: any[]): void { },
+		warn(message?: any, ...optionalParams: any[]): void { },
+		error(message?: any, ...optionalParams: any[]): void { throw message; }
 	}
 
-	export var logger: ILogger = defaultLogger;
+	export var console: IConsole = defaultConsole;
 }
