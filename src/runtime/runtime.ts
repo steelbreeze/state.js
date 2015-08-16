@@ -5,16 +5,9 @@
  * http://www.steelbreeze.net/state.cs
  */
 module StateJS {
-	interface BehaviourBase extends Array<Action> {
-	}
-
-	function invoke(actions: BehaviourBase, message: any, instance: IActiveStateConfiguration, history: boolean = false): void {
+	function invoke(actions: Array<Action>, message: any, instance: IActiveStateConfiguration, history: boolean = false): void {
 		actions.forEach(action => action(message, instance, history));
 	}
-
-	//	Behaviour.prototype.invoke = (message: any, instance: IActiveStateConfiguration, history: boolean = false): void {
-	//		this.forEach(action => action(message, instance, history));
-	//	}
 
 	/**
 	 * Initialises a state machine and/or state machine model.
