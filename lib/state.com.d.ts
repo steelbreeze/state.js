@@ -176,11 +176,6 @@ declare module StateJS {
          */
         getRoot(): StateMachine;
         /**
-         * The pseudo state that will be in initial starting state when entering the region explicitly.
-         * @method {getInitial}
-         * @returns {PseudoState} The initial starting pseudo state if one is defined.
-         */
-        /**
          * Accepts an instance of a visitor and calls the visitRegion method on it.
          * @method accept
          * @param {Visitor<TArg1>} visitor The visitor instance.
@@ -662,6 +657,32 @@ declare module StateJS {
 }
 declare module StateJS {
     /**
+     * The methods that state.js may use from a console implementation. Create objects that ahdere to this interface for custom logging, warnings and error handling.
+     * @interface IConsole
+     */
+    interface IConsole {
+        /**
+         * Outputs a log message.
+         * @method log
+         * @param {any} message The object to log.
+         */
+        log(message?: any, ...optionalParams: any[]): void;
+        /**
+         * Outputs a warnnig warning.
+         * @method log
+         * @param {any} message The object to log.
+         */
+        warn(message?: any, ...optionalParams: any[]): void;
+        /**
+         * Outputs an error message.
+         * @method log
+         * @param {any} message The object to log.
+         */
+        error(message?: any, ...optionalParams: any[]): void;
+    }
+}
+declare module StateJS {
+    /**
      * Sets a method to select an integer random number less than the max value passed as a parameter.
      *
      * This is only useful when a custom random number generator is required; the default implementation is fine in most circumstances.
@@ -720,29 +741,9 @@ declare module StateJS {
      */
     function evaluate(stateMachineModel: StateMachine, stateMachineInstance: IActiveStateConfiguration, message: any, autoInitialiseModel?: boolean): boolean;
     /**
-     * The methods that state.js may use from a console implementation. Create objects that ahdere to this interface for custom logging, warnings and error handling.
-     * @interface IConsole
+     * The object used for log, warning and error messages
+     * @member {IConsole}
      */
-    interface IConsole {
-        /**
-         * Outputs a message.
-         * @method log
-         * @param {any} message The object to log.
-         */
-        log(message?: any, ...optionalParams: any[]): void;
-        /**
-         * Outputs a warnnig warning.
-         * @method log
-         * @param {any} message The object to log.
-         */
-        warn(message?: any, ...optionalParams: any[]): void;
-        /**
-         * Outputs an error message.
-         * @method log
-         * @param {any} message The object to log.
-         */
-        error(message?: any, ...optionalParams: any[]): void;
-    }
     var console: IConsole;
 }
 declare module StateJS {

@@ -24,6 +24,7 @@
 		"src/instance/IActiveStateConfiguration.ts",
 		"src/instance/StateMachineInstance.ts",
 
+		"src/runtime/IConsole.ts",
 		"src/runtime/random.ts",
 		"src/runtime/isActive.ts",
 		"src/runtime/isComplete.ts",

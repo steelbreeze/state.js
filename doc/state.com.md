@@ -588,8 +588,6 @@ Implements the `IActiveStateConfiguration` interface.
 It is possible to create other custom instance classes to manage state machine state in other ways (e.g. as serialisable JSON); just implement the same members and methods as this class.
 
 **isTerminated**:  , Indicates that the state manchine instance reached was terminated by reaching a Terminate pseudo state.
-
-Default behaviour for error messages is to throw an exception.
 ### StateMachineInstance.StateMachineInstance(name)
 
 Creates a new instance of the state machine instance class.
@@ -686,15 +684,10 @@ Validates a state machine model for correctness (see the constraints defined wit
 
 **stateMachineModel**: `StateMachine`, The state machine model to validate.
 
-## Property: logTo
-**logTo**: `ILogTo` , The object used to send log messages to. Point this to another object if you wish to implement custom logging.
+Validates a state machine model for correctness (see the constraints defined within the UML Superstructure specification).
 
-## Property: warnTo
-**warnTo**: `IWarnTo` , The object used to send warning messages to. Point this to another object if you wish to implement custom warnings.
-
-## Property: errorTo
-**errorTo**: `IErrorTo` , The object used to send error messages to. Point this to another object if you wish to implement custom warnings.
-
+## Property: console
+The object used to receive log, warning and error messages. The default implementation just thrown exceptions for errors.
 
 
 * * *

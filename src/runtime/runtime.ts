@@ -336,38 +336,15 @@ module StateJS {
 		}
 	}
 
-	/**
-	 * The methods that state.js may use from a console implementation. Create objects that ahdere to this interface for custom logging, warnings and error handling.
-	 * @interface IConsole
-	 */
-	export interface IConsole {
-		/**
-		 * Outputs a message.
-		 * @method log
-		 * @param {any} message The object to log.
-		 */
-		log(message?: any, ...optionalParams: any[]): void;
-
-		/**
-		 * Outputs a warnnig warning.
-		 * @method log
-		 * @param {any} message The object to log.
-		 */
-		warn(message?: any, ...optionalParams: any[]): void;
-
-		/**
-		 * Outputs an error message.
-		 * @method log
-		 * @param {any} message The object to log.
-		 */
-		error(message?: any, ...optionalParams: any[]): void;
-	}
-
 	var defaultConsole = {
 		log(message?: any, ...optionalParams: any[]): void { },
 		warn(message?: any, ...optionalParams: any[]): void { },
 		error(message?: any, ...optionalParams: any[]): void { throw message; }
 	}
 
+	/**
+	 * The object used for log, warning and error messages
+	 * @member {IConsole}
+	 */
 	export var console: IConsole = defaultConsole;
 }

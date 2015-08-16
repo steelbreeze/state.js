@@ -3,7 +3,7 @@ Fix a possible issue where deep history semantics were not properly propigated t
 
 Remove Region.getInitial and inline the code to the region bootstrap as it was really an internal use method.
 
-Remove logging, warning and errors from state machine class; move to the module scope.
+Remove logging, warning and errors from state machine class; move to the module scope under the name console.
 
 Refactoring.
 
