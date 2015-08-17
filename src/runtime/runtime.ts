@@ -194,7 +194,7 @@ module StateJS {
 
 				// enter the target ancestry
 				while (i < targetAncestors.length) {
-					this.cascadeElementEntry(transition, behaviour, targetAncestors[i++], targetAncestors[i], actions => { actions.invoke(message, instance); });
+					this.cascadeElementEntry(transition, behaviour, targetAncestors[i++], targetAncestors[i], behavior => { behavior.invoke(message, instance); });
 				}
 
 				// trigger cascade
@@ -219,14 +219,14 @@ module StateJS {
 
 			// enter the target ancestry
 			while (i < targetAncestors.length) {
-				this.cascadeElementEntry(transition, behaviour, targetAncestors[i++], targetAncestors[i], actions => transition.onTraverse.push(actions));
+				this.cascadeElementEntry(transition, behaviour, targetAncestors[i++], targetAncestors[i], behavior => transition.onTraverse.push(behavior));
 			}
 
 			// trigger cascade
 			transition.onTraverse.push(behaviour(transition.target).endEnter);
 		}
 
-		cascadeElementEntry(transition: Transition, behaviour: (element: Element) => ElementBehavior, element: Vertex, next: Vertex, task: (actions: Behavior) => void) {
+		cascadeElementEntry(transition: Transition, behaviour: (element: Element) => ElementBehavior, element: Vertex, next: Vertex, task: (behavior: Behavior) => void) {
 			task(behaviour(element).beginEnter);
 
 			if (next && element instanceof State) {
