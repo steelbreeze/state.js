@@ -25,6 +25,16 @@ declare module StateJS {
     }
 }
 declare module StateJS {
+    class Behavior {
+        private actions;
+        constructor(behavior?: Behavior);
+        push(action: Action): Behavior;
+        push(action: Behavior): Behavior;
+        isActive(): boolean;
+        invoke(message: any, instance: IActiveStateConfiguration, history?: boolean): void;
+    }
+}
+declare module StateJS {
     /**
      * An enumeration of static constants that dictates the precise behaviour of pseudo states.
      *
@@ -301,8 +311,8 @@ declare module StateJS {
      * @augments Vertex
      */
     class State extends Vertex {
-        exitBehavior: Array<Action>;
-        entryBehavior: Array<Action>;
+        exitBehavior: Behavior;
+        entryBehavior: Behavior;
         /**
          * The set of regions under this state.
          * @member {Array<Region>}
@@ -412,7 +422,7 @@ declare module StateJS {
      */
     class StateMachine extends State {
         clean: boolean;
-        onInitialise: Array<Action>;
+        onInitialise: Behavior;
         /**
          * Creates a new instance of the StateMachine class.
          * @param {string} name The name of the state machine.
@@ -455,8 +465,8 @@ declare module StateJS {
         static TrueGuard: () => boolean;
         static FalseGuard: () => boolean;
         guard: Guard;
-        transitionBehavior: Array<Action>;
-        onTraverse: Array<Action>;
+        transitionBehavior: Behavior;
+        onTraverse: Behavior;
         /**
          * The kind of the transition which determines its behaviour.
          * @member {TransitionKind}

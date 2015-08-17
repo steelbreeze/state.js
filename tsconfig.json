@@ -9,6 +9,7 @@
 	"files": [
 		"src/model/Guard.ts",
 		"src/model/Action.ts",
+		"src/model/Behavior.ts",
 		"src/model/PseudoStateKind.ts",
 		"src/model/TransitionKind.ts",
 		"src/model/Element.ts",

@@ -17,7 +17,7 @@ module StateJS {
 		clean = false;
 
 		// the behaviour required to initialise state machine instances; created when initialising the state machine model.
-		onInitialise: Array<Action>;
+		onInitialise: Behavior;
 
 		/**
 		 * Creates a new instance of the StateMachine class.

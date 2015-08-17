@@ -94,12 +94,12 @@ module StateJS {
 			}
 
 			// [4] A final state has no entry behavior.
-			if (finalState.entryBehavior.length !== 0) {
+			if (finalState.entryBehavior.isActive()) {
 				console.warn(finalState + ": final states may not have entry behavior.");
 			}
 
 			// [5] A final state has no exit behavior.
-			if (finalState.exitBehavior.length !== 0) {
+			if (finalState.exitBehavior.isActive()) {
 				console.warn(finalState + ": final states may not have exit behavior.");
 			}
 		}

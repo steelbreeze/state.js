@@ -27,10 +27,10 @@ module StateJS {
 		guard: Guard;
 
 		// user defined behaviour (via effect) executed when traversing this transition.
-		transitionBehavior: Array<Action> = [];
+		transitionBehavior = new Behavior();
 
 		// the collected actions to perform when traversing the transition (includes exiting states, traversal, and state entry)
-		onTraverse: Array<Action> = [];
+		onTraverse = new Behavior();
 
 		/**
 		 * The kind of the transition which determines its behaviour.

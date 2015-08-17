@@ -17,10 +17,10 @@ module StateJS {
 	 */
 	export class State extends Vertex {
 		// user defined behaviour (via exit method) to execute when exiting a state.
-		exitBehavior: Array<Action> = [];
+		exitBehavior = new Behavior();
 
 		// user defined behaviour (via entry method) to execute when entering a state.
-		entryBehavior: Array<Action> = [];
+		entryBehavior = new Behavior();
 
 		/**
 		 * The set of regions under this state.
