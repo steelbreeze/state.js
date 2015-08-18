@@ -138,26 +138,17 @@ module StateJS {
 		}
 	}
 
+	// constants to denote the type of element behaviour
+	var leave = 0, beginEnter = 1, endEnter = 2;
+
 	// look for else transitins from a junction or choice
 	function findElse(pseudoState: PseudoState): Transition {
 		return pseudoState.outgoing.filter(transition => transition.guard === Transition.FalseGuard)[0];
 	}
 
-	// Temporary structure to hold element behaviour during the bootstrap process
-	class ElementBehavior {
-		leave = new Behavior();
-		beginEnter = new Behavior();
-		endEnter = new Behavior();
-	}
-
-	// type to manage an array of element behaviours
-	interface ElementBehaviors {
-		[index: string]: ElementBehavior;
-	}
-
 	// create combined entry behavior for an element
-	function enter(elementBehavior:ElementBehavior): Behavior {
-		return new Behavior(elementBehavior.beginEnter).push(elementBehavior.endEnter);
+	function enter(elementBehavior:Behavior[]): Behavior {
+		return new Behavior(elementBehavior[beginEnter]).push(elementBehavior[endEnter]);
 	}
 
 	// get all the vertex ancestors of a vertex (including the vertex itself)
@@ -166,8 +157,8 @@ module StateJS {
 	}
 
 	// determine the type of transition and use the appropriate initiliasition method
-	class InitialiseTransitions extends Visitor<(element: Element) => ElementBehavior> {
-		visitTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
+	class InitialiseTransitions extends Visitor<(element: Element) => Behavior[]> {
+		visitTransition(transition: Transition, behaviour: (element: Element) => Behavior[]) {
 			if (transition.kind === TransitionKind.Internal) {
 				transition.onTraverse.push(transition.transitionBehavior);
 			} else if (transition.kind === TransitionKind.Local) {
@@ -178,7 +169,7 @@ module StateJS {
 		}
 
 		// initialise internal transitions: these do not leave the source state
-		visitLocalTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
+		visitLocalTransition(transition: Transition, behaviour: (element: Element) => Behavior[]) {
 			transition.onTraverse.push((message, instance) => {
 				var targetAncestors = ancestors(transition.target),
 					i = 0;
@@ -187,7 +178,7 @@ module StateJS {
 				while (isActive(targetAncestors[i], instance)) { ++i; }
 
 				// exit the active sibling
-				behaviour(instance.getCurrent(targetAncestors[i].region)).leave.invoke(message, instance);
+				behaviour(instance.getCurrent(targetAncestors[i].region))[leave].invoke(message, instance);
 
 				// perform the transition action;
 				transition.transitionBehavior.invoke(message, instance);
@@ -198,12 +189,12 @@ module StateJS {
 				}
 
 				// trigger cascade
-				behaviour(transition.target).endEnter.invoke(message, instance);
+				behaviour(transition.target)[endEnter].invoke(message, instance);
 			});
 		}
 
 		// initialise external transitions: these are abritarily complex
-		visitExternalTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
+		visitExternalTransition(transition: Transition, behaviour: (element: Element) => Behavior[]) {
 			var sourceAncestors = ancestors(transition.source),
 				targetAncestors = ancestors(transition.target),
 				i = Math.min(sourceAncestors.length, targetAncestors.length) - 1;
@@ -212,7 +203,7 @@ module StateJS {
 			while (sourceAncestors[i - 1] !== targetAncestors[i - 1]) { --i; }
 
 			// leave source ancestry as required
-			transition.onTraverse.push(behaviour(sourceAncestors[i]).leave);
+			transition.onTraverse.push(behaviour(sourceAncestors[i])[leave]);
 
 			// perform the transition effect
 			transition.onTraverse.push(transition.transitionBehavior);
@@ -223,18 +214,18 @@ module StateJS {
 			}
 
 			// trigger cascade
-			transition.onTraverse.push(behaviour(transition.target).endEnter);
+			transition.onTraverse.push(behaviour(transition.target)[endEnter]);
 		}
 
-		cascadeElementEntry(transition: Transition, behaviour: (element: Element) => ElementBehavior, element: Vertex, next: Vertex, task: (behavior: Behavior) => void) {
-			task(behaviour(element).beginEnter);
+		cascadeElementEntry(transition: Transition, behaviour: (element: Element) => Behavior[], element: Vertex, next: Vertex, task: (behavior: Behavior) => void) {
+			task(behaviour(element)[beginEnter]);
 
 			if (next && element instanceof State) {
 				element.regions.forEach(region => {
-					task(behaviour(region).beginEnter);
+					task(behaviour(region)[beginEnter]);
 
 					if (region !== next.region) {
-						task(behaviour(region).endEnter);
+						task(behaviour(region)[endEnter]);
 					}
 				});
 			}
@@ -243,41 +234,38 @@ module StateJS {
 
 	// bootstraps all the elements within a state machine model
 	class InitialiseElements extends Visitor<boolean> {
-		private behaviours: ElementBehaviors = {};
+		private behaviours: any = []; // TODO: type well, but without introducing an interface
 
-		private behaviour(element: Element): ElementBehavior {
-			return this.behaviours[element.qualifiedName] || (this.behaviours[element.qualifiedName] = new ElementBehavior());
+		private behaviour(element: Element): Behavior[] {
+			return this.behaviours[element.qualifiedName] || (this.behaviours[element.qualifiedName] = [new Behavior(), new Behavior(), new Behavior()]);
 		}
 
-		private addLogging(element: Element, logTo: IConsole) {
-			if (logTo !== defaultConsole) {
-				this.behaviour(element).leave.push((message, instance) => logTo.log(instance + " leave " + element));
-				this.behaviour(element).beginEnter.push((message, instance) => logTo.log(instance + " enter " + element));
+		visitElement(element: Element, deepHistoryAbove: boolean) {
+			if (console !== defaultConsole) {
+				this.behaviour(element)[leave].push((message, instance) => console.log(instance + " leave " + element));
+				this.behaviour(element)[beginEnter].push((message, instance) => console.log(instance + " enter " + element));
 			}
 		}
 
 		visitRegion(region: Region, deepHistoryAbove: boolean) {
 			var regionInitial = region.vertices.reduce<PseudoState>((result, vertex) => vertex instanceof PseudoState && vertex.isInitial() ? vertex : result, undefined);
 
-			super.visitRegion(region, deepHistoryAbove || (regionInitial && regionInitial.kind === PseudoStateKind.DeepHistory));
+			region.vertices.forEach(vertex => { vertex.accept(this, deepHistoryAbove || (regionInitial && regionInitial.kind === PseudoStateKind.DeepHistory)) });
+
 
 			// leave the curent active child state when exiting the region
-			this.behaviour(region).leave.push((message, stateMachineInstance) => this.behaviour(stateMachineInstance.getCurrent(region)).leave.invoke(message, stateMachineInstance));
+			this.behaviour(region)[leave].push((message, stateMachineInstance) => this.behaviour(stateMachineInstance.getCurrent(region))[leave].invoke(message, stateMachineInstance));
 
 			// enter the appropriate child vertex when entering the region
 			if (deepHistoryAbove || !regionInitial || regionInitial.isHistory()) { // NOTE: history needs to be determined at runtime
-				this.behaviour(region).endEnter.push((message, stateMachineInstance, history) => {
+				this.behaviour(region)[endEnter].push((message, stateMachineInstance, history) => {
 					enter(this.behaviour((history || regionInitial.isHistory()) ? stateMachineInstance.getCurrent(region) || regionInitial : regionInitial)).invoke(message, stateMachineInstance, history || regionInitial.kind === PseudoStateKind.DeepHistory);
 				});
 			} else {
-				this.behaviour(region).endEnter.push(enter(this.behaviour(regionInitial)));
+				this.behaviour(region)[endEnter].push(enter(this.behaviour(regionInitial)));
 			}
 
-			this.addLogging(region, console);
-		}
-
-		visitVertex(vertex: Vertex, deepHistoryAbove: boolean) {
-			this.addLogging(vertex, console);
+			this.visitElement(region, deepHistoryAbove);
 		}
 
 		visitPseudoState(pseudoState: PseudoState, deepHistoryAbove: boolean) {
@@ -285,10 +273,10 @@ module StateJS {
 
 			// evaluate comppletion transitions once vertex entry is complete
 			if (pseudoState.isInitial()) {
-				this.behaviour(pseudoState).endEnter.push((message, stateMachineInstance) => traverse(pseudoState.outgoing[0], stateMachineInstance));
+				this.behaviour(pseudoState)[endEnter].push((message, stateMachineInstance) => traverse(pseudoState.outgoing[0], stateMachineInstance));
 			} else if (pseudoState.kind === PseudoStateKind.Terminate) {
 				// terminate the state machine instance upon transition to a terminate pseudo state
-				this.behaviour(pseudoState).beginEnter.push((message, stateMachineInstance) => stateMachineInstance.isTerminated = true);
+				this.behaviour(pseudoState)[beginEnter].push((message, stateMachineInstance) => stateMachineInstance.isTerminated = true);
 			}
 		}
 
@@ -297,18 +285,18 @@ module StateJS {
 			state.regions.forEach(region => {
 				region.accept(this, deepHistoryAbove);
 
-				this.behaviour(state).leave.push(this.behaviour(region).leave);
-				this.behaviour(state).endEnter.push(enter(this.behaviour(region)));
+				this.behaviour(state)[leave].push(this.behaviour(region)[leave]);
+				this.behaviour(state)[endEnter].push(enter(this.behaviour(region)));
 			});
 
 			this.visitVertex(state, deepHistoryAbove);
 
 			// add the user defined behaviour when entering and exiting states
-			this.behaviour(state).leave.push(state.exitBehavior);
-			this.behaviour(state).beginEnter.push(state.entryBehavior);
+			this.behaviour(state)[leave].push(state.exitBehavior);
+			this.behaviour(state)[beginEnter].push(state.entryBehavior);
 
 			// update the parent regions current state
-			this.behaviour(state).beginEnter.push((message, stateMachineInstance) => {
+			this.behaviour(state)[beginEnter].push((message, stateMachineInstance) => {
 				if (state.region) {
 					stateMachineInstance.setCurrent(state.region, state);
 				}
