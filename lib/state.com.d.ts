@@ -1,18 +1,5 @@
 declare module StateJS {
     /**
-     * Declaration callbacks that provide transition guard conditions.
-     * @interface Guard
-     * @param {any} message The message that may trigger the transition.
-     * @param {IActiveStateConfiguration} instance The state machine instance.
-     * @param {boolean} history Internal use only
-     * @returns {boolean} True if the guard condition passed.
-     */
-    interface Guard {
-        (message?: any, instance?: IActiveStateConfiguration): boolean;
-    }
-}
-declare module StateJS {
-    /**
      * Declaration for callbacks that provide state entry, state exit and transition behaviour.
      * @interface Action
      * @param {any} message The message that may trigger the transition.
@@ -32,6 +19,19 @@ declare module StateJS {
         push(action: Behavior): Behavior;
         isActive(): boolean;
         invoke(message: any, instance: IActiveStateConfiguration, history?: boolean): void;
+    }
+}
+declare module StateJS {
+    /**
+     * Declaration callbacks that provide transition guard conditions.
+     * @interface Guard
+     * @param {any} message The message that may trigger the transition.
+     * @param {IActiveStateConfiguration} instance The state machine instance.
+     * @param {boolean} history Internal use only
+     * @returns {boolean} True if the guard condition passed.
+     */
+    interface Guard {
+        (message?: any, instance?: IActiveStateConfiguration): boolean;
     }
 }
 declare module StateJS {
