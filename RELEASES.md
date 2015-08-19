@@ -5,6 +5,8 @@ Remove Region.getInitial and inline the code to the region bootstrap as it was r
 
 Remove logging, warning and errors from state machine class; move to the module scope under the name console.
 
+Add a Behavior class and refactor all Element behaviour.
+
 Refactoring.
 
 Added a more testg in the validator:

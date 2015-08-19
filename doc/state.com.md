@@ -6,6 +6,48 @@
 
 * * *
 
+## Class: Behavior
+Behavior encapsulates multiple Action callbacks that can be invoked by a single call.
+
+### Behavior.Behavior(behavior)
+
+Creates a new instance of the Behavior class.
+
+**Parameters**
+
+**behavior**: `Behavior`, The copy constructor; omit this optional parameter for a simple constructor.
+
+
+### Behavior.push(behavior)
+
+Adds an Action or set of Actions callbacks in a Behavior instance to this behavior instance.
+
+**Parameters**
+
+**behavior**: `Behavior`, The Action or set of Actions callbacks to add to this behavior instance.
+
+**Returns**: `Behavior`, Returns this behavior instance (for use in fluent style development).
+
+### Behavior.isActive()
+
+Tests the Behavior instance to see if any actions have been defined.
+
+**Returns**: `boolean`, True if there are actions defined within this Behavior instance.
+
+### Behavior.invoke(message, instance, history)
+
+Invokes all the action callbacks in this Behavior instance.
+
+**Parameters**
+
+**message**: `any`, The message that triggered the transition.
+
+**instance**: `IActiveStateConfiguration`, The state machine instance.
+
+**history**: `boolean`, Internal use only
+
+
+
 ## Class: PseudoStateKind
 An enumeration of static constants that dictates the precise behaviour of pseudo states.
 
@@ -684,11 +726,8 @@ Validates a state machine model for correctness (see the constraints defined wit
 
 **stateMachineModel**: `StateMachine`, The state machine model to validate.
 
-Validates a state machine model for correctness (see the constraints defined within the UML Superstructure specification).
-
 ## Property: console
 The object used to receive log, warning and error messages. The default implementation just thrown exceptions for errors.
-
 
 * * *
 
