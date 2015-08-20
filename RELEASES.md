@@ -1,4 +1,4 @@
-## Version 5.6.0 - under development
+## Version 5.6.0
 Fix a possible issue where deep history semantics were not properly propigated through the state machine model initialisation.
 
 Remove Region.getInitial and inline the code to the region bootstrap as it was really an internal use method.
