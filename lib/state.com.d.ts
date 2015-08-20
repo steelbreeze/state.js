@@ -39,10 +39,10 @@ declare module StateJS {
         push(behavior: Behavior): Behavior;
         /**
          * Tests the Behavior instance to see if any actions have been defined.
-         * @method isActive
+         * @method hasActions
          * @returns {boolean} True if there are actions defined within this Behavior instance.
          */
-        isActive(): boolean;
+        hasActions(): boolean;
         /**
          * Invokes all the action callbacks in this Behavior instance.
          * @method invoke
@@ -675,8 +675,12 @@ declare module StateJS {
      * @implements IActiveStateConfiguration
      */
     class StateMachineInstance implements IActiveStateConfiguration {
-        name: string;
         private last;
+        /**
+         * The name of the state machine instance.
+         * @member {string}
+         */
+        name: string;
         /**
          * Indicates that the state manchine instance reached was terminated by reaching a Terminate pseudo state.
          * @member isTerminated

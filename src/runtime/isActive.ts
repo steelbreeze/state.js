@@ -15,9 +15,7 @@ module StateJS {
 	export function isActive(element: Element, stateMachineInstance: IActiveStateConfiguration): boolean {
 		if (element instanceof Region) {
 			return isActive(element.state, stateMachineInstance);
-		}
-		
-		else if (element instanceof State) {
+		} else if (element instanceof State) {
 			return element.region ? (isActive(element.region, stateMachineInstance) && (stateMachineInstance.getCurrent(element.region) === element)) : true;
 		}
 	}

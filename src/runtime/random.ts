@@ -7,7 +7,7 @@
 module StateJS {
 	/**
 	 * Sets a method to select an integer random number less than the max value passed as a parameter.
-	 * 
+	 *
 	 * This is only useful when a custom random number generator is required; the default implementation is fine in most circumstances.
 	 * @function setRandom
 	 * @param {function} generator A function that takes a max value and returns a random number between 0 and max - 1.
@@ -19,7 +19,7 @@ module StateJS {
 
 	/**
 	 * Returns the current method used to select an integer random number less than the max value passed as a parameter.
-	 * 
+	 *
 	 * This is only useful when a custom random number generator is required; the default implementation is fine in most circumstances.
 	 * @function getRandom
 	 * @returns {function} The function that takes a max value and returns a random number between 0 and max - 1.

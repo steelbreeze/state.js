@@ -15,9 +15,7 @@ module StateJS {
 	export function isComplete(element: Element, instance: IActiveStateConfiguration): boolean {
 		if (element instanceof Region) {
 			return instance.getCurrent(element).isFinal();
-		}
-
-		else if (element instanceof State) {
+		} else if (element instanceof State) {
 			return element.regions.every(region => { return isComplete(region, instance); });
 		}
 

@@ -22,6 +22,12 @@ module StateJS {
 		private last: States = {};
 
 		/**
+		 * The name of the state machine instance.
+		 * @member {string}
+		 */
+		public name: string;
+
+		/**
 		 * Indicates that the state manchine instance reached was terminated by reaching a Terminate pseudo state.
 		 * @member isTerminated
 		 */
@@ -31,7 +37,9 @@ module StateJS {
 		 * Creates a new instance of the state machine instance class.
 		 * @param {string} name The optional name of the state machine instance.
 		 */
-		public constructor(public name: string = "unnamed") { }
+		public constructor(name: string = "unnamed") {
+			this.name = name;
+		}
 
 		// Updates the last known state for a given region.
 		setCurrent(region: Region, state: State): void {

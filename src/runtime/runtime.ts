@@ -174,7 +174,7 @@ module StateJS {
 		visitLocalTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
 			transition.onTraverse.push((message, instance) => {
 				var targetAncestors = ancestors(transition.target),
-					i = 0;
+				    i = 0;
 
 				// find the first inactive element in the target ancestry
 				while (isActive(targetAncestors[i], instance)) { ++i; }
@@ -198,8 +198,8 @@ module StateJS {
 		// initialise external transitions: these are abritarily complex
 		visitExternalTransition(transition: Transition, behaviour: (element: Element) => ElementBehavior) {
 			var sourceAncestors = ancestors(transition.source),
-				targetAncestors = ancestors(transition.target),
-				i = Math.min(sourceAncestors.length, targetAncestors.length) - 1;
+			    targetAncestors = ancestors(transition.target),
+			    i = Math.min(sourceAncestors.length, targetAncestors.length) - 1;
 
 			// find the index of the first uncommon ancestor (or for external transitions, the source)
 			while (sourceAncestors[i - 1] !== targetAncestors[i - 1]) { --i; }

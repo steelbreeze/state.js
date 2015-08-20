@@ -18,7 +18,7 @@ module StateJS {
 		 */
 		constructor(behavior?: Behavior) {
 			if (behavior) {
-				this.push(behavior); // NOTE: ensure a copy of the array is made
+				this.push(behavior); // NOTE: this ensures a copy of the array is made
 			}
 		}
 
@@ -52,10 +52,10 @@ module StateJS {
 
 		/**
 		 * Tests the Behavior instance to see if any actions have been defined.
-		 * @method isActive
+		 * @method hasActions
 		 * @returns {boolean} True if there are actions defined within this Behavior instance.
 		 */
-		isActive() : boolean {
+		hasActions() : boolean { // TODO: find a better name
 			return this.actions.length !== 0;
 		}
 
