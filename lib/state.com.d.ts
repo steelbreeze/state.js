@@ -397,14 +397,14 @@ declare module StateJS {
          * @param {Action} exitAction The action to add to the state's exit behaviour.
          * @returns {State} Returns the state to allow a fluent style API.
          */
-        exit<TMessage>(exitAction: Action): State;
+        exit(exitAction: Action): State;
         /**
          * Adds behaviour to a state that is executed each time the state is entered.
          * @method entry
          * @param {Action} entryAction The action to add to the state's entry behaviour.
          * @returns {State} Returns the state to allow a fluent style API.
          */
-        entry<TMessage>(entryAction: Action): State;
+        entry(entryAction: Action): State;
         /**
          * Accepts an instance of a visitor and calls the visitState method on it.
          * @method accept
@@ -532,7 +532,7 @@ declare module StateJS {
          * @param {Action} transitionAction The action to add to the transitions traversal behaviour.
          * @returns {Transition} Returns the transition object to enable the fluent API.
          */
-        effect<TMessage>(transitionAction: Action): Transition;
+        effect(transitionAction: Action): Transition;
         /**
          * Accepts an instance of a visitor and calls the visitTransition method on it.
          * @method accept

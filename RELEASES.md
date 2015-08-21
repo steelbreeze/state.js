@@ -1,3 +1,8 @@
+## Version 5.6.1
+Use Element.namespaceSeperator in the construction of fully qualified names.
+
+Remove unnecessary template parameters to methods that accept behaviour callbacks.
+
 ## Version 5.6.0
 Fix a possible issue where deep history semantics were not properly propigated through the state machine model initialisation.
 

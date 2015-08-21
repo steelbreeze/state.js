@@ -93,7 +93,7 @@ module StateJS {
 		 * @param {Action} exitAction The action to add to the state's exit behaviour.
 		 * @returns {State} Returns the state to allow a fluent style API.
 		 */
-		public exit<TMessage>(exitAction: Action): State {
+		public exit(exitAction: Action): State {
 			this.exitBehavior.push(exitAction);
 
 			this.getRoot().clean = false;
@@ -107,7 +107,7 @@ module StateJS {
 		 * @param {Action} entryAction The action to add to the state's entry behaviour.
 		 * @returns {State} Returns the state to allow a fluent style API.
 		 */
-		public entry<TMessage>(entryAction: Action): State {
+		public entry(entryAction: Action): State {
 			this.entryBehavior.push(entryAction);
 
 			this.getRoot().clean = false;

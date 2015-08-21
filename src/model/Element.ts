@@ -36,7 +36,7 @@ module StateJS {
 		 */
 		public constructor(name: string, parent: Element) {
 			this.name = name;
-			this.qualifiedName = parent ? (parent.qualifiedName + "." + name) : name;
+			this.qualifiedName = parent ? (parent.qualifiedName + Element.namespaceSeparator + name) : name;
 		}
 
 		/**

@@ -84,7 +84,7 @@ module StateJS {
 		 * @param {Action} transitionAction The action to add to the transitions traversal behaviour.
 		 * @returns {Transition} Returns the transition object to enable the fluent API.
 		 */
-		public effect<TMessage>(transitionAction: Action): Transition {
+		public effect(transitionAction: Action): Transition {
 			this.transitionBehavior.push(transitionAction);
 
 			this.source.getRoot().clean = false;
