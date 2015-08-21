@@ -5,6 +5,8 @@ Remove unnecessary template parameters to methods that accept behaviour callback
 
 Add documentation for Transition.source and Transition.target.
 
+Other minor refactoring.
+
 ## Version 5.6.0
 Fix a possible issue where deep history semantics were not properly propigated through the state machine model initialisation.
 

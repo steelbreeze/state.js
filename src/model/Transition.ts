@@ -61,7 +61,7 @@ module StateJS {
 			this.target = target;
 			this.kind = target ? kind : TransitionKind.Internal;
 
-			this.guard = source instanceof PseudoState ? Transition.TrueGuard : (message => { return message === this.source; });
+			this.guard = source instanceof PseudoState ? Transition.TrueGuard : (message => message === this.source);
 
 			this.source.outgoing.push(this);
 
