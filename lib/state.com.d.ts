@@ -492,13 +492,21 @@ declare module StateJS {
      * @class Transition
      */
     class Transition {
-        source: Vertex;
-        target: Vertex;
         static TrueGuard: () => boolean;
         static FalseGuard: () => boolean;
         guard: Guard;
         transitionBehavior: Behavior;
         onTraverse: Behavior;
+        /**
+         * The source of the transition.
+         * @member {Vertex}
+         */
+        source: Vertex;
+        /**
+         * The target of the transition.
+         * @member {Vertex}
+         */
+        target: Vertex;
         /**
          * The kind of the transition which determines its behaviour.
          * @member {TransitionKind}

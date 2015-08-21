@@ -33,6 +33,18 @@ module StateJS {
 		onTraverse = new Behavior();
 
 		/**
+		 * The source of the transition.
+		 * @member {Vertex}
+		 */
+		public source: Vertex;
+
+		/**
+		 * The target of the transition.
+		 * @member {Vertex}
+		 */
+		public target: Vertex;
+
+		/**
 		 * The kind of the transition which determines its behaviour.
 		 * @member {TransitionKind}
 		 */
@@ -44,9 +56,12 @@ module StateJS {
 		 * @param {Vertex} source The target of the transition; this is an optional parameter, omitting it will create an Internal transition.
 		 * @param {TransitionKind} kind The kind the transition; use this to set Local or External (the default if omitted) transition semantics.
 		 */
-		public constructor(public source: Vertex, public target?: Vertex, kind: TransitionKind = TransitionKind.External) {
-			this.guard = source instanceof PseudoState ? Transition.TrueGuard : (message => { return message === this.source; });
+		public constructor(source: Vertex, target?: Vertex, kind: TransitionKind = TransitionKind.External) {
+			this.source = source;
+			this.target = target;
 			this.kind = target ? kind : TransitionKind.Internal;
+
+			this.guard = source instanceof PseudoState ? Transition.TrueGuard : (message => { return message === this.source; });
 
 			this.source.outgoing.push(this);
 
