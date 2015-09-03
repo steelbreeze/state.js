@@ -6,7 +6,7 @@
  */
 module StateJS {
 	/**
-	 * An enumeration of static constants that dictates the precise behaviour of pseudo states.
+	 * An enumeration of static constants that dictates the precise behavior of pseudo states.
 	 *
 	 * Use these constants as the `kind` parameter when creating new `PseudoState` instances.
 	 * @class PseudoStateKind

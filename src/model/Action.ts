@@ -6,7 +6,7 @@
  */
 module StateJS {
 	/**
-	 * Declaration for callbacks that provide state entry, state exit and transition behaviour.
+	 * Declaration for callbacks that provide state entry, state exit and transition behavior.
 	 * @interface Action
 	 * @param {any} message The message that may trigger the transition.
 	 * @param {IActiveStateConfiguration} instance The state machine instance.

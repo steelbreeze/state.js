@@ -16,7 +16,7 @@ module StateJS {
 		// flag used to indicate that the state machine model has has structural changes and therefore requires initialising.
 		clean = false;
 
-		// the behaviour required to initialise state machine instances; created when initialising the state machine model.
+		// the behavior required to initialise state machine instances; created when initialising the state machine model.
 		onInitialise: Behavior;
 
 		/**

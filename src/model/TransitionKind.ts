@@ -6,7 +6,7 @@
  */
 module StateJS {
 	/**
-	 * An enumeration of static constants that dictates the precise behaviour of transitions.
+	 * An enumeration of static constants that dictates the precise behavior of transitions.
 	 *
 	 * Use these constants as the `kind` parameter when creating new `Transition` instances.
 	 * @class TransitionKind

@@ -58,7 +58,7 @@
 				flipped.to(operational).when(function(s) { return s === "flip";  });
 				operational.to(finalState).when(function(s) { return s === "off";   });
 
-				/* add core behaviour to appropriate states and transitions in the player machine*/
+				/* add core behavior to appropriate states and transitions in the player machine*/
 				active.entry(function() { $("#head").text("Head: engaged"); }).exit(function() { $("#head").text("Head: disengaged"); });
 				running.entry(function() { $("#motor").text("Motor: running"); }).exit(function() { $("#motor").text("Motor: stopped"); });
 

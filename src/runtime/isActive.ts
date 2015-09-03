@@ -12,11 +12,11 @@ module StateJS {
 	 * @param {IActiveStateConfiguration} instance The instance of the state machine model.
 	 * @returns {boolean} True if the element is active.
 	 */
-	export function isActive(element: Element, stateMachineInstance: IActiveStateConfiguration): boolean {
+	export function isActive(element: Element, instance: IActiveStateConfiguration): boolean {
 		if (element instanceof Region) {
-			return isActive(element.state, stateMachineInstance);
+			return isActive(element.state, instance);
 		} else if (element instanceof State) {
-			return element.region ? (isActive(element.region, stateMachineInstance) && (stateMachineInstance.getCurrent(element.region) === element)) : true;
+			return element.region ? (isActive(element.region, instance) && (instance.getCurrent(element.region) === element)) : true;
 		}
 	}
 }

@@ -9,7 +9,7 @@ module StateJS {
 	 * A transition between vertices (states or pseudo states) that may be traversed in response to a message.
 	 *
 	 * Transitions come in a variety of types:
-	 * internal transitions respond to messages but do not cause a state transition, they only have behaviour;
+	 * internal transitions respond to messages but do not cause a state transition, they only have behavior;
 	 * local transitions are contained within a single region therefore the source vertex is exited, the transition traversed, and the target state entered;
 	 * external transitions are more complex in nature as they cross region boundaries, all elements up to but not not including the common ancestor are exited and entered.
 	 *
@@ -26,7 +26,7 @@ module StateJS {
 		// guard condition for this transition.
 		guard: Guard;
 
-		// user defined behaviour (via effect) executed when traversing this transition.
+		// user defined behavior (via effect) executed when traversing this transition.
 		transitionBehavior = new Behavior();
 
 		// the collected actions to perform when traversing the transition (includes exiting states, traversal, and state entry)
@@ -45,7 +45,7 @@ module StateJS {
 		public target: Vertex;
 
 		/**
-		 * The kind of the transition which determines its behaviour.
+		 * The kind of the transition which determines its behavior.
 		 * @member {TransitionKind}
 		 */
 		public kind: TransitionKind;
@@ -94,9 +94,9 @@ module StateJS {
 		}
 
 		/**
-		 * Add behaviour to a transition.
+		 * Add behavior to a transition.
 		 * @method effect
-		 * @param {Action} transitionAction The action to add to the transitions traversal behaviour.
+		 * @param {Action} transitionAction The action to add to the transitions traversal behavior.
 		 * @returns {Transition} Returns the transition object to enable the fluent API.
 		 */
 		public effect(transitionAction: Action): Transition {

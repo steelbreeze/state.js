@@ -18,7 +18,7 @@ module StateJS {
 	 */
 	export class PseudoState extends Vertex {
 		/**
-		 * The kind of the pseudo state which determines its use and behaviour.
+		 * The kind of the pseudo state which determines its use and behavior.
 		 * @member {PseudoStateKind}
 		 */
 		public kind: PseudoStateKind;
@@ -27,7 +27,7 @@ module StateJS {
 		 * Creates a new instance of the PseudoState class.
 		 * @param {string} name The name of the pseudo state.
 		 * @param {Element} parent The parent element that this pseudo state will be a child of.
-		 * @param {PseudoStateKind} kind Determines the behaviour of the PseudoState.
+		 * @param {PseudoStateKind} kind Determines the behavior of the PseudoState.
 		 */
 		public constructor(name: string, parent: Element, kind: PseudoStateKind = PseudoStateKind.Initial) {
 			super(name, parent);

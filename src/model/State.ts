@@ -9,17 +9,17 @@ module StateJS {
 	 * An element within a state machine model that represents an invariant condition within the life of the state machine instance.
 	 *
 	 * States are one of the fundamental building blocks of the state machine model.
-	 * Behaviour can be defined for both state entry and state exit.
+	 * Behavior can be defined for both state entry and state exit.
 	 *
 	 * State extends the Vertex class and inherits its public interface.
 	 * @class State
 	 * @augments Vertex
 	 */
 	export class State extends Vertex {
-		// user defined behaviour (via exit method) to execute when exiting a state.
+		// user defined behavior (via exit method) to execute when exiting a state.
 		exitBehavior = new Behavior();
 
-		// user defined behaviour (via entry method) to execute when entering a state.
+		// user defined behavior (via entry method) to execute when entering a state.
 		entryBehavior = new Behavior();
 
 		/**
@@ -88,9 +88,9 @@ module StateJS {
 		}
 
 		/**
-		 * Adds behaviour to a state that is executed each time the state is exited.
+		 * Adds behavior to a state that is executed each time the state is exited.
 		 * @method exit
-		 * @param {Action} exitAction The action to add to the state's exit behaviour.
+		 * @param {Action} exitAction The action to add to the state's exit behavior.
 		 * @returns {State} Returns the state to allow a fluent style API.
 		 */
 		public exit(exitAction: Action): State {
@@ -102,9 +102,9 @@ module StateJS {
 		}
 
 		/**
-		 * Adds behaviour to a state that is executed each time the state is entered.
+		 * Adds behavior to a state that is executed each time the state is entered.
 		 * @method entry
-		 * @param {Action} entryAction The action to add to the state's entry behaviour.
+		 * @param {Action} entryAction The action to add to the state's entry behavior.
 		 * @returns {State} Returns the state to allow a fluent style API.
 		 */
 		public entry(entryAction: Action): State {

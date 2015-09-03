@@ -1,3 +1,11 @@
+## Version 5.6.2 - under development
+Revert ElementBehavior to a class from an array.
+
+Other minor refactoring.
+
+Rename all occurances of behaviour to behavior.
+
+
 ## Version 5.6.1
 Use Element.namespaceSeperator in the construction of fully qualified names.
 

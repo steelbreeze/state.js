@@ -100,7 +100,7 @@ Use [lib/state.js](https://github.com/steelbreeze/state.js/blob/master/lib/state
 
 ## Versioning
 The versions are in the form {major}.{minor}.{build}
-* Major changes introduce significant new behaviour and will update the public API.
+* Major changes introduce significant new behavior and will update the public API.
 * Minor changes introduce features, bug fixes, etc, but note that they also may break the public API.
 * Build changes can introduce features, though usually are fixes and performance enhancements; these will never break the public API.
 

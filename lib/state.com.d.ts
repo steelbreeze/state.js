@@ -1,6 +1,6 @@
 declare module StateJS {
     /**
-     * Declaration for callbacks that provide state entry, state exit and transition behaviour.
+     * Declaration for callbacks that provide state entry, state exit and transition behavior.
      * @interface Action
      * @param {any} message The message that may trigger the transition.
      * @param {IActiveStateConfiguration} instance The state machine instance.
@@ -68,7 +68,7 @@ declare module StateJS {
 }
 declare module StateJS {
     /**
-     * An enumeration of static constants that dictates the precise behaviour of pseudo states.
+     * An enumeration of static constants that dictates the precise behavior of pseudo states.
      *
      * Use these constants as the `kind` parameter when creating new `PseudoState` instances.
      * @class PseudoStateKind
@@ -115,7 +115,7 @@ declare module StateJS {
 }
 declare module StateJS {
     /**
-     * An enumeration of static constants that dictates the precise behaviour of transitions.
+     * An enumeration of static constants that dictates the precise behavior of transitions.
      *
      * Use these constants as the `kind` parameter when creating new `Transition` instances.
      * @class TransitionKind
@@ -294,7 +294,7 @@ declare module StateJS {
      */
     class PseudoState extends Vertex {
         /**
-         * The kind of the pseudo state which determines its use and behaviour.
+         * The kind of the pseudo state which determines its use and behavior.
          * @member {PseudoStateKind}
          */
         kind: PseudoStateKind;
@@ -302,7 +302,7 @@ declare module StateJS {
          * Creates a new instance of the PseudoState class.
          * @param {string} name The name of the pseudo state.
          * @param {Element} parent The parent element that this pseudo state will be a child of.
-         * @param {PseudoStateKind} kind Determines the behaviour of the PseudoState.
+         * @param {PseudoStateKind} kind Determines the behavior of the PseudoState.
          */
         constructor(name: string, parent: Element, kind?: PseudoStateKind);
         /**
@@ -336,7 +336,7 @@ declare module StateJS {
      * An element within a state machine model that represents an invariant condition within the life of the state machine instance.
      *
      * States are one of the fundamental building blocks of the state machine model.
-     * Behaviour can be defined for both state entry and state exit.
+     * Behavior can be defined for both state entry and state exit.
      *
      * State extends the Vertex class and inherits its public interface.
      * @class State
@@ -392,16 +392,16 @@ declare module StateJS {
          */
         isOrthogonal(): boolean;
         /**
-         * Adds behaviour to a state that is executed each time the state is exited.
+         * Adds behavior to a state that is executed each time the state is exited.
          * @method exit
-         * @param {Action} exitAction The action to add to the state's exit behaviour.
+         * @param {Action} exitAction The action to add to the state's exit behavior.
          * @returns {State} Returns the state to allow a fluent style API.
          */
         exit(exitAction: Action): State;
         /**
-         * Adds behaviour to a state that is executed each time the state is entered.
+         * Adds behavior to a state that is executed each time the state is entered.
          * @method entry
-         * @param {Action} entryAction The action to add to the state's entry behaviour.
+         * @param {Action} entryAction The action to add to the state's entry behavior.
          * @returns {State} Returns the state to allow a fluent style API.
          */
         entry(entryAction: Action): State;
@@ -484,7 +484,7 @@ declare module StateJS {
      * A transition between vertices (states or pseudo states) that may be traversed in response to a message.
      *
      * Transitions come in a variety of types:
-     * internal transitions respond to messages but do not cause a state transition, they only have behaviour;
+     * internal transitions respond to messages but do not cause a state transition, they only have behavior;
      * local transitions are contained within a single region therefore the source vertex is exited, the transition traversed, and the target state entered;
      * external transitions are more complex in nature as they cross region boundaries, all elements up to but not not including the common ancestor are exited and entered.
      *
@@ -508,7 +508,7 @@ declare module StateJS {
          */
         target: Vertex;
         /**
-         * The kind of the transition which determines its behaviour.
+         * The kind of the transition which determines its behavior.
          * @member {TransitionKind}
          */
         kind: TransitionKind;
@@ -535,9 +535,9 @@ declare module StateJS {
          */
         when(guard: Guard): Transition;
         /**
-         * Add behaviour to a transition.
+         * Add behavior to a transition.
          * @method effect
-         * @param {Action} transitionAction The action to add to the transitions traversal behaviour.
+         * @param {Action} transitionAction The action to add to the transitions traversal behavior.
          * @returns {Transition} Returns the transition object to enable the fluent API.
          */
         effect(transitionAction: Action): Transition;
@@ -762,7 +762,7 @@ declare module StateJS {
      * @param {IActiveStateConfiguration} instance The instance of the state machine model.
      * @returns {boolean} True if the element is active.
      */
-    function isActive(element: Element, stateMachineInstance: IActiveStateConfiguration): boolean;
+    function isActive(element: Element, instance: IActiveStateConfiguration): boolean;
 }
 declare module StateJS {
     /**
@@ -781,19 +781,19 @@ declare module StateJS {
      * Passing just the state machine model will initialise the model, passing the model and instance will initialse the instance and if necessary, the model.
      * @function initialise
      * @param {StateMachine} stateMachineModel The state machine model. If autoInitialiseModel is true (or no instance is specified) and the model has changed, the model will be initialised.
-     * @param {IActiveStateConfiguration} stateMachineInstance The optional state machine instance to initialise.
+     * @param {IActiveStateConfiguration} instance The optional state machine instance to initialise.
      * @param {boolean} autoInitialiseModel Defaulting to true, this will cause the model to be initialised prior to initialising the instance if the model has changed.
      */
-    function initialise(stateMachineModel: StateMachine, stateMachineInstance?: IActiveStateConfiguration, autoInitialiseModel?: boolean): void;
+    function initialise(stateMachineModel: StateMachine, instance?: IActiveStateConfiguration, autoInitialiseModel?: boolean): void;
     /**
      * Passes a message to a state machine for evaluation; messages trigger state transitions.
      * @function evaluate
      * @param {StateMachine} stateMachineModel The state machine model. If autoInitialiseModel is true (or no instance is specified) and the model has changed, the model will be initialised.
-     * @param {IActiveStateConfiguration} stateMachineInstance The instance of the state machine model to evaluate the message against.
+     * @param {IActiveStateConfiguration} instance The instance of the state machine model to evaluate the message against.
      * @param {boolean} autoInitialiseModel Defaulting to true, this will cause the model to be initialised prior to initialising the instance if the model has changed.
      * @returns {boolean} True if the message triggered a state transition.
      */
-    function evaluate(stateMachineModel: StateMachine, stateMachineInstance: IActiveStateConfiguration, message: any, autoInitialiseModel?: boolean): boolean;
+    function evaluate(stateMachineModel: StateMachine, instance: IActiveStateConfiguration, message: any, autoInitialiseModel?: boolean): boolean;
     /**
      * The object used for log, warning and error messages
      * @member {IConsole}

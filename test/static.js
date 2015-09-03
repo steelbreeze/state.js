@@ -29,7 +29,7 @@ describe("test/static.js", function () {
 		assert.equal(pass, instance.getCurrent(model.defaultRegion()));
 	});
 
-	it("Junction transitions call all transition behaviour after guards have been tested", function(){
+	it("Junction transitions call all transition behavior after guards have been tested", function(){
 
 		assert.equal(2, instance.counter);
 	});
