@@ -113,11 +113,13 @@ module StateJS {
 		onTraverse.invoke(message, instance);
 
 		// process dynamic conditional branches
-		if (target && (target instanceof PseudoState) && (target.kind === PseudoStateKind.Choice)) {
-			traverse(selectTransition(target, instance, message), instance, message);
-		} else if (target && target instanceof State && isComplete(target, instance)) {
-			// test for completion transitions
-			evaluateState(target, instance, target);
+		if (target) {
+			if (target instanceof PseudoState && (target.kind === PseudoStateKind.Choice)) {
+				traverse(selectTransition(target, instance, message), instance, message);
+			} else if (target instanceof State && isComplete(target, instance)) {
+				// test for completion transitions
+				evaluateState(target, instance, target);
+			}
 		}
 
 		return true;
@@ -131,7 +133,7 @@ module StateJS {
 			return results.length !== 0 ? results[getRandom()(results.length)] : findElse(pseudoState);
 		} else {
 			if (results.length > 1) {
-				console.error("Multiple outbound transition guards returned true at " + this + " for " + message);
+				console.error("Multiple outbound transition guards returned true at " + pseudoState + " for " + message);
 			} else {
 				return results[0] || findElse(pseudoState);
 			}
@@ -177,7 +179,7 @@ module StateJS {
 		visitLocalTransition(transition: Transition, behavior: (element: Element) => ElementBehavior) {
 			transition.onTraverse.push((message, instance) => {
 				var targetAncestors = ancestors(transition.target),
-				    i = 0;
+					i = 0;
 
 				// find the first inactive element in the target ancestry
 				while (isActive(targetAncestors[i], instance)) { ++i; }

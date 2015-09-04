@@ -1,6 +1,8 @@
 ## Version 5.6.2 - under development
 Revert ElementBehavior to a class from an array.
 
+Fix minor bug in error text when multiple guards return true at a junction psudo state.
+
 Other minor refactoring.
 
 Rename all occurances of behaviour to behavior.
