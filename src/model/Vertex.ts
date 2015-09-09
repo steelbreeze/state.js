@@ -33,7 +33,7 @@ module StateJS {
 		public constructor(name: string, parent: Element) {
 			super(name, parent = (parent instanceof State ? parent.defaultRegion() : parent)); // TODO: find a cleaner way to manage implicit conversion
 
-			this.region = <Region>parent; // NOTE: parent will be a Region due to the conditional logic in the super call above
+			this.region = parent as Region; // NOTE: parent will be a Region due to the conditional logic in the super call above
 
 			if (this.region) {
 				this.region.vertices.push(this);

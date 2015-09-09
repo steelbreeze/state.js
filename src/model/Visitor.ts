@@ -108,8 +108,8 @@ module StateJS {
 		 * @param {any} arg3 An optional parameter passed into the accept method.
 		 * @returns {any} Any value may be returned when visiting an element.
 		 */
-		public visitStateMachine(stateMachine: StateMachine, arg1?: TArg1, arg2?: any, arg3?: any): any {
-			return this.visitState(stateMachine, arg1, arg2, arg3);
+		public visitStateMachine(model: StateMachine, arg1?: TArg1, arg2?: any, arg3?: any): any {
+			return this.visitState(model, arg1, arg2, arg3);
 		}
 
 		/**

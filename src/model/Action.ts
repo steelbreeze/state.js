@@ -9,11 +9,11 @@ module StateJS {
 	 * Declaration for callbacks that provide state entry, state exit and transition behavior.
 	 * @interface Action
 	 * @param {any} message The message that may trigger the transition.
-	 * @param {IActiveStateConfiguration} instance The state machine instance.
+	 * @param {IInstance} instance The state machine instance.
 	 * @param {boolean} history Internal use only
 	 * @returns {any} Actions can return any value.
 	 */
 	export interface Action {
-		(message?: any, instance?: IActiveStateConfiguration, history?: boolean): any;
+		(message?: any, instance?: IInstance, history?: boolean): any;
 	}
 }

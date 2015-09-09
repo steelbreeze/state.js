@@ -9,10 +9,10 @@ module StateJS {
 	 * Determines if an element is currently active; that it has been entered but not yet exited.
 	 * @function isActive
 	 * @param {Element} element The state to test.
-	 * @param {IActiveStateConfiguration} instance The instance of the state machine model.
+	 * @param {IInstance} instance The instance of the state machine model.
 	 * @returns {boolean} True if the element is active.
 	 */
-	export function isActive(element: Element, instance: IActiveStateConfiguration): boolean {
+	export function isActive(element: Element, instance: IInstance): boolean {
 		if (element instanceof Region) {
 			return isActive(element.state, instance);
 		} else if (element instanceof State) {

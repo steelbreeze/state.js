@@ -8,10 +8,10 @@ module StateJS {
 	/**
 	 * Validates a state machine model for correctness (see the constraints defined within the UML Superstructure specification).
 	 * @function validate
-	 * @param {StateMachine} stateMachineModel The state machine model to validate.
+	 * @param {StateMachine} model The state machine model to validate.
 	 */
-	export function validate(stateMachineModel: StateMachine): void {
-		stateMachineModel.accept(new Validator());
+	export function validate(model: StateMachine): void {
+		model.accept(new Validator());
 	}
 
 	function ancestors(vertex: Vertex): Array<Vertex> { // TODO: remove this

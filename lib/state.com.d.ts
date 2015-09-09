@@ -3,12 +3,12 @@ declare module StateJS {
      * Declaration for callbacks that provide state entry, state exit and transition behavior.
      * @interface Action
      * @param {any} message The message that may trigger the transition.
-     * @param {IActiveStateConfiguration} instance The state machine instance.
+     * @param {IInstance} instance The state machine instance.
      * @param {boolean} history Internal use only
      * @returns {any} Actions can return any value.
      */
     interface Action {
-        (message?: any, instance?: IActiveStateConfiguration, history?: boolean): any;
+        (message?: any, instance?: IInstance, history?: boolean): any;
     }
 }
 declare module StateJS {
@@ -47,10 +47,10 @@ declare module StateJS {
          * Invokes all the action callbacks in this Behavior instance.
          * @method invoke
          * @param {any} message The message that triggered the transition.
-         * @param {IActiveStateConfiguration} instance The state machine instance.
+         * @param {IInstance} instance The state machine instance.
          * @param {boolean} history Internal use only
          */
-        invoke(message: any, instance: IActiveStateConfiguration, history?: boolean): void;
+        invoke(message: any, instance: IInstance, history?: boolean): void;
     }
 }
 declare module StateJS {
@@ -58,12 +58,12 @@ declare module StateJS {
      * Declaration callbacks that provide transition guard conditions.
      * @interface Guard
      * @param {any} message The message that may trigger the transition.
-     * @param {IActiveStateConfiguration} instance The state machine instance.
+     * @param {IInstance} instance The state machine instance.
      * @param {boolean} history Internal use only
      * @returns {boolean} True if the guard condition passed.
      */
     interface Guard {
-        (message?: any, instance?: IActiveStateConfiguration): boolean;
+        (message?: any, instance?: IInstance): boolean;
     }
 }
 declare module StateJS {
@@ -634,7 +634,7 @@ declare module StateJS {
          * @param {any} arg3 An optional parameter passed into the accept method.
          * @returns {any} Any value may be returned when visiting an element.
          */
-        visitStateMachine(stateMachine: StateMachine, arg1?: TArg1, arg2?: any, arg3?: any): any;
+        visitStateMachine(model: StateMachine, arg1?: TArg1, arg2?: any, arg3?: any): any;
         /**
          * Visits a transition within a state machine model.
          * @method visitTransition
@@ -649,10 +649,10 @@ declare module StateJS {
 }
 declare module StateJS {
     /**
-     * Interface for the state machine instance; an object used as each instance of a state machine (as the classes in this library describe a state machine model).
-     * @interface IActiveStateConfiguration
+     * Interface for the state machine instance; an object used as each instance of a state machine (as the classes in this library describe a state machine model). The contents of objects that implement this interface represents the Ac
+     * @interface IInstance
      */
-    interface IActiveStateConfiguration {
+    interface IInstance {
         /**
          * @member {boolean} isTerminated Indicates that the state machine instance has reached a terminate pseudo state and therfore will no longer evaluate messages.
          */
@@ -677,12 +677,12 @@ declare module StateJS {
     /**
      * Default working implementation of a state machine instance class.
      *
-     * Implements the `IActiveStateConfiguration` interface.
+     * Implements the `IInstance` interface.
      * It is possible to create other custom instance classes to manage state machine state in other ways (e.g. as serialisable JSON); just implement the same members and methods as this class.
      * @class StateMachineInstance
-     * @implements IActiveStateConfiguration
+     * @implements IInstance
      */
-    class StateMachineInstance implements IActiveStateConfiguration {
+    class StateMachineInstance implements IInstance {
         private last;
         /**
          * The name of the state machine instance.
@@ -759,20 +759,20 @@ declare module StateJS {
      * Determines if an element is currently active; that it has been entered but not yet exited.
      * @function isActive
      * @param {Element} element The state to test.
-     * @param {IActiveStateConfiguration} instance The instance of the state machine model.
+     * @param {IInstance} instance The instance of the state machine model.
      * @returns {boolean} True if the element is active.
      */
-    function isActive(element: Element, instance: IActiveStateConfiguration): boolean;
+    function isActive(element: Element, instance: IInstance): boolean;
 }
 declare module StateJS {
     /**
      * Tests an element within a state machine instance to see if its lifecycle is complete.
      * @function isComplete
      * @param {Element} element The element to test.
-     * @param {IActiveStateConfiguration} instance The instance of the state machine model to test for completeness.
+     * @param {IInstance} instance The instance of the state machine model to test for completeness.
      * @returns {boolean} True if the element is complete.
      */
-    function isComplete(element: Element, instance: IActiveStateConfiguration): boolean;
+    function isComplete(element: Element, instance: IInstance): boolean;
 }
 declare module StateJS {
     /**
@@ -780,20 +780,20 @@ declare module StateJS {
      *
      * Passing just the state machine model will initialise the model, passing the model and instance will initialse the instance and if necessary, the model.
      * @function initialise
-     * @param {StateMachine} stateMachineModel The state machine model. If autoInitialiseModel is true (or no instance is specified) and the model has changed, the model will be initialised.
-     * @param {IActiveStateConfiguration} instance The optional state machine instance to initialise.
+     * @param {StateMachine} model The state machine model. If autoInitialiseModel is true (or no instance is specified) and the model has changed, the model will be initialised.
+     * @param {IInstance} instance The optional state machine instance to initialise.
      * @param {boolean} autoInitialiseModel Defaulting to true, this will cause the model to be initialised prior to initialising the instance if the model has changed.
      */
-    function initialise(stateMachineModel: StateMachine, instance?: IActiveStateConfiguration, autoInitialiseModel?: boolean): void;
+    function initialise(model: StateMachine, instance?: IInstance, autoInitialiseModel?: boolean): void;
     /**
      * Passes a message to a state machine for evaluation; messages trigger state transitions.
      * @function evaluate
-     * @param {StateMachine} stateMachineModel The state machine model. If autoInitialiseModel is true (or no instance is specified) and the model has changed, the model will be initialised.
-     * @param {IActiveStateConfiguration} instance The instance of the state machine model to evaluate the message against.
+     * @param {StateMachine} model The state machine model. If autoInitialiseModel is true (or no instance is specified) and the model has changed, the model will be initialised.
+     * @param {IInstance} instance The instance of the state machine model to evaluate the message against.
      * @param {boolean} autoInitialiseModel Defaulting to true, this will cause the model to be initialised prior to initialising the instance if the model has changed.
      * @returns {boolean} True if the message triggered a state transition.
      */
-    function evaluate(stateMachineModel: StateMachine, instance: IActiveStateConfiguration, message: any, autoInitialiseModel?: boolean): boolean;
+    function evaluate(model: StateMachine, instance: IInstance, message: any, autoInitialiseModel?: boolean): boolean;
     /**
      * The object used for log, warning and error messages
      * @member {IConsole}
@@ -804,8 +804,8 @@ declare module StateJS {
     /**
      * Validates a state machine model for correctness (see the constraints defined within the UML Superstructure specification).
      * @function validate
-     * @param {StateMachine} stateMachineModel The state machine model to validate.
+     * @param {StateMachine} model The state machine model to validate.
      */
-    function validate(stateMachineModel: StateMachine): void;
+    function validate(model: StateMachine): void;
 }
 declare var module: any;

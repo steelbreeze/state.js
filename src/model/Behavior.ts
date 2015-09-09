@@ -63,10 +63,10 @@ module StateJS {
 		 * Invokes all the action callbacks in this Behavior instance.
 		 * @method invoke
 		 * @param {any} message The message that triggered the transition.
-		 * @param {IActiveStateConfiguration} instance The state machine instance.
+		 * @param {IInstance} instance The state machine instance.
 		 * @param {boolean} history Internal use only
 		 */
-		invoke(message: any, instance: IActiveStateConfiguration, history: boolean = false): void {
+		invoke(message: any, instance: IInstance, history: boolean = false): void {
 			this.actions.forEach(action => action(message, instance, history));
 		}
 	}

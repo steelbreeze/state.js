@@ -21,9 +21,8 @@
 		"src/model/StateMachine.ts",
 		"src/model/Transition.ts",
 		"src/model/Visitor.ts",
-
-		"src/instance/IActiveStateConfiguration.ts",
-		"src/instance/StateMachineInstance.ts",
+		"src/model/IInstance.ts",
+		"src/model/StateMachineInstance.ts",
 
 		"src/runtime/IConsole.ts",
 		"src/runtime/random.ts",

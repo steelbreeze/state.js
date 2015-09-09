@@ -9,10 +9,10 @@ module StateJS {
 	 * Tests an element within a state machine instance to see if its lifecycle is complete.
 	 * @function isComplete
 	 * @param {Element} element The element to test.
-	 * @param {IActiveStateConfiguration} instance The instance of the state machine model to test for completeness.
+	 * @param {IInstance} instance The instance of the state machine model to test for completeness.
 	 * @returns {boolean} True if the element is complete.
 	 */
-	export function isComplete(element: Element, instance: IActiveStateConfiguration): boolean {
+	export function isComplete(element: Element, instance: IInstance): boolean {
 		if (element instanceof Region) {
 			return instance.getCurrent(element).isFinal();
 		} else if (element instanceof State) {

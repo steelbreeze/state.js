@@ -10,47 +10,47 @@ module StateJS {
 	 *
 	 * Passing just the state machine model will initialise the model, passing the model and instance will initialse the instance and if necessary, the model.
 	 * @function initialise
-	 * @param {StateMachine} stateMachineModel The state machine model. If autoInitialiseModel is true (or no instance is specified) and the model has changed, the model will be initialised.
-	 * @param {IActiveStateConfiguration} instance The optional state machine instance to initialise.
+	 * @param {StateMachine} model The state machine model. If autoInitialiseModel is true (or no instance is specified) and the model has changed, the model will be initialised.
+	 * @param {IInstance} instance The optional state machine instance to initialise.
 	 * @param {boolean} autoInitialiseModel Defaulting to true, this will cause the model to be initialised prior to initialising the instance if the model has changed.
 	 */
-	export function initialise(stateMachineModel: StateMachine, instance?: IActiveStateConfiguration, autoInitialiseModel: boolean = true): void {
+	export function initialise(model: StateMachine, instance?: IInstance, autoInitialiseModel: boolean = true): void {
 		if (instance) {
 			// initialise the state machine model if necessary
-			if (autoInitialiseModel && stateMachineModel.clean === false) {
-				initialise(stateMachineModel);
+			if (autoInitialiseModel && model.clean === false) {
+				initialise(model);
 			}
 
 			// log as required
 			console.log("initialise " + instance);
 
 			// enter the state machine instance for the first time
-			stateMachineModel.onInitialise.invoke(undefined, instance);
+			model.onInitialise.invoke(undefined, instance);
 		} else {
 			// log as required
-			console.log("initialise " + stateMachineModel.name);
+			console.log("initialise " + model.name);
 
 			// initialise the state machine model
-			stateMachineModel.accept(new InitialiseElements(), false);
-			stateMachineModel.clean = true;
+			model.accept(new InitialiseElements(), false);
+			model.clean = true;
 		}
 	}
 
 	/**
 	 * Passes a message to a state machine for evaluation; messages trigger state transitions.
 	 * @function evaluate
-	 * @param {StateMachine} stateMachineModel The state machine model. If autoInitialiseModel is true (or no instance is specified) and the model has changed, the model will be initialised.
-	 * @param {IActiveStateConfiguration} instance The instance of the state machine model to evaluate the message against.
+	 * @param {StateMachine} model The state machine model. If autoInitialiseModel is true (or no instance is specified) and the model has changed, the model will be initialised.
+	 * @param {IInstance} instance The instance of the state machine model to evaluate the message against.
 	 * @param {boolean} autoInitialiseModel Defaulting to true, this will cause the model to be initialised prior to initialising the instance if the model has changed.
 	 * @returns {boolean} True if the message triggered a state transition.
 	 */
-	export function evaluate(stateMachineModel: StateMachine, instance: IActiveStateConfiguration, message: any, autoInitialiseModel: boolean = true): boolean {
+	export function evaluate(model: StateMachine, instance: IInstance, message: any, autoInitialiseModel: boolean = true): boolean {
 		// log as required
 		console.log(instance + " evaluate " + message);
 
 		// initialise the state machine model if necessary
-		if (autoInitialiseModel && stateMachineModel.clean === false) {
-			initialise(stateMachineModel);
+		if (autoInitialiseModel && model.clean === false) {
+			initialise(model);
 		}
 
 		// terminated state machine instances will not evaluate messages
@@ -58,11 +58,11 @@ module StateJS {
 			return false;
 		}
 
-		return evaluateState(stateMachineModel, instance, message);
+		return evaluateState(model, instance, message);
 	}
 
 	// evaluates messages against a state, executing transitions as appropriate
-	function evaluateState(state: State, instance: IActiveStateConfiguration, message: any): boolean {
+	function evaluateState(state: State, instance: IInstance, message: any): boolean {
 		var result = false;
 
 		// delegate to child regions first
@@ -98,12 +98,12 @@ module StateJS {
 	}
 
 	// traverses a transition
-	function traverse(transition: Transition, instance: IActiveStateConfiguration, message?: any): boolean {
+	function traverse(transition: Transition, instance: IInstance, message?: any): boolean {
 		var onTraverse = new Behavior(transition.onTraverse), target = transition.target;
 
 		// process static conditional branches
 		while (target && target instanceof PseudoState && target.kind === PseudoStateKind.Junction) {
-			target = (transition = selectTransition(<PseudoState>target, instance, message)).target; // TODO: fix cast
+			target = (transition = selectTransition(target as PseudoState, instance, message)).target; // TODO: fix cast
 
 			// concatenate behavior before and after junctions
 			onTraverse.push(transition.onTraverse);
@@ -126,7 +126,7 @@ module StateJS {
 	}
 
 	// select next leg of composite transitions after choice and junction pseudo states
-	function selectTransition(pseudoState: PseudoState, instance: IActiveStateConfiguration, message: any): Transition {
+	function selectTransition(pseudoState: PseudoState, instance: IInstance, message: any): Transition {
 		var results = pseudoState.outgoing.filter(transition => transition.guard(message, instance));
 
 		if (pseudoState.kind === PseudoStateKind.Choice) {

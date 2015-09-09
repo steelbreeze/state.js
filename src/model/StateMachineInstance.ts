@@ -13,12 +13,12 @@ module StateJS {
 	/**
 	 * Default working implementation of a state machine instance class.
 	 *
-	 * Implements the `IActiveStateConfiguration` interface.
+	 * Implements the `IInstance` interface.
 	 * It is possible to create other custom instance classes to manage state machine state in other ways (e.g. as serialisable JSON); just implement the same members and methods as this class.
 	 * @class StateMachineInstance
-	 * @implements IActiveStateConfiguration
+	 * @implements IInstance
 	 */
-	export class StateMachineInstance implements IActiveStateConfiguration {
+	export class StateMachineInstance implements IInstance {
 		private last: States = {};
 
 		/**

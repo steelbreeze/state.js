@@ -6,15 +6,15 @@
  */
 module StateJS {
 	/**
-	 * Interface for the state machine instance; an object used as each instance of a state machine (as the classes in this library describe a state machine model).
-	 * @interface IActiveStateConfiguration
+	 * Interface for the state machine instance; an object used as each instance of a state machine (as the classes in this library describe a state machine model). The contents of objects that implement this interface represents the Ac
+	 * @interface IInstance
 	 */
-	export interface IActiveStateConfiguration {		
+	export interface IInstance {
 		/**
 		 * @member {boolean} isTerminated Indicates that the state machine instance has reached a terminate pseudo state and therfore will no longer evaluate messages.
 		 */
 		isTerminated: boolean;
-	
+
 		/**
 		 * Updates the last known state for a given region.
 		 * @method setCurrent
@@ -22,7 +22,7 @@ module StateJS {
 		 * @param {State} state The last known state for the given region.
 		 */
 		setCurrent(region: Region, state: State): void;
-	
+
 		/**
 		 * Returns the last known state for a given region.
 		 * @method getCurrent
