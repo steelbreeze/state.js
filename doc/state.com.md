@@ -42,14 +42,14 @@ Invokes all the action callbacks in this Behavior instance.
 
 **message**: `any`, The message that triggered the transition.
 
-**instance**: `IActiveStateConfiguration`, The state machine instance.
+**instance**: `IInstance`, The state machine instance.
 
 **history**: `boolean`, Internal use only
 
 
 
 ## Class: PseudoStateKind
-An enumeration of static constants that dictates the precise behaviour of pseudo states.
+An enumeration of static constants that dictates the precise behavior of pseudo states.
 
 Use these constants as the `kind` parameter when creating new `PseudoState` instances.
 
@@ -73,7 +73,7 @@ if many or none evaluate true, and there is no 'else transition' defined, the ma
 **Terminate**: `PseudoStateKind` , Entering a terminate `PseudoState` implies that the execution of this state machine by means of its state object is terminated.
 
 ## Class: TransitionKind
-An enumeration of static constants that dictates the precise behaviour of transitions.
+An enumeration of static constants that dictates the precise behavior of transitions.
 
 Use these constants as the `kind` parameter when creating new `Transition` instances.
 
@@ -222,7 +222,7 @@ Creates a new instance of the PseudoState class.
 
 **parent**: `Element`, The parent element that this pseudo state will be a child of.
 
-**kind**: `PseudoStateKind`, Determines the behaviour of the PseudoState.
+**kind**: `PseudoStateKind`, Determines the behavior of the PseudoState.
 
 
 ### PseudoState.isHistory()
@@ -260,7 +260,7 @@ Accepts an instance of a visitor and calls the visitPseudoState method on it.
 An element within a state machine model that represents an invariant condition within the life of the state machine instance.
 
 States are one of the fundamental building blocks of the state machine model.
-Behaviour can be defined for both state entry and state exit.
+Behavior can be defined for both state entry and state exit.
 
 State extends the Vertex class and inherits its public interface.
 
@@ -313,21 +313,21 @@ an orthogonal state is one that has two or more child regions.
 
 ### State.exit(exitAction)
 
-Adds behaviour to a state that is executed each time the state is exited.
+Adds behavior to a state that is executed each time the state is exited.
 
 **Parameters**
 
-**exitAction**: `Action`, The action to add to the state's exit behaviour.
+**exitAction**: `Action`, The action to add to the state's exit behavior.
 
 **Returns**: `State`, Returns the state to allow a fluent style API.
 
 ### State.entry(entryAction)
 
-Adds behaviour to a state that is executed each time the state is entered.
+Adds behavior to a state that is executed each time the state is entered.
 
 **Parameters**
 
-**entryAction**: `Action`, The action to add to the state's entry behaviour.
+**entryAction**: `Action`, The action to add to the state's entry behavior.
 
 **Returns**: `State`, Returns the state to allow a fluent style API.
 
@@ -421,7 +421,7 @@ Accepts an instance of a visitor and calls the visitStateMachine method on it.
 A transition between vertices (states or pseudo states) that may be traversed in response to a message.
 
 Transitions come in a variety of types:
-internal transitions respond to messages but do not cause a state transition, they only have behaviour;
+internal transitions respond to messages but do not cause a state transition, they only have behavior;
 local transitions are contained within a single region therefore the source vertex is exited, the transition traversed, and the target state entered;
 external transitions are more complex in nature as they cross region boundaries, all elements up to but not not including the common ancestor are exited and entered.
 
@@ -460,11 +460,11 @@ Defines the guard condition for the transition.
 
 ### Transition.effect(transitionAction)
 
-Add behaviour to a transition.
+Add behavior to a transition.
 
 **Parameters**
 
-**transitionAction**: `Action`, The action to add to the transitions traversal behaviour.
+**transitionAction**: `Action`, The action to add to the transitions traversal behavior.
 
 **Returns**: `Transition`, Returns the transition object to enable the fluent API.
 
@@ -626,7 +626,7 @@ Visits a transition within a state machine model.
 ## Class: StateMachineInstance
 Default working implementation of a state machine instance class.
 
-Implements the `IActiveStateConfiguration` interface.
+Implements the `IInstance` interface.
 It is possible to create other custom instance classes to manage state machine state in other ways (e.g. as serialisable JSON); just implement the same members and methods as this class.
 
 **isTerminated**:  , Indicates that the state manchine instance reached was terminated by reaching a Terminate pseudo state.
@@ -673,7 +673,7 @@ Determines if an element is currently active; that it has been entered but not y
 
 **element**: `Element`, The state to test.
 
-**instance**: `IActiveStateConfiguration`, The instance of the state machine model.
+**instance**: `IInstance`, The instance of the state machine model.
 
 **Returns**: `boolean`, True if the element is active.
 
@@ -685,11 +685,11 @@ Tests an element within a state machine instance to see if its lifecycle is comp
 
 **element**: `Element`, The element to test.
 
-**instance**: `IActiveStateConfiguration`, The instance of the state machine model to test for completeness.
+**instance**: `IInstance`, The instance of the state machine model to test for completeness.
 
 **Returns**: `boolean`, True if the element is complete.
 
-## Function: initialise(stateMachineModel, stateMachineInstance, autoInitialiseModel)
+## Function: initialise(model, instance, autoInitialiseModel)
 
 Initialises a state machine and/or state machine model.
 
@@ -697,37 +697,35 @@ Passing just the state machine model will initialise the model, passing the mode
 
 **Parameters**
 
-**stateMachineModel**: `StateMachine`, The state machine model. If autoInitialiseModel is true (or no instance is specified) and the model has changed, the model will be initialised.
+**model**: `StateMachine`, The state machine model. If autoInitialiseModel is true (or no instance is specified) and the model has changed, the model will be initialised.
 
-**stateMachineInstance**: `IActiveStateConfiguration`, The optional state machine instance to initialise.
+**instance**: `IInstance`, The optional state machine instance to initialise.
 
 **autoInitialiseModel**: `boolean`, Defaulting to true, this will cause the model to be initialised prior to initialising the instance if the model has changed.
 
 
-## Function: evaluate(stateMachineModel, stateMachineInstance, autoInitialiseModel)
+## Function: evaluate(model, instance, autoInitialiseModel)
 
 Passes a message to a state machine for evaluation; messages trigger state transitions.
 
 **Parameters**
 
-**stateMachineModel**: `StateMachine`, The state machine model. If autoInitialiseModel is true (or no instance is specified) and the model has changed, the model will be initialised.
+**model**: `StateMachine`, The state machine model. If autoInitialiseModel is true (or no instance is specified) and the model has changed, the model will be initialised.
 
-**stateMachineInstance**: `IActiveStateConfiguration`, The instance of the state machine model to evaluate the message against.
+**instance**: `IInstance`, The instance of the state machine model to evaluate the message against.
 
 **autoInitialiseModel**: `boolean`, Defaulting to true, this will cause the model to be initialised prior to initialising the instance if the model has changed.
 
 **Returns**: `boolean`, True if the message triggered a state transition.
 
-## Function: validate(stateMachineModel)
+## Function: validate(model)
 
 Validates a state machine model for correctness (see the constraints defined within the UML Superstructure specification).
 
 **Parameters**
 
-**stateMachineModel**: `StateMachine`, The state machine model to validate.
+**model**: `StateMachine`, The state machine model to validate.
 
-## Member: console
-**console**: `IConsole` , The object used for log, warning and error messages
 
 
 
