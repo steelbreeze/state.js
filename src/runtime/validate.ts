@@ -75,7 +75,7 @@ module StateJS {
 		public visitState(state: State): any {
 			super.visitState(state);
 
-			if(state.regions.filter(state => state.name === Region.defaultName).length > 1){
+			if(state.regions.filter(region => region.name === Region.defaultName).length > 1){
 				console.error(state + ": a state cannot have more than one region named " + Region.defaultName);
 			}
 		}
