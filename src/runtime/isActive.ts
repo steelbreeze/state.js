@@ -6,17 +6,13 @@
  */
 module StateJS {
 	/**
-	 * Determines if an element is currently active; that it has been entered but not yet exited.
+	 * Determines if a vertex is currently active; that it has been entered but not yet exited.
 	 * @function isActive
-	 * @param {Element} element The state to test.
+	 * @param {Vertex} vertex The vertex to test.
 	 * @param {IInstance} instance The instance of the state machine model.
-	 * @returns {boolean} True if the element is active.
+	 * @returns {boolean} True if the vertex is active.
 	 */
-	export function isActive(element: Element, instance: IInstance): boolean {
-		if (element instanceof Region) {
-			return isActive(element.state, instance);
-		} else if (element instanceof State) {
-			return element.region ? (isActive(element.region, instance) && (instance.getCurrent(element.region) === element)) : true;
-		}
+	export function isActive(vertex: Vertex, instance: IInstance): boolean {
+		return vertex.region ? (isActive(vertex.region.state, instance) && (instance.getCurrent(vertex.region) === vertex)) : true;
 	}
 }

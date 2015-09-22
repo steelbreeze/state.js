@@ -756,13 +756,13 @@ declare module StateJS {
 }
 declare module StateJS {
     /**
-     * Determines if an element is currently active; that it has been entered but not yet exited.
+     * Determines if a vertex is currently active; that it has been entered but not yet exited.
      * @function isActive
-     * @param {Element} element The state to test.
+     * @param {Vertex} vertex The vertex to test.
      * @param {IInstance} instance The instance of the state machine model.
-     * @returns {boolean} True if the element is active.
+     * @returns {boolean} True if the vertex is active.
      */
-    function isActive(element: Element, instance: IInstance): boolean;
+    function isActive(vertex: Vertex, instance: IInstance): boolean;
 }
 declare module StateJS {
     /**

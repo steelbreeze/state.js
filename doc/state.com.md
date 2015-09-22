@@ -665,17 +665,17 @@ This is only useful when a custom random number generator is required; the defau
 
 **Returns**: `function`, The function that takes a max value and returns a random number between 0 and max - 1.
 
-## Function: isActive(element, instance)
+## Function: isActive(vertex, instance)
 
-Determines if an element is currently active; that it has been entered but not yet exited.
+Determines if a vertex is currently active; that it has been entered but not yet exited.
 
 **Parameters**
 
-**element**: `Element`, The state to test.
+**vertex**: `Vertex`, The vertex to test.
 
 **instance**: `IInstance`, The instance of the state machine model.
 
-**Returns**: `boolean`, True if the element is active.
+**Returns**: `boolean`, True if the vertex is active.
 
 ## Function: isComplete(element, instance)
 
