@@ -14,9 +14,9 @@ module StateJS {
 		model.accept(new Validator());
 	}
 
-	function ancestors(vertex: Vertex): Array<Vertex> { // TODO: remove this
-		return (vertex.region ? ancestors(vertex.region.state) : []).concat(vertex);
-	}
+//	function ancestors(vertex: Vertex): Array<Vertex> { // TODO: remove this
+//		return (vertex.region ? ancestors(vertex.region.state) : []).concat(vertex);
+//	}
 
 	class Validator extends Visitor<string> {
 		public visitPseudoState(pseudoState: PseudoState): any {
@@ -109,7 +109,7 @@ module StateJS {
 
 			// Local transition target vertices must be a child of the source vertex
 			if (transition.kind === TransitionKind.Local) {
-				if (ancestors(transition.target).indexOf(transition.source) === -1) {
+				if (transition.target.ancestry().indexOf(transition.source) === -1) {
 					console.error(transition + ": local transition target vertices must be a child of the source composite sate.");
 				}
 			}

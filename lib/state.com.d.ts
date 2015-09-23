@@ -254,6 +254,7 @@ declare module StateJS {
          * @param {Element} parent The parent region or state.
          */
         constructor(name: string, parent: Element);
+        ancestry(): Array<Vertex>;
         /**
          * Returns the root element within the state machine model.
          * @method getRoot

@@ -158,11 +158,6 @@ module StateJS {
 
 	interface ElementBehaviors { [index: string]: ElementBehavior; }
 
-	// get all the vertex ancestors of a vertex (including the vertex itself)
-	function ancestors(vertex: Vertex): Array<Vertex> {
-		return (vertex.region ? ancestors(vertex.region.state) : []).concat(vertex);
-	}
-
 	// determine the type of transition and use the appropriate initiliasition method
 	class InitialiseTransitions extends Visitor<(element: Element) => ElementBehavior> {
 		visitTransition(transition: Transition, behavior: (element: Element) => ElementBehavior) {
@@ -178,7 +173,7 @@ module StateJS {
 		// initialise internal transitions: these do not leave the source state
 		visitLocalTransition(transition: Transition, behavior: (element: Element) => ElementBehavior) {
 			transition.onTraverse.push((message, instance) => {
-				var targetAncestors = ancestors(transition.target),
+				var targetAncestors = transition.target.ancestry(),
 					i = 0;
 
 				// find the first inactive element in the target ancestry
@@ -202,8 +197,8 @@ module StateJS {
 
 		// initialise external transitions: these are abritarily complex
 		visitExternalTransition(transition: Transition, behavior: (element: Element) => ElementBehavior) {
-			var sourceAncestors = ancestors(transition.source),
-				targetAncestors = ancestors(transition.target),
+			var sourceAncestors = transition.source.ancestry(),
+				targetAncestors = transition.target.ancestry(),
 				i = Math.min(sourceAncestors.length, targetAncestors.length) - 1;
 
 			// find the index of the first uncommon ancestor (or for external transitions, the source)

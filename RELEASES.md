@@ -1,3 +1,6 @@
+## Version 5.6.4 - under development
+Refactor the dual implementations of the ancestor function into a single method on Vertex.
+
 ## Version 5.6.3
 Minor refactoring and tidy of the repo.
 

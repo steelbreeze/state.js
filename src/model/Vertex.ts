@@ -42,6 +42,12 @@ module StateJS {
 			}
 		}
 
+		// returns the ancestry of this vertex
+		ancestry(): Array<Vertex> {
+			return (this.region ? this.region.state.ancestry() : []).concat(this);
+		}
+
+
 		/**
 		 * Returns the root element within the state machine model.
 		 * @method getRoot
