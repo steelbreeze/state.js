@@ -1,8 +1,8 @@
 languages:
-  Ruby: false
+  Ruby: true
   JavaScript: true
-  PHP: false
-  Python: false
+  PHP: true
+  Python: true
 
 # Exclude the code emitted by tsc and browserify
 exclude_paths:
