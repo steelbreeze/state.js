@@ -1,0 +1,10 @@
+languages:
+  Ruby: false
+  JavaScript: true
+  PHP: false
+  Python: false
+
+# Exclude the code emitted by tsc and browserify
+exclude_paths:
+- "lib/state.js"
+- "lib/state.com.js"
