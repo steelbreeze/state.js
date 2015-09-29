@@ -1,6 +1,6 @@
   [![state.js Logo](http://state.software/images/logos/state_55.png)](http://www.steelbreeze.net/state.js/)
 
-  Executable state machine for [Node.js](http://nodejs.org) and [HTML scripting](https://cdn.rawgit.com/steelbreeze/state.js/master/examples/browser/test.html).
+  Executable state machine for [Node.js](http://nodejs.org) and [Web](https://cdn.rawgit.com/steelbreeze/state.js/master/examples/browser/test.html) development.
 
   [![NPM Version][npm-image]][npm-url]
   [![NPM Downloads][downloads-image]][downloads-url]
@@ -57,7 +57,7 @@ state.initialise(model, instance);
 state.evaluate(model, instance, "move");
 ```
 
-### HTML scripting
+### Web
 
 #### 1. Download state.js from GitHub:
 Use [lib/state.js](https://github.com/steelbreeze/state.js/blob/master/lib/state.js) or [lib/state.min.js](https://github.com/steelbreeze/state.js/blob/master/lib/state.min.js).
