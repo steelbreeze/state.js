@@ -99,11 +99,17 @@ module StateJS {
 
 	// traverses a transition
 	function traverse(transition: Transition, instance: IInstance, message?: any): boolean {
-		var onTraverse = new Behavior(transition.onTraverse), target = transition.target;
+		var onTraverse = new Behavior(transition.onTraverse)//, target = transition.target;
 
 		// process static conditional branches
-		while (target && target instanceof PseudoState && target.kind === PseudoStateKind.Junction) {
-			target = (transition = selectTransition(target as PseudoState, instance, message)).target; // TODO: fix cast
+		while (transition.target && transition.target instanceof PseudoState) {
+			var pseudoState = transition.target as PseudoState;
+
+			if (pseudoState.kind !== PseudoStateKind.Junction) {
+				break;
+			}
+
+			transition = selectTransition(pseudoState, instance, message);
 
 			// concatenate behavior before and after junctions
 			onTraverse.push(transition.onTraverse);
@@ -113,12 +119,20 @@ module StateJS {
 		onTraverse.invoke(message, instance);
 
 		// process dynamic conditional branches
-		if (target) {
-			if (target instanceof PseudoState && (target.kind === PseudoStateKind.Choice)) {
-				traverse(selectTransition(target, instance, message), instance, message);
-			} else if (target instanceof State && isComplete(target, instance)) {
+		if (transition.target != null) {
+			if (transition.target instanceof PseudoState) {
+				var pseudoState = transition.target as PseudoState;
+
+				if (pseudoState.kind == PseudoStateKind.Choice) {
+					traverse(selectTransition(pseudoState, instance, message), instance, message);
+				}
+			} else if (transition.target instanceof State) {
+				var state = transition.target as State;
+
 				// test for completion transitions
-				evaluateState(target, instance, target);
+				if (isComplete(state, instance)) {
+					evaluateState(state, instance, state);
+				}
 			}
 		}
 
@@ -223,7 +237,9 @@ module StateJS {
 			task(behavior(element).beginEnter);
 
 			if (next && element instanceof State) {
-				element.regions.forEach(region => {
+				var state = element as State;
+
+				state.regions.forEach(region => {
 					task(behavior(region).beginEnter);
 
 					if (region !== next.region) {
