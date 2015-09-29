@@ -1,6 +1,6 @@
   [![state.js Logo](http://state.software/images/logos/state_55.png)](http://www.steelbreeze.net/state.js/)
 
-  Executable state machine for [Node.js](http://nodejs.org) and [Web](https://cdn.rawgit.com/steelbreeze/state.js/master/examples/browser/test.html) development.
+  Executable state machine for [Node](http://nodejs.org) and [Web](https://cdn.rawgit.com/steelbreeze/state.js/master/examples/browser/test.html) development.
 
   [![NPM Version][npm-image]][npm-url]
   [![NPM Downloads][downloads-image]][downloads-url]
@@ -22,7 +22,7 @@ The API is bound to a global object of your choosing.
 
 state.js is developed in TypeScript and transpiled to JavaScript; you can use it in either language.
 
-### Node.js
+### Node
 #### 1. Install state.js in your project:
 
 ```sh
