@@ -10,6 +10,8 @@
 
 If you like state.js, please star it.
 
+> state.js is now available via [Bower](http://bower.io)
+
 ## Getting started
 
 The state.js API is split into:
