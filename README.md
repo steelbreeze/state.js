@@ -10,7 +10,7 @@
 
 If you like state.js, please star it.
 
-> *Update:* state.js is now available via [Bower](http://bower.io)
+> **Update:** state.js is now available via [Bower](http://bower.io)
 
 ## Getting started
 
