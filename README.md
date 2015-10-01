@@ -63,7 +63,7 @@ state.evaluate(model, instance, "move");
 
 #### 1. Add state.js to your project:
 ```sh
-$ bower install --save state.js
+$ bower install --save state
 ```
 Alternatively, download direct from [lib/state.js](https://github.com/steelbreeze/state.js/blob/master/lib/state.js) or [lib/state.min.js](https://github.com/steelbreeze/state.js/blob/master/lib/state.min.js).
 
