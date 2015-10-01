@@ -1,12 +1,12 @@
 {
-	"name": "state.js",
+	"name": "state",
 	"version": "5.6.4",
 	"homepage": "https://github.com/steelbreeze/state.js",
 	"authors": [
 		"David Mesquita-Morris <mesmo@steelbreeze.net>"
 	],
 	"description": "Hierarchical finite state machine",
-	"main": "?",
+	"main": "lib/state.min.js",
 	"moduleType": [
 		"globals",
 		"node"
