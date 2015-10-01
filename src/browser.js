@@ -4,7 +4,7 @@
  * Licensed under the MIT and GPL v3 licences
  * http://www.steelbreeze.net/state.cs
  */
-(function (target) {
+(function (parent) {
 	// get the dom element that included this script
 	var script = document.currentScript;
 
@@ -15,6 +15,8 @@
 		script = scripts[scripts.length - 1];
 	}
 
+	var target = script.attributes.target ? script.attributes.target.textContent : "fsm";
+
 	// bind the state.js API to the specified name or use "fsm"" as a default
-	target[script.attributes.target ? script.attributes.target.textContent : "fsm"] = require("../lib/state.com.js"); // TODO: look to change to window itself if no target supplied
+	parent[target] = require("../lib/state.com.js");
 })(window);
