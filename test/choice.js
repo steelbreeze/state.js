@@ -3,13 +3,13 @@ var assert = require("assert"),
 	state = require("../lib/state.com.js");
 
 // this test overrides the default implementation of the random selector for choices as we're not looking to test the randomness of hte numbers, but the application of them to choose different transtiions therefore we need to turn the non-deterministic into something deterministic
-var nextRand = [];
+var nextRand = 0;
 
 function randRobin(max) {
-	var result = nextRand[max] || 0;
+	var result = nextRand;
 
-	if((nextRand[max] = result + 1) === max) {
-		nextRand[max] = 0;
+	if (++nextRand === max) {
+		nextRand = 0;
 	}
 
 	return  result;
