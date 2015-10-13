@@ -1,3 +1,8 @@
+## Version 5.6.5
+Fix a bug in the p3pp3r test - the assertions would always pass.
+
+Minor refactoring of tests.
+
 ## Version 5.6.4
 Refactor the dual implementations of the ancestor function into a single method on Vertex.
 
