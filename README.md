@@ -70,7 +70,7 @@ Alternatively, download direct from [lib/state.js](https://github.com/steelbreez
 #### 2. Include state.js as a script in your page:
 
 ```html
-<script type="text/javascript" src="/bower_components/state.js/lib/state.min.js" target="state"></script>
+<script type="text/javascript" src="/bower_components/state/lib/state.min.js" target="state"></script>
 ```
 
 **Note:** the *target* attribute within the script element defines the name of the global object that the state.js API will be bound to. If not specified, state.js will be bound to window.fsm.
