@@ -13,7 +13,7 @@ var finalState = new state.FinalState("final", model);
 
 initial.to(choice);
 choice.to(junction).when(function(message, instance) { return !instance.hello }).effect(function (message, instance) {instance.hello = "hello"; });
-choice.to(finalState).else();
+choice.to(finalState).Else();
 junction.to(choice).when(function(message, instance) { return !instance.world }).effect(function (message, instance) {instance.world = "world"; });
 
 state.validate(model);

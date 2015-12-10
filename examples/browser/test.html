@@ -27,25 +27,25 @@
 		<script type="text/javascript" src="jquery-1.11.2.min.js"></script>
 
 		<!-- import the state machine runtime; NOTE: the use of the class attribute defines the global object that the state.js API is bound to -->
-		<script type="text/javascript" src="../../lib/state.js" target="state"></script>
+		<script type="text/javascript" src="../../lib/state.js"></script>
 
 		<!-- script to wire the core player to the web page -->
 		<script>
 			/* global $, state */
 			$(document).ready(function() {
-				state.console = { log: function(text) { $("#log").prepend(text + "<br/>"); } };
+				fsm.console = { log: function(text) { $("#log").prepend(text + "<br/>"); } };
 
 				/* create the state machine model elements */
-				var model = new state.StateMachine("model");
-				var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
-				var operational = new state.State("operational", model);
-				var flipped = new state.State("flipped", model);
-				var finalState = new state.FinalState("final", model);
-				var deepHistory = new state.PseudoState("history", operational, state.PseudoStateKind.DeepHistory);
-				var stopped = new state.State("stopped", operational);
-				var active = new state.State("active", operational);
-				var running = new state.State("running", active);
-				var paused = new state.State("paused", active);
+				var model = new fsm.StateMachine("model");
+				var initial = new fsm.PseudoState("initial", model, fsm.PseudoStateKind.Initial);
+				var operational = new fsm.State("operational", model);
+				var flipped = new fsm.State("flipped", model);
+				var finalState = new fsm.FinalState("final", model);
+				var deepHistory = new fsm.PseudoState("history", operational, fsm.PseudoStateKind.DeepHistory);
+				var stopped = new fsm.State("stopped", operational);
+				var active = new fsm.State("active", operational);
+				var running = new fsm.State("running", active);
+				var paused = new fsm.State("paused", active);
 
 				/* create the state machine model transitions */
 				initial.to(operational);
@@ -70,13 +70,13 @@
 				flipped.entry(function() { $("#imgFlipped").show(); }).exit(function() { $("#imgFlipped").hide(); });
 
 				/* create the state machine instance object */
-				var instance = new state.StateMachineInstance("player");
+				var instance = new fsm.StateMachineInstance("player");
 
 				/* initialise the state machine model and instance */
-				state.initialise(model, instance);
+				fsm.initialise(model, instance);
 
 				/* pass button values to the state machine when clicked */
-				$("button").click(function(button) { state.evaluate(model, instance, button.target.textContent); });
+				$("button").click(function(button) { fsm.evaluate(model, instance, button.target.textContent); });
 			});
 		</script>
 	</body>

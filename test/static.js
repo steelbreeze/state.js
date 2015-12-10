@@ -13,9 +13,9 @@ var fail = new state.State("error", model);
 initial.to(junction1);
 
 junction1.to(junction2).when(function(message, instance) { return instance.counter === 0; }).effect(function(message, instance) { return instance.counter++; });
-junction1.to(fail).else();
+junction1.to(fail).Else();
 junction2.to(pass).when(function(message, instance) { return instance.counter === 0; }).effect(function(message, instance) { return instance.counter++; });
-junction2.to(fail).else();
+junction2.to(fail).Else();
 
 state.validate(model);
 

@@ -19,8 +19,8 @@ subInitial.to(subEnd);
 initial.to(activity1);
 activity1.to(activity2);
 activity2.to(junction1);
-junction1.to(junction2).else();
-junction2.to(activity3).else();
+junction1.to(junction2).Else();
+junction2.to(activity3).Else();
 activity3.to(end);
 
 state.validate(model);

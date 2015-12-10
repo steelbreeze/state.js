@@ -527,7 +527,7 @@ declare module StateJS {
          * @method else
          * @returns {Transition} Returns the transition object to enable the fluent API.
          */
-        else(): Transition;
+        Else(): Transition;
         /**
          * Defines the guard condition for the transition.
          * @method when

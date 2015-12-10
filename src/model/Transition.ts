@@ -75,7 +75,7 @@ module StateJS {
 		 * @method else
 		 * @returns {Transition} Returns the transition object to enable the fluent API.
 		 */
-		public else(): Transition {
+		public Else(): Transition {
 			this.guard = Transition.FalseGuard;
 
 			return this;
