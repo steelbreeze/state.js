@@ -15,11 +15,11 @@
 			<img id="imgFlipped" style="display: none" src="controller_flipped.png" />
 		</div>
 		<p>Press the buttons below to send events to the controller:</p>
-		<button type="button">play</button>
-		<button type="button">pause</button>
-		<button type="button">stop</button>
-		<button type="button">flip</button>
-		<button type="button">off</button>
+		<button type="button" id="play">play</button>
+		<button type="button" id="pause">pause</button>
+		<button type="button" id="stop">stop</button>
+		<button type="button" id="flip">flip</button>
+		<button type="button" id="off">off</button>
 		<p id="head">Head: disengaged</p>
 		<p id="motor">Motor: stopped</p>
 
@@ -76,7 +76,7 @@
 				fsm.initialise(model, instance);
 
 				/* pass button values to the state machine when clicked */
-				$("button").click(function(button) { fsm.evaluate(model, instance, button.target.textContent); });
+				$("button").click(function(button) { fsm.evaluate(model, instance, this.id); });
 			});
 		</script>
 	</body>
