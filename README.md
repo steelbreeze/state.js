@@ -10,7 +10,7 @@
 
 If you like state.js, please star it.
 
-> **Update:** state.js is now available via [Bower](http://bower.io)
+> **Note:** This is a branch supporting legacy IE versions (from 5 to 8).
 
 ## Getting started
 
@@ -70,36 +70,34 @@ Alternatively, download direct from [lib/state.js](https://github.com/steelbreez
 #### 2. Include state.js as a script in your page:
 
 ```html
-<script type="text/javascript" src="/bower_components/state/lib/state.min.js" target="state"></script>
+<script type="text/javascript" src="/bower_components/state/lib/state.min.js"></script>
 ```
-
-**Note:** the *target* attribute within the script element defines the name of the global object that the state.js API will be bound to. If not specified, state.js will be bound to window.fsm.
 
 #### 3. Create your state machine in another script:
 
 ```html
 <script>
 	// send log messages, warnings and errors to the console
-	state.console = console;
+	fsm.console = console;
 
 	// create the state machine model elements
-	var model = new state.StateMachine("model");
-	var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
-	var stateA = new state.State("stateA", model);
-	var stateB = new state.State("stateB", model);
+	var model = new fsm.StateMachine("model");
+	var initial = new fsm.PseudoState("initial", model, fsm.PseudoStateKind.Initial);
+	var stateA = new fsm.State("stateA", model);
+	var stateB = new fsm.State("stateB", model);
 
 	// create the state machine model transitions
 	initial.to(stateA);
 	stateA.to(stateB).when(function (message) { return message === "move"; });
 
 	// create a state machine instance
-	var instance = new state.StateMachineInstance("test");
+	var instance = new fsm.StateMachineInstance("test");
 
 	// initialise the model and instance
-	state.initialise(model, instance);
+	fsm.initialise(model, instance);
 
 	// send the machine instance a message for evaluation, this will trigger the transition from stateA to stateB
-	state.evaluate(model, instance, "move");
+	fsm.evaluate(model, instance, "move");
 </script>
 ```
 
