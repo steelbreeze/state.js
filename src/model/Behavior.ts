@@ -66,8 +66,8 @@ module StateJS {
 		 * @param {IInstance} instance The state machine instance.
 		 * @param {boolean} history Internal use only
 		 */
-		invoke(message: any, instance: IInstance, history: boolean = false): void {
-			this.actions.forEach(action => action(message, instance, history));
+		invoke(message: any, instance: IInstance, history: boolean = false,state?:State): void {
+			this.actions.forEach(action => action(message, instance, history,state));
 		}
 	}
 }
