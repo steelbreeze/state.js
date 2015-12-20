@@ -308,8 +308,8 @@ module StateJS {
 			this.visitVertex(state, deepHistoryAbove);
 
 			// add the user defined behavior when entering and exiting states
-			this.behavior(state).leave.push(state.exitBehavior);
-			this.behavior(state).beginEnter.push(state.entryBehavior);
+			this.behavior(state).leave.push((message, instance) => state.exitBehavior.invoke(undefined, instance,undefined,state));
+			this.behavior(state).beginEnter.push((message, instance) => state.entryBehavior.invoke(undefined, instance,undefined,state));
 
 			// update the parent regions current state
 			this.behavior(state).beginEnter.push((message, instance) => {
