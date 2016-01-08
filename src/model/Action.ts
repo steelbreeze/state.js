@@ -15,6 +15,6 @@ module StateJS {
 	 * @returns {any} Actions can return any value.
 	 */
 	export interface Action {
-		(message?: any, instance?: IInstance, history?: boolean,state?:State): any;
+		(message?: any, instance?: IInstance, history?: boolean,callback?:any): any;
 	}
 }

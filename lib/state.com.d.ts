@@ -1,3 +1,5 @@
+declare var async: any;
+declare var EventProxy: any;
 declare module StateJS {
     /**
      * Declaration for callbacks that provide state entry, state exit and transition behavior.
@@ -8,21 +10,20 @@ declare module StateJS {
      * @returns {any} Actions can return any value.
      */
     interface Action {
-        (message?: any, instance?: IInstance, history?: boolean): any;
+        (message?: any, instance?: IInstance, history?: boolean, callback?: any): any;
     }
 }
 declare module StateJS {
-    /**
-     * Behavior encapsulates multiple Action callbacks that can be invoked by a single call.
-     * @class Behavior
-     */
     class Behavior {
         private actions;
+        count: number;
+        private myactions;
         /**
          * Creates a new instance of the Behavior class.
          * @param {Behavior} behavior The copy constructor; omit this optional parameter for a simple constructor.
          */
         constructor(behavior?: Behavior);
+        toString(): number;
         /**
          * Adds a single Action callback to this behavior instance.
          * @method push
@@ -38,6 +39,16 @@ declare module StateJS {
          */
         push(behavior: Behavior): Behavior;
         /**
+         * Adds an Action or set of Actions callbacks in a Behavior instance to this behavior instance.
+         * @method push
+         * @param {Behavior} behavior The Action or set of Actions callbacks to add to this behavior instance.
+         * @returns {Behavior} Returns this behavior instance (for use in fluent style development).
+         */
+        /**
+         * 添加需要并行的块
+         */
+        push(behavior: any, sort: string): Behavior;
+        /**
          * Tests the Behavior instance to see if any actions have been defined.
          * @method hasActions
          * @returns {boolean} True if there are actions defined within this Behavior instance.
@@ -50,7 +61,7 @@ declare module StateJS {
          * @param {IInstance} instance The state machine instance.
          * @param {boolean} history Internal use only
          */
-        invoke(message: any, instance: IInstance, history?: boolean): void;
+        invoke(message: any, instance: IInstance, history?: boolean, callback?: any): any;
     }
 }
 declare module StateJS {
@@ -710,6 +721,33 @@ declare module StateJS {
         toString(): string;
     }
 }
+/**
+ * Created by y50-70 on 2015/12/30.
+ */
+declare namespace StateJS {
+    namespace myStateJS {
+        interface Configure {
+            states: Array<State>;
+            events?: any;
+            callbacks?: any;
+        }
+        interface State {
+            name: string;
+            kind?: PseudoStateKind;
+            regions?: Regions;
+        }
+        interface Regions {
+            [index: string]: Array<State>;
+        }
+        interface CallBack {
+        }
+        interface Events {
+            name: string;
+            from: string;
+            to: string;
+        }
+    }
+}
 declare module StateJS {
     /**
      * The methods that state.js may use from a console implementation. Create objects that ahdere to this interface for custom logging, warnings and error handling.
@@ -785,7 +823,7 @@ declare module StateJS {
      * @param {IInstance} instance The optional state machine instance to initialise.
      * @param {boolean} autoInitialiseModel Defaulting to true, this will cause the model to be initialised prior to initialising the instance if the model has changed.
      */
-    function initialise(model: StateMachine, instance?: IInstance, autoInitialiseModel?: boolean): void;
+    function initialise(model: StateMachine, instance?: IInstance, autoInitialiseModel?: boolean, callback?: any): void;
     /**
      * Passes a message to a state machine for evaluation; messages trigger state transitions.
      * @function evaluate
@@ -794,7 +832,7 @@ declare module StateJS {
      * @param {boolean} autoInitialiseModel Defaulting to true, this will cause the model to be initialised prior to initialising the instance if the model has changed.
      * @returns {boolean} True if the message triggered a state transition.
      */
-    function evaluate(model: StateMachine, instance: IInstance, message: any, autoInitialiseModel?: boolean): boolean;
+    function evaluate(model: StateMachine, instance: IInstance, message: any, autoInitialiseModel?: boolean, callback?: any): boolean;
     /**
      * The object used for log, warning and error messages
      * @member {IConsole}
@@ -808,5 +846,12 @@ declare module StateJS {
      * @param {StateMachine} model The state machine model to validate.
      */
     function validate(model: StateMachine): void;
+}
+/**
+ * Created by y50-70 on 2015/12/30.
+ */
+declare namespace StateJS {
+    var Queue: any;
+    function create(cfg: myStateJS.Configure): void;
 }
 declare var module: any;
