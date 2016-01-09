@@ -4,6 +4,7 @@
  * Licensed under the MIT and GPL v3 licences
  * http://www.steelbreeze.net/state.cs
  */
+
 module StateJS {
 	/**
 	 * Declaration for callbacks that provide state entry, state exit and transition behavior.
@@ -14,6 +15,6 @@ module StateJS {
 	 * @returns {any} Actions can return any value.
 	 */
 	export interface Action {
-		(message?: any, instance?: IInstance, history?: boolean): any;
+		(message?: any, instance?: IInstance, history?: boolean,callback?:any): any;
 	}
 }

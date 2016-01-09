@@ -1,56 +1,60 @@
 {
-	"name": "state.js",
-	"version": "5.6.5",
-	"author": "Steelbreeze <osi@steelbreeze.net>",
-	"contributors": [
-		"David Mesquita-Morris <david.mm@icloud.com>"
-	],
-	"description": "Hierarchical finite state machine",
-	"main": "./lib/state.com",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/steelbreeze/state.js"
-	},
-	"devDependencies": {
-		"mocha": ">=2.2.5"
-	},
-	"scripts": {
-		"test": "mocha test/"
-	},
-	"keywords": [
-		"state machine",
-		"finite state machine",
-		"uml",
-		"finite",
-		"state",
-		"machine",
-		"region",
-		"orthogonal",
-		"hierarchical",
-		"pseudo",
-		"final",
-		"initial",
-		"deep",
-		"shallow",
-		"history",
-		"fsm",
-		"junction",
-		"choice",
-		"transition",
-		"completion"
-	],
-	"bugs": {
-		"url": "https://github.com/steelbreeze/state.js/issues"
-	},
-	"dependencies": {},
-	"licenses": [
-		{
-			"type": "MIT",
-			"url": "https://github.com/steelbreeze/state.js/blob/master/GPL.md"
-		},
-		{
-			"type": "GPL",
-			"url": "https://github.com/steelbreeze/state.js/blob/master/MIT.md"
-		}
-	]
+  "name": "state.js",
+  "version": "5.6.5",
+  "author": "Steelbreeze <osi@steelbreeze.net>",
+  "contributors": [
+    "David Mesquita-Morris <david.mm@icloud.com>"
+  ],
+  "description": "Hierarchical finite state machine",
+  "main": "./lib/state.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/steelbreeze/state.js"
+  },
+  "devDependencies": {
+    "mocha": ">=2.2.5"
+  },
+  "scripts": {
+    "test": "mocha test/"
+  },
+  "keywords": [
+    "state machine",
+    "finite state machine",
+    "uml",
+    "finite",
+    "state",
+    "machine",
+    "region",
+    "orthogonal",
+    "hierarchical",
+    "pseudo",
+    "final",
+    "initial",
+    "deep",
+    "shallow",
+    "history",
+    "fsm",
+    "junction",
+    "choice",
+    "transition",
+    "completion"
+  ],
+  "bugs": {
+    "url": "https://github.com/steelbreeze/state.js/issues"
+  },
+  "dependencies": {
+    "async": "^1.5.1",
+    "eventproxy": "^0.3.4",
+    "when": "^3.7.7"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/steelbreeze/state.js/blob/master/GPL.md"
+    },
+    {
+      "type": "GPL",
+      "url": "https://github.com/steelbreeze/state.js/blob/master/MIT.md"
+    }
+  ]
 }

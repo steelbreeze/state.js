@@ -2,6 +2,8 @@
 var assert = require("assert"),
     state = require("../lib/state.com.js"); // use this form if local
 
+
+state.console = console;
 // create the state machine model elements
 var model = new state.StateMachine("model");
 var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
@@ -32,17 +34,19 @@ state.initialise(model, instance);
 
 // send the machine instance a message for evaluation, this will trigger the transition from stateA to stateB
 state.evaluate(model, instance, "move");
+	state.evaluate(model, instance, "external");
 
-describe("test/local.js", function () {
-	it("Local transitions do not exit the source composite state", function () {
-		state.evaluate(model, instance, "local");
 
-		assert.equal(0, instance.stateBExitCount);
-	});
+// describe("test/local.js", function () {
+// 	it("Local transitions do not exit the source composite state", function () {
+// 		state.evaluate(model, instance, "local");
 
-	it("External transitions do exit the source composite state", function () {
-		state.evaluate(model, instance, "external");
+// 		assert.equal(0, instance.stateBExitCount);
+// 	});
 
-		assert.equal(1, instance.stateBExitCount);
-	});
-});
+// 	it("External transitions do exit the source composite state", function () {
+// 		state.evaluate(model, instance, "external");
+
+// 		assert.equal(1, instance.stateBExitCount);
+// 	});
+// });

@@ -2,11 +2,14 @@
 	"compilerOptions": {
 		"noImplicitAny": true,
 		"declaration": true,
-		"module": "commonjs",
+		"module": "system",
 		"outDir": "lib",
 		"out": "lib/state.com.js"
 	},
 	"files": [
+        "src/header.ts",
+        
+        
 		"src/model/Action.ts",
 		"src/model/Behavior.ts",
 		"src/model/Guard.ts",
@@ -23,6 +26,7 @@
 		"src/model/Visitor.ts",
 		"src/model/IInstance.ts",
 		"src/model/StateMachineInstance.ts",
+        "src/model/configure.ts",
 
 		"src/runtime/IConsole.ts",
 		"src/runtime/random.ts",
@@ -30,6 +34,7 @@
 		"src/runtime/isComplete.ts",
 		"src/runtime/runtime.ts",
 		"src/runtime/validate.ts",
+        "src/runtime/shell.ts",
 
 		"src/commonjs.ts"
 	]
