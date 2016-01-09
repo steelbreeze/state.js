@@ -36,7 +36,7 @@ initialB.to(state4);
 initialBa.to(state6);
 initialBb.to(state7);
 
-state3.to(state2).when(function (c) { return c === "event2"; });
+state3.to(state2).when(function (c) { return c === "event3"; });
 state3.to(state8).when(function (c) { return c === "event1"; });
 state7.to(state5).when(function (c) { return c === "event2"; });
 state7.to(state5).when(function (c) { return c === "event1"; });
