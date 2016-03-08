@@ -1,3 +1,8 @@
+## Version 5.6.6
+Fix bug #21.
+
+Add experimental support for subtractive dynamic models (via remove methos).
+
 ## Version 5.6.5
 Fix a bug in the p3pp3r test - the assertions would always pass.
 
