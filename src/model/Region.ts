@@ -52,6 +52,20 @@ module StateJS {
 		}
 
 		/**
+		 * Removes the state from the state machine model
+		 * @method remove
+		 */
+		public remove() {
+			this.vertices.forEach(vertex => { vertex.remove() });
+
+			this.state.regions.splice(this.state.regions.indexOf(this), 1);
+
+			console.log("remove " + this);
+
+			this.state.getRoot().clean = false;
+		}
+
+		/**
 		 * Returns the root element within the state machine model.
 		 * @method getRoot
 		 * @returns {StateMachine} The root state machine element.

@@ -45,13 +45,13 @@ module StateJS {
 	 * @returns {boolean} True if the message triggered a state transition.
 	 */
 	export function evaluate(model: StateMachine, instance: IInstance, message: any, autoInitialiseModel: boolean = true): boolean {
-		// log as required
-		console.log(instance + " evaluate " + message);
-
 		// initialise the state machine model if necessary
 		if (autoInitialiseModel && model.clean === false) {
 			initialise(model);
 		}
+
+		// log as required
+		console.log(instance + " evaluate " + message);
 
 		// terminated state machine instances will not evaluate messages
 		if (instance.isTerminated) {
@@ -175,6 +175,9 @@ module StateJS {
 	// determine the type of transition and use the appropriate initiliasition method
 	class InitialiseTransitions extends Visitor<(element: Element) => ElementBehavior> {
 		visitTransition(transition: Transition, behavior: (element: Element) => ElementBehavior) {
+			// reset transition behavior
+			transition.onTraverse = new Behavior();
+
 			if (transition.kind === TransitionKind.Internal) {
 				transition.onTraverse.push(transition.transitionBehavior);
 			} else if (transition.kind === TransitionKind.Local) {
@@ -269,7 +272,6 @@ module StateJS {
 			var regionInitial = region.vertices.reduce<PseudoState>((result, vertex) => vertex instanceof PseudoState && vertex.isInitial() ? vertex : result, undefined);
 
 			region.vertices.forEach(vertex => vertex.accept(this, deepHistoryAbove || (regionInitial && regionInitial.kind === PseudoStateKind.DeepHistory)));
-
 
 			// leave the curent active child state when exiting the region
 			this.behavior(region).leave.push((message, instance) => this.behavior(instance.getCurrent(region)).leave.invoke(message, instance));

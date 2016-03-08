@@ -2,7 +2,6 @@
 	"compilerOptions": {
 		"noImplicitAny": true,
 		"declaration": true,
-		"module": "commonjs",
 		"outDir": "lib",
 		"out": "lib/state.com.js"
 	},

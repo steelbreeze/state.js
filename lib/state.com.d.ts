@@ -212,6 +212,11 @@ declare module StateJS {
          */
         constructor(name: string, state: State);
         /**
+         * Removes the state from the state machine model
+         * @method remove
+         */
+        remove(): void;
+        /**
          * Returns the root element within the state machine model.
          * @method getRoot
          * @returns {StateMachine} The root state machine element.
@@ -244,10 +249,15 @@ declare module StateJS {
          */
         region: Region;
         /**
-         * The set of transitions from this vertex.
+         * The set of transitions originating from this vertex.
          * @member {Array<Transition>}
          */
         outgoing: Array<Transition>;
+        /**
+         * The set of transitions targeting this vertex.
+         * @member {Array<Transition>}
+         */
+        incoming: Array<Transition>;
         /**
          * Creates a new instance of the Vertex class.
          * @param {string} name The name of the vertex.
@@ -261,6 +271,11 @@ declare module StateJS {
          * @returns {StateMachine} The root state machine element.
          */
         getRoot(): StateMachine;
+        /**
+         * Removes the vertex from the state machine model
+         * @method remove
+         */
+        remove(): void;
         /**
          * Creates a new transition from this vertex.
          * Newly created transitions are completion transitions; they will be evaluated after a vertex has been entered if it is deemed to be complete.
@@ -392,6 +407,11 @@ declare module StateJS {
          * @returns {boolean} True if the state is an orthogonal state.
          */
         isOrthogonal(): boolean;
+        /**
+         * Removes the state from the state machine model
+         * @method remove
+         */
+        remove(): void;
         /**
          * Adds behavior to a state that is executed each time the state is exited.
          * @method exit
@@ -542,6 +562,11 @@ declare module StateJS {
          * @returns {Transition} Returns the transition object to enable the fluent API.
          */
         effect(transitionAction: Action): Transition;
+        /**
+         * Removes the transition from the state machine model
+         * @method remove
+         */
+        remove(): void;
         /**
          * Accepts an instance of a visitor and calls the visitTransition method on it.
          * @method accept

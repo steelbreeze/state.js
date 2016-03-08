@@ -30,7 +30,7 @@ module StateJS {
 		transitionBehavior = new Behavior();
 
 		// the collected actions to perform when traversing the transition (includes exiting states, traversal, and state entry)
-		onTraverse = new Behavior();
+		onTraverse: Behavior;
 
 		/**
 		 * The source of the transition.
@@ -64,6 +64,10 @@ module StateJS {
 			this.guard = source instanceof PseudoState ? Transition.TrueGuard : (message => message === this.source);
 
 			this.source.outgoing.push(this);
+
+			if (this.target) {
+				this.target.incoming.push(this);
+			}
 
 			this.source.getRoot().clean = false;
 		}
@@ -105,6 +109,22 @@ module StateJS {
 			this.source.getRoot().clean = false;
 
 			return this;
+		}
+
+		/**
+		 * Removes the transition from the state machine model
+		 * @method remove
+		 */
+		public remove() {
+			this.source.outgoing.splice(this.source.outgoing.indexOf(this), 1);
+
+			if (this.target) {
+				this.target.incoming.splice(this.target.incoming.indexOf(this), 1);
+			}
+
+			console.log("remove " + this);
+
+			this.source.getRoot().clean = false;
 		}
 
 		/**

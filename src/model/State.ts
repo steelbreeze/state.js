@@ -88,6 +88,16 @@ module StateJS {
 		}
 
 		/**
+		 * Removes the state from the state machine model
+		 * @method remove
+		 */
+		public remove() {
+			this.regions.forEach(region => { region.remove() });
+
+			super.remove();
+		}
+
+		/**
 		 * Adds behavior to a state that is executed each time the state is exited.
 		 * @method exit
 		 * @param {Action} exitAction The action to add to the state's exit behavior.

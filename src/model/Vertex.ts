@@ -20,10 +20,16 @@ module StateJS {
 		public region: Region;
 
 		/**
-		 * The set of transitions from this vertex.
+		 * The set of transitions originating from this vertex.
 		 * @member {Array<Transition>}
 		 */
 		public outgoing: Array<Transition> = [];
+
+		/**
+		 * The set of transitions targeting this vertex.
+		 * @member {Array<Transition>}
+		 */
+		public incoming: Array<Transition> = [];
 
 		/**
 		 * Creates a new instance of the Vertex class.
@@ -47,7 +53,6 @@ module StateJS {
 			return (this.region ? this.region.state.ancestry() : []).concat(this);
 		}
 
-
 		/**
 		 * Returns the root element within the state machine model.
 		 * @method getRoot
@@ -55,6 +60,21 @@ module StateJS {
 		 */
 		public getRoot(): StateMachine {
 			return this.region.getRoot(); // NOTE: need to keep this dynamic as a state machine may be embedded within another
+		}
+
+		/**
+		 * Removes the vertex from the state machine model
+		 * @method remove
+		 */
+		public remove() {
+			this.outgoing.forEach(transition => { transition.remove() });
+			this.incoming.forEach(transition => { transition.remove() });
+
+			this.region.vertices.splice(this.region.vertices.indexOf(this), 1);
+
+			console.log("remove " + this);
+
+			this.region.getRoot().clean = false;
 		}
 
 		/**

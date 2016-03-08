@@ -37,3 +37,9 @@ state.initialise(model, instance);
 state.evaluate(model, instance, "play");
 state.evaluate(model, instance, "pause");
 state.evaluate(model, instance, "stop");
+
+//flipped.remove();
+
+active.remove();
+
+state.evaluate(model, instance, "play");
