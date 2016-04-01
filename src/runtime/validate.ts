@@ -14,10 +14,6 @@ module StateJS {
 		model.accept(new Validator());
 	}
 
-//	function ancestors(vertex: Vertex): Array<Vertex> { // TODO: remove this
-//		return (vertex.region ? ancestors(vertex.region.state) : []).concat(vertex);
-//	}
-
 	class Validator extends Visitor<string> {
 		public visitPseudoState(pseudoState: PseudoState): any {
 			super.visitPseudoState(pseudoState);
