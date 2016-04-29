@@ -1,3 +1,11 @@
+## Version 5.6.7
+Fix bug #22.
+
+Add a switch to enable internal transitions to generate completion events, thereby causing completion transitions to be evaluated. Add the following  to your code before initialising any state machines:
+```js
+state.internalTransitionsTriggerCompletion = true;
+```
+
 ## Version 5.6.6
 Fix bug #21.
 

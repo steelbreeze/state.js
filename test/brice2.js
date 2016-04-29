@@ -2,7 +2,11 @@
 var assert = require("assert"),
 	state = require("../lib/state.com.js");
 
+// direct log, warning and error messages to the console
 state.console = console;
+
+// enable completion events to be raised after internal transtions
+state.internalTransitionsTriggerCompletion = true;
 
 // create the state machine model
 var model = new state.StateMachine("model");
@@ -23,7 +27,7 @@ S1.to(S2).when(function(message, instance) { return instance.i > 0 });
 var instance = new state.StateMachineInstance("brice2");
 instance.i = 0;
 
-// initialise the state machine triggering the initial and IT transition
+// initialise the state machine triggering the initial, IT and T transitions
 state.initialise(model, instance);
 
 // assertions
@@ -32,7 +36,7 @@ describe("test/brice2.js", function () {
 		assert.equal(1, instance.i);
 	});
 
-	it("Internal transitions do not fire completion events", function(){
-		assert.equal(S1, instance.getCurrent(model.defaultRegion()));
+	it("Internal transitions fire completion events if switch set", function(){
+		assert.equal(S2, instance.getCurrent(model.defaultRegion()));
 	});
 });

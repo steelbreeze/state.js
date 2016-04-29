@@ -196,7 +196,20 @@ module StateJS {
 
 		// initialise internal transitions: these do not leave the source state
 		visitInternalTransition(transition: Transition, behavior: (element: Element) => ElementBehavior) {
+			// perform the transition behavior
 			transition.onTraverse.push(transition.transitionBehavior);
+
+			// add a test for completion
+			if (internalTransitionsTriggerCompletion) {
+				transition.onTraverse.push((message, instance, history) => {
+					var state = transition.source as State; // NOTE: internal transitions source
+
+					// fire a completion transition
+					if (isComplete(state, instance)) {
+						evaluateState(state, instance, state);
+					}
+				});
+			}
 		}
 
 		// initialise transitions within the same region
@@ -355,4 +368,10 @@ module StateJS {
 	 * @member {IConsole}
 	 */
 	export var console: IConsole = defaultConsole;
+
+	/**
+	 * Flag to trigger internal transitions to trigger completion events for state they are in
+	 * @member {Boolean}
+	 */
+	export var internalTransitionsTriggerCompletion: Boolean = false;
 }

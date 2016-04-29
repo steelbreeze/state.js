@@ -825,6 +825,11 @@ declare module StateJS {
      * @member {IConsole}
      */
     var console: IConsole;
+    /**
+     * Flag to trigger internal transitions to trigger completion events for state they are in
+     * @member {Boolean}
+     */
+    var internalTransitionsTriggerCompletion: Boolean;
 }
 declare module StateJS {
     /**
