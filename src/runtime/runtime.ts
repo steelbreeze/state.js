@@ -178,16 +178,28 @@ module StateJS {
 			// reset transition behavior
 			transition.onTraverse = new Behavior();
 
-			if (transition.kind === TransitionKind.Internal) {
-				transition.onTraverse.push(transition.transitionBehavior);
-			} else if (transition.kind === TransitionKind.Local) {
-				this.visitLocalTransition(transition, behavior);
-			} else {
-				this.visitExternalTransition(transition, behavior);
+			// initialise transitin behaviour based on transition kind
+			switch (transition.kind) {
+				case TransitionKind.Internal:
+					this.visitInternalTransition(transition, behavior);
+					break;
+
+				case TransitionKind.Local:
+					this.visitLocalTransition(transition, behavior);
+					break;
+
+				case TransitionKind.External:
+					this.visitExternalTransition(transition, behavior);
+					break;
 			}
 		}
 
 		// initialise internal transitions: these do not leave the source state
+		visitInternalTransition(transition: Transition, behavior: (element: Element) => ElementBehavior) {
+			transition.onTraverse.push(transition.transitionBehavior);
+		}
+
+		// initialise transitions within the same region
 		visitLocalTransition(transition: Transition, behavior: (element: Element) => ElementBehavior) {
 			transition.onTraverse.push((message, instance) => {
 				var targetAncestors = transition.target.ancestry(),
