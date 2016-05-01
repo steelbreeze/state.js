@@ -99,40 +99,32 @@ module StateJS {
 
 	// traverses a transition
 	function traverse(transition: Transition, instance: IInstance, message?: any): boolean {
-		var onTraverse = new Behavior(transition.onTraverse)//, target = transition.target;
+		var tran = transition;
+		var target = tran.target;
+		var onTraverse = new Behavior(tran.onTraverse);
 
-		// process static conditional branches
-		while (transition.target && transition.target instanceof PseudoState) {
-			var pseudoState = transition.target as PseudoState;
-
-			if (pseudoState.kind !== PseudoStateKind.Junction) {
-				break;
-			}
-
-			transition = selectTransition(pseudoState, instance, message);
+		// process static conditional branches - build up all the transition behaviour prior to executing
+		while (target && target instanceof PseudoState && target.kind === PseudoStateKind.Junction) {
+			// proceed to the next transition
+			tran = selectTransition(target as PseudoState, instance, message);
+			target = tran.target;
 
 			// concatenate behavior before and after junctions
-			onTraverse.push(transition.onTraverse);
+			onTraverse.push(tran.onTraverse);
 		}
 
 		// execute the transition behavior
 		onTraverse.invoke(message, instance);
 
-		// process dynamic conditional branches
-		if (transition.target != null) {
-			if (transition.target instanceof PseudoState) {
-				var pseudoState = transition.target as PseudoState;
+		if (target) {
+			// process dynamic conditional branches as required
+			if (target instanceof PseudoState && target.kind === PseudoStateKind.Choice) {
+				traverse(selectTransition(target, instance, message), instance, message);
+			}
 
-				if (pseudoState.kind == PseudoStateKind.Choice) {
-					traverse(selectTransition(pseudoState, instance, message), instance, message);
-				}
-			} else if (transition.target instanceof State) {
-				var state = transition.target as State;
-
-				// test for completion transitions
-				if (isComplete(state, instance)) {
-					evaluateState(state, instance, state);
-				}
+			// test for completion transitions
+			else if (target instanceof State && isComplete(target, instance)) {
+				evaluateState(target, instance, target);
 			}
 		}
 
@@ -154,7 +146,7 @@ module StateJS {
 		}
 	}
 
-	// look for else transitins from a junction or choice
+	// look for else transitions from a junction or choice
 	function findElse(pseudoState: PseudoState): Transition {
 		return pseudoState.outgoing.filter(transition => transition.guard === Transition.FalseGuard)[0];
 	}
@@ -178,7 +170,7 @@ module StateJS {
 			// reset transition behavior
 			transition.onTraverse = new Behavior();
 
-			// initialise transitin behaviour based on transition kind
+			// initialise transition behaviour based on transition kind
 			switch (transition.kind) {
 				case TransitionKind.Internal:
 					this.visitInternalTransition(transition, behavior);
@@ -265,9 +257,7 @@ module StateJS {
 			task(behavior(element).beginEnter);
 
 			if (next && element instanceof State) {
-				var state = element as State;
-
-				state.regions.forEach(region => {
+				element.regions.forEach(region => {
 					task(behavior(region).beginEnter);
 
 					if (region !== next.region) {
