@@ -418,14 +418,14 @@ declare module StateJS {
          * @param {Action} exitAction The action to add to the state's exit behavior.
          * @returns {State} Returns the state to allow a fluent style API.
          */
-        exit(exitAction: Action): State;
+        exit(exitAction: Action): this;
         /**
          * Adds behavior to a state that is executed each time the state is entered.
          * @method entry
          * @param {Action} entryAction The action to add to the state's entry behavior.
          * @returns {State} Returns the state to allow a fluent style API.
          */
-        entry(entryAction: Action): State;
+        entry(entryAction: Action): this;
         /**
          * Accepts an instance of a visitor and calls the visitState method on it.
          * @method accept
@@ -547,21 +547,21 @@ declare module StateJS {
          * @method else
          * @returns {Transition} Returns the transition object to enable the fluent API.
          */
-        else(): Transition;
+        else(): this;
         /**
          * Defines the guard condition for the transition.
          * @method when
          * @param {Guard} guard The guard condition that must evaluate true for the transition to be traversed.
          * @returns {Transition} Returns the transition object to enable the fluent API.
          */
-        when(guard: Guard): Transition;
+        when(guard: Guard): this;
         /**
          * Add behavior to a transition.
          * @method effect
          * @param {Action} transitionAction The action to add to the transitions traversal behavior.
          * @returns {Transition} Returns the transition object to enable the fluent API.
          */
-        effect(transitionAction: Action): Transition;
+        effect(transitionAction: Action): this;
         /**
          * Removes the transition from the state machine model
          * @method remove

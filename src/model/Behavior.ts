@@ -44,7 +44,7 @@ module StateJS {
 		 * @param {Behavior} behavior The Action or set of Actions callbacks to add to this behavior instance.
 		 * @returns {Behavior} Returns this behavior instance (for use in fluent style development).
 		 */
-		public push(behavior: any): Behavior {
+		public push(behavior: any) {
 			Array.prototype.push.apply(this.actions, behavior instanceof Behavior ? behavior.actions : arguments);
 
 			return this;

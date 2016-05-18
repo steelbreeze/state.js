@@ -79,7 +79,7 @@ module StateJS {
 		 * @method else
 		 * @returns {Transition} Returns the transition object to enable the fluent API.
 		 */
-		public else(): Transition {
+		public else() {
 			this.guard = Transition.FalseGuard;
 
 			return this;
@@ -91,7 +91,7 @@ module StateJS {
 		 * @param {Guard} guard The guard condition that must evaluate true for the transition to be traversed.
 		 * @returns {Transition} Returns the transition object to enable the fluent API.
 		 */
-		public when(guard: Guard): Transition {
+		public when(guard: Guard) {
 			this.guard = guard;
 
 			return this;
@@ -103,7 +103,7 @@ module StateJS {
 		 * @param {Action} transitionAction The action to add to the transitions traversal behavior.
 		 * @returns {Transition} Returns the transition object to enable the fluent API.
 		 */
-		public effect(transitionAction: Action): Transition {
+		public effect(transitionAction: Action) {
 			this.transitionBehavior.push(transitionAction);
 
 			this.source.getRoot().clean = false;
