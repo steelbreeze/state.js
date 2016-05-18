@@ -21,7 +21,7 @@ module StateJS {
 		 * The kind of the pseudo state which determines its use and behavior.
 		 * @member {PseudoStateKind}
 		 */
-		public kind: PseudoStateKind;
+		public /*readonly*/ kind: PseudoStateKind;
 
 		/**
 		 * Creates a new instance of the PseudoState class.

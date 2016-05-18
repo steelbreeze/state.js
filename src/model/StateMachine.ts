@@ -14,10 +14,10 @@ module StateJS {
 	 */
 	export class StateMachine extends State {
 		// flag used to indicate that the state machine model has has structural changes and therefore requires initialising.
-		clean = false;
+		/*internal*/ clean = false;
 
 		// the behavior required to initialise state machine instances; created when initialising the state machine model.
-		onInitialise: Behavior;
+		/*internal*/ onInitialise: Behavior;
 
 		/**
 		 * Creates a new instance of the StateMachine class.

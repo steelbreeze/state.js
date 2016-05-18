@@ -18,37 +18,37 @@ module StateJS {
 	 */
 	export class Transition {
 		// the default guard condition for pseudo states
-		static TrueGuard = () => { return true; };
+		/*internal*/ static TrueGuard = () => { return true; };
 
 		// used as the guard condition for else tranitions
-		static FalseGuard = () => { return false; };
+		/*internal*/ static FalseGuard = () => { return false; };
 
 		// guard condition for this transition.
-		guard: Guard;
+		/*internal*/ guard: Guard;
 
 		// user defined behavior (via effect) executed when traversing this transition.
-		transitionBehavior = new Behavior();
+		/*internal*/ transitionBehavior = new Behavior();
 
 		// the collected actions to perform when traversing the transition (includes exiting states, traversal, and state entry)
-		onTraverse: Behavior;
+		/*internal*/ onTraverse: Behavior;
 
 		/**
 		 * The source of the transition.
 		 * @member {Vertex}
 		 */
-		public source: Vertex;
+		public /*readonly*/ source: Vertex;
 
 		/**
 		 * The target of the transition.
 		 * @member {Vertex}
 		 */
-		public target: Vertex;
+		public /*readonly*/ target: Vertex;
 
 		/**
 		 * The kind of the transition which determines its behavior.
 		 * @member {TransitionKind}
 		 */
-		public kind: TransitionKind;
+		public /*readonly*/ kind: TransitionKind;
 
 		/**
 		 * Creates a new instance of the Transition class.

@@ -25,7 +25,7 @@ module StateJS {
 		 * The name of the state machine instance.
 		 * @member {string}
 		 */
-		public name: string;
+		public /*readonly*/ name: string;
 
 		/**
 		 * Indicates that the state manchine instance reached was terminated by reaching a Terminate pseudo state.
@@ -42,12 +42,12 @@ module StateJS {
 		}
 
 		// Updates the last known state for a given region.
-		setCurrent(region: Region, state: State): void {
+		/*internal*/ setCurrent(region: Region, state: State): void {
 			this.last[region.qualifiedName] = state;
 		}
 
 		// Returns the last known state for a given region.
-		getCurrent(region: Region): State {
+		public getCurrent(region: Region): State {
 			return this.last[region.qualifiedName];
 		}
 
@@ -56,7 +56,7 @@ module StateJS {
 		 * @method toString
 		 * @returns {string} The name of the state machine instance.
 		 */
-		toString(): string {
+		public toString(): string {
 			return this.name;
 		}
 	}

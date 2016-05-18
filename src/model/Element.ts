@@ -22,13 +22,13 @@ module StateJS {
 		 * The name of the element.
 		 * @member {string}
 		 */
-		public name: string;
+		public /*readonly*/ name: string;
 
 		/**
 		 * The fully qualified name of the element.
 		 * @member {string}
 		 */
-		public qualifiedName: string;
+		public /*readonly*/ qualifiedName: string;
 
 		/**
 		 * Creates a new instance of the element class.

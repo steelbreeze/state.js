@@ -17,7 +17,7 @@ module StateJS {
 		 * The parent region of this vertex.
 		 * @member {Region}
 		 */
-		public region: Region;
+		public /*readonly*/ region: Region;
 
 		/**
 		 * The set of transitions originating from this vertex.
@@ -49,7 +49,7 @@ module StateJS {
 		}
 
 		// returns the ancestry of this vertex
-		ancestry(): Array<Vertex> {
+		/*internal*/ ancestry(): Array<Vertex> {
 			return (this.region ? this.region.state.ancestry() : []).concat(this);
 		}
 

@@ -28,7 +28,7 @@ module StateJS {
 		 * The parent state of this region.
 		 * @member {Region}
 		 */
-		public state: State;
+		public /*readonly*/ state: State;
 
 		/**
 		 * The set of vertices that are children of the region.
