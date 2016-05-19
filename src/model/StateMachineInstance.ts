@@ -5,11 +5,6 @@
  * http://www.steelbreeze.net/state.cs
  */
 module StateJS {
-	// interface to type the last known state
-	interface States {
-		[index: string]: State;
-	}
-
 	/**
 	 * Default working implementation of a state machine instance class.
 	 *
@@ -19,7 +14,7 @@ module StateJS {
 	 * @implements IInstance
 	 */
 	export class StateMachineInstance implements IInstance {
-		private last: States = {};
+		private last: any = [];
 
 		/**
 		 * The name of the state machine instance.
