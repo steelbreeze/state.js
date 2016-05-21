@@ -83,7 +83,7 @@ module StateJS {
 			}
 		} else {
 			// otherwise look for a transition from this state
-			var transitions = state.outgoing.filter(transition => transition.guard(message, instance));
+			const transitions = state.outgoing.filter(transition => transition.guard(message, instance));
 
 			if (transitions.length === 1) {
 				// execute if a single transition was found
@@ -133,7 +133,7 @@ module StateJS {
 
 	// select next leg of composite transitions after choice and junction pseudo states
 	function selectTransition(pseudoState: PseudoState, instance: IInstance, message: any): Transition {
-		var results = pseudoState.outgoing.filter(transition => transition.guard(message, instance));
+		const results = pseudoState.outgoing.filter(transition => transition.guard(message, instance));
 
 		if (pseudoState.kind === PseudoStateKind.Choice) {
 			return results.length !== 0 ? results[getRandom()(results.length)] : findElse(pseudoState);
@@ -194,7 +194,7 @@ module StateJS {
 			// add a test for completion
 			if (internalTransitionsTriggerCompletion) {
 				transition.onTraverse.push((message, instance, history) => {
-					var state = transition.source as State; // NOTE: internal transitions source
+					const state = transition.source as State; // NOTE: internal transitions source
 
 					// fire a completion transition
 					if (isComplete(state, instance)) {
@@ -207,8 +207,8 @@ module StateJS {
 		// initialise transitions within the same region
 		visitLocalTransition(transition: Transition, behavior: (element: Element) => ElementBehavior) {
 			transition.onTraverse.push((message, instance) => {
-				var targetAncestors = transition.target.ancestry(),
-					i = 0;
+				const targetAncestors = transition.target.ancestry();
+				var i = 0;
 
 				// find the first inactive element in the target ancestry
 				while (isActive(targetAncestors[i], instance)) { ++i; }
@@ -231,9 +231,9 @@ module StateJS {
 
 		// initialise external transitions: these are abritarily complex
 		visitExternalTransition(transition: Transition, behavior: (element: Element) => ElementBehavior) {
-			var sourceAncestors = transition.source.ancestry(),
-				targetAncestors = transition.target.ancestry(),
-				i = Math.min(sourceAncestors.length, targetAncestors.length) - 1;
+			const sourceAncestors = transition.source.ancestry(),
+				targetAncestors = transition.target.ancestry();
+			var i = Math.min(sourceAncestors.length, targetAncestors.length) - 1;
 
 			// find the index of the first uncommon ancestor (or for external transitions, the source)
 			while (sourceAncestors[i - 1] !== targetAncestors[i - 1]) { --i; }
@@ -284,7 +284,7 @@ module StateJS {
 		}
 
 		visitRegion(region: Region, deepHistoryAbove: boolean) {
-			var regionInitial = region.vertices.reduce<PseudoState>((result, vertex) => vertex instanceof PseudoState && vertex.isInitial() ? vertex : result, undefined);
+			const regionInitial = region.vertices.reduce<PseudoState>((result, vertex) => vertex instanceof PseudoState && vertex.isInitial() ? vertex : result, undefined);
 
 			region.vertices.forEach(vertex => vertex.accept(this, deepHistoryAbove || (regionInitial && regionInitial.kind === PseudoStateKind.DeepHistory)));
 
@@ -347,7 +347,7 @@ module StateJS {
 		}
 	}
 
-	var defaultConsole = {
+	const defaultConsole = {
 		log(message?: any, ...optionalParams: any[]): void { },
 		warn(message?: any, ...optionalParams: any[]): void { },
 		error(message?: any, ...optionalParams: any[]): void { throw message; }

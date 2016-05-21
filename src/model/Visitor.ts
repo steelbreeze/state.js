@@ -32,7 +32,7 @@ module StateJS {
 		 * @returns {any} Any value may be returned when visiting an element.
 		 */
 		public visitRegion(region: Region, arg1?: TArg1, arg2?: any, arg3?: any): any {
-			var result = this.visitElement(region, arg1, arg2, arg3);
+			const result = this.visitElement(region, arg1, arg2, arg3);
 
 			region.vertices.forEach(vertex => { vertex.accept(this, arg1, arg2, arg3) });
 
@@ -49,7 +49,7 @@ module StateJS {
 		 * @returns {any} Any value may be returned when visiting an element.
 		 */
 		public visitVertex(vertex: Vertex, arg1?: TArg1, arg2?: any, arg3?: any): any {
-			var result = this.visitElement(vertex, arg1, arg2, arg3);
+			const result = this.visitElement(vertex, arg1, arg2, arg3);
 
 			vertex.outgoing.forEach(transition => { transition.accept(this, arg1, arg2, arg3) });
 
@@ -79,7 +79,7 @@ module StateJS {
 		 * @returns {any} Any value may be returned when visiting an element.
 		 */
 		public visitState(state: State, arg1?: TArg1, arg2?: any, arg3?: any): any {
-			var result = this.visitVertex(state, arg1, arg2, arg3);
+			const result = this.visitVertex(state, arg1, arg2, arg3);
 
 			state.regions.forEach(region => { region.accept(this, arg1, arg2, arg3) });
 
