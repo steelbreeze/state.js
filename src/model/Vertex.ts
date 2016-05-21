@@ -12,7 +12,7 @@ module StateJS {
 	 * @class Vertex
 	 * @augments Element
 	 */
-	export class Vertex extends Element {
+	export abstract class Vertex extends Element {
 		/**
 		 * The parent region of this vertex.
 		 * @member {Region}

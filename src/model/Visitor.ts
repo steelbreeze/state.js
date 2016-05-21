@@ -9,7 +9,7 @@ module StateJS {
 	 * Implementation of a visitor pattern.
 	 * @class Visitor
 	 */
-	export class Visitor<TArg1> {
+	export abstract class Visitor<TArg1> {
 		/**
 		 * Visits an element within a state machine model.
 		 * @method visitElement
