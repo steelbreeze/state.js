@@ -1,3 +1,6 @@
+## Version 5.6.8
+Expliot recent TypeScript language enhancements.
+
 ## Version 5.6.7
 Fix bug #22.
 
