@@ -4,7 +4,7 @@
  * Licensed under the MIT and GPL v3 licences
  * http://www.steelbreeze.net/state.cs
  */
-module StateJS {
+namespace StateJS {
 	/**
 	 * An element within a state machine model that represents completion of the life of the containing Region within the state machine instance.
 	 *

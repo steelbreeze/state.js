@@ -4,7 +4,7 @@
  * Licensed under the MIT and GPL v3 licences
  * http://www.steelbreeze.net/state.cs
  */
-module StateJS {
+namespace StateJS {
 	/**
 	 * Interface for the state machine instance; an object used as each instance of a state machine (as the classes in this library describe a state machine model). The contents of objects that implement this interface represents the Ac
 	 * @interface IInstance

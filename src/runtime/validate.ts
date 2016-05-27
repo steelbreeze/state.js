@@ -4,7 +4,7 @@
  * Licensed under the MIT and GPL v3 licences
  * http://www.steelbreeze.net/state.cs
  */
-module StateJS {
+namespace StateJS {
 	/**
 	 * Validates a state machine model for correctness (see the constraints defined within the UML Superstructure specification).
 	 * @function validate

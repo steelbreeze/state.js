@@ -4,7 +4,7 @@
  * Licensed under the MIT and GPL v3 licences
  * http://www.steelbreeze.net/state.cs
  */
-module StateJS {
+namespace StateJS {
 	/**
 	 * Behavior encapsulates multiple Action callbacks that can be invoked by a single call.
 	 * @class Behavior

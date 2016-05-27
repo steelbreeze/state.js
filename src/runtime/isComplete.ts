@@ -4,7 +4,7 @@
  * Licensed under the MIT and GPL v3 licences
  * http://www.steelbreeze.net/state.cs
  */
-module StateJS {
+namespace StateJS {
 	/**
 	 * Tests an element within a state machine instance to see if its lifecycle is complete.
 	 * @function isComplete

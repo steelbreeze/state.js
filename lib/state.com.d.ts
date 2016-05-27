@@ -1,4 +1,4 @@
-declare module StateJS {
+declare namespace StateJS {
     /**
      * Declaration for callbacks that provide state entry, state exit and transition behavior.
      * @interface Action
@@ -11,7 +11,7 @@ declare module StateJS {
         (message?: any, instance?: IInstance, history?: boolean): any;
     }
 }
-declare module StateJS {
+declare namespace StateJS {
     /**
      * Behavior encapsulates multiple Action callbacks that can be invoked by a single call.
      * @class Behavior
@@ -53,7 +53,7 @@ declare module StateJS {
         invoke(message: any, instance: IInstance, history?: boolean): void;
     }
 }
-declare module StateJS {
+declare namespace StateJS {
     /**
      * Declaration callbacks that provide transition guard conditions.
      * @interface Guard
@@ -66,7 +66,7 @@ declare module StateJS {
         (message?: any, instance?: IInstance): boolean;
     }
 }
-declare module StateJS {
+declare namespace StateJS {
     /**
      * An enumeration of static constants that dictates the precise behavior of pseudo states.
      *
@@ -113,7 +113,7 @@ declare module StateJS {
         Terminate = 5,
     }
 }
-declare module StateJS {
+declare namespace StateJS {
     /**
      * An enumeration of static constants that dictates the precise behavior of transitions.
      *
@@ -140,7 +140,7 @@ declare module StateJS {
         External = 2,
     }
 }
-declare module StateJS {
+declare namespace StateJS {
     /**
      * An abstract class used as the base for the Region and Vertex classes.
      * An element is a node within the tree structure that represents a composite state machine model.
@@ -176,7 +176,7 @@ declare module StateJS {
         toString(): string;
     }
 }
-declare module StateJS {
+declare namespace StateJS {
     /**
      * An element within a state machine model that is a container of Vertices.
      *
@@ -234,7 +234,7 @@ declare module StateJS {
         accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any;
     }
 }
-declare module StateJS {
+declare namespace StateJS {
     /**
      * An abstract element within a state machine model that can be the source or target of a transition (states and pseudo states).
      *
@@ -296,7 +296,7 @@ declare module StateJS {
         accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any;
     }
 }
-declare module StateJS {
+declare namespace StateJS {
     /**
      * An element within a state machine model that represents an transitory Vertex within the state machine model.
      *
@@ -347,7 +347,7 @@ declare module StateJS {
         accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any;
     }
 }
-declare module StateJS {
+declare namespace StateJS {
     /**
      * An element within a state machine model that represents an invariant condition within the life of the state machine instance.
      *
@@ -438,7 +438,7 @@ declare module StateJS {
         accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any;
     }
 }
-declare module StateJS {
+declare namespace StateJS {
     /**
      * An element within a state machine model that represents completion of the life of the containing Region within the state machine instance.
      *
@@ -465,7 +465,7 @@ declare module StateJS {
         accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any;
     }
 }
-declare module StateJS {
+declare namespace StateJS {
     /**
      * An element within a state machine model that represents the root of the state machine model.
      *
@@ -500,7 +500,7 @@ declare module StateJS {
         accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any;
     }
 }
-declare module StateJS {
+declare namespace StateJS {
     /**
      * A transition between vertices (states or pseudo states) that may be traversed in response to a message.
      *
@@ -585,7 +585,7 @@ declare module StateJS {
         toString(): string;
     }
 }
-declare module StateJS {
+declare namespace StateJS {
     /**
      * Implementation of a visitor pattern.
      * @class Visitor
@@ -673,7 +673,7 @@ declare module StateJS {
         visitTransition(transition: Transition, arg1?: TArg1, arg2?: any, arg3?: any): any;
     }
 }
-declare module StateJS {
+declare namespace StateJS {
     /**
      * Interface for the state machine instance; an object used as each instance of a state machine (as the classes in this library describe a state machine model). The contents of objects that implement this interface represents the Ac
      * @interface IInstance
@@ -699,7 +699,7 @@ declare module StateJS {
         getCurrent(region: Region): State;
     }
 }
-declare module StateJS {
+declare namespace StateJS {
     /**
      * Default working implementation of a state machine instance class.
      *
@@ -735,7 +735,7 @@ declare module StateJS {
         toString(): string;
     }
 }
-declare module StateJS {
+declare namespace StateJS {
     /**
      * The methods that state.js may use from a console implementation. Create objects that ahdere to this interface for custom logging, warnings and error handling.
      * @interface IConsole
@@ -761,7 +761,7 @@ declare module StateJS {
         error(message?: any, ...optionalParams: any[]): void;
     }
 }
-declare module StateJS {
+declare namespace StateJS {
     /**
      * Sets a method to select an integer random number less than the max value passed as a parameter.
      *
@@ -780,7 +780,7 @@ declare module StateJS {
      */
     function getRandom(): (max: number) => number;
 }
-declare module StateJS {
+declare namespace StateJS {
     /**
      * Determines if a vertex is currently active; that it has been entered but not yet exited.
      * @function isActive
@@ -790,7 +790,7 @@ declare module StateJS {
      */
     function isActive(vertex: Vertex, instance: IInstance): boolean;
 }
-declare module StateJS {
+declare namespace StateJS {
     /**
      * Tests an element within a state machine instance to see if its lifecycle is complete.
      * @function isComplete
@@ -800,7 +800,7 @@ declare module StateJS {
      */
     function isComplete(element: Element, instance: IInstance): boolean;
 }
-declare module StateJS {
+declare namespace StateJS {
     /**
      * Initialises a state machine and/or state machine model.
      *
@@ -831,7 +831,7 @@ declare module StateJS {
      */
     var internalTransitionsTriggerCompletion: Boolean;
 }
-declare module StateJS {
+declare namespace StateJS {
     /**
      * Validates a state machine model for correctness (see the constraints defined within the UML Superstructure specification).
      * @function validate
