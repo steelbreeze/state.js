@@ -306,7 +306,15 @@ module StateJS {
 
 			// evaluate comppletion transitions once vertex entry is complete
 			if (pseudoState.isInitial()) {
-				this.behavior(pseudoState).endEnter.push((message, instance) => traverse(pseudoState.outgoing[0], instance));
+				this.behavior(pseudoState).endEnter.push((message, instance, history) => {
+					if (instance.getCurrent(pseudoState.region)) {
+						this.behavior(pseudoState).leave.invoke(message, instance);
+
+						this.behavior(instance.getCurrent(pseudoState.region)).enter().invoke(message, instance, history || pseudoState.kind === PseudoStateKind.DeepHistory);
+					} else {
+						traverse(pseudoState.outgoing[0], instance)
+					}
+				});
 			} else if (pseudoState.kind === PseudoStateKind.Terminate) {
 				// terminate the state machine instance upon transition to a terminate pseudo state
 				this.behavior(pseudoState).beginEnter.push((message, instance) => instance.isTerminated = true);

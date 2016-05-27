@@ -36,11 +36,11 @@ module StateJS {
 				}
 
 				if (pseudoState.isInitial()) {
-					if (pseudoState.outgoing.length !== 1) {
+					if (pseudoState.outgoing.length > 1) {
 						// [1] An initial vertex can have at most one outgoing transition.
 						// [2] History vertices can have at most one outgoing transition.
-						console.error(pseudoState + ": initial pseudo states must have one outgoing transition.");
-					} else {
+						console.error(pseudoState + ": initial pseudo states must have no more than one outgoing transition.");
+					} else if (pseudoState.outgoing.length === 1) {
 						// [9] The outgoing transition from an initial vertex may have a behavior, but not a trigger or guard.
 						if (pseudoState.outgoing[0].guard !== Transition.TrueGuard) {
 							console.error(pseudoState + ": initial pseudo states cannot have a guard condition.");
@@ -56,22 +56,36 @@ module StateJS {
 			// [1] A region can have at most one initial vertex.
 			// [2] A region can have at most one deep history vertex.
 			// [3] A region can have at most one shallow history vertex.
-			var initial: PseudoState;
+			var initial = 0, deepHistory = 0, shallowHistory = 0;
 
 			region.vertices.forEach(vertex => {
-				if (vertex instanceof PseudoState && vertex.isInitial()) {
-					if (initial) {
-						console.error(region + ": regions may have at most one initial pseudo state.");
+				if (vertex instanceof PseudoState) {
+					if (vertex.kind === PseudoStateKind.Initial) {
+						initial++;
+					} else if (vertex.kind === PseudoStateKind.DeepHistory) {
+						deepHistory++;
+					} else if (vertex.kind === PseudoStateKind.ShallowHistory) {
+						shallowHistory++;
 					}
-
-					initial = vertex;
 				}
 			});
+
+			if (initial > 1) {
+				console.error(region + ": regions may have at most one initial pseudo state.");
+			}
+
+			if (deepHistory > 1) {
+				console.error(region + ": regions may have at most one deep history pseudo state.");
+			}
+
+			if (shallowHistory > 1) {
+				console.error(region + ": regions may have at most one shallow history pseudo state.");
+			}
 		}
 		public visitState(state: State): any {
 			super.visitState(state);
 
-			if(state.regions.filter(region => region.name === Region.defaultName).length > 1){
+			if (state.regions.filter(region => region.name === Region.defaultName).length > 1) {
 				console.error(state + ": a state cannot have more than one region named " + Region.defaultName);
 			}
 		}
