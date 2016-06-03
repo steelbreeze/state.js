@@ -1,3 +1,6 @@
+## Version 5.6.9
+Fix an omission in history semantics allowing regions to contain history pseudo states with no outbound transitions.
+
 ## Version 5.6.8
 Exploit recent TypeScript language enhancements.
 
