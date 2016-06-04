@@ -1,4 +1,4 @@
-  [![state.js Logo](http://state.software/images/logos/state_55.png)](http://www.steelbreeze.net/state.js/)
+  [![state.js Logo](http://state.software/images/logos/state_55.png)](https://state.software/)
 
   Executable state machine for [Node](http://nodejs.org) and [Web](https://cdn.rawgit.com/steelbreeze/state.js/master/examples/browser/test.html) development.
 
