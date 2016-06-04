@@ -7,6 +7,8 @@
   [![Travis CI][travis-image]][travis-url]
   [![Code Climate][cc-image]][cc-url]
   [![Test Coverage][coverage-image]][coverage-url]
+  [![Test Coverage][coverage-image]][coverage-url]
+  [![Dev Dependencies][d-image]][d-url]
 
 If you like state.js, please star it.
 
@@ -125,3 +127,5 @@ state.js is dual-licenecd under the MIT and GPL v3 licences.
 [cc-url]: https://codeclimate.com/github/steelbreeze/state.js
 [coverage-image]: https://codeclimate.com/github/steelbreeze/state.js/badges/coverage.svg
 [coverage-url]: https://codeclimate.com/github/steelbreeze/state.js/coverage
+[d-image]: https://david-dm.org/steelbreeze/state.js/dev-status.svg
+[d-url]: https://david-dm.org/steelbreeze/state.js#info=devDependencies
