@@ -1,5 +1,5 @@
 //var state = require("state.js"); // use this form if installed via NPM
-var state = require("../../lib/state.com.js"); // use this form if local
+var state = require("../../lib/state.com"); // use this form if local
 
 // send log messages, warnings and errors to the console
 state.console = console;

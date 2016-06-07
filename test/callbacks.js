@@ -1,6 +1,6 @@
 /* global describe, it */
 var assert = require("assert"),
-	state = require("../lib/state.com.js");
+	state = require("../lib/state.com");
 
 var instance = new state.StateMachineInstance("test");
 instance.calls = 0;

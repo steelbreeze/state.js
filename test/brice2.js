@@ -1,6 +1,6 @@
 /* global describe, it */
 var assert = require("assert"),
-	state = require("../lib/state.com.js");
+	state = require("../lib/state.com");
 
 // direct log, warning and error messages to the console
 state.console = console;

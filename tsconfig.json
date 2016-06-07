@@ -2,34 +2,9 @@
 	"compilerOptions": {
 		"noImplicitAny": true,
 		"declaration": true,
-		"outDir": "lib",
-		"out": "lib/state.com.js"
+		"outDir": "lib"
 	},
 	"files": [
-		"src/model/Action.ts",
-		"src/model/Behavior.ts",
-		"src/model/Guard.ts",
-		"src/model/PseudoStateKind.ts",
-		"src/model/TransitionKind.ts",
-		"src/model/Element.ts",
-		"src/model/Region.ts",
-		"src/model/Vertex.ts",
-		"src/model/PseudoState.ts",
-		"src/model/State.ts",
-		"src/model/FinalState.ts",
-		"src/model/StateMachine.ts",
-		"src/model/Transition.ts",
-		"src/model/Visitor.ts",
-		"src/model/IInstance.ts",
-		"src/model/StateMachineInstance.ts",
-
-		"src/runtime/IConsole.ts",
-		"src/runtime/random.ts",
-		"src/runtime/isActive.ts",
-		"src/runtime/isComplete.ts",
-		"src/runtime/runtime.ts",
-		"src/runtime/validate.ts",
-
-		"src/commonjs.ts"
+		"src/state.com.ts"
 	]
 }

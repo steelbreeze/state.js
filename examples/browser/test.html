@@ -37,7 +37,7 @@
 
 				/* create the state machine model elements */
 				var model = new state.StateMachine("model");
-				var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
+				var initial = new state.PseudoState("initial", model);
 				var operational = new state.State("operational", model);
 				var flipped = new state.State("flipped", model);
 				var finalState = new state.FinalState("final", model);

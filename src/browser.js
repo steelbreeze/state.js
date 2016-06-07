@@ -18,5 +18,5 @@
 	var target = script.attributes.target ? script.attributes.target.textContent : "fsm";
 
 	// bind the state.js API to the specified name or use "fsm"" as a default
-	parent[target] = require("../lib/state.com.js");
+	parent[target] = require("../lib/state.com");
 })(window);
