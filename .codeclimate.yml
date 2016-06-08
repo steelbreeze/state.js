@@ -1,10 +1,27 @@
-languages:
-  Ruby: true
-  JavaScript: true
-  PHP: true
-  Python: true
-
-# Exclude the code emitted by tsc and browserify
+---
+engines:
+  duplication:
+    enabled: true
+    config:
+      languages:
+      - ruby
+      - javascript
+      - python
+      - php
+  eslint:
+    enabled: true
+  fixme:
+    enabled: true
+ratings:
+  paths:
+  - "**.inc"
+  - "**.js"
+  - "**.jsx"
+  - "**.module"
+  - "**.php"
+  - "**.py"
+  - "**.rb"
 exclude_paths:
-- "lib/state.js"
-- "lib/state.com.js"
+- lib/state.js
+- lib/state.com.js
+- lib/state.min.js
