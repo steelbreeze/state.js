@@ -1,7 +1,7 @@
 ## Version 5.6.10
 Enable state.js to be used as a TypeSript module and imported using:
 ```js
-import * as state from "../../lib/state.com";
+import * as state from "state";
 ```
 
 
