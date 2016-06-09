@@ -10,4 +10,4 @@ window[(function() {
 
 	// determine the global variable to bind the API to
 	return script.attributes.target ? script.attributes.target.textContent : "fsm";
-} )()] = require("../lib/state.com");
+} ())] = require("../lib/state.com");
