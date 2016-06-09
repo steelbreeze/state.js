@@ -9,5 +9,5 @@ window[(function() {
 	var script = document.currentScript || document.getElementsByTagName("script")[scripts.length - 1];
 
 	// determine the global variable to bind the API to
-	return target = script.attributes.target ? script.attributes.target.textContent : "fsm";
+	return script.attributes.target ? script.attributes.target.textContent : "fsm";
 } )()] = require("../lib/state.com");
