@@ -296,7 +296,7 @@ export class Region extends Element {
 	 * @method remove
 	 */
 	public remove() {
-		this.vertices.forEach(vertex => { vertex.remove() });
+		this.vertices.forEach(vertex => { vertex.remove(); });
 
 		this.state.regions.splice(this.state.regions.indexOf(this), 1);
 
@@ -390,8 +390,8 @@ export abstract class Vertex extends Element {
 	 * @method remove
 	 */
 	public remove() {
-		this.outgoing.forEach(transition => { transition.remove() });
-		this.incoming.forEach(transition => { transition.remove() });
+		this.outgoing.forEach(transition => { transition.remove(); });
+		this.incoming.forEach(transition => { transition.remove(); });
 
 		this.region.vertices.splice(this.region.vertices.indexOf(this), 1);
 
@@ -574,7 +574,7 @@ export class State extends Vertex {
 	 * @method remove
 	 */
 	public remove() {
-		this.regions.forEach(region => { region.remove() });
+		this.regions.forEach(region => { region.remove(); });
 
 		super.remove();
 	}
@@ -923,7 +923,7 @@ export abstract class Visitor<TArg1> {
 	public visitRegion(region: Region, arg1?: TArg1, arg2?: any, arg3?: any): any {
 		const result = this.visitElement(region, arg1, arg2, arg3);
 
-		region.vertices.forEach(vertex => { vertex.accept(this, arg1, arg2, arg3) });
+		region.vertices.forEach(vertex => { vertex.accept(this, arg1, arg2, arg3); });
 
 		return result;
 	}
@@ -940,7 +940,7 @@ export abstract class Visitor<TArg1> {
 	public visitVertex(vertex: Vertex, arg1?: TArg1, arg2?: any, arg3?: any): any {
 		const result = this.visitElement(vertex, arg1, arg2, arg3);
 
-		vertex.outgoing.forEach(transition => { transition.accept(this, arg1, arg2, arg3) });
+		vertex.outgoing.forEach(transition => { transition.accept(this, arg1, arg2, arg3); });
 
 		return result;
 	}
@@ -970,7 +970,7 @@ export abstract class Visitor<TArg1> {
 	public visitState(state: State, arg1?: TArg1, arg2?: any, arg3?: any): any {
 		const result = this.visitVertex(state, arg1, arg2, arg3);
 
-		state.regions.forEach(region => { region.accept(this, arg1, arg2, arg3) });
+		state.regions.forEach(region => { region.accept(this, arg1, arg2, arg3); });
 
 		return result;
 	}
@@ -1095,9 +1095,9 @@ export function getRandom(): (max: number) => number {
 }
 
 // the default method used to produce a random number; defaulting to simplified implementation seen in Mozilla Math.random() page; may be overriden for testing
-var random = function (max: number): number {
+let random = function (max: number): number {
 	return Math.floor(Math.random() * max);
-}
+};
 
 /**
  * Initialises a state machine and/or state machine model.
@@ -1157,7 +1157,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 
 // evaluates messages against a state, executing transitions as appropriate
 function evaluateState(state: State, instance: IInstance, message: any): boolean {
-	var result = false;
+	let result = false;
 
 	// delegate to child regions first
 	state.regions.every(region => {
@@ -1193,9 +1193,9 @@ function evaluateState(state: State, instance: IInstance, message: any): boolean
 
 // traverses a transition
 function traverse(transition: Transition, instance: IInstance, message?: any): boolean {
-	var tran = transition;
-	var target = tran.target;
-	var onTraverse = new Behavior(tran.onTraverse);
+	let tran = transition;
+	let target = tran.target;
+	let onTraverse = new Behavior(tran.onTraverse);
 
 	// process static conditional branches - build up all the transition behaviour prior to executing
 	while (target && target instanceof PseudoState && target.kind === PseudoStateKind.Junction) {
@@ -1302,7 +1302,7 @@ class InitialiseTransitions extends Visitor<(element: Element) => ElementBehavio
 	visitLocalTransition(transition: Transition, behavior: (element: Element) => ElementBehavior) {
 		transition.onTraverse.push((message, instance) => {
 			const targetAncestors = transition.target.ancestry();
-			var i = 0;
+			let i = 0;
 
 			// find the first inactive element in the target ancestry
 			while (isActive(targetAncestors[i], instance)) { ++i; }
@@ -1327,7 +1327,7 @@ class InitialiseTransitions extends Visitor<(element: Element) => ElementBehavio
 	visitExternalTransition(transition: Transition, behavior: (element: Element) => ElementBehavior) {
 		const sourceAncestors = transition.source.ancestry(),
 			targetAncestors = transition.target.ancestry();
-		var i = Math.min(sourceAncestors.length, targetAncestors.length) - 1;
+		let i = Math.min(sourceAncestors.length, targetAncestors.length) - 1;
 
 		// find the index of the first uncommon ancestor (or for external transitions, the source)
 		while (sourceAncestors[i - 1] !== targetAncestors[i - 1]) { --i; }
@@ -1406,7 +1406,7 @@ class InitialiseElements extends Visitor<boolean> {
 
 					this.behavior(instance.getCurrent(pseudoState.region)).enter().invoke(message, instance, history || pseudoState.kind === PseudoStateKind.DeepHistory);
 				} else {
-					traverse(pseudoState.outgoing[0], instance)
+					traverse(pseudoState.outgoing[0], instance);
 				}
 			});
 		} else if (pseudoState.kind === PseudoStateKind.Terminate) {
@@ -1453,7 +1453,7 @@ const defaultConsole = {
 	log(message?: any, ...optionalParams: any[]): void { },
 	warn(message?: any, ...optionalParams: any[]): void { },
 	error(message?: any, ...optionalParams: any[]): void { throw message; }
-}
+};
 
 /**
  * The object used for log, warning and error messages
@@ -1518,7 +1518,7 @@ class Validator extends Visitor<string> {
 		// [1] A region can have at most one initial vertex.
 		// [2] A region can have at most one deep history vertex.
 		// [3] A region can have at most one shallow history vertex.
-		var initial = 0, deepHistory = 0, shallowHistory = 0;
+		let initial = 0, deepHistory = 0, shallowHistory = 0;
 
 		region.vertices.forEach(vertex => {
 			if (vertex instanceof PseudoState) {
