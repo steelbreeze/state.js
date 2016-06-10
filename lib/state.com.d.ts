@@ -783,12 +783,12 @@ export declare function evaluate(model: StateMachine, instance: IInstance, messa
  * The object used for log, warning and error messages
  * @member {IConsole}
  */
-export declare var console: IConsole;
+export declare let console: IConsole;
 /**
  * Flag to trigger internal transitions to trigger completion events for state they are in
  * @member {Boolean}
  */
-export declare var internalTransitionsTriggerCompletion: Boolean;
+export declare let internalTransitionsTriggerCompletion: Boolean;
 /**
  * Validates a state machine model for correctness (see the constraints defined within the UML Superstructure specification).
  * @function validate

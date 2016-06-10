@@ -1459,13 +1459,13 @@ const defaultConsole = {
  * The object used for log, warning and error messages
  * @member {IConsole}
  */
-export var console: IConsole = defaultConsole;
+export let console: IConsole = defaultConsole;
 
 /**
  * Flag to trigger internal transitions to trigger completion events for state they are in
  * @member {Boolean}
  */
-export var internalTransitionsTriggerCompletion: Boolean = false;
+export let internalTransitionsTriggerCompletion: Boolean = false;
 
 /**
  * Validates a state machine model for correctness (see the constraints defined within the UML Superstructure specification).
