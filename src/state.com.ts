@@ -185,7 +185,9 @@ export class Behavior {
 	 * @param {boolean} history Internal use only
 	 */
 	public invoke(message: any, instance: IInstance, history: boolean = false): void {
-		this.actions.forEach(action => action(message, instance, history));
+		for (let action of this.actions) {
+			action(message, instance, history);
+		}
 	}
 }
 
@@ -296,7 +298,9 @@ export class Region extends Element {
 	 * @method remove
 	 */
 	public remove() {
-		this.vertices.forEach(vertex => { vertex.remove(); });
+		for (let vertex of this.vertices) {
+			vertex.remove();
+		}
 
 		this.state.regions.splice(this.state.regions.indexOf(this), 1);
 
@@ -390,8 +394,13 @@ export abstract class Vertex extends Element {
 	 * @method remove
 	 */
 	public remove() {
-		this.outgoing.forEach(transition => { transition.remove(); });
-		this.incoming.forEach(transition => { transition.remove(); });
+		for (let transition of this.outgoing) {
+			transition.remove();
+		}
+
+		for (let transition of this.incoming) {
+			transition.remove();
+		}
 
 		this.region.vertices.splice(this.region.vertices.indexOf(this), 1);
 
@@ -574,7 +583,9 @@ export class State extends Vertex {
 	 * @method remove
 	 */
 	public remove() {
-		this.regions.forEach(region => { region.remove(); });
+		for (let region of this.regions) {
+			region.remove();
+		}
 
 		super.remove();
 	}
@@ -923,7 +934,9 @@ export abstract class Visitor<TArg1> {
 	public visitRegion(region: Region, arg1?: TArg1, arg2?: any, arg3?: any): any {
 		const result = this.visitElement(region, arg1, arg2, arg3);
 
-		region.vertices.forEach(vertex => { vertex.accept(this, arg1, arg2, arg3); });
+		for (let vertex of region.vertices) {
+			vertex.accept(this, arg1, arg2, arg3);
+		}
 
 		return result;
 	}
@@ -940,7 +953,9 @@ export abstract class Visitor<TArg1> {
 	public visitVertex(vertex: Vertex, arg1?: TArg1, arg2?: any, arg3?: any): any {
 		const result = this.visitElement(vertex, arg1, arg2, arg3);
 
-		vertex.outgoing.forEach(transition => { transition.accept(this, arg1, arg2, arg3); });
+		for (let transition of vertex.outgoing) {
+			transition.accept(this, arg1, arg2, arg3);
+		}
 
 		return result;
 	}
@@ -970,7 +985,9 @@ export abstract class Visitor<TArg1> {
 	public visitState(state: State, arg1?: TArg1, arg2?: any, arg3?: any): any {
 		const result = this.visitVertex(state, arg1, arg2, arg3);
 
-		state.regions.forEach(region => { region.accept(this, arg1, arg2, arg3); });
+		for (let region of state.regions) {
+			region.accept(this, arg1, arg2, arg3);
+		}
 
 		return result;
 	}
@@ -1351,13 +1368,13 @@ class InitialiseTransitions extends Visitor<(element: Element) => ElementBehavio
 		task(behavior(element).beginEnter);
 
 		if (next && element instanceof State) {
-			element.regions.forEach(region => {
+			for (let region of element.regions) {
 				task(behavior(region).beginEnter);
 
 				if (region !== next.region) {
 					task(behavior(region).endEnter);
 				}
-			});
+			}
 		}
 	}
 }
@@ -1380,7 +1397,9 @@ class InitialiseElements extends Visitor<boolean> {
 	visitRegion(region: Region, deepHistoryAbove: boolean) {
 		const regionInitial = region.vertices.reduce<PseudoState>((result, vertex) => vertex instanceof PseudoState && vertex.isInitial() ? vertex : result, undefined);
 
-		region.vertices.forEach(vertex => vertex.accept(this, deepHistoryAbove || (regionInitial && regionInitial.kind === PseudoStateKind.DeepHistory)));
+		for (let vertex of region.vertices) {
+			vertex.accept(this, deepHistoryAbove || (regionInitial && regionInitial.kind === PseudoStateKind.DeepHistory));
+		}
 
 		// leave the curent active child state when exiting the region
 		this.behavior(region).leave.push((message, instance) => this.behavior(instance.getCurrent(region)).leave.invoke(message, instance));
@@ -1417,12 +1436,12 @@ class InitialiseElements extends Visitor<boolean> {
 
 	visitState(state: State, deepHistoryAbove: boolean) {
 		// NOTE: manually iterate over the child regions to control the sequence of behavior
-		state.regions.forEach(region => {
+		for (let region of state.regions) {
 			region.accept(this, deepHistoryAbove);
 
 			this.behavior(state).leave.push(this.behavior(region).leave);
 			this.behavior(state).endEnter.push(this.behavior(region).enter());
-		});
+		}
 
 		this.visitVertex(state, deepHistoryAbove);
 
@@ -1520,7 +1539,7 @@ class Validator extends Visitor<string> {
 		// [3] A region can have at most one shallow history vertex.
 		let initial = 0, deepHistory = 0, shallowHistory = 0;
 
-		region.vertices.forEach(vertex => {
+		for (let vertex of region.vertices) {
 			if (vertex instanceof PseudoState) {
 				if (vertex.kind === PseudoStateKind.Initial) {
 					initial++;
@@ -1530,7 +1549,7 @@ class Validator extends Visitor<string> {
 					shallowHistory++;
 				}
 			}
-		});
+		}
 
 		if (initial > 1) {
 			console.error(region + ": regions may have at most one initial pseudo state.");
