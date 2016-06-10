@@ -7,7 +7,6 @@
   [![Travis CI][travis-image]][travis-url]
   [![Code Climate][cc-image]][cc-url]
   [![Test Coverage][coverage-image]][coverage-url]
-  [![Test Coverage][coverage-image]][coverage-url]
   [![Dev Dependencies][d-image]][d-url]
 
 If you like state.js, please star it.
