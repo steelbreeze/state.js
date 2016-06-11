@@ -429,7 +429,7 @@ export abstract class Vertex extends Element {
 	 * @param {TArg} arg An optional argument to pass into the visitor.
 	 * @returns {any} Any value can be returned by the visitor.
 	 */
-	public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any { /* virtual method */ }
+	public abstract accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any;
 }
 
 /**
@@ -1176,17 +1176,18 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 function evaluateState(state: State, instance: IInstance, message: any): boolean {
 	let result = false;
 
-	// delegate to child regions first
-	state.regions.every(region => {
-		if (evaluateState(instance.getCurrent(region), instance, message)) {
-			result = true;
+	// delegate to child regions first if a non-continuation
+	if (message !== state) {
+		state.regions.every(region => {
+			if (evaluateState(instance.getCurrent(region), instance, message)) {
+				result = true;
 
-			return isActive(state, instance); // NOTE: this just controls the every loop; also isActive is a litte costly so using sparingly
-		}
+				return isActive(state, instance); // NOTE: this just controls the every loop; also isActive is a litte costly so using sparingly
+			}
 
-		return true; // NOTE: this just controls the every loop
-	});
-
+			return true; // NOTE: this just controls the every loop
+		});
+	}
 	// if a transition occured in a child region, check for completions
 	if (result) {
 		if ((message !== state) && isComplete(state, instance)) {
