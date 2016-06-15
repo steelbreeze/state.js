@@ -222,6 +222,7 @@ export declare class Region extends Element {
      * @param {State} state The parent state that this region will be a child of.
      */
     constructor(name: string, state: State);
+    dr(): Region;
     /**
      * Removes the state from the state machine model
      * @method remove
@@ -252,6 +253,7 @@ export declare class Region extends Element {
  * @augments Element
  */
 export declare abstract class Vertex extends Element {
+    private static parent(parent);
     /**
      * The parent region of this vertex.
      * @member {Region}

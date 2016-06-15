@@ -293,6 +293,10 @@ export class Region extends Element {
 		this.state.getRoot().clean = false;
 	}
 
+	public dr(): Region {
+		return this;
+	}
+
 	/**
 	 * Removes the state from the state machine model
 	 * @method remove
@@ -340,6 +344,11 @@ export class Region extends Element {
  * @augments Element
  */
 export abstract class Vertex extends Element {
+	// resolve the vertices parent region for either states or regions
+	private static parent(parent: Region | State ): Region {
+		return parent instanceof State ? parent.defaultRegion() : parent;
+	}
+
 	/**
 	 * The parent region of this vertex.
 	 * @member {Region}
@@ -364,9 +373,9 @@ export abstract class Vertex extends Element {
 	 * @param {Region | State} parent The parent region or state.
 	 */
 	public constructor(name: string, parent: Region | State) {
-		super(name, parent instanceof State ? parent.defaultRegion() : parent); // TODO: find a cleaner way to manage implicit conversion
+		super(name, State.parent(parent));
 
-		this.region = parent instanceof State ? parent.defaultRegion() : parent;
+		this.region = State.parent(parent);
 
 		if (this.region) {
 			this.region.vertices.push(this);
