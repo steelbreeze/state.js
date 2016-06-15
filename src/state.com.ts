@@ -361,12 +361,12 @@ export abstract class Vertex extends Element {
 	/**
 	 * Creates a new instance of the Vertex class.
 	 * @param {string} name The name of the vertex.
-	 * @param {Element} parent The parent region or state.
+	 * @param {Region | State} parent The parent region or state.
 	 */
-	public constructor(name: string, parent: Element) {
+	public constructor(name: string, parent: Region | State) {
 		super(name, parent instanceof State ? parent.defaultRegion() : parent); // TODO: find a cleaner way to manage implicit conversion
 
-		this.region = parent instanceof State ? parent.defaultRegion() : parent instanceof Region ? parent : undefined;
+		this.region = parent instanceof State ? parent.defaultRegion() : parent;
 
 		if (this.region) {
 			this.region.vertices.push(this);
@@ -453,10 +453,10 @@ export class PseudoState extends Vertex {
 	/**
 	 * Creates a new instance of the PseudoState class.
 	 * @param {string} name The name of the pseudo state.
-	 * @param {Element} parent The parent element that this pseudo state will be a child of.
+	 * @param {Region | State} parent The parent element that this pseudo state will be a child of.
 	 * @param {PseudoStateKind} kind Determines the behavior of the PseudoState.
 	 */
-	public constructor(name: string, parent: Element, kind: PseudoStateKind = PseudoStateKind.Initial) {
+	public constructor(name: string, parent: Region | State, kind: PseudoStateKind = PseudoStateKind.Initial) {
 		super(name, parent);
 
 		this.kind = kind;
@@ -522,9 +522,9 @@ export class State extends Vertex {
 	/**
 	 * Creates a new instance of the State class.
 	 * @param {string} name The name of the state.
-	 * @param {Element} parent The parent state that owns the state.
+	 * @param {Region | State} parent The parent state that owns the state.
 	 */
-	public constructor(name: string, parent: Element) {
+	public constructor(name: string, parent: Region | State) {
 		super(name, parent);
 	}
 
@@ -645,9 +645,9 @@ export class FinalState extends State {
 	/**
 	 * Creates a new instance of the FinalState class.
 	 * @param {string} name The name of the final state.
-	 * @param {Element} parent The parent element that owns the final state.
+	 * @param {Region | State} parent The parent element that owns the final state.
 	 */
-	public constructor(name: string, parent: Element) {
+	public constructor(name: string, parent: Region | State) {
 		super(name, parent);
 	}
 

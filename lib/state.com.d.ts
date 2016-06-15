@@ -270,9 +270,9 @@ export declare abstract class Vertex extends Element {
     /**
      * Creates a new instance of the Vertex class.
      * @param {string} name The name of the vertex.
-     * @param {Element} parent The parent region or state.
+     * @param {Region | State} parent The parent region or state.
      */
-    constructor(name: string, parent: Element);
+    constructor(name: string, parent: Region | State);
     ancestry(): Array<Vertex>;
     /**
      * Returns the root element within the state machine model.
@@ -324,10 +324,10 @@ export declare class PseudoState extends Vertex {
     /**
      * Creates a new instance of the PseudoState class.
      * @param {string} name The name of the pseudo state.
-     * @param {Element} parent The parent element that this pseudo state will be a child of.
+     * @param {Region | State} parent The parent element that this pseudo state will be a child of.
      * @param {PseudoStateKind} kind Determines the behavior of the PseudoState.
      */
-    constructor(name: string, parent: Element, kind?: PseudoStateKind);
+    constructor(name: string, parent: Region | State, kind?: PseudoStateKind);
     /**
      * Tests a pseudo state to determine if it is a history pseudo state.
      * History pseudo states are of kind: Initial, ShallowHisory, or DeepHistory.
@@ -374,9 +374,9 @@ export declare class State extends Vertex {
     /**
      * Creates a new instance of the State class.
      * @param {string} name The name of the state.
-     * @param {Element} parent The parent state that owns the state.
+     * @param {Region | State} parent The parent state that owns the state.
      */
-    constructor(name: string, parent: Element);
+    constructor(name: string, parent: Region | State);
     /**
      * Returns the default region for the state.
      * Note, this will create the default region if it does not already exist.
@@ -455,9 +455,9 @@ export declare class FinalState extends State {
     /**
      * Creates a new instance of the FinalState class.
      * @param {string} name The name of the final state.
-     * @param {Element} parent The parent element that owns the final state.
+     * @param {Region | State} parent The parent element that owns the final state.
      */
-    constructor(name: string, parent: Element);
+    constructor(name: string, parent: Region | State);
     /**
      * Accepts an instance of a visitor and calls the visitFinalState method on it.
      * @method accept
