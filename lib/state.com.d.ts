@@ -738,11 +738,11 @@ export declare function isActive(vertex: Vertex, instance: IInstance): boolean;
 /**
  * Tests an element within a state machine instance to see if its lifecycle is complete.
  * @function isComplete
- * @param {Element} element The element to test.
+ * @param {Region | State} element The element to test.
  * @param {IInstance} instance The instance of the state machine model to test for completeness.
  * @returns {boolean} True if the element is complete.
  */
-export declare function isComplete(element: Element, instance: IInstance): boolean;
+export declare function isComplete(element: Region | State, instance: IInstance): boolean;
 /**
  * Sets a method to select an integer random number less than the max value passed as a parameter.
  *
