@@ -128,7 +128,7 @@ export interface Action {
  * @class Behavior
  */
 export class Behavior {
-	private actions: Array<Action> = [];
+	private actions = new Array<Action>();
 
 	/**
 	 * Creates a new instance of the Behavior class.
@@ -173,7 +173,7 @@ export class Behavior {
 	 * @method hasActions
 	 * @returns {boolean} True if there are actions defined within this Behavior instance.
 	 */
-	public hasActions(): boolean { // TODO: find a better name
+	public hasActions(): boolean {
 		return this.actions.length !== 0;
 	}
 
@@ -276,7 +276,7 @@ export class Region extends Element {
 	 * The set of vertices that are children of the region.
 	 * @member {Array<Vertex>}
 	 */
-	public vertices: Array<Vertex> = [];
+	public vertices = new Array<Vertex>();
 
 	/**
 	 * Creates a new instance of the Region class.
@@ -304,7 +304,7 @@ export class Region extends Element {
 
 		this.state.regions.splice(this.state.regions.indexOf(this), 1);
 
-		console.log("remove " + this);
+		console.log(`remove ${this}`);
 
 		this.state.getRoot().clean = false;
 	}
@@ -350,13 +350,13 @@ export abstract class Vertex extends Element {
 	 * The set of transitions originating from this vertex.
 	 * @member {Array<Transition>}
 	 */
-	public outgoing: Array<Transition> = [];
+	public outgoing = new Array<Transition>();
 
 	/**
 	 * The set of transitions targeting this vertex.
 	 * @member {Array<Transition>}
 	 */
-	public incoming: Array<Transition> = [];
+	public incoming = new Array<Transition>();
 
 	/**
 	 * Creates a new instance of the Vertex class.
@@ -375,9 +375,9 @@ export abstract class Vertex extends Element {
 		}
 	}
 
-		// returns the ancestry of this vertex
-		/*internal*/ ancestry(): Array<Vertex> {
-		return (this.region ? this.region.state.ancestry() : []).concat(this);
+	// returns the ancestry of this vertex
+	/*internal*/ ancestry(): Array<Vertex> {
+		return (this.region ? this.region.state.ancestry() : new Array<Vertex>()).concat(this);
 	}
 
 	/**
@@ -386,7 +386,7 @@ export abstract class Vertex extends Element {
 	 * @returns {StateMachine} The root state machine element.
 	 */
 	public getRoot(): StateMachine {
-		return this.region.getRoot(); // NOTE: need to keep this dynamic as a state machine may be embedded within another
+		return this.region.getRoot();
 	}
 
 	/**
@@ -404,7 +404,7 @@ export abstract class Vertex extends Element {
 
 		this.region.vertices.splice(this.region.vertices.indexOf(this), 1);
 
-		console.log("remove " + this);
+		console.log(`remove ${this}`);
 
 		this.region.getRoot().clean = false;
 	}
@@ -517,7 +517,7 @@ export class State extends Vertex {
 	 * The set of regions under this state.
 	 * @member {Array<Region>}
 	 */
-	public regions: Array<Region> = [];
+	public regions = new Array<Region>();
 
 	/**
 	 * Creates a new instance of the State class.
@@ -826,7 +826,7 @@ export class Transition {
 			this.target.incoming.splice(this.target.incoming.indexOf(this), 1);
 		}
 
-		console.log("remove " + this);
+		console.log(`remove ${this}`);
 
 		this.source.getRoot().clean = false;
 	}
@@ -850,7 +850,7 @@ export class Transition {
 	 * @returns {string}
 	 */
 	public toString(): string {
-		return "[" + (this.target ? (this.source + " -> " + this.target) : this.source) + "]";
+		return `[ ${this.target ? (this.source + " -> " + this.target) : this.source}]`;
 	}
 }
 
@@ -1133,13 +1133,13 @@ export function initialise(model: StateMachine, instance?: IInstance, autoInitia
 		}
 
 		// log as required
-		console.log("initialise " + instance);
+		console.log(`initialise ${instance}`);
 
 		// enter the state machine instance for the first time
 		model.onInitialise.invoke(undefined, instance);
 	} else {
 		// log as required
-		console.log("initialise " + model.name);
+		console.log(`initialise ${model.name}`);
 
 		// initialise the state machine model
 		model.accept(new InitialiseElements(), false);
@@ -1162,7 +1162,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 	}
 
 	// log as required
-	console.log(instance + " evaluate " + message);
+	console.log(`${instance} evaluate ${message}`);
 
 	// terminated state machine instances will not evaluate messages
 	if (instance.isTerminated) {
@@ -1202,7 +1202,7 @@ function evaluateState(state: State, instance: IInstance, message: any): boolean
 			result = traverse(transitions[0], instance, message);
 		} else if (transitions.length > 1) {
 			// error if multiple transitions evaluated true
-			console.error(state + ": multiple outbound transitions evaluated true for message " + message);
+			console.error(`${state}: multiple outbound transitions evaluated true for message ${message}`);
 		}
 	}
 
@@ -1251,7 +1251,7 @@ function selectTransition(pseudoState: PseudoState, instance: IInstance, message
 		return results.length !== 0 ? results[getRandom()(results.length)] : findElse(pseudoState);
 	} else {
 		if (results.length > 1) {
-			console.error("Multiple outbound transition guards returned true at " + pseudoState + " for " + message);
+			console.error(`Multiple outbound transition guards returned true at ${pseudoState} for ${message}`);
 		} else {
 			return results[0] || findElse(pseudoState);
 		}
@@ -1390,8 +1390,8 @@ class InitialiseElements extends Visitor<boolean> {
 
 	visitElement(element: Element, deepHistoryAbove: boolean) {
 		if (console !== defaultConsole) {
-			this.behavior(element).leave.push((message, instance) => console.log(instance + " leave " + element));
-			this.behavior(element).beginEnter.push((message, instance) => console.log(instance + " enter " + element));
+			this.behavior(element).leave.push((message, instance) => console.log(`${instance} enter ${element}`));
+			this.behavior(element).beginEnter.push((message, instance) => console.log(`${instance} enter ${element}`));
 		}
 	}
 
@@ -1504,28 +1504,28 @@ class Validator extends Visitor<string> {
 			// [7] In a complete statemachine, a junction vertex must have at least one incoming and one outgoing transition.
 			// [8] In a complete statemachine, a choice vertex must have at least one incoming and one outgoing transition.
 			if (pseudoState.outgoing.length === 0) {
-				console.error(pseudoState + ": " + pseudoState.kind + " pseudo states must have at least one outgoing transition.");
+				console.error(`${pseudoState}: ${pseudoState.kind} pseudo states must have at least one outgoing transition.`);
 			}
 
 			// choice and junction pseudo state can have at most one else transition
 			if (pseudoState.outgoing.filter((transition: Transition) => { return transition.guard === Transition.FalseGuard; }).length > 1) {
-				console.error(pseudoState + ": " + pseudoState.kind + " pseudo states cannot have more than one Else transitions.");
+				console.error(`${pseudoState}: ${pseudoState.kind} pseudo states cannot have more than one Else transitions.`);
 			}
 		} else {
 			// non choice/junction pseudo state may not have else transitions
 			if (pseudoState.outgoing.filter((transition: Transition) => { return transition.guard === Transition.FalseGuard; }).length !== 0) {
-				console.error(pseudoState + ": " + pseudoState.kind + " pseudo states cannot have Else transitions.");
+				console.error(`${pseudoState}: ${pseudoState.kind} pseudo states cannot have Else transitions.`);
 			}
 
 			if (pseudoState.isInitial()) {
 				if (pseudoState.outgoing.length > 1) {
 					// [1] An initial vertex can have at most one outgoing transition.
 					// [2] History vertices can have at most one outgoing transition.
-					console.error(pseudoState + ": initial pseudo states must have no more than one outgoing transition.");
+					console.error(`${pseudoState}: initial pseudo states must have no more than one outgoing transition.`);
 				} else if (pseudoState.outgoing.length === 1) {
 					// [9] The outgoing transition from an initial vertex may have a behavior, but not a trigger or guard.
 					if (pseudoState.outgoing[0].guard !== Transition.TrueGuard) {
-						console.error(pseudoState + ": initial pseudo states cannot have a guard condition.");
+						console.error(`${pseudoState}: initial pseudo states cannot have a guard condition.`);
 					}
 				}
 			}
@@ -1553,22 +1553,22 @@ class Validator extends Visitor<string> {
 		}
 
 		if (initial > 1) {
-			console.error(region + ": regions may have at most one initial pseudo state.");
+			console.error(`${region}: regions may have at most one initial pseudo state.`);
 		}
 
 		if (deepHistory > 1) {
-			console.error(region + ": regions may have at most one deep history pseudo state.");
+			console.error(`${region}: regions may have at most one deep history pseudo state.`);
 		}
 
 		if (shallowHistory > 1) {
-			console.error(region + ": regions may have at most one shallow history pseudo state.");
+			console.error(`${region}: regions may have at most one shallow history pseudo state.`);
 		}
 	}
 	public visitState(state: State): any {
 		super.visitState(state);
 
 		if (state.regions.filter(region => region.name === Region.defaultName).length > 1) {
-			console.error(state + ": a state cannot have more than one region named " + Region.defaultName);
+			console.error(`${state}: a state cannot have more than one region named ${Region.defaultName}`);
 		}
 	}
 
@@ -1577,22 +1577,22 @@ class Validator extends Visitor<string> {
 
 		// [1] A final state cannot have any outgoing transitions.
 		if (finalState.outgoing.length !== 0) {
-			console.error(finalState + ": final states must not have outgoing transitions.");
+			console.error(`${finalState}: final states must not have outgoing transitions.`);
 		}
 
 		// [2] A final state cannot have regions.
 		if (finalState.regions.length !== 0) {
-			console.error(finalState + ": final states must not have child regions.");
+			console.error(`${finalState}: final states must not have child regions.`);
 		}
 
 		// [4] A final state has no entry behavior.
 		if (finalState.entryBehavior.hasActions()) {
-			console.warn(finalState + ": final states may not have entry behavior.");
+			console.warn(`${finalState}: final states may not have entry behavior.`);
 		}
 
 		// [5] A final state has no exit behavior.
 		if (finalState.exitBehavior.hasActions()) {
-			console.warn(finalState + ": final states may not have exit behavior.");
+			console.warn(`${finalState}: final states may not have exit behavior.`);
 		}
 	}
 
@@ -1602,7 +1602,7 @@ class Validator extends Visitor<string> {
 		// Local transition target vertices must be a child of the source vertex
 		if (transition.kind === TransitionKind.Local) {
 			if (transition.target.ancestry().indexOf(transition.source) === -1) {
-				console.error(transition + ": local transition target vertices must be a child of the source composite sate.");
+				console.error(`${transition}: local transition target vertices must be a child of the source composite sate.`);
 			}
 		}
 	}

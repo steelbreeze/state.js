@@ -215,7 +215,7 @@ export declare class Region extends Element {
      * The set of vertices that are children of the region.
      * @member {Array<Vertex>}
      */
-    vertices: Array<Vertex>;
+    vertices: Vertex[];
     /**
      * Creates a new instance of the Region class.
      * @param {string} name The name of the region.
@@ -261,12 +261,12 @@ export declare abstract class Vertex extends Element {
      * The set of transitions originating from this vertex.
      * @member {Array<Transition>}
      */
-    outgoing: Array<Transition>;
+    outgoing: Transition[];
     /**
      * The set of transitions targeting this vertex.
      * @member {Array<Transition>}
      */
-    incoming: Array<Transition>;
+    incoming: Transition[];
     /**
      * Creates a new instance of the Vertex class.
      * @param {string} name The name of the vertex.
@@ -370,7 +370,7 @@ export declare class State extends Vertex {
      * The set of regions under this state.
      * @member {Array<Region>}
      */
-    regions: Array<Region>;
+    regions: Region[];
     /**
      * Creates a new instance of the State class.
      * @param {string} name The name of the state.
