@@ -123,57 +123,28 @@ export interface Action {
 	(message?: any, instance?: IInstance, history?: boolean): any;
 }
 
-/**
- * Behavior encapsulates multiple Action callbacks that can be invoked by a single call.
- * @class Behavior
- */
-export class Behavior {
-	private actions = new Array<Action>();
+export class Actions extends Array<Action> {
+	public constructor(...actions: Actions[]) {
+		super();
 
-	/**
-	 * Creates a new instance of the Behavior class.
-	 * @param {Behavior} behavior The copy constructor; omit this optional parameter for a simple constructor.
-	 */
-	public constructor(behavior?: Behavior) {
-		if (behavior) {
-			this.push(behavior); // NOTE: this ensures a copy of the array is made
+		this.apply(actions);
+	}
+
+
+	public pushh(...actions: Actions[]): void {
+		this.apply(actions);
+	}
+
+	private apply(actions: Actions[]) {
+		for (let set of actions) {
+			for (let action of set) {
+				this.push(action);
+			}
 		}
 	}
 
-	/**
-	 * Adds an Action or set of Actions callbacks in a Behavior instance to this behavior instance.
-	 * @method push
-	 * @param {Action | Behavior} behavior The Action or set of Actions callbacks to add to this behavior instance.
-	 * @returns {Behavior} Returns this behavior instance (for use in fluent style development).
-	 */
-	public push(behavior: Behavior | Action) {
-		if (behavior instanceof Behavior) {
-			this.actions = this.actions.concat(behavior.actions);
-		} else {
-			this.actions.push(behavior);
-		}
-
-		return this;
-	}
-
-	/**
-	 * Tests the Behavior instance to see if any actions have been defined.
-	 * @method hasActions
-	 * @returns {boolean} True if there are actions defined within this Behavior instance.
-	 */
-	public hasActions(): boolean {
-		return this.actions.length !== 0;
-	}
-
-	/**
-	 * Invokes all the action callbacks in this Behavior instance.
-	 * @method invoke
-	 * @param {any} message The message that triggered the transition.
-	 * @param {IInstance} instance The state machine instance.
-	 * @param {boolean} history Internal use only
-	 */
-	public invoke(message: any, instance: IInstance, history: boolean = false): void {
-		for (let action of this.actions) {
+	public invoke(message?: any, instance?: IInstance, history: boolean = false) {
+		for (let action of this) {
 			action(message, instance, history);
 		}
 	}
@@ -329,7 +300,7 @@ export class Region extends Element {
  */
 export abstract class Vertex extends Element {
 	// resolve the vertices parent region for either states or regions
-	private static parent(parent: Region | State ): Region {
+	private static parent(parent: Region | State): Region {
 		return parent instanceof State ? parent.defaultRegion() : parent;
 	}
 
@@ -501,10 +472,10 @@ export class PseudoState extends Vertex {
  */
 export class State extends Vertex {
 		// user defined behavior (via exit method) to execute when exiting a state.
-		/* internal */ exitBehavior = new Behavior();
+		/* internal */ exitBehavior = new Actions();
 
 		// user defined behavior (via entry method) to execute when entering a state.
-		/* internal */ entryBehavior = new Behavior();
+		/* internal */ entryBehavior = new Actions();
 
 	/**
 	 * The set of regions under this state.
@@ -668,7 +639,7 @@ export class StateMachine extends State {
 		/*internal*/ clean = false;
 
 		// the behavior required to initialise state machine instances; created when initialising the state machine model.
-		/*internal*/ onInitialise: Behavior;
+		/*internal*/ onInitialise: Actions;
 
 	/**
 	 * Creates a new instance of the StateMachine class.
@@ -724,10 +695,10 @@ export class Transition {
 		/*internal*/ guard: Guard;
 
 		// user defined behavior (via effect) executed when traversing this transition.
-		/*internal*/ transitionBehavior = new Behavior();
+		/*internal*/ transitionBehavior = new Actions();
 
 		// the collected actions to perform when traversing the transition (includes exiting states, traversal, and state entry)
-		/*internal*/ onTraverse: Behavior;
+		/*internal*/ onTraverse: Actions;
 
 	/**
 	 * The source of the transition.
@@ -1204,7 +1175,7 @@ function evaluateState(state: State, instance: IInstance, message: any): boolean
 function traverse(transition: Transition, instance: IInstance, message?: any): boolean {
 	let tran = transition;
 	let target = tran.target;
-	let onTraverse = new Behavior(tran.onTraverse);
+	let onTraverse = new Actions(tran.onTraverse);
 
 	// process static conditional branches - build up all the transition behaviour prior to executing
 	while (target && target instanceof PseudoState && target.kind === PseudoStateKind.Junction) {
@@ -1213,7 +1184,7 @@ function traverse(transition: Transition, instance: IInstance, message?: any): b
 		target = tran.target;
 
 		// concatenate behavior before and after junctions
-		onTraverse.push(tran.onTraverse);
+		onTraverse.pushh(tran.onTraverse);
 	}
 
 	// execute the transition behavior
@@ -1256,12 +1227,12 @@ function findElse(pseudoState: PseudoState): Transition {
 
 // interfaces to manage element behavior
 class ElementBehavior {
-	leave: Behavior = new Behavior();
-	beginEnter: Behavior = new Behavior();
-	endEnter: Behavior = new Behavior();
+	leave = new Actions();
+	beginEnter = new Actions();
+	endEnter = new Actions();
 
-	enter(): Behavior {
-		return new Behavior(this.beginEnter).push(this.endEnter);
+	enter(): Actions {
+		return new Actions(this.beginEnter, this.endEnter);
 	}
 }
 
@@ -1271,7 +1242,7 @@ interface ElementBehaviors { [index: string]: ElementBehavior; }
 class InitialiseTransitions extends Visitor<(element: Element) => ElementBehavior> {
 	visitTransition(transition: Transition, behavior: (element: Element) => ElementBehavior) {
 		// reset transition behavior
-		transition.onTraverse = new Behavior();
+		transition.onTraverse = new Actions();
 
 		// initialise transition behaviour based on transition kind
 		switch (transition.kind) {
@@ -1292,7 +1263,7 @@ class InitialiseTransitions extends Visitor<(element: Element) => ElementBehavio
 	// initialise internal transitions: these do not leave the source state
 	visitInternalTransition(transition: Transition, behavior: (element: Element) => ElementBehavior) {
 		// perform the transition behavior
-		transition.onTraverse.push(transition.transitionBehavior);
+		transition.onTraverse.pushh(transition.transitionBehavior);
 
 		// add a test for completion
 		if (internalTransitionsTriggerCompletion) {
@@ -1341,22 +1312,19 @@ class InitialiseTransitions extends Visitor<(element: Element) => ElementBehavio
 		// find the index of the first uncommon ancestor (or for external transitions, the source)
 		while (sourceAncestors[i - 1] !== targetAncestors[i - 1]) { --i; }
 
-		// leave source ancestry as required
-		transition.onTraverse.push(behavior(sourceAncestors[i]).leave);
-
-		// perform the transition effect
-		transition.onTraverse.push(transition.transitionBehavior);
+		// leave source ancestry as required and perform the transition effect
+		transition.onTraverse.pushh(behavior(sourceAncestors[i]).leave, transition.transitionBehavior);
 
 		// enter the target ancestry
 		while (i < targetAncestors.length) {
-			this.cascadeElementEntry(transition, behavior, targetAncestors[i++], targetAncestors[i], behavior => transition.onTraverse.push(behavior));
+			this.cascadeElementEntry(transition, behavior, targetAncestors[i++], targetAncestors[i], behavior => transition.onTraverse.pushh(behavior));
 		}
 
 		// trigger cascade
-		transition.onTraverse.push(behavior(transition.target).endEnter);
+		transition.onTraverse.pushh(behavior(transition.target).endEnter);
 	}
 
-	cascadeElementEntry(transition: Transition, behavior: (element: Element) => ElementBehavior, element: Vertex, next: Vertex, task: (behavior: Behavior) => void) {
+	cascadeElementEntry(transition: Transition, behavior: (element: Element) => ElementBehavior, element: Vertex, next: Vertex, task: (behavior: Actions) => void) {
 		task(behavior(element).beginEnter);
 
 		if (next && element instanceof State) {
@@ -1400,7 +1368,7 @@ class InitialiseElements extends Visitor<boolean> {
 		if (deepHistoryAbove || !regionInitial || regionInitial.isHistory()) { // NOTE: history needs to be determined at runtime
 			this.behavior(region).endEnter.push((message, instance, history) => (this.behavior((history || regionInitial.isHistory()) ? instance.getCurrent(region) || regionInitial : regionInitial)).enter().invoke(message, instance, history || regionInitial.kind === PseudoStateKind.DeepHistory));
 		} else {
-			this.behavior(region).endEnter.push(this.behavior(regionInitial).enter());
+			this.behavior(region).endEnter.pushh(this.behavior(regionInitial).enter());
 		}
 
 		this.visitElement(region, deepHistoryAbove);
@@ -1431,15 +1399,15 @@ class InitialiseElements extends Visitor<boolean> {
 		for (let region of state.regions) {
 			region.accept(this, deepHistoryAbove);
 
-			this.behavior(state).leave.push(this.behavior(region).leave);
-			this.behavior(state).endEnter.push(this.behavior(region).enter());
+			this.behavior(state).leave.pushh(this.behavior(region).leave);
+			this.behavior(state).endEnter.pushh(this.behavior(region).enter());
 		}
 
 		this.visitVertex(state, deepHistoryAbove);
 
 		// add the user defined behavior when entering and exiting states
-		this.behavior(state).leave.push(state.exitBehavior);
-		this.behavior(state).beginEnter.push(state.entryBehavior);
+		this.behavior(state).leave.pushh(state.exitBehavior);
+		this.behavior(state).beginEnter.pushh(state.entryBehavior);
 
 		// update the parent regions current state
 		this.behavior(state).beginEnter.push((message, instance) => {
@@ -1577,12 +1545,12 @@ class Validator extends Visitor<string> {
 		}
 
 		// [4] A final state has no entry behavior.
-		if (finalState.entryBehavior.hasActions()) {
+		if (finalState.entryBehavior.length > 0) {
 			console.warn(`${finalState}: final states may not have entry behavior.`);
 		}
 
 		// [5] A final state has no exit behavior.
-		if (finalState.exitBehavior.hasActions()) {
+		if (finalState.exitBehavior.length > 0) {
 			console.warn(`${finalState}: final states may not have exit behavior.`);
 		}
 	}

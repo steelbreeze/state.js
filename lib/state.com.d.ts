@@ -103,38 +103,11 @@ export interface IInstance {
 export interface Action {
     (message?: any, instance?: IInstance, history?: boolean): any;
 }
-/**
- * Behavior encapsulates multiple Action callbacks that can be invoked by a single call.
- * @class Behavior
- */
-export declare class Behavior {
-    private actions;
-    /**
-     * Creates a new instance of the Behavior class.
-     * @param {Behavior} behavior The copy constructor; omit this optional parameter for a simple constructor.
-     */
-    constructor(behavior?: Behavior);
-    /**
-     * Adds an Action or set of Actions callbacks in a Behavior instance to this behavior instance.
-     * @method push
-     * @param {Action | Behavior} behavior The Action or set of Actions callbacks to add to this behavior instance.
-     * @returns {Behavior} Returns this behavior instance (for use in fluent style development).
-     */
-    push(behavior: Behavior | Action): this;
-    /**
-     * Tests the Behavior instance to see if any actions have been defined.
-     * @method hasActions
-     * @returns {boolean} True if there are actions defined within this Behavior instance.
-     */
-    hasActions(): boolean;
-    /**
-     * Invokes all the action callbacks in this Behavior instance.
-     * @method invoke
-     * @param {any} message The message that triggered the transition.
-     * @param {IInstance} instance The state machine instance.
-     * @param {boolean} history Internal use only
-     */
-    invoke(message: any, instance: IInstance, history?: boolean): void;
+export declare class Actions extends Array<Action> {
+    constructor(...actions: Actions[]);
+    pushh(...actions: Actions[]): void;
+    private apply(actions);
+    invoke(message?: any, instance?: IInstance, history?: boolean): void;
 }
 /**
  * Declaration callbacks that provide transition guard conditions.
@@ -358,8 +331,8 @@ export declare class PseudoState extends Vertex {
  * @augments Vertex
  */
 export declare class State extends Vertex {
-    exitBehavior: Behavior;
-    entryBehavior: Behavior;
+    exitBehavior: Actions;
+    entryBehavior: Actions;
     /**
      * The set of regions under this state.
      * @member {Array<Region>}
@@ -470,7 +443,7 @@ export declare class FinalState extends State {
  */
 export declare class StateMachine extends State {
     clean: boolean;
-    onInitialise: Behavior;
+    onInitialise: Actions;
     /**
      * Creates a new instance of the StateMachine class.
      * @param {string} name The name of the state machine.
@@ -509,8 +482,8 @@ export declare class Transition {
     static TrueGuard: () => boolean;
     static FalseGuard: () => boolean;
     guard: Guard;
-    transitionBehavior: Behavior;
-    onTraverse: Behavior;
+    transitionBehavior: Actions;
+    onTraverse: Actions;
     /**
      * The source of the transition.
      * @member {Vertex}
