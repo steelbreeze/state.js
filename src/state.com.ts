@@ -141,29 +141,17 @@ export class Behavior {
 	}
 
 	/**
-	 * Adds a single Action callback to this behavior instance.
-	 * @method push
-	 * @param {Action} action The Action callback to add to this behavior instance.
-	 * @returns {Behavior} Returns this behavior instance (for use in fluent style development).
-	 */
-	public push(action: Action): Behavior;
-
-	/**
-	 * Adds the set of Actions callbacks in a Behavior instance to this behavior instance.
-	 * @method push
-	 * @param {Behavior} behavior The  set of Actions callbacks to add to this behavior instance.
-	 * @returns {Behavior} Returns this behavior instance (for use in fluent style development).
-	 */
-	public push(behavior: Behavior): Behavior;
-
-	/**
 	 * Adds an Action or set of Actions callbacks in a Behavior instance to this behavior instance.
 	 * @method push
-	 * @param {Behavior} behavior The Action or set of Actions callbacks to add to this behavior instance.
+	 * @param {Action | Behavior} behavior The Action or set of Actions callbacks to add to this behavior instance.
 	 * @returns {Behavior} Returns this behavior instance (for use in fluent style development).
 	 */
-	public push(behavior: any) {
-		Array.prototype.push.apply(this.actions, behavior instanceof Behavior ? behavior.actions : arguments);
+	public push(behavior: Behavior | Action) {
+		if (behavior instanceof Behavior) {
+			this.actions = this.actions.concat(behavior.actions);
+		} else {
+			this.actions.push(behavior);
+		}
 
 		return this;
 	}
@@ -291,10 +279,6 @@ export class Region extends Element {
 		this.state.regions.push(this);
 
 		this.state.getRoot().clean = false;
-	}
-
-	public dr(): Region {
-		return this;
 	}
 
 	/**

@@ -115,19 +115,12 @@ export declare class Behavior {
      */
     constructor(behavior?: Behavior);
     /**
-     * Adds a single Action callback to this behavior instance.
+     * Adds an Action or set of Actions callbacks in a Behavior instance to this behavior instance.
      * @method push
-     * @param {Action} action The Action callback to add to this behavior instance.
+     * @param {Action | Behavior} behavior The Action or set of Actions callbacks to add to this behavior instance.
      * @returns {Behavior} Returns this behavior instance (for use in fluent style development).
      */
-    push(action: Action): Behavior;
-    /**
-     * Adds the set of Actions callbacks in a Behavior instance to this behavior instance.
-     * @method push
-     * @param {Behavior} behavior The  set of Actions callbacks to add to this behavior instance.
-     * @returns {Behavior} Returns this behavior instance (for use in fluent style development).
-     */
-    push(behavior: Behavior): Behavior;
+    push(behavior: Behavior | Action): this;
     /**
      * Tests the Behavior instance to see if any actions have been defined.
      * @method hasActions
@@ -222,7 +215,6 @@ export declare class Region extends Element {
      * @param {State} state The parent state that this region will be a child of.
      */
     constructor(name: string, state: State);
-    dr(): Region;
     /**
      * Removes the state from the state machine model
      * @method remove
