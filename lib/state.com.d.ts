@@ -92,33 +92,11 @@ export interface IInstance {
      */
     getCurrent(region: Region): State;
 }
-/**
- * Declaration for callbacks that provide state entry, state exit and transition behavior.
- * @interface Action
- * @param {any} message The message that may trigger the transition.
- * @param {IInstance} instance The state machine instance.
- * @param {boolean} history Internal use only
- * @returns {any} Actions can return any value.
- */
-export interface Action {
-    (message?: any, instance?: IInstance, history?: boolean): any;
-}
-export declare class Actions extends Array<Action> {
+export declare class Actions extends Array<(message?: any, instance?: IInstance, history?: boolean) => any> {
     constructor(...actions: Actions[]);
     pushh(...actions: Actions[]): void;
     private apply(actions);
     invoke(message?: any, instance?: IInstance, history?: boolean): void;
-}
-/**
- * Declaration callbacks that provide transition guard conditions.
- * @interface Guard
- * @param {any} message The message that may trigger the transition.
- * @param {IInstance} instance The state machine instance.
- * @param {boolean} history Internal use only
- * @returns {boolean} True if the guard condition passed.
- */
-export interface Guard {
-    (message?: any, instance?: IInstance): boolean;
 }
 /**
  * An abstract class used as the base for the Region and Vertex classes.
@@ -387,17 +365,17 @@ export declare class State extends Vertex {
     /**
      * Adds behavior to a state that is executed each time the state is exited.
      * @method exit
-     * @param {Action} exitAction The action to add to the state's exit behavior.
+     * @param {(message?: any, instance?: IInstance, history?: boolean) => any} exitAction The action to add to the state's exit behavior.
      * @returns {State} Returns the state to allow a fluent style API.
      */
-    exit(exitAction: Action): this;
+    exit(exitAction: (message?: any, instance?: IInstance, history?: boolean) => any): this;
     /**
      * Adds behavior to a state that is executed each time the state is entered.
      * @method entry
-     * @param {Action} entryAction The action to add to the state's entry behavior.
+     * @param {(message?: any, instance?: IInstance, history?: boolean) => any} entryAction The action to add to the state's entry behavior.
      * @returns {State} Returns the state to allow a fluent style API.
      */
-    entry(entryAction: Action): this;
+    entry(entryAction: (message?: any, instance?: IInstance, history?: boolean) => any): this;
     /**
      * Accepts an instance of a visitor and calls the visitState method on it.
      * @method accept
@@ -481,7 +459,7 @@ export declare class StateMachine extends State {
 export declare class Transition {
     static TrueGuard: () => boolean;
     static FalseGuard: () => boolean;
-    guard: Guard;
+    guard: (message?: any, instance?: IInstance) => boolean;
     transitionBehavior: Actions;
     onTraverse: Actions;
     /**
@@ -520,14 +498,14 @@ export declare class Transition {
      * @param {Guard} guard The guard condition that must evaluate true for the transition to be traversed.
      * @returns {Transition} Returns the transition object to enable the fluent API.
      */
-    when(guard: Guard): this;
+    when(guard: (message?: any, instance?: IInstance) => boolean): this;
     /**
      * Add behavior to a transition.
      * @method effect
-     * @param {Action} transitionAction The action to add to the transitions traversal behavior.
+     * @param {(message?: any, instance?: IInstance, history?: boolean) => any} transitionAction The action to add to the transitions traversal behavior.
      * @returns {Transition} Returns the transition object to enable the fluent API.
      */
-    effect(transitionAction: Action): this;
+    effect(transitionAction: (message?: any, instance?: IInstance, history?: boolean) => any): this;
     /**
      * Removes the transition from the state machine model
      * @method remove

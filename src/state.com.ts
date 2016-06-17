@@ -111,25 +111,12 @@ export interface IInstance {
 	getCurrent(region: Region): State;
 }
 
-/**
- * Declaration for callbacks that provide state entry, state exit and transition behavior.
- * @interface Action
- * @param {any} message The message that may trigger the transition.
- * @param {IInstance} instance The state machine instance.
- * @param {boolean} history Internal use only
- * @returns {any} Actions can return any value.
- */
-export interface Action {
-	(message?: any, instance?: IInstance, history?: boolean): any;
-}
-
-export class Actions extends Array<Action> {
+export class Actions extends Array<(message?: any, instance?: IInstance, history?: boolean) => any> {
 	public constructor(...actions: Actions[]) {
 		super();
 
 		this.apply(actions);
 	}
-
 
 	public pushh(...actions: Actions[]): void {
 		this.apply(actions);
@@ -148,18 +135,6 @@ export class Actions extends Array<Action> {
 			action(message, instance, history);
 		}
 	}
-}
-
-/**
- * Declaration callbacks that provide transition guard conditions.
- * @interface Guard
- * @param {any} message The message that may trigger the transition.
- * @param {IInstance} instance The state machine instance.
- * @param {boolean} history Internal use only
- * @returns {boolean} True if the guard condition passed.
- */
-export interface Guard {
-	(message?: any, instance?: IInstance): boolean;
 }
 
 /**
@@ -557,10 +532,10 @@ export class State extends Vertex {
 	/**
 	 * Adds behavior to a state that is executed each time the state is exited.
 	 * @method exit
-	 * @param {Action} exitAction The action to add to the state's exit behavior.
+	 * @param {(message?: any, instance?: IInstance, history?: boolean) => any} exitAction The action to add to the state's exit behavior.
 	 * @returns {State} Returns the state to allow a fluent style API.
 	 */
-	public exit(exitAction: Action) {
+	public exit(exitAction: (message?: any, instance?: IInstance, history?: boolean) => any) {
 		this.exitBehavior.push(exitAction);
 
 		this.getRoot().clean = false;
@@ -571,10 +546,10 @@ export class State extends Vertex {
 	/**
 	 * Adds behavior to a state that is executed each time the state is entered.
 	 * @method entry
-	 * @param {Action} entryAction The action to add to the state's entry behavior.
+	 * @param {(message?: any, instance?: IInstance, history?: boolean) => any} entryAction The action to add to the state's entry behavior.
 	 * @returns {State} Returns the state to allow a fluent style API.
 	 */
-	public entry(entryAction: Action) {
+	public entry(entryAction: (message?: any, instance?: IInstance, history?: boolean) => any) {
 		this.entryBehavior.push(entryAction);
 
 		this.getRoot().clean = false;
@@ -692,7 +667,7 @@ export class Transition {
 		/*internal*/ static FalseGuard = () => { return false; };
 
 		// guard condition for this transition.
-		/*internal*/ guard: Guard;
+		/*internal*/ guard: (message?: any, instance?: IInstance) => boolean;
 
 		// user defined behavior (via effect) executed when traversing this transition.
 		/*internal*/ transitionBehavior = new Actions();
@@ -759,7 +734,7 @@ export class Transition {
 	 * @param {Guard} guard The guard condition that must evaluate true for the transition to be traversed.
 	 * @returns {Transition} Returns the transition object to enable the fluent API.
 	 */
-	public when(guard: Guard) {
+	public when(guard: (message?: any, instance?: IInstance) => boolean) {
 		this.guard = guard;
 
 		return this;
@@ -768,10 +743,10 @@ export class Transition {
 	/**
 	 * Add behavior to a transition.
 	 * @method effect
-	 * @param {Action} transitionAction The action to add to the transitions traversal behavior.
+	 * @param {(message?: any, instance?: IInstance, history?: boolean) => any} transitionAction The action to add to the transitions traversal behavior.
 	 * @returns {Transition} Returns the transition object to enable the fluent API.
 	 */
-	public effect(transitionAction: Action) {
+	public effect(transitionAction: (message?: any, instance?: IInstance, history?: boolean) => any) {
 		this.transitionBehavior.push(transitionAction);
 
 		this.source.getRoot().clean = false;
