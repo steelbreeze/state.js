@@ -314,8 +314,12 @@ export abstract class Vertex extends Element {
 		}
 	}
 
-	// returns the ancestry of this vertex
-	/*internal*/ ancestry(): Array<Vertex> {
+	/**
+	 * Returns the ancestry of a Vertex, form the root state machine to this vertex.
+	 * @method ancestry
+	 * @returns (Array<Vertex>) An array of vertices (excludes regions).
+	 */
+	public ancestry(): Array<Vertex> {
 		return (this.region ? this.region.state.ancestry() : new Array<Vertex>()).concat(this);
 	}
 
@@ -447,10 +451,10 @@ export class PseudoState extends Vertex {
  */
 export class State extends Vertex {
 		// user defined behavior (via exit method) to execute when exiting a state.
-		/* internal */ exitBehavior = new Actions();
+		/*internal*/ exitBehavior = new Actions();
 
 		// user defined behavior (via entry method) to execute when entering a state.
-		/* internal */ entryBehavior = new Actions();
+		/*internal*/ entryBehavior = new Actions();
 
 	/**
 	 * The set of regions under this state.
@@ -970,8 +974,6 @@ export abstract class Visitor<TArg1> {
 	}
 }
 
-
-
 /**
  * The methods that state.js may use from a console implementation. Create objects that ahdere to this interface for custom logging, warnings and error handling.
  * @interface IConsole
@@ -1025,33 +1027,16 @@ export function isComplete(element: Region | State, instance: IInstance): boolea
 	}
 }
 
-/**
- * Sets a method to select an integer random number less than the max value passed as a parameter.
- *
- * This is only useful when a custom random number generator is required; the default implementation is fine in most circumstances.
- * @function setRandom
- * @param {function} generator A function that takes a max value and returns a random number between 0 and max - 1.
- * @returns A random number between 0 and max - 1
- */
-export function setRandom(generator: (max: number) => number): void {
-	random = generator;
-}
-
-/**
- * Returns the current method used to select an integer random number less than the max value passed as a parameter.
- *
- * This is only useful when a custom random number generator is required; the default implementation is fine in most circumstances.
- * @function getRandom
- * @returns {function} The function that takes a max value and returns a random number between 0 and max - 1.
- */
-export function getRandom(): (max: number) => number {
-	return random;
-}
-
 // the default method used to produce a random number; defaulting to simplified implementation seen in Mozilla Math.random() page; may be overriden for testing
-let random = function (max: number): number {
+const defaultRandom = function (max: number): number {
 	return Math.floor(Math.random() * max);
 };
+
+/**
+ * The function used for to generate random numbers; may be overriden for testing purposes.
+ * @member {(number) => number}
+ */
+export let random: (max: number) => number = defaultRandom;
 
 /**
  * Initialises a state machine and/or state machine model.
@@ -1185,7 +1170,7 @@ function selectTransition(pseudoState: PseudoState, instance: IInstance, message
 	const results = pseudoState.outgoing.filter(transition => transition.guard(message, instance));
 
 	if (pseudoState.kind === PseudoStateKind.Choice) {
-		return results.length !== 0 ? results[getRandom()(results.length)] : findElse(pseudoState);
+		return results.length !== 0 ? results[random(results.length)] : findElse(pseudoState);
 	} else {
 		if (results.length > 1) {
 			console.error(`Multiple outbound transition guards returned true at ${pseudoState} for ${message}`);
@@ -1403,6 +1388,7 @@ class InitialiseElements extends Visitor<boolean> {
 	}
 }
 
+// the default implemention of the console
 const defaultConsole = {
 	log(message?: any, ...optionalParams: any[]): void { },
 	warn(message?: any, ...optionalParams: any[]): void { },

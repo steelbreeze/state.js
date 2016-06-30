@@ -218,6 +218,11 @@ export declare abstract class Vertex extends Element {
      * @param {Region | State} parent The parent region or state.
      */
     constructor(name: string, parent: Region | State);
+    /**
+     * Returns the ancestry of a Vertex, form the root state machine to this vertex.
+     * @method ancestry
+     * @returns (Array<Vertex>) An array of vertices (excludes regions).
+     */
     ancestry(): Array<Vertex>;
     /**
      * Returns the root element within the state machine model.
@@ -689,22 +694,10 @@ export declare function isActive(vertex: Vertex, instance: IInstance): boolean;
  */
 export declare function isComplete(element: Region | State, instance: IInstance): boolean;
 /**
- * Sets a method to select an integer random number less than the max value passed as a parameter.
- *
- * This is only useful when a custom random number generator is required; the default implementation is fine in most circumstances.
- * @function setRandom
- * @param {function} generator A function that takes a max value and returns a random number between 0 and max - 1.
- * @returns A random number between 0 and max - 1
+ * The function used for to generate random numbers; may be overriden for testing purposes.
+ * @member {(number) => number}
  */
-export declare function setRandom(generator: (max: number) => number): void;
-/**
- * Returns the current method used to select an integer random number less than the max value passed as a parameter.
- *
- * This is only useful when a custom random number generator is required; the default implementation is fine in most circumstances.
- * @function getRandom
- * @returns {function} The function that takes a max value and returns a random number between 0 and max - 1.
- */
-export declare function getRandom(): (max: number) => number;
+export declare let random: (max: number) => number;
 /**
  * Initialises a state machine and/or state machine model.
  *

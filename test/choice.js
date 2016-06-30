@@ -49,7 +49,7 @@ describe("test/choice.js", function () {
 	});
 
 	describe("With an non-random distribution, each path is called equally", function () {
-		state.setRandom(randRobin);
+		state.random = randRobin;
 
 		var instance2 = new state.StateMachineInstance("instance2");
 		instance2.path1 = 0;
