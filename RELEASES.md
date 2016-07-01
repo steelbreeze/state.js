@@ -1,3 +1,8 @@
+## Version 5.7.0
+Refactoring of the TypeScript code to remove unnecessary internals from the public API; this is follow-on activity from release 5.6.10.
+
+Change the API for controlling random number generation to be more aligned with the API for console.
+
 ## Version 5.6.10
 Enable state.js to be used as a TypeSript module and imported using:
 ```js
