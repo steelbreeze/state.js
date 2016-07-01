@@ -9,7 +9,6 @@ Enable state.js to be used as a TypeSript module and imported using:
 import * as state from "state";
 ```
 
-
 ## Version 5.6.9
 Fix an omission in history semantics allowing regions to contain history pseudo states with no outbound transitions.
 
