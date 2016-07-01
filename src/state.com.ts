@@ -7,9 +7,11 @@
 
 /**
  * Type alias for transition behavior
- * @type Action
+ * @interface Action
  */
-export type Action = (message?: any, instance?: IInstance, history?: boolean) => any;
+export interface Action {
+	(message?: any, instance?: IInstance, history?: boolean): any;
+}
 
 /**
  * An enumeration of static constants that dictates the precise behavior of pseudo states.

@@ -1,4 +1,10 @@
-export declare type Action = (message?: any, instance?: IInstance, history?: boolean) => any;
+/**
+ * Type alias for transition behavior
+ * @interface Action
+ */
+export interface Action {
+    (message?: any, instance?: IInstance, history?: boolean): any;
+}
 /**
  * An enumeration of static constants that dictates the precise behavior of pseudo states.
  *
@@ -309,8 +315,8 @@ export declare class PseudoState extends Vertex {
  * @augments Vertex
  */
 export declare class State extends Vertex {
-    exitBehavior: ((message?: any, instance?: IInstance, history?: boolean) => any)[];
-    entryBehavior: ((message?: any, instance?: IInstance, history?: boolean) => any)[];
+    exitBehavior: Action[];
+    entryBehavior: Action[];
     /**
      * The set of regions under this state.
      * @member {Array<Region>}
@@ -460,7 +466,7 @@ export declare class Transition {
     static TrueGuard: () => boolean;
     static FalseGuard: () => boolean;
     guard: (message?: any, instance?: IInstance) => boolean;
-    transitionBehavior: ((message?: any, instance?: IInstance, history?: boolean) => any)[];
+    transitionBehavior: Action[];
     onTraverse: Array<Action>;
     /**
      * The source of the transition.
