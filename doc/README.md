@@ -1,1 +1,1 @@
-Documentation is moving to the [state.software](https://state.software) web site; links will be updated once this is complete.
+Documentation has moved to [state.software](https://state.software/docs/modules/_state_com_.html).
