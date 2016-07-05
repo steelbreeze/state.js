@@ -111,7 +111,7 @@ The versions are in the form {major}.{minor}.{build}
 * Build changes can introduce features, though usually are fixes and performance enhancements; these will never break the public API.
 
 ## Documentation
-Documentation for the public API can be found [here](https://state.software/docs/modules/_state_com_.html).
+Documentation for the public API can be found [here](https://state.software/docs/).
 
 ## Licence
 state.js is dual-licenecd under the MIT and GPL v3 licences.
