@@ -6,7 +6,8 @@
  */
 
 /**
- * Function interface for transition behavior
+ * Function interface for transition behavior.
+ * @param message The message that caused the state transition.
  */
 export interface Action {
 	(message?: any, instance?: IInstance, history?: boolean): any;
@@ -15,7 +16,7 @@ export interface Action {
 /**
  * An enumeration used to dictate the behavior of instances of the [[PseudoState]] class.
  *
- * Use these constants as the `kind` parameter when creating new [[PseudoState]] instances to define which kind of pseudo state they are, thereby defining their behavior.
+ * Use these constants as the `kind` parameter when creating new [[PseudoState]] instances to define their behavior (see the description of each member).
  */
 export enum PseudoStateKind {
 	/**
@@ -59,27 +60,27 @@ export enum PseudoStateKind {
 }
 
 /**
- * An enumeration of static constants that dictates the precise behavior of transitions.
+ * An enumeration of that dictates the precise behavior of a [[Transition]] instance.
  *
- * Use these constants as the `kind` parameter when creating new `Transition` instances.
+ * Use these constants as the `kind` parameter when creating new [[Transition]] instances to define their behavior (see the description of each member).
+ * @note Within the [[Transition]] constructor the `kind` parameter will be validated and adjusted as necessary.
  */
 export enum TransitionKind {
 	/**
-	 * The transition, if triggered, occurs without exiting or entering the source state.
-	 * Thus, it does not cause a state change. This means that the entry or exit condition of the source state will not be invoked.
-	 * An internal transition can be taken even if the state machine is in one or more regions nested within this state.
+	 * The [[Transition]], if triggered, will exit the source [[Vertex]] and enter the target [[Vertex]] irrespective of the proximity of source and terget in terms of their enclosing [[Region]].
+	 */
+	External,
+
+	/**
+	 * The [[Transition]], if triggered, occurs without exiting or entering the source [[State]];
+	 * it does not cause a state therefore no [[State]] exit or entry [[Action]]s will be invoked, only [[Transition]] [[Action]]s.
 	 */
 	Internal,
 
 	/**
-	 * The transition, if triggered, will not exit the composite (source) state, but will enter the non-active target vertex ancestry.
+	 * The [[Transition]], if triggered, will not exit the source [[State]] as the terget [[Vertex]] is a child of the source [[State]]. No exit [[Action]]s are invoked from the source [[State]], but [[Transition]] and entry [[Action]]s will be invoked as required.
 	 */
-	Local,
-
-	/**
-	 * The transition, if triggered, will exit the source vertex.
-	 */
-	External
+	Local
 }
 
 /**
@@ -137,6 +138,7 @@ export abstract class Element {
 
 	/**
 	 * Returns a the element name as a fully qualified namespace.
+	 * @returns The fully qualified name of the element.
 	 */
 	public toString(): string {
 		return this.qualifiedName;
