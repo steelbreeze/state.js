@@ -94,7 +94,7 @@ export abstract class Element {
 	/**
 	 * Returns the [[Element]] [[name]] as a namespace delimited by [[namespaceSeparator]].
 	 */
-	public /*readonly*/ qualifiedName: string;
+	public qualifiedName: string;
 
 	/**
 	 * Creates a new instance of the [[Element]] class.
@@ -121,7 +121,7 @@ export abstract class Element {
  */
 export class Region extends Element {
 	/**
-	 * The name given to [[Region]]s implicitly created (when a [[State]] is passed to a [[Vertex]] constructor as it's parent.
+	 * The name given to [[Region]] instances implicitly created (when a [[State]] instance is passed to a [[Vertex]] constructor as it's parent.
 	 */
 	public static defaultName = "default";
 
@@ -131,14 +131,14 @@ export class Region extends Element {
 	public /*readonly*/ state: State;
 
 	/**
-	 * The set of vertices that are children of the region.
+	 * The [[Vertex]] instances that are children of this [[Region]].
 	 */
 	public vertices = new Array<Vertex>();
 
 	/**
-	 * Creates a new instance of the Region class.
-	 * @param {string} name The name of the region.
-	 * @param {State} state The parent state that this region will be a child of.
+	 * Creates a new instance of the [[Region]] class.
+	 * @param {string} name The name of the [[Region]].
+	 * @param {State} state The parent [[State]] that this [[Region]] will be a child of.
 	 */
 	public constructor(name: string, state: State) {
 		super(name, state);
@@ -151,7 +151,7 @@ export class Region extends Element {
 	}
 
 	/**
-	 * Removes the state from the state machine model
+	 * Removes this [[Region]] instance from the [[StateMachine]] model
 	 */
 	public remove() {
 		for (let vertex of this.vertices) {
@@ -166,19 +166,19 @@ export class Region extends Element {
 	}
 
 	/**
-	 * Returns the root element within the state machine model.
+	 * Returns the root [[StateMachine]] instance that this [[Region]] instance is a part of.
 	 */
 	public getRoot(): StateMachine {
 		return this.state.getRoot();
 	}
 
 	/**
-	 * Accepts an instance of a visitor and calls the visitRegion method on it.
+	 * Accepts an instance of a [[Visitor]] and calls the [[visitRegion]] method on it.
 	 * @param TArg1 The type of the first optional parameter.
-	 * @param {Visitor<TArg1>} visitor The visitor instance.
-	 * @param {TArg1} arg1 An optional argument to pass into the visitor.
-	 * @param {any} arg2 An optional argument to pass into the visitor.
-	 * @param {any} arg3 An optional argument to pass into the visitor.
+	 * @param {Visitor<TArg1>} visitor The [[Visitor]] instance.
+	 * @param {TArg1} arg1 An optional argument to pass into the [[Visitor]].
+	 * @param {any} arg2 An optional argument to pass into the [[Visitor]].
+	 * @param {any} arg3 An optional argument to pass into the [[Visitor]].
 	 */
 	public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any {
 		return visitor.visitRegion(this, arg1, arg2, arg3);
@@ -337,76 +337,77 @@ export class PseudoState extends Vertex {
 }
 
 /**
- * An element within a state machine model that represents an invariant condition within the life of the state machine instance.
+ * An [[Vertex]] within a [[StateMachine]] model that represents an invariant condition within the life of the state machine instance.
  *
- * States are one of the fundamental building blocks of the state machine model.
- * Behavior can be defined for both state entry and state exit.
- *
- * State extends the Vertex class and inherits its public interface.
+ * [[State]] instances are one of the fundamental building blocks of the [[StateMachine]] model; they typically represent conditions where the machine is awaiting an eveny to trigger a [[Transition]].
+ * User-defined [[Action]]s can be defined for both [[State]] entry and [[State]] exit.
  */
 export class State extends Vertex {
-		// user defined behavior (via exit method) to execute when exiting a state.
-		/*internal*/ exitBehavior = new Array<Action>();
+		/**
+		 * The user-defined behavior (built up via calls to the [[exit]] method).
+		 * @private
+		 */
+		exitBehavior = new Array<Action>();
 
-		// user defined behavior (via entry method) to execute when entering a state.
-		/*internal*/ entryBehavior = new Array<Action>();
+		/**
+		 * The user-defined behavior (built up via calls to the [[entry]] method).
+		 * @private
+		 */
+		entryBehavior = new Array<Action>();
 
 	/**
-	 * The set of regions under this state.
+	 * The  [[Region]] instances that are a child of  this [[State]].
 	 */
 	public regions = new Array<Region>();
 
 	/**
-	 * Creates a new instance of the State class.
-	 * @param {string} name The name of the state.
-	 * @param {Region | State} parent The parent state that owns the state.
+	 * Creates a new instance of the [[State]] class.
+	 * @param {string} name The name of the [[State]].
+	 * @param {Region | State} parent The parent [[Region]] or [[State]] that this [[State is a child of]].
+	 * @note When a [[State]] is passed as the parent parameter, a default [[Region]] is created and subsiquently accessible via the [[defaultRegion]] method.
 	 */
 	public constructor(name: string, parent: Region | State) {
 		super(name, parent);
 	}
 
 	/**
-	 * Returns the default region for the state.
-	 * Note, this will create the default region if it does not already exist.
+	 * Returns the default [[Region]] for the state.
+	 * @note A default [[Region]] is created on demand if the [[State]] is passed into a child [[Vertex]] constructor..
 	 */
 	public defaultRegion(): Region {
 		return this.regions.reduce((result, region) => region.name === Region.defaultName ? region : result, undefined) || new Region(Region.defaultName, this);
 	}
 
 	/**
-	 * Tests the state to see if it is a final state;
-	 * a final state is one that has no outbound transitions.
+	 * Tests the [[State]] to see if it is a [[FinalState]]; a [[FinalState]] is either defined by creating an instance of the [[FinalState]] class or any other [[State]] instance that has no outbound transitions.
 	 */
 	public isFinal(): boolean {
 		return this.outgoing.length === 0;
 	}
 
 	/**
-	 * Tests the state to see if it is a simple state;
-	 * a simple state is one that has no child regions.
+	 * Tests the [[State]] to see if it is a simple [[State]]; a simple [[State]] is one that has no child [[Region]]s.
 	 */
 	public isSimple(): boolean {
 		return this.regions.length === 0;
 	}
 
 	/**
-	 * Tests the state to see if it is a composite state;
-	 * a composite state is one that has one or more child regions.
+	 * Tests the [[State]] to see if it is a composite [[State]]; a composite [[State]] is one that has one or more child [[Region]]s.
 	 */
 	public isComposite(): boolean {
 		return this.regions.length > 0;
 	}
 
 	/**
-	 * Tests the state to see if it is an orthogonal state;
-	 * an orthogonal state is one that has two or more child regions.
+	 * Tests the [[State]] to see if it is an orthogonal [[State]]; an orthogonal [[State]] is one that has more than one child [[Region]]s.
 	 */
 	public isOrthogonal(): boolean {
 		return this.regions.length > 1;
 	}
 
 	/**
-	 * Removes the state from the state machine model
+	 * Removes this [[State]] instance from the [[StateMachine]] model
 	 */
 	public remove() {
 		for (let region of this.regions) {
@@ -417,8 +418,8 @@ export class State extends Vertex {
 	}
 
 	/**
-	 * Adds behavior to a state that is executed each time the state is exited.
-	 * @param {Action} exitAction The action to add to the state's exit behavior.
+	 * Adds an [[Action]] that is executed each time the [[State]] instance is exited due to a [[Transition]].
+	 * @param {Action} exitAction The [[Action]] to add to the [[State]] instance exit behavior.
 	 */
 	public exit(exitAction: Action) {
 		this.exitBehavior.push(exitAction);
@@ -429,8 +430,8 @@ export class State extends Vertex {
 	}
 
 	/**
-	 * Adds behavior to a state that is executed each time the state is entered.
-	 * @param {Action} entryAction The action to add to the state's entry behavior.
+	 * Adds and [[Action]] that is executed each time the [[State]] instance is entered due to a [[Transition]].
+	 * @param {Action} entryAction The [[Action]] to add to the [[State]] instance entry behavior.
 	 */
 	public entry(entryAction: Action) {
 		this.entryBehavior.push(entryAction);
@@ -441,12 +442,12 @@ export class State extends Vertex {
 	}
 
 	/**
-	 * Accepts an instance of a visitor and calls the visitState method on it.
+	 * Accepts an instance of a [[Visitor]] and calls the [[visitState]] method on it.
 	 * @param TArg1 The type of the first optional parameter.
-	 * @param {Visitor<TArg1>} visitor The visitor instance.
-	 * @param {TArg1} arg1 An optional argument to pass into the visitor.
-	 * @param {any} arg2 An optional argument to pass into the visitor.
-	 * @param {any} arg3 An optional argument to pass into the visitor.
+	 * @param {Visitor<TArg1>} visitor The [[Visitor]] instance.
+	 * @param {TArg1} arg1 An optional argument to pass into the [[Visitor]].
+	 * @param {any} arg2 An optional argument to pass into the [[Visitor]].
+	 * @param {any} arg3 An optional argument to pass into the [[Visitor]].
 	 */
 	public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any {
 		return visitor.visitState(this, arg1, arg2, arg3);
@@ -482,40 +483,44 @@ export class FinalState extends State {
 }
 
 /**
- * An element within a state machine model that represents the root of the state machine model.
- *
- * StateMachine extends the State class and inherits its public interface.
+ * A [[State]] within a that represents the root [[Element]] of the [[StateMachine]] model.
  */
 export class StateMachine extends State {
-		// flag used to indicate that the state machine model has has structural changes and therefore requires initialising.
-		/*internal*/ clean = false;
+		/**
+		 * Internal flag: false if the state machine model requires recompilation.
+		 * @private
+		 */
+		clean = false;
 
-		// the behavior required to initialise state machine instances; created when initialising the state machine model.
-		/*internal*/ onInitialise: Array<Action>;
+		/**
+		 * The behavior to be executed when initialising a state machine instance.
+		 * @private
+		 */
+		onInitialise: Array<Action>;
 
 	/**
-	 * Creates a new instance of the StateMachine class.
-	 * @param {string} name The name of the state machine.
+	 * Creates a new instance of the [[StateMachine]] class.
+	 * @param {string} name The name of the [[StateMachine]].
 	 */
 	public constructor(name: string) {
 		super(name, undefined);
 	}
 
 	/**
-	 * Returns the root element within the state machine model.
-	 * Note that if this state machine is embeded within another state machine, the ultimate root element will be returned.
+	 * Returns the root [[StateMachine]].
+	 * @note that if this [[StateMachine]] is embeded within another, the ultimate root will be returned.
 	 */
 	public getRoot(): StateMachine {
 		return this.region ? this.region.getRoot() : this;
 	}
 
 	/**
-	 * Accepts an instance of a visitor and calls the visitStateMachine method on it.
+	 * Accepts an instance of a [[Visitor]] and calls the [[visitStateMachine]] method on it.
 	 * @param TArg1 The type of the first optional parameter.
-	 * @param {Visitor<TArg1>} visitor The visitor instance.
-	 * @param {TArg1} arg1 An optional argument to pass into the visitor.
-	 * @param {any} arg2 An optional argument to pass into the visitor.
-	 * @param {any} arg3 An optional argument to pass into the visitor.
+	 * @param {Visitor<TArg1>} visitor The [[Visitor]] instance.
+	 * @param {TArg1} arg1 An optional argument to pass into the [[Visitor]].
+	 * @param {any} arg2 An optional argument to pass into the [[Visitor]].
+	 * @param {any} arg3 An optional argument to pass into the [[Visitor]].
 	 */
 	public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any {
 		return visitor.visitStateMachine(this, arg1, arg2, arg3);
@@ -654,34 +659,35 @@ export class Transition {
 }
 
 /**
- * Default working implementation of a state machine instance class.
- *
- * Implements the `IInstance` interface.
- * It is possible to create other custom instance classes to manage state machine state in other ways (e.g. as serialisable JSON); just implement the same members and methods as this class.
+ * A working implementation of the [[IInstance]] interface.
+ * @note It is possible to create other custom state machine instance classes in other ways (e.g. as serialisable JSON); just implement the same members and methods as this class.
  */
 export class StateMachineInstance implements IInstance {
-	private last: any = [];
-
 	/**
-	 * The name of the state machine instance.
+	 * The last known state of any [[Region]] instance.
 	 */
-	public /*readonly*/ name: string;
+	private last: { [id: string]: State } = {};
 
 	/**
-	 * Indicates that the state manchine instance reached was terminated by reaching a Terminate pseudo state.
+	 * The name of the [[StateMachine]] instance.
+	 */
+	public name: string;
+
+	/**
+	 * Indicates that the [[StateMachine]] instance reached was terminated by reaching a [[Terminate]] [[PseudoState]].
 	 */
 	public isTerminated: boolean = false;
 
 	/**
-	 * Creates a new instance of the state machine instance class.
-	 * @param {string} name The optional name of the state machine instance.
+	 * Creates a new instance of the [[StateMachineInstance]] class.
+	 * @param {string} name The optional name of the [[StateMachineInstance]].
 	 */
 	public constructor(name: string = "unnamed") {
 		this.name = name;
 	}
 
-		// Updates the last known state for a given region.
-		/*internal*/ setCurrent(region: Region, state: State): void {
+	// Updates the last known state for a given region.
+	/*internal*/ setCurrent(region: Region, state: State): void {
 		this.last[region.qualifiedName] = state;
 	}
 
@@ -723,7 +729,7 @@ export abstract class Visitor<TArg1> {
 	public visitRegion(region: Region, arg1?: TArg1, arg2?: any, arg3?: any): any {
 		const result = this.visitElement(region, arg1, arg2, arg3);
 
-		for (let vertex of region.vertices) {
+		for (const vertex of region.vertices) {
 			vertex.accept(this, arg1, arg2, arg3);
 		}
 
@@ -740,7 +746,7 @@ export abstract class Visitor<TArg1> {
 	public visitVertex(vertex: Vertex, arg1?: TArg1, arg2?: any, arg3?: any): any {
 		const result = this.visitElement(vertex, arg1, arg2, arg3);
 
-		for (let transition of vertex.outgoing) {
+		for (const transition of vertex.outgoing) {
 			transition.accept(this, arg1, arg2, arg3);
 		}
 
@@ -767,7 +773,7 @@ export abstract class Visitor<TArg1> {
 	public visitState(state: State, arg1?: TArg1, arg2?: any, arg3?: any): any {
 		const result = this.visitVertex(state, arg1, arg2, arg3);
 
-		for (let region of state.regions) {
+		for (const region of state.regions) {
 			region.accept(this, arg1, arg2, arg3);
 		}
 
@@ -895,8 +901,8 @@ const defaultRandom = function (max: number): number {
  * @private
  */
 function push(to: Array<Action>, ...actions: Array<Array<Action>>): void {
-	for (let set of actions) {
-		for (let action of set) {
+	for (const set of actions) {
+		for (const action of set) {
 			to.push(action);
 		}
 	}
@@ -904,7 +910,7 @@ function push(to: Array<Action>, ...actions: Array<Array<Action>>): void {
 
 // invokes transition behavior
 function invoke(to: Array<Action>, message?: any, instance?: IInstance, deepHistory: boolean = false) {
-	for (let action of to) {
+	for (const action of to) {
 		action(message, instance, deepHistory);
 	}
 }
@@ -1198,7 +1204,7 @@ class InitialiseTransitions extends Visitor<(element: Element) => ElementBehavio
 		task(behavior(element).beginEnter);
 
 		if (next && element instanceof State) {
-			for (let region of element.regions) {
+			for (const region of element.regions) {
 				task(behavior(region).beginEnter);
 
 				if (region !== next.region) {
@@ -1230,7 +1236,7 @@ class InitialiseElements extends Visitor<boolean> {
 	visitRegion(region: Region, deepHistoryAbove: boolean) {
 		const regionInitial = region.vertices.reduce<PseudoState>((result, vertex) => vertex instanceof PseudoState && vertex.isInitial() ? vertex : result, undefined);
 
-		for (let vertex of region.vertices) {
+		for (const vertex of region.vertices) {
 			vertex.accept(this, deepHistoryAbove || (regionInitial && regionInitial.kind === PseudoStateKind.DeepHistory));
 		}
 
@@ -1269,7 +1275,7 @@ class InitialiseElements extends Visitor<boolean> {
 
 	visitState(state: State, deepHistoryAbove: boolean) {
 		// NOTE: manually iterate over the child regions to control the sequence of behavior
-		for (let region of state.regions) {
+		for (const region of state.regions) {
 			region.accept(this, deepHistoryAbove);
 
 			push(this.behavior(state).leave, this.behavior(region).leave);
@@ -1370,7 +1376,7 @@ class Validator extends Visitor<string> {
 		// [3] A region can have at most one shallow history vertex.
 		let initial = 0, deepHistory = 0, shallowHistory = 0;
 
-		for (let vertex of region.vertices) {
+		for (const vertex of region.vertices) {
 			if (vertex instanceof PseudoState) {
 				if (vertex.kind === PseudoStateKind.Initial) {
 					initial++;

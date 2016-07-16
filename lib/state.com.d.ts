@@ -95,7 +95,7 @@ export declare abstract class Element {
  */
 export declare class Region extends Element {
     /**
-     * The name given to [[Region]]s implicitly created (when a [[State]] is passed to a [[Vertex]] constructor as it's parent.
+     * The name given to [[Region]] instances implicitly created (when a [[State]] instance is passed to a [[Vertex]] constructor as it's parent.
      */
     static defaultName: string;
     /**
@@ -103,30 +103,30 @@ export declare class Region extends Element {
      */
     state: State;
     /**
-     * The set of vertices that are children of the region.
+     * The [[Vertex]] instances that are children of this [[Region]].
      */
     vertices: Vertex[];
     /**
-     * Creates a new instance of the Region class.
-     * @param {string} name The name of the region.
-     * @param {State} state The parent state that this region will be a child of.
+     * Creates a new instance of the [[Region]] class.
+     * @param {string} name The name of the [[Region]].
+     * @param {State} state The parent [[State]] that this [[Region]] will be a child of.
      */
     constructor(name: string, state: State);
     /**
-     * Removes the state from the state machine model
+     * Removes this [[Region]] instance from the [[StateMachine]] model
      */
     remove(): void;
     /**
-     * Returns the root element within the state machine model.
+     * Returns the root [[StateMachine]] instance that this [[Region]] instance is a part of.
      */
     getRoot(): StateMachine;
     /**
-     * Accepts an instance of a visitor and calls the visitRegion method on it.
+     * Accepts an instance of a [[Visitor]] and calls the [[visitRegion]] method on it.
      * @param TArg1 The type of the first optional parameter.
-     * @param {Visitor<TArg1>} visitor The visitor instance.
-     * @param {TArg1} arg1 An optional argument to pass into the visitor.
-     * @param {any} arg2 An optional argument to pass into the visitor.
-     * @param {any} arg3 An optional argument to pass into the visitor.
+     * @param {Visitor<TArg1>} visitor The [[Visitor]] instance.
+     * @param {TArg1} arg1 An optional argument to pass into the [[Visitor]].
+     * @param {any} arg2 An optional argument to pass into the [[Visitor]].
+     * @param {any} arg3 An optional argument to pass into the [[Visitor]].
      */
     accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any;
 }
@@ -224,72 +224,75 @@ export declare class PseudoState extends Vertex {
     accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any;
 }
 /**
- * An element within a state machine model that represents an invariant condition within the life of the state machine instance.
+ * An [[Vertex]] within a [[StateMachine]] model that represents an invariant condition within the life of the state machine instance.
  *
- * States are one of the fundamental building blocks of the state machine model.
- * Behavior can be defined for both state entry and state exit.
- *
- * State extends the Vertex class and inherits its public interface.
+ * [[State]] instances are one of the fundamental building blocks of the [[StateMachine]] model; they typically represent conditions where the machine is awaiting an eveny to trigger a [[Transition]].
+ * User-defined [[Action]]s can be defined for both [[State]] entry and [[State]] exit.
  */
 export declare class State extends Vertex {
+    /**
+     * The user-defined behavior (built up via calls to the [[exit]] method).
+     * @private
+     */
     exitBehavior: Action[];
+    /**
+     * The user-defined behavior (built up via calls to the [[entry]] method).
+     * @private
+     */
     entryBehavior: Action[];
     /**
-     * The set of regions under this state.
+     * The  [[Region]] instances that are a child of  this [[State]].
      */
     regions: Region[];
     /**
-     * Creates a new instance of the State class.
-     * @param {string} name The name of the state.
-     * @param {Region | State} parent The parent state that owns the state.
+     * Creates a new instance of the [[State]] class.
+     * @param {string} name The name of the [[State]].
+     * @param {Region | State} parent The parent [[Region]] or [[State]] that this [[State is a child of]].
+     * @note When a [[State]] is passed as the parent parameter, a default [[Region]] is created and subsiquently accessible via the [[defaultRegion]] method.
      */
     constructor(name: string, parent: Region | State);
     /**
-     * Returns the default region for the state.
-     * Note, this will create the default region if it does not already exist.
+     * Returns the default [[Region]] for the state.
+     * @note A default [[Region]] is created on demand if the [[State]] is passed into a child [[Vertex]] constructor..
      */
     defaultRegion(): Region;
     /**
-     * Tests the state to see if it is a final state;
-     * a final state is one that has no outbound transitions.
+     * Tests the [[State]] to see if it is a [[FinalState]]; a [[FinalState]] is either defined by creating an instance of the [[FinalState]] class or any other [[State]] instance that has no outbound transitions.
      */
     isFinal(): boolean;
     /**
-     * Tests the state to see if it is a simple state;
-     * a simple state is one that has no child regions.
+     * Tests the [[State]] to see if it is a simple [[State]]; a simple [[State]] is one that has no child [[Region]]s.
      */
     isSimple(): boolean;
     /**
-     * Tests the state to see if it is a composite state;
-     * a composite state is one that has one or more child regions.
+     * Tests the [[State]] to see if it is a composite [[State]]; a composite [[State]] is one that has one or more child [[Region]]s.
      */
     isComposite(): boolean;
     /**
-     * Tests the state to see if it is an orthogonal state;
-     * an orthogonal state is one that has two or more child regions.
+     * Tests the [[State]] to see if it is an orthogonal [[State]]; an orthogonal [[State]] is one that has more than one child [[Region]]s.
      */
     isOrthogonal(): boolean;
     /**
-     * Removes the state from the state machine model
+     * Removes this [[State]] instance from the [[StateMachine]] model
      */
     remove(): void;
     /**
-     * Adds behavior to a state that is executed each time the state is exited.
-     * @param {Action} exitAction The action to add to the state's exit behavior.
+     * Adds an [[Action]] that is executed each time the [[State]] instance is exited due to a [[Transition]].
+     * @param {Action} exitAction The [[Action]] to add to the [[State]] instance exit behavior.
      */
     exit(exitAction: Action): this;
     /**
-     * Adds behavior to a state that is executed each time the state is entered.
-     * @param {Action} entryAction The action to add to the state's entry behavior.
+     * Adds and [[Action]] that is executed each time the [[State]] instance is entered due to a [[Transition]].
+     * @param {Action} entryAction The [[Action]] to add to the [[State]] instance entry behavior.
      */
     entry(entryAction: Action): this;
     /**
-     * Accepts an instance of a visitor and calls the visitState method on it.
+     * Accepts an instance of a [[Visitor]] and calls the [[visitState]] method on it.
      * @param TArg1 The type of the first optional parameter.
-     * @param {Visitor<TArg1>} visitor The visitor instance.
-     * @param {TArg1} arg1 An optional argument to pass into the visitor.
-     * @param {any} arg2 An optional argument to pass into the visitor.
-     * @param {any} arg3 An optional argument to pass into the visitor.
+     * @param {Visitor<TArg1>} visitor The [[Visitor]] instance.
+     * @param {TArg1} arg1 An optional argument to pass into the [[Visitor]].
+     * @param {any} arg2 An optional argument to pass into the [[Visitor]].
+     * @param {any} arg3 An optional argument to pass into the [[Visitor]].
      */
     accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any;
 }
@@ -316,30 +319,36 @@ export declare class FinalState extends State {
     accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any;
 }
 /**
- * An element within a state machine model that represents the root of the state machine model.
- *
- * StateMachine extends the State class and inherits its public interface.
+ * A [[State]] within a that represents the root [[Element]] of the [[StateMachine]] model.
  */
 export declare class StateMachine extends State {
+    /**
+     * Internal flag: false if the state machine model requires recompilation.
+     * @private
+     */
     clean: boolean;
+    /**
+     * The behavior to be executed when initialising a state machine instance.
+     * @private
+     */
     onInitialise: Array<Action>;
     /**
-     * Creates a new instance of the StateMachine class.
-     * @param {string} name The name of the state machine.
+     * Creates a new instance of the [[StateMachine]] class.
+     * @param {string} name The name of the [[StateMachine]].
      */
     constructor(name: string);
     /**
-     * Returns the root element within the state machine model.
-     * Note that if this state machine is embeded within another state machine, the ultimate root element will be returned.
+     * Returns the root [[StateMachine]].
+     * @note that if this [[StateMachine]] is embeded within another, the ultimate root will be returned.
      */
     getRoot(): StateMachine;
     /**
-     * Accepts an instance of a visitor and calls the visitStateMachine method on it.
+     * Accepts an instance of a [[Visitor]] and calls the [[visitStateMachine]] method on it.
      * @param TArg1 The type of the first optional parameter.
-     * @param {Visitor<TArg1>} visitor The visitor instance.
-     * @param {TArg1} arg1 An optional argument to pass into the visitor.
-     * @param {any} arg2 An optional argument to pass into the visitor.
-     * @param {any} arg3 An optional argument to pass into the visitor.
+     * @param {Visitor<TArg1>} visitor The [[Visitor]] instance.
+     * @param {TArg1} arg1 An optional argument to pass into the [[Visitor]].
+     * @param {any} arg2 An optional argument to pass into the [[Visitor]].
+     * @param {any} arg3 An optional argument to pass into the [[Visitor]].
      */
     accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any;
 }
@@ -413,24 +422,25 @@ export declare class Transition {
     toString(): string;
 }
 /**
- * Default working implementation of a state machine instance class.
- *
- * Implements the `IInstance` interface.
- * It is possible to create other custom instance classes to manage state machine state in other ways (e.g. as serialisable JSON); just implement the same members and methods as this class.
+ * A working implementation of the [[IInstance]] interface.
+ * @note It is possible to create other custom state machine instance classes in other ways (e.g. as serialisable JSON); just implement the same members and methods as this class.
  */
 export declare class StateMachineInstance implements IInstance {
+    /**
+     * The last known state of any [[Region]] instance.
+     */
     private last;
     /**
-     * The name of the state machine instance.
+     * The name of the [[StateMachine]] instance.
      */
     name: string;
     /**
-     * Indicates that the state manchine instance reached was terminated by reaching a Terminate pseudo state.
+     * Indicates that the [[StateMachine]] instance reached was terminated by reaching a [[Terminate]] [[PseudoState]].
      */
     isTerminated: boolean;
     /**
-     * Creates a new instance of the state machine instance class.
-     * @param {string} name The optional name of the state machine instance.
+     * Creates a new instance of the [[StateMachineInstance]] class.
+     * @param {string} name The optional name of the [[StateMachineInstance]].
      */
     constructor(name?: string);
     setCurrent(region: Region, state: State): void;
