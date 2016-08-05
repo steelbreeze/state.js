@@ -216,7 +216,7 @@ export abstract class Vertex extends Element {
 	 * Creates a new instance of the [[Vertex]] class.
 	 * @param name The name of the [[Vertex]].
 	 * @param parent The parent [[Region]] or [[State]].
-	 * @note Specifting a [[State]] as the parent with cause the constructor to make this [[Vertex]] as clild of the [[State]]s [[defaultRegion]].
+	 * @note Specifting a [[State]] as the parent with cause the constructor to make this [[Vertex]] as child of the [[State]]s [[defaultRegion]].
 	 */
 	/*protected*/ constructor(name: string, parent: Region | State) {
 		super(name, State.parent(parent));
@@ -266,9 +266,9 @@ export abstract class Vertex extends Element {
 	/**
 	 * Creates a new [[Transition]] originating from this [[Vertex]].
 	 * Newly created transitions are completion [[Transition]]s; they will be evaluated after a [[Vertex]] has been entered if it is deemed to be complete.
-	 * The [[Transition]] can be converted to be event triggered by adding a guard condition via the transitions [[where]] method.
+	 * The [[Transition]] can be converted to be event triggered by adding a guard condition via the [[Transition]]s where method.
 	 * @param target The destination of the [[Transition]]; omit for internal [[Transition]]s.
-	 * @param kind The kind the [[transition]]; use this to set [[Local]] or [[External]] (the default if omitted) [[transition]] semantics.
+	 * @param kind The kind the [[Transition]]; use this to set [[Local]] or [[External]] (the default if omitted) [[Transition]] semantics.
 	 */
 	public to(target?: Vertex, kind: TransitionKind = TransitionKind.External): Transition {
 		return new Transition(this, target, kind);
@@ -731,8 +731,8 @@ export class StateMachineInstance implements IInstance {
  */
 export abstract class Visitor<TArg1> {
 	/**
-	 * Visits an element within a state machine model.
-	 * @param element the element being visited.
+	 * Visits an [[Element]] within a [[StateMachine]] model.
+	 * @param element the [[Element]] being visited.
 	 * @param arg1 An optional parameter passed into the accept method.
 	 * @param arg2 An optional parameter passed into the accept method.
 	 * @param arg3 An optional parameter passed into the accept method.
@@ -741,8 +741,8 @@ export abstract class Visitor<TArg1> {
 	}
 
 	/**
-	 * Visits a region within a state machine model.
-	 * @param region The region being visited.
+	 * Visits a [[Region]] within a [[StateMachine]] model.
+	 * @param region The [[Region]] being visited.
 	 * @param arg1 An optional parameter passed into the accept method.
 	 * @param arg2 An optional parameter passed into the accept method.
 	 * @param arg3 An optional parameter passed into the accept method.
@@ -758,8 +758,8 @@ export abstract class Visitor<TArg1> {
 	}
 
 	/**
-	 * Visits a vertex within a state machine model.
-	 * @param vertex The vertex being visited.
+	 * Visits a [[Vertex]] within a [[StateMachine]] model.
+	 * @param vertex The [[Vertex]] being visited.
 	 * @param arg1 An optional parameter passed into the accept method.
 	 * @param arg2 An optional parameter passed into the accept method.
 	 * @param arg3 An optional parameter passed into the accept method.
@@ -775,7 +775,8 @@ export abstract class Visitor<TArg1> {
 	}
 
 	/**
-	 * @param pseudoState The pseudo state being visited.
+	 * Visits a [[PseudoState]] within a [[StateMachine]] model.
+	 * @param pseudoState The [[PseudoState]] being visited.
 	 * @param arg1 An optional parameter passed into the accept method.
 	 * @param arg2 An optional parameter passed into the accept method.
 	 * @param arg3 An optional parameter passed into the accept method.
@@ -785,8 +786,8 @@ export abstract class Visitor<TArg1> {
 	}
 
 	/**
-	 * Visits a state within a state machine model.
-	 * @param state The state being visited.
+	 * Visits a [[State]] within a [[StateMachine]] model.
+	 * @param state The [[State]] being visited.
 	 * @param arg1 An optional parameter passed into the accept method.
 	 * @param arg2 An optional parameter passed into the accept method.
 	 * @param arg3 An optional parameter passed into the accept method.
@@ -802,8 +803,8 @@ export abstract class Visitor<TArg1> {
 	}
 
 	/**
-	 * Visits a final state within a state machine model.
-	 * @param finalState The final state being visited.
+	 * Visits a [[FinalState]] within a [[StateMachine]] model.
+	 * @param finalState The [[FinalState]] being visited.
 	 * @param arg1 An optional parameter passed into the accept method.
 	 * @param arg2 An optional parameter passed into the accept method.
 	 * @param arg3 An optional parameter passed into the accept method.
@@ -813,8 +814,8 @@ export abstract class Visitor<TArg1> {
 	}
 
 	/**
-	 * Visits a state machine within a state machine model.
-	 * @param state machine The state machine being visited.
+	 * Visits a [[StateMachine]] within a [[StateMachine]] model.
+	 * @param state machine The [[StateMachine]] being visited.
 	 * @param arg1 An optional parameter passed into the accept method.
 	 * @param arg2 An optional parameter passed into the accept method.
 	 * @param arg3 An optional parameter passed into the accept method.
@@ -824,8 +825,8 @@ export abstract class Visitor<TArg1> {
 	}
 
 	/**
-	 * Visits a transition within a state machine model.
-	 * @param transition The transition being visited.
+	 * Visits a [[Transition]] within a [[StateMachine]] model.
+	 * @param transition The [[Transition]] being visited.
 	 * @param arg1 An optional parameter passed into the accept method.
 	 * @param arg2 An optional parameter passed into the accept method.
 	 * @param arg3 An optional parameter passed into the accept method.
@@ -835,8 +836,8 @@ export abstract class Visitor<TArg1> {
 }
 
 /**
- * Function prototype for the callbacks of state transition behavior (includes [[State]] entry and exit behavior).
- * @param message The message that caused the state transition.
+ * Function prototype for the state transition behavior and [[State]] entry and exit behavior.
+ * @param message The message that caused the [[Transition]].
  * @param instance The state machine instance.
  * @param deepHistory True if [[PseudoStateKind.DeepHistory]] semantics are in play.
  */
@@ -845,7 +846,7 @@ export interface Action {
 }
 
 /**
- * The methods that state.js may use from a console implementation. Create objects that ahdere to this interface for custom logging, warnings and error handling.
+ *  Interface used for logging, warnings and errors; create implementations of this interface and set the [[console]] variable to an instance of it.
  */
 export interface IConsole {
 	/**
@@ -855,7 +856,7 @@ export interface IConsole {
 	log(message?: any, ...optionalParams: any[]): void;
 
 	/**
-	 * Outputs a warnnig warning.
+	 * Outputs a warnnig message.
 	 * @param message The object to log.
 	 */
 	warn(message?: any, ...optionalParams: any[]): void;
@@ -868,41 +869,49 @@ export interface IConsole {
 }
 
 /**
- * Interface for the state machine instance; an object used as each instance of a state machine (as the classes in this library describe a state machine model). The contents of objects that implement this interface represents the Ac
+ * The interface used to describe a state machine instance.
+ * 
+ * State machine instances hold the active state configuration for an instance of a [[StateMachine]] model.
+ * The state library allows there to be multiple state machine instances for a [[StateMachine]] model.
+ * 
+ * By creating implementations of this interface, you can control how the active state configuration is managed, e.g. if persistence is required.
  */
 export interface IInstance {
 	/**
-	 * Indicates that the state machine instance has reached a terminate pseudo state and therfore will no longer evaluate messages.
+	 * Indicates that the state machine instance has reached a [[PseudoStateKind.Terminate]] [[PseudoState]] and therfore will no longer respond to messages.
 	 */
 	isTerminated: boolean;
 
 	/**
-	 * Updates the last known state for a given region.
-	 * @param region The region to update the last known state for.
-	 * @param state The last known state for the given region.
+	 * Updates the last known [[State]] for a given [[Region]].
+	 * @param region The [[Region]] to update the last known [[State]] for.
+	 * @param state The last known [[State]] for the given [[Region]].
 	 */
 	setCurrent(region: Region, state: State): void;
 
 	/**
-	 * Returns the last known state for a given region.
-	 * @param region The region to update the last known state for.
+	 * Returns the last known [[State]] for a given [[Region]].
+	 * @param region The [[Region]] to get the last known [[State]] for.
 	 */
 	getCurrent(region: Region): State;
 }
 
 /**
- * Determines if a vertex is currently active; that it has been entered but not yet exited.
- * @param vertex The vertex to test.
- * @param instance The instance of the state machine model.
+ * Determines if a [[Vertex]] is currently active for a given state machine instance; i.e. that it has been entered but not yet exited.
+ * @param vertex The [[Vertex]] to test.
+ * @param instance The state machine instance.
  */
 export function isActive(vertex: Vertex, instance: IInstance): boolean {
 	return vertex.region ? (isActive(vertex.region.state, instance) && (instance.getCurrent(vertex.region) === vertex)) : true;
 }
 
 /**
- * Tests an element within a state machine instance to see if its lifecycle is complete.
- * @param element The element to test.
- * @param instance The instance of the state machine model to test for completeness.
+ * Tests a [[Region]] or [[State]] within a state machine instance to see if its lifecycle is complete.
+ * 
+ * A [[State]] is deemed complete when it has reached a [[FinalState]] or a [[State]] that has no outgoing [[Transition]]s;
+ * a [[Region]] is deemed complete if all its child [[Region]]s are complete.
+ * @param element The [[Region]] or [[State]] to test.
+ * @param instance The  state machine instance.
  */
 export function isComplete(element: Region | State, instance: IInstance): boolean {
 	if (element instanceof Region) {
@@ -937,7 +946,7 @@ function invoke(to: Array<Action>, message?: any, instance?: IInstance, deepHist
 }
 
 /**
- * The function used for to generate random numbers; may be overriden for testing purposes.
+ * The function used for to generate random numbers; may be overriden for testing or other specific purposes.
  */
 export let random: (max: number) => number = defaultRandom;
 
@@ -1336,12 +1345,16 @@ const defaultConsole = {
 };
 
 /**
- * The object used for log, warning and error messages
+ * The object used for log, warning and error messages.
+ * 
+ * Assign am object conforming to the [[IConsole]] interface to change the default behavior.
  */
 export let console: IConsole = defaultConsole;
 
 /**
- * Flag to trigger internal transitions to trigger completion events for state they are in
+ * Flag to make internal [[Transition]]s trigger completion events for [[State]] they are in.
+ * 
+ * By default, internal [[Transition]]s do not trigger completion events.
  */
 export let internalTransitionsTriggerCompletion: Boolean = false;
 
