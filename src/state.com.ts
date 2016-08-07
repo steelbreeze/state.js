@@ -1337,6 +1337,7 @@ class InitialiseElements extends Visitor<boolean> {
 	}
 }
 
+
 // the default implemention of the console
 const defaultConsole = {
 	log(message?: any, ...optionalParams: any[]): void { },
