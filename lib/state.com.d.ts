@@ -615,7 +615,7 @@ export declare function isActive(vertex: Vertex, instance: IInstance): boolean;
  * A [[State]] is deemed complete when it has reached a [[FinalState]] or a [[State]] that has no outgoing [[Transition]]s;
  * a [[Region]] is deemed complete if all its child [[Region]]s are complete.
  * @param element The [[Region]] or [[State]] to test.
- * @param instance The  state machine instance.
+ * @param instance The state machine instance.
  */
 export declare function isComplete(element: Region | State, instance: IInstance): boolean;
 /**
@@ -623,19 +623,21 @@ export declare function isComplete(element: Region | State, instance: IInstance)
  */
 export declare let random: (max: number) => number;
 /**
- * Initialises a state machine and/or state machine model.
+ * Initialises a state machine instance and/or [[StateMachine]] model.
  *
- * Passing just the state machine model will initialise the model, passing the model and instance will initialse the instance and if necessary, the model.
- * @param model The state machine model. If autoInitialiseModel is true (or no instance is specified) and the model has changed, the model will be initialised.
+ * Passing just the [[StateMachine]] model will initialise the model, passing the [[StateMachine]] model and instance will initialse the instance and if necessary, the model.
+ * @param model The [[StateMachine]] model. If autoInitialiseModel is true (or no instance is specified) and the model has changed, the model will be initialised.
  * @param instance The optional state machine instance to initialise.
  * @param autoInitialiseModel Defaulting to true, this will cause the model to be initialised prior to initialising the instance if the model has changed.
  */
 export declare function initialise(model: StateMachine, instance?: IInstance, autoInitialiseModel?: boolean): void;
 /**
- * Passes a message to a state machine for evaluation; messages trigger state transitions.
- * @param model The state machine model. If autoInitialiseModel is true (or no instance is specified) and the model has changed, the model will be initialised.
- * @param instance The instance of the state machine model to evaluate the message against.
- * @param autoInitialiseModel Defaulting to true, this will cause the model to be initialised prior to initialising the instance if the model has changed.
+ * Passes a message to a state machine instance for evaluation; a message may trigger a [[Transition]].
+ * @param model The [[StateMachine]] model.
+ * @param instance The state machine instance.
+ * @param message The message to evaluate.
+ * @param autoInitialiseModel Defaulting to true, this will cause the [[StateMachine]] model to be initialised prior to initialising the instance if the model has changed.
+ * @returns Returns true if the message caused a [[Transition]].
  */
 export declare function evaluate(model: StateMachine, instance: IInstance, message: any, autoInitialiseModel?: boolean): boolean;
 /**
@@ -651,7 +653,9 @@ export declare let console: IConsole;
  */
 export declare let internalTransitionsTriggerCompletion: Boolean;
 /**
- * Validates a state machine model for correctness (see the constraints defined within the UML Superstructure specification).
- * @param model The state machine model to validate.
+ * Validates a [[StateMachine]] model for correctness (see the constraints defined within the UML Superstructure specification).
+ *
+ * Validation warnings and errors are sent to the console.warn and console.error callbacks.
+ * @param model The [[StateMachine]] model to validate.
  */
 export declare function validate(model: StateMachine): void;

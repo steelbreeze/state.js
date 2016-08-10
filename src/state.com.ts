@@ -911,7 +911,7 @@ export function isActive(vertex: Vertex, instance: IInstance): boolean {
  * A [[State]] is deemed complete when it has reached a [[FinalState]] or a [[State]] that has no outgoing [[Transition]]s;
  * a [[Region]] is deemed complete if all its child [[Region]]s are complete.
  * @param element The [[Region]] or [[State]] to test.
- * @param instance The  state machine instance.
+ * @param instance The state machine instance.
  */
 export function isComplete(element: Region | State, instance: IInstance): boolean {
 	if (element instanceof Region) {
@@ -921,13 +921,16 @@ export function isComplete(element: Region | State, instance: IInstance): boolea
 	}
 }
 
-// the default method used to produce a random number; defaulting to simplified implementation seen in Mozilla Math.random() page; may be overriden for testing
+/**
+ * The default method used to produce a random number; defaulting to simplified implementation seen in Mozilla Math.random() page.
+ * @private
+ */
 const defaultRandom = function (max: number): number {
 	return Math.floor(Math.random() * max);
 };
 
 /**
- * concatenates arrays containing transition behavior.
+ * Concatenates arrays of [[Action]]s.
  * @private
  */
 function push(to: Array<Action>, ...actions: Array<Array<Action>>): void {
@@ -938,7 +941,13 @@ function push(to: Array<Action>, ...actions: Array<Array<Action>>): void {
 	}
 }
 
-// invokes transition behavior
+/**
+ * Invokes behavior
+ * @param message The message that caused the [[Transition]] to be traversed that is triggering this behavior.
+ * @param instance The state machine instance.
+ * @param deepHistory True if [[DeepHistory]] semantics are in force at the time the behavior is invoked.
+ * @private
+ */
 function invoke(to: Array<Action>, message?: any, instance?: IInstance, deepHistory: boolean = false) {
 	for (const action of to) {
 		action(message, instance, deepHistory);
@@ -951,10 +960,10 @@ function invoke(to: Array<Action>, message?: any, instance?: IInstance, deepHist
 export let random: (max: number) => number = defaultRandom;
 
 /**
- * Initialises a state machine and/or state machine model.
+ * Initialises a state machine instance and/or [[StateMachine]] model.
  *
- * Passing just the state machine model will initialise the model, passing the model and instance will initialse the instance and if necessary, the model.
- * @param model The state machine model. If autoInitialiseModel is true (or no instance is specified) and the model has changed, the model will be initialised.
+ * Passing just the [[StateMachine]] model will initialise the model, passing the [[StateMachine]] model and instance will initialse the instance and if necessary, the model.
+ * @param model The [[StateMachine]] model. If autoInitialiseModel is true (or no instance is specified) and the model has changed, the model will be initialised.
  * @param instance The optional state machine instance to initialise.
  * @param autoInitialiseModel Defaulting to true, this will cause the model to be initialised prior to initialising the instance if the model has changed.
  */
@@ -981,10 +990,12 @@ export function initialise(model: StateMachine, instance?: IInstance, autoInitia
 }
 
 /**
- * Passes a message to a state machine for evaluation; messages trigger state transitions.
- * @param model The state machine model. If autoInitialiseModel is true (or no instance is specified) and the model has changed, the model will be initialised.
- * @param instance The instance of the state machine model to evaluate the message against.
- * @param autoInitialiseModel Defaulting to true, this will cause the model to be initialised prior to initialising the instance if the model has changed.
+ * Passes a message to a state machine instance for evaluation; a message may trigger a [[Transition]].
+ * @param model The [[StateMachine]] model.
+ * @param instance The state machine instance.
+ * @param message The message to evaluate.
+ * @param autoInitialiseModel Defaulting to true, this will cause the [[StateMachine]] model to be initialised prior to initialising the instance if the model has changed.
+ * @returns Returns true if the message caused a [[Transition]].
  */
 export function evaluate(model: StateMachine, instance: IInstance, message: any, autoInitialiseModel: boolean = true): boolean {
 	// initialise the state machine model if necessary
@@ -1005,7 +1016,11 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 }
 
 /**
- * Evaluates messages against a state, executing transitions as appropriate.
+ * Evaluates messages against a [[State]], executing a [[Transition]] as appropriate.
+ * @param state The [[State]].
+ * @param instance The state machine instance.
+ * @param message The message to evaluate.
+ * @returns Returns true if the message caused a [[Transition]].
  * @private
  */
 function evaluateState(state: State, instance: IInstance, message: any): boolean {
@@ -1045,7 +1060,13 @@ function evaluateState(state: State, instance: IInstance, message: any): boolean
 }
 
 /**
- * Traverses a transition.
+ * Traverses a [[Transition]].
+ * 
+ * This method encapsulates the logic for dynamic and static conditional [[Transition]] branches ([[Choice]] and [[Junction]] respectively).
+ * @param transition The [[Transition]] to traverse.
+ * @param instance The state machine instance.
+ * @param message The message that triggerd this [[Transition]] traversal.
+ * @returns Always returns true.
  * @private
  */
 function traverse(transition: Transition, instance: IInstance, message?: any): boolean {
@@ -1084,7 +1105,10 @@ function traverse(transition: Transition, instance: IInstance, message?: any): b
 }
 
 /**
- * Select next leg of composite transitions after choice and junction pseudo states.
+ * Select next leg of a composite [[Transition]] after a [[Choice]] or [[Junction]] [[PseudoState]].
+ * @param pseudoState The [[Choice]] or [[Junction]] [[PseudoState]].
+ * @param instance The state machine instance.
+ * @param message The message that triggerd the transition to the [[PseudoState]].
  * @private
  */
 function selectTransition(pseudoState: PseudoState, instance: IInstance, message: any): Transition {
@@ -1102,7 +1126,7 @@ function selectTransition(pseudoState: PseudoState, instance: IInstance, message
 }
 
 /**
- * Look for else transitions from a junction or choice.
+ * Look for an else [[Transition]] from a [[Junction]] or [[Choice]] [[PseudoState]].
  * @private
  */
 function findElse(pseudoState: PseudoState): Transition {
@@ -1337,11 +1361,26 @@ class InitialiseElements extends Visitor<boolean> {
 	}
 }
 
-
-// the default implemention of the console
+/**
+ * The default console implementation.
+ * 
+ * This may be overriden by assigning an object conforming to the [[IConsole]] interface to the [[console]] variable.
+ * @private
+ */
 const defaultConsole = {
+	/**
+	 * Default implementation of the log method.
+	 */
 	log(message?: any, ...optionalParams: any[]): void { },
+
+	/**
+	 * Default implementation of the warn method.
+	 */
 	warn(message?: any, ...optionalParams: any[]): void { },
+
+	/**
+	 * Default implementation of the error method.
+	 */
 	error(message?: any, ...optionalParams: any[]): void { throw message; }
 };
 
@@ -1360,8 +1399,10 @@ export let console: IConsole = defaultConsole;
 export let internalTransitionsTriggerCompletion: Boolean = false;
 
 /**
- * Validates a state machine model for correctness (see the constraints defined within the UML Superstructure specification).
- * @param model The state machine model to validate.
+ * Validates a [[StateMachine]] model for correctness (see the constraints defined within the UML Superstructure specification).
+ * 
+ * Validation warnings and errors are sent to the console.warn and console.error callbacks.
+ * @param model The [[StateMachine]] model to validate.
  */
 export function validate(model: StateMachine): void {
 	model.accept(new Validator());
