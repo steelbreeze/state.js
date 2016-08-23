@@ -66,8 +66,7 @@ export declare enum TransitionKind {
      */
     External = 0,
     /**
-     * The [[Transition]], if triggered, occurs without exiting or entering the source [[State]];
-     * it does not cause a state therefore no [[State]] exit or entry [[Action]]s will be invoked, only [[Transition]] [[Action]]s.
+     * The [[Transition]], if triggered, occurs without exiting or entering the source [[State]]; it does not cause a state therefore no [[State]] exit or entry [[Action]]s will be invoked, only [[Transition]] [[Action]]s.
      */
     Internal = 1,
     /**
@@ -159,7 +158,7 @@ export declare abstract class Vertex extends NamedElement<Region> {
      * @param parent The parent [[State]] or [[Region]].
      * @note Specifting a [[State]] as the parent with cause the constructor to make this [[Vertex]] as child of the [[State]]s [[defaultRegion]].
      */
-    constructor(name: string, parent?: State | Region);
+    constructor(name: string, parent: State | Region);
     /**
      * Returns the ancestry of the [[Vertex]], form the root [[StateMachine]] to this [[Vertex]].
      */
@@ -242,7 +241,7 @@ export declare class State extends Vertex {
      * @param parent The parent [[State]] or [[Region]] that this [[State is a child of]].
      * @note When a [[State]] is passed as the parent parameter, a default [[Region]] is created and subsiquently accessible via the [[defaultRegion]] method.
      */
-    constructor(name: string, parent?: State | Region);
+    constructor(name: string, parent: State | Region);
     /**
      * Returns the default [[Region]] for the state.
      * @note A default [[Region]] is created on demand if the [[State]] is passed into a child [[Vertex]] constructor..

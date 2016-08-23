@@ -86,8 +86,7 @@ export enum TransitionKind {
 	External,
 
 	/**
-	 * The [[Transition]], if triggered, occurs without exiting or entering the source [[State]];
-	 * it does not cause a state therefore no [[State]] exit or entry [[Action]]s will be invoked, only [[Transition]] [[Action]]s.
+	 * The [[Transition]], if triggered, occurs without exiting or entering the source [[State]]; it does not cause a state therefore no [[State]] exit or entry [[Action]]s will be invoked, only [[Transition]] [[Action]]s.
 	 */
 	Internal,
 
@@ -215,7 +214,7 @@ export abstract class Vertex extends NamedElement<Region> {
 	 * @param parent The parent [[State]] or [[Region]].
 	 * @note Specifting a [[State]] as the parent with cause the constructor to make this [[Vertex]] as child of the [[State]]s [[defaultRegion]].
 	 */
-	/*protected*/ constructor(name: string, parent?: State | Region) {
+	/*protected*/ constructor(name: string, parent: State | Region) {
 		super(name, parent instanceof State ? parent.defaultRegion() : parent);
 
 		if (this.parent) {
@@ -340,7 +339,7 @@ export class State extends Vertex {
 	 * @param parent The parent [[State]] or [[Region]] that this [[State is a child of]].
 	 * @note When a [[State]] is passed as the parent parameter, a default [[Region]] is created and subsiquently accessible via the [[defaultRegion]] method.
 	 */
-	public constructor(name: string, parent?: State | Region) {
+	public constructor(name: string, parent: State | Region) {
 		super(name, parent);
 	}
 
