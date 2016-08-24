@@ -75,8 +75,8 @@ export declare enum TransitionKind {
     Local = 2,
 }
 /**
- *  An element within a model
- *  @param TParent The type of the [[Element]]s parent.
+ * An element within a model.
+ * @param TParent The type of the [[Element]]s parent.
  */
 export declare abstract class Element<TParent> {
     parent: TParent;
@@ -87,7 +87,7 @@ export declare abstract class Element<TParent> {
     constructor(parent: TParent);
 }
 /**
- * Am element within a model that has a name.
+ * An element within a model that has a name.
  * @param TParent The type of the [[NamedElement]]s parent.
  */
 export declare abstract class NamedElement<TParent> extends Element<TParent> {

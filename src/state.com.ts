@@ -97,8 +97,8 @@ export enum TransitionKind {
 }
 
 /**
- *  An element within a model
- *  @param TParent The type of the [[Element]]s parent.
+ * An element within a model.
+ * @param TParent The type of the [[Element]]s parent.
  */
 export abstract class Element<TParent> {
 	/**
@@ -110,7 +110,7 @@ export abstract class Element<TParent> {
 }
 
 /**
- * Am element within a model that has a name.
+ * An element within a model that has a name.
  * @param TParent The type of the [[NamedElement]]s parent.
  */
 export abstract class NamedElement<TParent> extends Element<TParent> {
