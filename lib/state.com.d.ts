@@ -74,7 +74,13 @@ export declare enum TransitionKind {
      */
     Local = 2,
 }
+/**
+ * An element within a [[StateMachine]] model
+ */
 export interface IElement {
+    /**
+     * Returns the root of the [[StateMachine]] model
+     */
     getRoot(): StateMachine;
 }
 /**
@@ -99,6 +105,10 @@ export declare abstract class NamedElement<TParent extends IElement> {
      * @param parent The parent [[NamedElement]] of this [[NamedElement]]
      */
     constructor(name: string, parent: TParent);
+    /**
+     * Returns the root [[StateMachine]] instance that this [[NamedElement]] is a part of.
+     */
+    getRoot(): StateMachine;
     /**
      * Returns the [[NamedElement]] [[name]] as a namespace delimited by [[namespaceSeparator]].
      */
@@ -128,10 +138,6 @@ export declare class Region extends NamedElement<State> {
      * Removes this [[Region]] instance from the [[StateMachine]] model
      */
     remove(): void;
-    /**
-     * Returns the root [[StateMachine]] instance that this [[Region]] instance is a part of.
-     */
-    getRoot(): StateMachine;
     /**
      * Accepts an instance of a [[Visitor]] and calls the [[visitRegion]] method on it.
      * @param TArg1 The type of the first optional parameter.
@@ -165,10 +171,6 @@ export declare abstract class Vertex extends NamedElement<Region> {
      * Returns the ancestry of the [[Vertex]], form the root [[StateMachine]] to this [[Vertex]].
      */
     ancestry(): Array<Vertex>;
-    /**
-     * Returns the root [[StateMachine]].
-     */
-    getRoot(): StateMachine;
     /**
      * Removes the [[Vertex]] from the [[StateMachine]] model.
      */

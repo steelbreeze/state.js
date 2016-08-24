@@ -224,7 +224,6 @@ export abstract class Vertex extends NamedElement<Region> {
 
 		if (this.parent) {
 			this.parent.vertices.push(this);
-
 			this.getRoot().clean = false;
 		}
 	}
@@ -247,7 +246,6 @@ export abstract class Vertex extends NamedElement<Region> {
 		}
 
 		this.parent.vertices.splice(this.parent.vertices.indexOf(this), 1);
-
 		this.getRoot().clean = false;
 	}
 
