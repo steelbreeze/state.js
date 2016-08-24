@@ -145,7 +145,6 @@ export abstract class NamedElement<TParent> extends Element<TParent> {
 
 /**
  * An [[NamedElement]] within a [[StateMachine]] model that is a container (parent) of [[Vertex]] instances; a [[Region]] will be the child of a composite [[State]].
- *
  * @note A [[Region]] is implicitly inserted into a composite [[State]] if not explicitly defined.
  */
 export class Region extends NamedElement<State> {
@@ -261,9 +260,7 @@ export abstract class Vertex extends NamedElement<Region> {
 	}
 
 	/**
-	 * Creates a new [[Transition]] originating from this [[Vertex]].
-	 * Newly created transitions are completion [[Transition]]s; they will be evaluated after a [[Vertex]] has been entered if it is deemed to be complete.
-	 * The [[Transition]] can be converted to be event triggered by adding a guard condition via the [[Transition]]s where method.
+	 * Creates a new [[Transition]] originating from this [[Vertex]]. Newly created transitions are completion [[Transition]]s; they will be evaluated after a [[Vertex]] has been entered if it is deemed to be complete. The [[Transition]] can be converted to be event triggered by adding a guard condition via the [[Transition]]s where method.
 	 * @param target The destination of the [[Transition]]; omit for internal [[Transition]]s.
 	 * @param kind The kind the [[Transition]]; use this to set [[Local]] or [[External]] (the default if omitted) [[Transition]] semantics.
 	 */
@@ -285,9 +282,7 @@ export abstract class Vertex extends NamedElement<Region> {
 /**
  * An [[Vertex]] within a [[StateMachine]] model that represents an transitory [[Vertex]].
  *
- * [[PseudoState]]s are required in state machine models to define the default stating state of a [[Region]].
- * [[PseudoState]]s are also used for defining history semantics or to facilitate more complex transitions.
- * A [[Terminate]] [[PseudoState]] kind is also available to immediately terminate processing within the entire state machine instance.
+ * [[PseudoState]]s are required in state machine models to define the default stating state of a [[Region]]. [[PseudoState]]s are also used for defining history semantics or to facilitate more complex transitions. A [[Terminate]] [[PseudoState]] kind is also available to immediately terminate processing within the entire state machine instance.
  */
 export class PseudoState extends Vertex {
 	/**
@@ -315,8 +310,7 @@ export class PseudoState extends Vertex {
 /**
  * An [[Vertex]] within a [[StateMachine]] model that represents an invariant condition within the life of the state machine instance.
  *
- * [[State]] instances are one of the fundamental building blocks of the [[StateMachine]] model; they typically represent conditions where the machine is awaiting an eveny to trigger a [[Transition]].
- * User-defined [[Action]]s can be defined for both [[State]] entry and [[State]] exit.
+ * [[State]] instances are one of the fundamental building blocks of the [[StateMachine]] model; they typically represent conditions where the machine is awaiting an eveny to trigger a [[Transition]]. User-defined [[Action]]s can be defined for both [[State]] entry and [[State]] exit.
  */
 export class State extends Vertex {
 	/**
@@ -332,7 +326,7 @@ export class State extends Vertex {
 	entryBehavior = new Array<Action>();
 
 	/**
-	 * The  [[Region]] instances that are a child of  this [[State]].
+	 * The [[Region]] instances that are a child of  this [[State]].
 	 */
 	public regions = new Array<Region>();
 
@@ -432,7 +426,6 @@ export class State extends Vertex {
 
 /**
  * A [[State]] within a [[StateMachine]] model that represents completion of the life of the containing [[Region]] for the state machine instance.
- *
  * @note A [[FinalState]] cannot have outbound transitions.
  */
 export class FinalState extends State {
@@ -805,10 +798,7 @@ export interface IConsole {
 /**
  * The interface used to describe a state machine instance.
  * 
- * State machine instances hold the active state configuration for an instance of a [[StateMachine]] model.
- * The state library allows there to be multiple state machine instances for a [[StateMachine]] model.
- * 
- * By creating implementations of this interface, you can control how the active state configuration is managed, e.g. if persistence is required.
+ * State machine instances hold the active state configuration for an instance of a [[StateMachine]] model. The state library allows there to be multiple state machine instances for a [[StateMachine]] model. By creating implementations of this interface, you can control how the active state configuration is managed, e.g. if persistence is required.
  */
 export interface IInstance {
 	/**
@@ -843,8 +833,7 @@ function isActive(vertex: Vertex, instance: IInstance): boolean {
 /**
  * Tests a [[State]] or [[Region]] within a state machine instance to see if its lifecycle is complete.
  * 
- * A [[State]] is deemed complete when it has reached a [[FinalState]] or a [[State]] that has no outgoing [[Transition]]s;
- * a [[Region]] is deemed complete if all its child [[Region]]s are complete.
+ * A [[State]] is deemed complete when it has reached a [[FinalState]] or a [[State]] that has no outgoing [[Transition]]s; a [[Region]] is deemed complete if all its child [[Region]]s are complete.
  * @param stateOrRegion The [[State]] or [[Region]] to test.
  * @param instance The state machine instance.
  */
@@ -877,7 +866,7 @@ function push(to: Array<Action>, ...actions: Array<Array<Action>>): void {
 }
 
 /**
- * Invokes behavior
+ * Invokes behavior.
  * @param message The message that caused the [[Transition]] to be traversed that is triggering this behavior.
  * @param instance The state machine instance.
  * @param deepHistory True if [[DeepHistory]] semantics are in force at the time the behavior is invoked.
@@ -934,7 +923,6 @@ export function initialise(model: StateMachine, instance?: IInstance, autoInitia
  */
 export function evaluate(model: StateMachine, instance: IInstance, message: any, autoInitialiseModel: boolean = true): boolean {
 	// initialise the state machine model if necessary
-	// TODO: take this out
 	if (autoInitialiseModel && model.clean === false) {
 		initialise(model);
 	}
