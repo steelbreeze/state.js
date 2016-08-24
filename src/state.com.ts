@@ -1456,6 +1456,9 @@ class Validator extends Visitor<string> {
 		}
 	}
 
+	/**
+	 * Validates a [[Transition]].
+	 */
 	public visitTransition(transition: Transition): any {
 		super.visitTransition(transition);
 
