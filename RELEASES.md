@@ -1,3 +1,7 @@
+## Version 5.8.0
+Refactoring and minor API changes:
+* defaultRegion method reanmed getDefaultRegion.
+
 ## Version 5.7.0
 Refactoring of the TypeScript code to remove unnecessary internals from the public API; this is follow-on activity from release 5.6.10.
 
