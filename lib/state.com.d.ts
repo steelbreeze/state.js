@@ -235,6 +235,10 @@ export declare class State extends Vertex {
      */
     entryBehavior: Action[];
     /**
+     * The default [[Region]] if present; created when vertices are created directly under this [[State]].
+     */
+    private defaultRegion;
+    /**
      * The [[Region]] instances that are a child of  this [[State]].
      */
     regions: Region[];
@@ -249,7 +253,7 @@ export declare class State extends Vertex {
      * Returns the default [[Region]] for the state.
      * @note A default [[Region]] is created on demand if the [[State]] is passed into a child [[Vertex]] constructor..
      */
-    defaultRegion(): Region;
+    getDefaultRegion(): Region;
     /**
      * Tests the [[State]] to see if it is a [[FinalState]]; a [[FinalState]] is either defined by creating an instance of the [[FinalState]] class or any other [[State]] instance that has no outbound transitions.
      */

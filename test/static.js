@@ -26,7 +26,7 @@ describe("test/static.js", function () {
 	it("Junction transitions implement a static conditional branch", function(){
 		state.initialise(model, instance);
 
-		assert.equal(pass, instance.getCurrent(model.defaultRegion()));
+		assert.equal(pass, instance.getCurrent(model.getDefaultRegion()));
 	});
 
 	it("Junction transitions call all transition behavior after guards have been tested", function(){

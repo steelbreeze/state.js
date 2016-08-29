@@ -47,7 +47,7 @@ describe("test/p3pp3r.js", function () {
 	it("All regions of orthogonal state must be exited during the external transition", function(){
 		state.evaluate(model, instance, "event2");
 
-		assert.equal(state2, instance.getCurrent(model.defaultRegion()));
+		assert.equal(state2, instance.getCurrent(model.getDefaultRegion()));
 		assert.equal(state4, instance.getCurrent(regionB));
 	});
 });

@@ -223,7 +223,7 @@ export abstract class Vertex extends NamedElement<Region> {
 	 * @note Specifting a [[State]] as the parent with cause the constructor to make this [[Vertex]] as child of the [[State]]s [[defaultRegion]].
 	 */
 	/*protected*/ constructor(name: string, parent: State | Region) {
-		super(name, parent instanceof State ? parent.defaultRegion() : parent);
+		super(name, parent instanceof State ? parent.getDefaultRegion() : parent);
 
 		if (this.parent) {
 			this.parent.vertices.push(this);
@@ -326,6 +326,11 @@ export class State extends Vertex {
 	entryBehavior = new Array<Action>();
 
 	/**
+	 * The default [[Region]] if present; created when vertices are created directly under this [[State]].
+	 */
+	private defaultRegion: Region;
+
+	/**
 	 * The [[Region]] instances that are a child of  this [[State]].
 	 */
 	public regions = new Array<Region>();
@@ -344,8 +349,8 @@ export class State extends Vertex {
 	 * Returns the default [[Region]] for the state.
 	 * @note A default [[Region]] is created on demand if the [[State]] is passed into a child [[Vertex]] constructor..
 	 */
-	public defaultRegion(): Region {
-		return this.regions.reduce((result, region) => region.name === Region.defaultName ? region : result, undefined) || new Region(Region.defaultName, this);
+	public getDefaultRegion(): Region {
+		return this.defaultRegion || (this.defaultRegion = new Region(Region.defaultName, this));
 	}
 
 	/**

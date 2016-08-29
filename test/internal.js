@@ -24,7 +24,7 @@ describe("test/internal.js", function () {
 	it("Internal transitions do not trigger a state transition", function () {
 		state.evaluate(model, instance, "internal");
 
-		assert.equal(target, instance.getCurrent(model.defaultRegion()));
+		assert.equal(target, instance.getCurrent(model.getDefaultRegion()));
 		assert.equal(1, instance.entryCount);
 		assert.equal(0, instance.exitCount);
 		assert.equal(1, instance.transitionCount);
@@ -33,7 +33,7 @@ describe("test/internal.js", function () {
 	it("External transitions do trigger a state transition", function () {
 		state.evaluate(model, instance, "external");
 
-		assert.equal(target, instance.getCurrent(model.defaultRegion()));
+		assert.equal(target, instance.getCurrent(model.getDefaultRegion()));
 		assert.equal(2, instance.entryCount);
 		assert.equal(1, instance.exitCount);
 		assert.equal(2, instance.transitionCount);
