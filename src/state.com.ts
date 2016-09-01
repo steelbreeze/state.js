@@ -1,8 +1,8 @@
 /*
  * Finite state machine library
- * Copyright (c) 2014-6 Steelbreeze Limited
+ * Copyright (c) 2014-6 David Mesquita-Morris
  * Licensed under the MIT and GPL v3 licences
- * http://www.steelbreeze.net/state.cs
+ * http://state.software
  */
 
 /**
@@ -308,7 +308,7 @@ export class PseudoState extends Vertex {
 }
 
 /**
- * An [[Vertex]] within a [[StateMachine]] model that represents an invariant condition within the life of the state machine instance.
+ * A [[Vertex]] within a [[StateMachine]] model that represents an invariant condition within the life of the state machine instance.
  *
  * [[State]] instances are one of the fundamental building blocks of the [[StateMachine]] model; they typically represent conditions where the machine is awaiting an eveny to trigger a [[Transition]]. User-defined [[Action]]s can be defined for both [[State]] entry and [[State]] exit.
  */

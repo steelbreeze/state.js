@@ -3,7 +3,7 @@
 	"version": "5.8.0",
 	"homepage": "https://github.com/steelbreeze/state.js",
 	"authors": [
-		"David Mesquita-Morris <mesmo@steelbreeze.net>"
+		"David Mesquita-Morris <david.mm@me.com>"
 	],
 	"description": "Hierarchical finite state machine",
 	"main": "lib/state.min.js",

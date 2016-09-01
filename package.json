@@ -1,9 +1,9 @@
 {
 	"name": "state.js",
 	"version": "5.8.0",
-	"author": "Steelbreeze <osi@steelbreeze.net>",
+	"author": "David Mesquita-Morris <david.mm@me.com>",
 	"contributors": [
-		"David Mesquita-Morris <david.mm@icloud.com>"
+		"David Mesquita-Morris <david.mm@me.com>"
 	],
 	"description": "Hierarchical finite state machine",
 	"main": "./lib/state.com",

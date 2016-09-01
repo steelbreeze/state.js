@@ -219,7 +219,7 @@ export declare class PseudoState extends Vertex {
     accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any;
 }
 /**
- * An [[Vertex]] within a [[StateMachine]] model that represents an invariant condition within the life of the state machine instance.
+ * A [[Vertex]] within a [[StateMachine]] model that represents an invariant condition within the life of the state machine instance.
  *
  * [[State]] instances are one of the fundamental building blocks of the [[StateMachine]] model; they typically represent conditions where the machine is awaiting an eveny to trigger a [[Transition]]. User-defined [[Action]]s can be defined for both [[State]] entry and [[State]] exit.
  */
