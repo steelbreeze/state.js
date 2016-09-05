@@ -467,6 +467,14 @@ export declare class StateMachineInstance implements IInstance {
  */
 export declare abstract class Visitor<TArg1> {
     /**
+     * Visits a [[NamedElement]] within a [[StateMachine]] model.
+     * @param region The [[Vertex]] or [[Region]] being visited.
+     * @param arg1 An optional parameter passed into the accept method.
+     * @param arg2 An optional parameter passed into the accept method.
+     * @param arg3 An optional parameter passed into the accept method.
+     */
+    visitNamedElement<TParent>(namedElement: Vertex | Region, arg1?: TArg1, arg2?: any, arg3?: any): any;
+    /**
      * Visits a [[Region]] within a [[StateMachine]] model.
      * @param region The [[Region]] being visited.
      * @param arg1 An optional parameter passed into the accept method.

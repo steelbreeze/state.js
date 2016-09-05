@@ -681,6 +681,16 @@ export class StateMachineInstance implements IInstance {
  */
 export abstract class Visitor<TArg1> {
 	/**
+	 * Visits a [[NamedElement]] within a [[StateMachine]] model.
+	 * @param region The [[Vertex]] or [[Region]] being visited.
+	 * @param arg1 An optional parameter passed into the accept method.
+	 * @param arg2 An optional parameter passed into the accept method.
+	 * @param arg3 An optional parameter passed into the accept method.
+	 */
+	public visitNamedElement<TParent>(namedElement: Vertex | Region, arg1?: TArg1, arg2?: any, arg3?: any): any {
+	}
+
+	/**
 	 * Visits a [[Region]] within a [[StateMachine]] model.
 	 * @param region The [[Region]] being visited.
 	 * @param arg1 An optional parameter passed into the accept method.
@@ -688,6 +698,8 @@ export abstract class Visitor<TArg1> {
 	 * @param arg3 An optional parameter passed into the accept method.
 	 */
 	public visitRegion(region: Region, arg1?: TArg1, arg2?: any, arg3?: any): any {
+		this.visitNamedElement(region, arg1, arg2, arg3);
+
 		for (const vertex of region.vertices) {
 			vertex.accept(this, arg1, arg2, arg3);
 		}
@@ -701,6 +713,8 @@ export abstract class Visitor<TArg1> {
 	 * @param arg3 An optional parameter passed into the accept method.
 	 */
 	public visitVertex(vertex: Vertex, arg1?: TArg1, arg2?: any, arg3?: any): any {
+		this.visitNamedElement(vertex, arg1, arg2, arg3);
+
 		for (const transition of vertex.outgoing) {
 			transition.accept(this, arg1, arg2, arg3);
 		}
@@ -1204,14 +1218,14 @@ class InitialiseTransitions extends Visitor<(vertexOrRegion: Vertex | Region) =>
 class InitialiseElements extends Visitor<boolean> {
 	private behaviors: { [id: string]: Behavior } = {};
 
-	private behavior(vertexOrRegion: Vertex | Region): Behavior {
-		return this.behaviors[vertexOrRegion.toString()] || (this.behaviors[vertexOrRegion.toString()] = new Behavior());
+	private behavior(namedElement: Vertex | Region): Behavior {
+		return this.behaviors[namedElement.toString()] || (this.behaviors[namedElement.toString()] = new Behavior());
 	}
 
-	visitElement(vertexOrRegion: Vertex | Region, deepHistoryAbove: boolean) {
+	visitNamedElement(namedElement: Vertex | Region, deepHistoryAbove: boolean) {
 		if (console !== defaultConsole) {
-			this.behavior(vertexOrRegion).leave.push((message, instance) => console.log(`${instance} enter ${vertexOrRegion}`));
-			this.behavior(vertexOrRegion).beginEnter.push((message, instance) => console.log(`${instance} enter ${vertexOrRegion}`));
+			this.behavior(namedElement).leave.push((message, instance) => console.log(`${instance} enter ${namedElement}`));
+			this.behavior(namedElement).beginEnter.push((message, instance) => console.log(`${instance} enter ${namedElement}`));
 		}
 	}
 
@@ -1232,7 +1246,7 @@ class InitialiseElements extends Visitor<boolean> {
 			push(this.behavior(region).endEnter, this.behavior(regionInitial).enter());
 		}
 
-		this.visitElement(region, deepHistoryAbove);
+		this.visitNamedElement(region, deepHistoryAbove);
 	}
 
 	visitPseudoState(pseudoState: PseudoState, deepHistoryAbove: boolean) {
