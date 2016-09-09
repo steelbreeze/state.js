@@ -1,4 +1,4 @@
-## Version 5.8.1
+## Version 5.8.2
 Bug fix: trace output was not produced for all state entry and state exit.
 
 ## Version 5.8.0
