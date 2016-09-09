@@ -1296,7 +1296,7 @@ class InitialiseElements extends Visitor<boolean> {
 		super.visitStateMachine(stateMachine, deepHistoryAbove);
 
 		// initiaise all the transitions once all the elements have been initialised
-		stateMachine.accept(new InitialiseTransitions(), (vertexOrRegion: Vertex | Region) => this.behavior(vertexOrRegion));
+		stateMachine.accept(new InitialiseTransitions(), (vertexOrRegion: Vertex | Region): Behavior => this.behavior(vertexOrRegion));
 
 		// define the behavior for initialising a state machine instance
 		stateMachine.onInitialise = this.behavior(stateMachine).enter();
