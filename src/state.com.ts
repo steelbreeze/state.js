@@ -1224,7 +1224,7 @@ class InitialiseElements extends Visitor<boolean> {
 
 	visitNamedElement(namedElement: Vertex | Region, deepHistoryAbove: boolean) {
 		if (console !== defaultConsole) {
-			this.behavior(namedElement).leave.push((message, instance) => console.log(`${instance} enter ${namedElement}`));
+			this.behavior(namedElement).leave.push((message, instance) => console.log(`${instance} leave ${namedElement}`));
 			this.behavior(namedElement).beginEnter.push((message, instance) => console.log(`${instance} enter ${namedElement}`));
 		}
 	}
