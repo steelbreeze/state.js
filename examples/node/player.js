@@ -32,5 +32,4 @@ state.initialise(model, instance);
 state.evaluate(model, instance, "play");
 state.evaluate(model, instance, "pause");
 state.evaluate(model, instance, "stop");
-state.evaluate(model, instance, "flip");
 console.log(instance.toJSON());

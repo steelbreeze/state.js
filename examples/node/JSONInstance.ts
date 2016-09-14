@@ -1,68 +1,54 @@
 import * as state from "../../lib/state.com";
 
-interface IStateNode {
+interface IJSONNode {
     name: string;
-    regions: IRegionNode[];
-}
-
-interface IRegionNode {
-    name: string;
-    states: IStateNode[];
-    lastKnownState?: string;
+    children: IJSONNode[];
+    lastKnown?: string;
 }
 
 export class JSONInstance implements state.IInstance {
-    private data: IStateNode;
+    private activeStateConfiguration: IJSONNode;
     public isTerminated: boolean = false;
 
     constructor(private name: string) { }
 
     public setCurrent(region: state.Region, state: state.State): void {
-        this.findRegionNode(region).lastKnownState = state.name;
+        this.getNode(region).lastKnown = state.name;
     }
 
     public getCurrent(region: state.Region): state.State {
-        let lastKnownState = this.findRegionNode(region).lastKnownState;
+        let lastKnown = this.getNode(region).lastKnown;
 
-        return region.vertices.reduce<state.State>((result, item) => item instanceof state.State && item.name === lastKnownState ? item : result, undefined);
+        return region.vertices.reduce<state.State>((result, item) => item instanceof state.State && item.name === lastKnown ? item : result, undefined);
     }
 
-    private findRegionNode(region: state.Region): IRegionNode {
-        let stateNode = this.findStateNode(region.parent);
-        var regionNode = stateNode.regions.reduce((result, item) => item.name === region.name ? item : result, undefined);
-
-        if (!regionNode) {
-            stateNode.regions.push(regionNode = { "name": region.name, "states": [] });
-        }
-
-        return regionNode;
-    }
-
-    private findStateNode(state: state.State): IStateNode {
+    private getNode(state: state.State | state.Region): IJSONNode {
         if (state.parent) {
-            let regionNode = this.findRegionNode(state.parent);
-            let stateNode = regionNode.states.reduce((result, item) => item.name === state.name ? item : result, undefined);
+            let parentNode = this.getNode(state.parent);
+            let node = parentNode.children.reduce((result, item) => item.name === state.name ? item : result, undefined);
 
-            if (!stateNode) {
-                regionNode.states.push(stateNode = { "name": state.name, "regions": [] });
+            if (!node) {
+                node = { "name": state.name, "children": [] };
+
+                parentNode.children.push(node);
             }
 
-            return stateNode;
+            return node;
         } else {
-            if (!this.data) {
-                this.data = { "name": state.name, "regions": [] };
+            if (!this.activeStateConfiguration) {
+                this.activeStateConfiguration = { "name": state.name, "children": [] };
             }
 
-            return this.data;
+            return this.activeStateConfiguration;
         }
     }
 
     public toJSON(): string {
-        return JSON.stringify(this.data);
+        return JSON.stringify(this.activeStateConfiguration);
     }
 
     public fromJSON(json: string) {
-        return this.data = JSON.parse(json);
+        return this.activeStateConfiguration = JSON.parse(json);
     }
 
     public toString(): string {
