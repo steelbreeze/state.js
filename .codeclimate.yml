@@ -22,7 +22,7 @@ ratings:
   - "**.py"
   - "**.rb"
 exclude_paths:
-- "lib/state.js"
-- "lib/state.com.js"
-- "lib/state.min.js"
+- "lib/node/state.js"
+- "lib/web/state.js"
+- "lib/web/state.min.js"
 - "examples/browser/jquery-1.11.2.min.js"
