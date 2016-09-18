@@ -1,5 +1,5 @@
 "use strict";
-var state = require("../../lib/state.com");
+var state = require("../../lib/node/state");
 /** Manages the active state configuration of a state machine instance using a serializable JSON structure. */
 var JSONInstance = (function () {
     /** Creates a new instance of the JSONInstance class. */

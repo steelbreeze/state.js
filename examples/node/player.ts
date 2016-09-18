@@ -1,4 +1,4 @@
-import * as state from "../../lib/state.com";
+import * as state from "../../lib/node/state";
 import { JSONInstance } from "./JSONInstance";
 
 // send log messages, warnings and errors to the console

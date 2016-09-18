@@ -1,6 +1,6 @@
 /* global describe, it */
 var assert = require("assert"),
-	state = require("../lib/state.com");
+	state = require("../lib/node/state");
 
 // this test overrides the default implementation of the random selector for choices as we're not looking to test the randomness of hte numbers, but the application of them to choose different transtiions therefore we need to turn the non-deterministic into something deterministic
 var nextRand = 0;

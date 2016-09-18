@@ -1,6 +1,6 @@
 /* global describe, it */
 var assert = require("assert"),
-	state = require("../lib/state.com");
+	state = require("../lib/node/state");
 
 var model = new state.StateMachine("model");
 

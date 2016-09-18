@@ -1,4 +1,4 @@
-import * as state from "../../lib/state.com";
+import * as state from "../../lib/node/state";
 
 // send log messages, warnings and errors to the console
 state.console = console;

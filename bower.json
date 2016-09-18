@@ -6,7 +6,7 @@
 		"David Mesquita-Morris <david.mm@me.com>"
 	],
 	"description": "Hierarchical finite state machine",
-	"main": "lib/state.min.js",
+	"main": "lib/web/state.min.js",
 	"moduleType": [
 		"globals",
 		"node"

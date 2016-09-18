@@ -1,4 +1,4 @@
-import * as state from "../../lib/state.com";
+import * as state from "../../lib/node/state";
 
 /** Definition of a node within a JSON representation of the active state configuration of a state machine model. */
 interface IJSONNode {

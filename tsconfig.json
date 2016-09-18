@@ -2,9 +2,9 @@
 	"compilerOptions": {
 		"noImplicitAny": true,
 		"declaration": true,
-		"outDir": "lib"
+		"outDir": "lib/node"
 	},
 	"files": [
-		"src/state.com.ts"
+		"src/state.ts"
 	]
 }

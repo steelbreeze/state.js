@@ -1,5 +1,5 @@
 "use strict";
-var state = require("../../lib/state.com");
+var state = require("../../lib/node/state");
 var JSONInstance_1 = require("./JSONInstance");
 // send log messages, warnings and errors to the console
 state.console = console;

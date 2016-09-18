@@ -6,8 +6,8 @@
 		"David Mesquita-Morris <david.mm@me.com>"
 	],
 	"description": "Hierarchical finite state machine",
-	"main": "./lib/state.com",
-	"typings": "./lib/state.com.d.ts",
+	"main": "./lib/node/state.com",
+	"typings": "./lib/node/state.com.d.ts",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/steelbreeze/state.js"

@@ -1,5 +1,5 @@
 "use strict";
-var state = require("../../lib/state.com");
+var state = require("../../lib/node/state");
 // send log messages, warnings and errors to the console
 state.console = console;
 // create the state machine model elements

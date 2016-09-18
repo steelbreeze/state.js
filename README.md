@@ -66,12 +66,12 @@ state.evaluate(model, instance, "move");
 ```sh
 $ bower install --save state
 ```
-Alternatively, download direct from [lib/state.js](https://github.com/steelbreeze/state.js/blob/master/lib/state.js) or [lib/state.min.js](https://github.com/steelbreeze/state.js/blob/master/lib/state.min.js).
+Alternatively, download direct from [lib/web/state.js](https://github.com/steelbreeze/state.js/blob/master/lib/web/state.js) or [lib/web/state.min.js](https://github.com/steelbreeze/state.js/blob/master/lib/web/state.min.js).
 
 #### 2. Include state.js as a script in your page:
 
 ```html
-<script type="text/javascript" src="/bower_components/state/lib/state.min.js" target="state"></script>
+<script type="text/javascript" src="/bower_components/state/lib/web/state.min.js" target="state"></script>
 ```
 
 **Note:** the *target* attribute within the script element defines the name of the global object that the state.js API will be bound to. If not specified, state.js will be bound to window.fsm.

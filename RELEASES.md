@@ -1,3 +1,6 @@
+## Version 5.9.0
+BREAKING CHANGE: reorganised the lib directory; the lib/node directory is provides a CommonJS version and lib/web directory provides a web based version.
+
 ## Version 5.8.2
 Bug fix: trace output was not produced for all state entry and state exit.
 

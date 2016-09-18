@@ -1,5 +1,5 @@
 "use strict";
-var state = require("../../lib/state.com");
+var state = require("../../lib/node/state");
 var model = new state.StateMachine("model");
 var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
 var on = new state.State("on", model);
