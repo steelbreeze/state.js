@@ -183,16 +183,6 @@ export declare class PseudoState extends Vertex {
  * [[State]] instances are one of the fundamental building blocks of the [[StateMachine]] model; they typically represent conditions where the machine is awaiting an eveny to trigger a [[Transition]]. User-defined [[Action]]s can be defined for both [[State]] entry and [[State]] exit.
  */
 export declare class State extends Vertex {
-    /**
-     * The user-defined behavior (built up via calls to the [[exit]] method).
-     * @private
-     */
-    exitBehavior: Action[];
-    /**
-     * The user-defined behavior (built up via calls to the [[entry]] method).
-     * @private
-     */
-    entryBehavior: Action[];
     /** The default [[Region]] if present; created when vertices are created directly under this [[State]]. */
     private defaultRegion;
     /** The [[Region]] instances that are a child of  this [[State]]. */
@@ -263,16 +253,6 @@ export declare class FinalState extends State {
 /** The root of a [[StateMachine]] model. */
 export declare class StateMachine extends State {
     /**
-     * Internal flag: false if the state machine model requires recompilation.
-     * @private
-     */
-    clean: boolean;
-    /**
-     * The behavior to be executed when initialising a state machine instance.
-     * @private
-     */
-    onInitialise: Array<Action>;
-    /**
      * Creates a new instance of the [[StateMachine]] class.
      * @param name The name of the [[StateMachine]].
      */
@@ -301,29 +281,6 @@ export declare class Transition {
     source: Vertex;
     target: Vertex;
     kind: TransitionKind;
-    /**
-     * The default guard condition where the [[source]] [[Vertex]] is a [[PseudoState]].
-     * @private
-     */
-    static PseudoStateGuard: () => boolean;
-    /**
-     * Used as the guard condition for [[else]] [[Transition]]s.
-     * @private
-     */
-    static ElseGuard: () => boolean;
-    /**
-     * The guard condition associated with this [[Transition]].
-     * @private
-     */
-    guard: (message?: any, instance?: IInstance) => boolean;
-    /** The user-defined [[Action]]s that will be invoked when this [[Transition]] is traversed. */
-    transitionBehavior: Action[];
-    /**
-     * The full set of [[Action]]s that will be invoked when this [[Transition]] is traversed.
-     * @note This includes the exit [[Action]]s of the [[source]] [[Vertex]] and entry [[Action]]s of the [[target]] [[Vertex]] as necessary.
-     * @private
-     */
-    onTraverse: Array<Action>;
     /**
      * Creates a new instance of the [[Transition]] class.
      * @param source The source [[Vertex]] of the [[Transition]].
@@ -377,15 +334,9 @@ export declare class StateMachineInstance implements IInstance {
      * @param name The optional name of the [[StateMachineInstance]].
      */
     constructor(name?: string);
-    /**
-     * Updates the last known [[State]] for a given [[Region]].
-     * @private
-     */
+    /** Updates the last known [[State]] for a given [[Region]]. */
     setCurrent(region: Region, state: State): void;
-    /**
-     * Returns the last known [[State]] for a given [[Region]].
-     * @private
-     */
+    /** Returns the last known [[State]] for a given [[Region]]. */
     getCurrent(region: Region): State;
     /** Returns the name of the [[StateMachineInstance]]. */
     toString(): string;

@@ -1,6 +1,8 @@
 {
 	"compilerOptions": {
 		"noImplicitAny": true,
+		"noImplicitReturns": true,
+		"stripInternal": true,
 		"declaration": true,
 		"outDir": "lib/node"
 	},

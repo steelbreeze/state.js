@@ -272,17 +272,11 @@ export class PseudoState extends Vertex {
  * [[State]] instances are one of the fundamental building blocks of the [[StateMachine]] model; they typically represent conditions where the machine is awaiting an eveny to trigger a [[Transition]]. User-defined [[Action]]s can be defined for both [[State]] entry and [[State]] exit.
  */
 export class State extends Vertex {
-	/**
-	 * The user-defined behavior (built up via calls to the [[exit]] method).
-	 * @private
-	 */
-	exitBehavior = new Array<Action>();
+	/** The user-defined behavior (built up via calls to the [[exit]] method). */
+	/** @internal */ exitBehavior = new Array<Action>();
 
-	/**
-	 * The user-defined behavior (built up via calls to the [[entry]] method).
-	 * @private
-	 */
-	entryBehavior = new Array<Action>();
+	/** The user-defined behavior (built up via calls to the [[entry]] method). */
+	/** @internal */ entryBehavior = new Array<Action>();
 
 	/** The default [[Region]] if present; created when vertices are created directly under this [[State]]. */
 	private defaultRegion: Region;
@@ -403,17 +397,11 @@ export class FinalState extends State {
 
 /** The root of a [[StateMachine]] model. */
 export class StateMachine extends State {
-	/**
-	 * Internal flag: false if the state machine model requires recompilation.
-	 * @private
-	 */
-	clean = false;
+	/** Internal flag: false if the state machine model requires recompilation. */
+	/** @internal */ clean = false;
 
-	/**
-	 * The behavior to be executed when initialising a state machine instance.
-	 * @private
-	 */
-	onInitialise: Array<Action>;
+	/** The behavior to be executed when initialising a state machine instance. */
+	/** @internal */ onInitialise: Array<Action>;
 
 	/**
 	 * Creates a new instance of the [[StateMachine]] class.
@@ -450,33 +438,23 @@ export class StateMachine extends State {
  * Transitions come in a variety of types and are described by the [[TransitionKind]] enumeration.
  */
 export class Transition {
-	/**
-	 * The default guard condition where the [[source]] [[Vertex]] is a [[PseudoState]].
-	 * @private
-	 */
-	static /*readonly*/ PseudoStateGuard = () => { return true; };
+	/** The default guard condition where the [[source]] [[Vertex]] is a [[PseudoState]]. */
+	/** @internal */ static /*readonly*/ PseudoStateGuard = () => { return true; };
 
-	/**
-	 * Used as the guard condition for [[else]] [[Transition]]s.
-	 * @private
-	 */
-	static /*readonly*/ ElseGuard = () => { return false; };
+	/** Used as the guard condition for [[else]] [[Transition]]s. */
+	/** @internal */ static /*readonly*/ ElseGuard = () => { return false; };
 
-	/**
-	 * The guard condition associated with this [[Transition]].
-	 * @private
-	 */
-	guard: (message?: any, instance?: IInstance) => boolean;
+	/** The guard condition associated with this [[Transition]]. */
+	/** @internal */ guard: (message?: any, instance?: IInstance) => boolean;
 
 	/** The user-defined [[Action]]s that will be invoked when this [[Transition]] is traversed. */
-	/*internal*/ transitionBehavior = new Array<Action>();
+	/** @internal */ transitionBehavior = new Array<Action>();
 
 	/**
 	 * The full set of [[Action]]s that will be invoked when this [[Transition]] is traversed.
 	 * @note This includes the exit [[Action]]s of the [[source]] [[Vertex]] and entry [[Action]]s of the [[target]] [[Vertex]] as necessary.
-	 * @private
 	 */
-	onTraverse: Array<Action>;
+	/** @internal */ onTraverse: Array<Action>;
 
 	/**
 	 * Creates a new instance of the [[Transition]] class.
@@ -582,19 +560,13 @@ export class StateMachineInstance implements IInstance {
 		this.name = name;
 	}
 
-	/**
-	 * Updates the last known [[State]] for a given [[Region]].
-	 * @private
-	 */
+	/** Updates the last known [[State]] for a given [[Region]]. */
 	setCurrent(region: Region, state: State): void {
 		this.last[region.toString()] = state;
 	}
 
-	/**
-	 * Returns the last known [[State]] for a given [[Region]].
-	 * @private
-	 */
-	public getCurrent(region: Region): State {
+	/** Returns the last known [[State]] for a given [[Region]]. */
+	getCurrent(region: Region): State {
 		return this.last[region.toString()];
 	}
 
@@ -766,11 +738,10 @@ export interface IInstance {
 
 /**
  * Determines if a [[Vertex]] is currently active for a given state machine instance; i.e. that it has been entered but not yet exited.
- * @private
  * @param vertex The [[Vertex]] to test.
  * @param instance The state machine instance.
  */
-function isActive(vertex: Vertex, instance: IInstance): boolean {
+/** @internal */ function isActive(vertex: Vertex, instance: IInstance): boolean {
 	return vertex.parent ? (isActive(vertex.parent.parent, instance) && (instance.getCurrent(vertex.parent) === vertex)) : true;
 }
 
@@ -789,19 +760,13 @@ export function isComplete(stateOrRegion: State | Region, instance: IInstance): 
 	}
 }
 
-/**
- * The default method used to produce a random number; defaulting to simplified implementation seen in Mozilla Math.random() page.
- * @private
- */
-const defaultRandom = function (max: number): number {
+/** The default method used to produce a random number; defaulting to simplified implementation seen in Mozilla Math.random() page. */
+/** @internal */ const defaultRandom = function (max: number): number {
 	return Math.floor(Math.random() * max);
 };
 
-/**
- * Concatenates arrays of [[Action]]s.
- * @private
- */
-function push(to: Array<Action>, ...actions: Array<Array<Action>>): void {
+/** Concatenates arrays of [[Action]]s. */
+/** @internal */ function push(to: Array<Action>, ...actions: Array<Array<Action>>): void {
 	for (const set of actions) {
 		for (const action of set) {
 			to.push(action);
@@ -814,9 +779,8 @@ function push(to: Array<Action>, ...actions: Array<Array<Action>>): void {
  * @param message The message that caused the [[Transition]] to be traversed that is triggering this behavior.
  * @param instance The state machine instance.
  * @param deepHistory True if [[DeepHistory]] semantics are in force at the time the behavior is invoked.
- * @private
  */
-function invoke(to: Array<Action>, message?: any, instance?: IInstance, deepHistory: boolean = false) {
+/** @internal */ function invoke(to: Array<Action>, message?: any, instance?: IInstance, deepHistory: boolean = false) {
 	for (const action of to) {
 		action(message, instance, deepHistory);
 	}
@@ -886,9 +850,8 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
  * @param instance The state machine instance.
  * @param message The message to evaluate.
  * @returns Returns true if the message caused a [[Transition]].
- * @private
  */
-function evaluateState(state: State, instance: IInstance, message: any): boolean {
+/** @internal */ function evaluateState(state: State, instance: IInstance, message: any): boolean {
 	let result = false;
 
 	// delegate to child regions first if a non-continuation
@@ -932,9 +895,8 @@ function evaluateState(state: State, instance: IInstance, message: any): boolean
  * @param instance The state machine instance.
  * @param message The message that triggerd this [[Transition]] traversal.
  * @returns Always returns true.
- * @private
  */
-function traverse(transition: Transition, instance: IInstance, message?: any): boolean {
+/** @internal */ function traverse(transition: Transition, instance: IInstance, message?: any): boolean {
 	let tran = transition;
 	let target = tran.target;
 	let onTraverse = new Array<Action>();
@@ -974,35 +936,28 @@ function traverse(transition: Transition, instance: IInstance, message?: any): b
  * @param pseudoState The [[Choice]] or [[Junction]] [[PseudoState]].
  * @param instance The state machine instance.
  * @param message The message that triggerd the transition to the [[PseudoState]].
- * @private
  */
-function selectTransition(pseudoState: PseudoState, instance: IInstance, message: any): Transition {
+/** @internal */ function selectTransition(pseudoState: PseudoState, instance: IInstance, message: any): Transition {
 	const results = pseudoState.outgoing.filter(transition => transition.guard(message, instance));
 
 	if (pseudoState.kind === PseudoStateKind.Choice) {
 		return results.length !== 0 ? results[random(results.length)] : findElse(pseudoState);
-	} else {
-		if (results.length > 1) {
-			console.error(`Multiple outbound transition guards returned true at ${pseudoState} for ${message}`);
-		} else {
-			return results[0] || findElse(pseudoState);
-		}
 	}
+
+	if (results.length > 1) {
+		console.error(`Multiple outbound transition guards returned true at ${pseudoState} for ${message}`);
+	}
+	
+	return results[0] || findElse(pseudoState);
 }
 
-/**
- * Look for an else [[Transition]] from a [[Junction]] or [[Choice]] [[PseudoState]].
- * @private
- */
-function findElse(pseudoState: PseudoState): Transition {
+/** Look for an else [[Transition]] from a [[Junction]] or [[Choice]] [[PseudoState]]. */
+/** @internal */ function findElse(pseudoState: PseudoState): Transition {
 	return pseudoState.outgoing.filter(transition => transition.guard === Transition.ElseGuard)[0];
 }
 
-/**
- * Interface used to temporarily hold behavior during [[StateMachine]] initialisation.
- * @private
- */
-class Behavior {
+/** Interface used to temporarily hold behavior during [[StateMachine]] initialisation. */
+/** @internal */ class Behavior {
 	/** The [[Action]]s to execute when leaving a [[Vertex]] or [[Region]] during a state transition (including and cascaded [[Action]]s). */
 	leave = new Array<Action>();
 
@@ -1022,11 +977,8 @@ class Behavior {
 	}
 }
 
-/**
- * Initialises the transitions within a [[StateMachine]].
- * @private
- */
-class InitialiseTransitions extends Visitor<(vertexOrRegion: Vertex | Region) => Behavior> {
+/** Initialises the transitions within a [[StateMachine]]. */
+/** @internal */ class InitialiseTransitions extends Visitor<(vertexOrRegion: Vertex | Region) => Behavior> {
 	visitTransition(transition: Transition, behavior: (vertexOrRegion: Vertex | Region) => Behavior) {
 		// reset transition behavior
 		transition.onTraverse = new Array<Action>();
@@ -1126,11 +1078,8 @@ class InitialiseTransitions extends Visitor<(vertexOrRegion: Vertex | Region) =>
 	}
 }
 
-/**
- * Bootstraps all the elements within a state machine model
- * @private
- */
-class InitialiseElements extends Visitor<boolean> {
+/** Bootstraps all the elements within a state machine model. */
+/** @internal */ class InitialiseElements extends Visitor<boolean> {
 	private behaviors: { [id: string]: Behavior } = {};
 
 	private behavior(namedElement: Vertex | Region): Behavior {
@@ -1220,11 +1169,9 @@ class InitialiseElements extends Visitor<boolean> {
 
 /**
  * The default console implementation.
- * 
  * This may be overriden by assigning an object conforming to the [[IConsole]] interface to the [[console]] variable.
- * @private
  */
-const defaultConsole = {
+/** @internal */ const defaultConsole = {
 	/** Default implementation of the log method. */
 	log(message?: any, ...optionalParams: any[]): void { },
 
@@ -1259,11 +1206,8 @@ export function validate(model: StateMachine): void {
 	model.accept(new Validator());
 }
 
-/**
- * Class used to validate a [[StateMachine]] model for semantic integrity.
- * @private
- */
-class Validator extends Visitor<string> {
+/** Class used to validate a [[StateMachine]] model for semantic integrity. */
+/** @internal */ class Validator extends Visitor<string> {
 	/** Validates a [[PseudoState]]. */
 	public visitPseudoState(pseudoState: PseudoState): any {
 		super.visitPseudoState(pseudoState);
