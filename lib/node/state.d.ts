@@ -1,3 +1,8 @@
+// Type definitions for state.js
+// Project: state,js
+// Definitions by: David Mesquita-Morris <http://state.software>
+// Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
+
 /**
  * An enumeration used to dictate the behavior of instances of the [[PseudoState]] class.
  *
