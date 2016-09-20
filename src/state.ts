@@ -103,7 +103,7 @@ export abstract class NamedElement<TParent> extends Element<TParent> {
 	public static namespaceSeparator = ".";
 
 	/** The [[NamedElement]] [[name]] as a namespace delimited by [[namespaceSeparator]]. */
-	private /*readonly*/ qualifiedName: string;
+	/** @internal */ qualifiedName: string;
 
 	/**
 	 * Creates a new instance of the [[NamedElement]] class.
@@ -279,7 +279,7 @@ export class State extends Vertex {
 	/** @internal */ entryBehavior = new Array<Action>();
 
 	/** The default [[Region]] if present; created when vertices are created directly under this [[State]]. */
-	private defaultRegion: Region;
+	/** @internal */ defaultRegion: Region;
 
 	/** The [[Region]] instances that are a child of  this [[State]]. */
 	public regions = new Array<Region>();
@@ -547,7 +547,7 @@ export class Transition {
  */
 export class StateMachineInstance implements IInstance {
 	/** The last known state of any [[Region]] within the state machine instance. */
-	private last: { [id: string]: State } = {};
+	/** @internal */ last: { [id: string]: State } = {};
 
 	/** Indicates that the [[StateMachine]] instance reached was terminated by reaching a [[Terminate]] [[PseudoState]]. */
 	public isTerminated: boolean = false;
@@ -1080,9 +1080,9 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 
 /** Bootstraps all the elements within a state machine model. */
 /** @internal */ class InitialiseElements extends Visitor<boolean> {
-	private behaviors: { [id: string]: Behavior } = {};
+	/** @internal */ behaviors: { [id: string]: Behavior } = {};
 
-	private behavior(namedElement: Vertex | Region): Behavior {
+	/** @internal */ behavior(namedElement: Vertex | Region): Behavior {
 		return this.behaviors[namedElement.toString()] || (this.behaviors[namedElement.toString()] = new Behavior());
 	}
 
