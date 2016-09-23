@@ -6,8 +6,9 @@ var instance = new state.StateMachineInstance("test");
 instance.calls = 0;
 instance.logs = 0;
 
-//state.logTo = ({ log: function (text) { instance.logs++; } })
-state.warnTo = console;
+var oldConsole = state.console;
+
+state.console = ({ log: function (message) { console.log(message); instance.logs++; } })
 
 var model = new state.StateMachine("model");
 var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
@@ -39,9 +40,10 @@ describe("test/callbacks.js", function () {
 	});
 });
 
-// TODO: reinstate test
-//	describe("Custom logging", function () {
-//		it("Logger called during initialisation and state transitions", function () {
-//			assert.equal(10, instance.logs);
-//		});
-//	});
+describe("Custom logging", function () {
+	it("Logger called during initialisation and state transitions", function () {
+		assert.equal(10, instance.logs);
+	});
+});
+
+state.console = oldConsole;
