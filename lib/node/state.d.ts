@@ -34,22 +34,6 @@ export declare enum PseudoStateKind {
     /** Entering a terminate [[PseudoState]] implies that the execution of [[StateMachine]] is terminated and will not respond to any more messages. */
     Terminate = 5,
 }
-export declare namespace PseudoStateKind {
-    /**
-     * Tests a [[PseudoState]] to determine if it is a history [[PseudoState]].
-     * History [[PseudoState]]s are of kind: [[ShallowHistory]] or [[DeepHistory]].
-     * @param kind The [[PseudoStateKind]]
-     * @returns True if the [[PseudoStateKind]] is [[DeepHistory]] or [[ShallowHistory]].
-     */
-    function isHistory(kind: PseudoStateKind): boolean;
-    /**
-     * Tests a [[PseudoState]] to determine if it is an initial [[PseudoState]].
-     * Initial [[PseudoState]]s are of kind: [[Initial]], [[ShallowHistory]], or [[DeepHistory]].
-     * @param kind The [[PseudoStateKind]]
-     * @returns True if the [[PseudoStateKind]] is [[Initial]], [[DeepHistory]] or [[ShallowHistory]].
-     */
-    function isInitial(kind: PseudoStateKind): boolean;
-}
 /**
  * An enumeration of that dictates the precise behavior of a [[Transition]] instance.
  *
@@ -171,6 +155,18 @@ export declare class PseudoState extends Vertex {
      * @param kind The kind of the [[PseudoState]] which determines its use and behavior.
      */
     constructor(name: string, parent: State | Region, kind?: PseudoStateKind);
+    /**
+     * Tests a [[PseudoState]] to determine if it is a history [[PseudoState]].
+     * History [[PseudoState]]s are of kind: [[ShallowHistory]] or [[DeepHistory]].
+     * @returns True if the [[PseudoStateKind]] is [[DeepHistory]] or [[ShallowHistory]].
+     */
+    isHistory(): boolean;
+    /**
+     * Tests a [[PseudoState]] to determine if it is an initial [[PseudoState]].
+     * Initial [[PseudoState]]s are of kind: [[Initial]], [[ShallowHistory]], or [[DeepHistory]].
+     * @returns True if the [[PseudoStateKind]] is [[Initial]], [[DeepHistory]] or [[ShallowHistory]].
+     */
+    isInitial(): boolean;
     /**
      * Accepts an instance of a [[Visitor]] and calls the [[visitPseudoState]] method on it.
      * @param visitor The [[Visitor]] instance.

@@ -1,3 +1,6 @@
+## Version 5.10.0
+Moved isHistory and isInitial methods back to PseudoState class as the extension methods to the enum feels like a bit of a hack.
+
 ## Version 5.9.0
 BREAKING CHANGE: reorganised the lib directory; the lib/node directory is provides a CommonJS version and lib/web directory provides a web based version.
 

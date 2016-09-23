@@ -42,28 +42,6 @@ export enum PseudoStateKind {
 	Terminate
 }
 
-export namespace PseudoStateKind {
-	/**
-	 * Tests a [[PseudoState]] to determine if it is a history [[PseudoState]].
-	 * History [[PseudoState]]s are of kind: [[ShallowHistory]] or [[DeepHistory]].
-	 * @param kind The [[PseudoStateKind]]
-	 * @returns True if the [[PseudoStateKind]] is [[DeepHistory]] or [[ShallowHistory]].
-	 */
-	export function isHistory(kind: PseudoStateKind): boolean {
-		return kind === PseudoStateKind.DeepHistory || kind === PseudoStateKind.ShallowHistory;
-	}
-
-	/**
-	 * Tests a [[PseudoState]] to determine if it is an initial [[PseudoState]].
-	 * Initial [[PseudoState]]s are of kind: [[Initial]], [[ShallowHistory]], or [[DeepHistory]].
-	 * @param kind The [[PseudoStateKind]]
-	 * @returns True if the [[PseudoStateKind]] is [[Initial]], [[DeepHistory]] or [[ShallowHistory]].
-	 */
-	export function isInitial(kind: PseudoStateKind): boolean {
-		return kind === PseudoStateKind.Initial || isHistory(kind);
-	}
-}
-
 /**
  * An enumeration of that dictates the precise behavior of a [[Transition]] instance.
  *
@@ -252,6 +230,24 @@ export class PseudoState extends Vertex {
 	 */
 	public constructor(name: string, parent: State | Region, public kind: PseudoStateKind = PseudoStateKind.Initial) {
 		super(name, parent);
+	}
+
+	/**
+	 * Tests a [[PseudoState]] to determine if it is a history [[PseudoState]].
+	 * History [[PseudoState]]s are of kind: [[ShallowHistory]] or [[DeepHistory]].
+	 * @returns True if the [[PseudoStateKind]] is [[DeepHistory]] or [[ShallowHistory]].
+	 */
+	public isHistory(): boolean {
+		return this.kind === PseudoStateKind.DeepHistory || this.kind === PseudoStateKind.ShallowHistory;
+	}
+
+	/**
+	 * Tests a [[PseudoState]] to determine if it is an initial [[PseudoState]].
+	 * Initial [[PseudoState]]s are of kind: [[Initial]], [[ShallowHistory]], or [[DeepHistory]].
+	 * @returns True if the [[PseudoStateKind]] is [[Initial]], [[DeepHistory]] or [[ShallowHistory]].
+	 */
+	public isInitial(): boolean {
+		return this.kind === PseudoStateKind.Initial || this.isHistory();
 	}
 
 	/**
@@ -1094,7 +1090,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 	}
 
 	visitRegion(region: Region, deepHistoryAbove: boolean) {
-		const regionInitial = region.vertices.reduce<PseudoState>((result, vertex) => vertex instanceof PseudoState && PseudoStateKind.isInitial(vertex.kind) ? vertex : result, undefined);
+		const regionInitial = region.vertices.reduce<PseudoState>((result, vertex) => vertex instanceof PseudoState && vertex.isInitial() ? vertex : result, undefined);
 
 		for (const vertex of region.vertices) {
 			vertex.accept(this, deepHistoryAbove || (regionInitial && regionInitial.kind === PseudoStateKind.DeepHistory));
@@ -1104,8 +1100,8 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 		this.behavior(region).leave.push((message, instance) => invoke(this.behavior(instance.getCurrent(region)).leave, message, instance));
 
 		// enter the appropriate child vertex when entering the region
-		if (deepHistoryAbove || !regionInitial || PseudoStateKind.isHistory(regionInitial.kind)) { // NOTE: history needs to be determined at runtime
-			this.behavior(region).endEnter.push((message, instance, deepHistory) => invoke((this.behavior((deepHistory || PseudoStateKind.isHistory(regionInitial.kind)) ? instance.getCurrent(region) || regionInitial : regionInitial)).enter(), message, instance, deepHistory || regionInitial.kind === PseudoStateKind.DeepHistory));
+		if (deepHistoryAbove || !regionInitial || regionInitial.isHistory()) { // NOTE: history needs to be determined at runtime
+			this.behavior(region).endEnter.push((message, instance, deepHistory) => invoke((this.behavior((deepHistory || regionInitial.isHistory()) ? instance.getCurrent(region) || regionInitial : regionInitial)).enter(), message, instance, deepHistory || regionInitial.kind === PseudoStateKind.DeepHistory));
 		} else {
 			push(this.behavior(region).endEnter, this.behavior(regionInitial).enter());
 		}
@@ -1117,7 +1113,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 		super.visitPseudoState(pseudoState, deepHistoryAbove);
 
 		// evaluate comppletion transitions once vertex entry is complete
-		if (PseudoStateKind.isInitial(pseudoState.kind)) {
+		if (pseudoState.isInitial()) {
 			this.behavior(pseudoState).endEnter.push((message, instance, deepHistory) => {
 				if (instance.getCurrent(pseudoState.parent)) {
 					invoke(this.behavior(pseudoState).leave, message, instance);
@@ -1229,7 +1225,7 @@ export function validate(model: StateMachine): void {
 				console.error(`${pseudoState}: ${pseudoState.kind} pseudo states cannot have Else transitions.`);
 			}
 
-			if (PseudoStateKind.isInitial(pseudoState.kind)) {
+			if (pseudoState.isInitial()) {
 				if (pseudoState.outgoing.length > 1) {
 					// [1] An initial vertex can have at most one outgoing transition.
 					// [2] History vertices can have at most one outgoing transition.
