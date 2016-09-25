@@ -68,7 +68,7 @@ export abstract class Element<TParent> {
 	 * Creates a new instance of the [[Element]] class.
 	 * @param parent The parent of this [[Element]]
 	 */
-	/*protected*/ constructor(public parent: TParent) {
+	protected constructor(public readonly parent: TParent) {
 	}
 }
 
@@ -81,14 +81,14 @@ export abstract class NamedElement<TParent> extends Element<TParent> {
 	public static namespaceSeparator = ".";
 
 	/** The [[NamedElement]] [[name]] as a namespace delimited by [[namespaceSeparator]]. */
-	/** @internal */ qualifiedName: string;
+	/** @internal */ readonly qualifiedName: string;
 
 	/**
 	 * Creates a new instance of the [[NamedElement]] class.
 	 * @param name The name of the [[NamedElement]].
 	 * @param parent The parent of this [[NamedElement]]
 	 */
-	/*protected*/ constructor(public name: string, parent: TParent) {
+	protected constructor(public readonly name: string, parent: TParent) {
 		super(parent);
 
 		this.qualifiedName = parent ? parent.toString() + NamedElement.namespaceSeparator + name : name;
@@ -109,7 +109,7 @@ export class Region extends NamedElement<State> {
 	public static defaultName = "default";
 
 	/** The [[Vertex]] instances that are children of this [[Region]]. */
-	public vertices = new Array<Vertex>();
+	public readonly vertices = new Array<Vertex>();
 
 	/**
 	 * Creates a new instance of the [[Region]] class.
@@ -152,12 +152,12 @@ export class Region extends NamedElement<State> {
 }
 
 /** An abstract [[NamedElement]] within a [[StateMachine]] model that can be the source or target of a [[Transition]]. */
-export abstract class Vertex extends NamedElement<Region> {
+export abstract class Vertex extends NamedElement<Region | undefined> {
 	/** The [[Transition]]s originating from this [[Vertex]]. */
-	public outgoing = new Array<Transition>();
+	public readonly outgoing = new Array<Transition>();
 
 	/** The [[Transition]]s targeting this [[Vertex]]. */
-	public incoming = new Array<Transition>();
+	public readonly incoming = new Array<Transition>();
 
 	/**
 	 * Creates a new instance of the [[Vertex]] class.
@@ -165,7 +165,7 @@ export abstract class Vertex extends NamedElement<Region> {
 	 * @param parent The parent [[State]] or [[Region]].
 	 * @note Specifting a [[State]] as the parent with cause the constructor to make this [[Vertex]] as child of the [[State]]s [[defaultRegion]].
 	 */
-	/*protected*/ constructor(name: string, parent: State | Region) {
+	protected constructor(name: string, parent: State | Region | undefined) {
 		super(name, parent instanceof State ? parent.getDefaultRegion() : parent);
 
 		if (this.parent) {
@@ -176,7 +176,7 @@ export abstract class Vertex extends NamedElement<Region> {
 
 	/** Returns the root [[StateMachine]] instance that this [[Vertex]] is a part of. */
 	public getRoot(): StateMachine {
-		return this.parent.getRoot();
+		return (this.parent!).getRoot(); // parent is only undefined for instances of StateMachine
 	}
 
 	/** Returns the ancestry of the [[Vertex]], form the root [[StateMachine]] to this [[Vertex]]. */
@@ -192,7 +192,10 @@ export abstract class Vertex extends NamedElement<Region> {
 			}
 		}
 
-		this.parent.vertices.splice(this.parent.vertices.indexOf(this), 1);
+		if (this.parent) {
+			this.parent.vertices.splice(this.parent.vertices.indexOf(this), 1);
+		}
+
 		this.getRoot().clean = false;
 	}
 
@@ -228,7 +231,7 @@ export class PseudoState extends Vertex {
 	 * @param parent The parent [[State]] or [[Region]] that this [[PseudoState]] will be a child of.
 	 * @param kind The kind of the [[PseudoState]] which determines its use and behavior.
 	 */
-	public constructor(name: string, parent: State | Region, public kind: PseudoStateKind = PseudoStateKind.Initial) {
+	public constructor(name: string, parent: State | Region, public readonly kind: PseudoStateKind = PseudoStateKind.Initial) {
 		super(name, parent);
 	}
 
@@ -269,24 +272,24 @@ export class PseudoState extends Vertex {
  */
 export class State extends Vertex {
 	/** The user-defined behavior (built up via calls to the [[exit]] method). */
-	/** @internal */ exitBehavior = new Array<Action>();
+	/** @internal */ readonly exitBehavior = new Array<Action>();
 
 	/** The user-defined behavior (built up via calls to the [[entry]] method). */
-	/** @internal */ entryBehavior = new Array<Action>();
+	/** @internal */ readonly entryBehavior = new Array<Action>();
 
 	/** The default [[Region]] if present; created when vertices are created directly under this [[State]]. */
 	/** @internal */ defaultRegion: Region;
 
 	/** The [[Region]] instances that are a child of  this [[State]]. */
-	public regions = new Array<Region>();
+	public readonly regions = new Array<Region>();
 
 	/**
 	 * Creates a new instance of the [[State]] class.
 	 * @param name The name of the [[State]].
 	 * @param parent The parent [[State]] or [[Region]] that this [[State is a child of]].
-	 * @note When a [[State]] is passed as the parent parameter, a default [[Region]] is created and subsiquently accessible via the [[defaultRegion]] method.
+	 * @note When the parent parameter is of type [[State]], a default [[Region]] is created and subsiquently accessible via the [[defaultRegion]] method.
 	 */
-	public constructor(name: string, parent: State | Region) {
+	public constructor(name: string, parent: State | Region | undefined) {
 		super(name, parent);
 	}
 
@@ -435,20 +438,20 @@ export class StateMachine extends State {
  */
 export class Transition {
 	/** The default guard condition where the [[source]] [[Vertex]] is a [[PseudoState]]. */
-	/** @internal */ static /*readonly*/ PseudoStateGuard = () => { return true; };
+	/** @internal */ static readonly PseudoStateGuard = () => { return true; };
 
-	/** Used as the guard condition for [[else]] [[Transition]]s. */
-	/** @internal */ static /*readonly*/ ElseGuard = () => { return false; };
+	/** Guard condition for [[else]] [[Transition]]s. */
+	/** @internal */ static readonly ElseGuard = () => { return false; };
 
 	/** The guard condition associated with this [[Transition]]. */
 	/** @internal */ guard: (message?: any, instance?: IInstance) => boolean;
 
 	/** The user-defined [[Action]]s that will be invoked when this [[Transition]] is traversed. */
-	/** @internal */ transitionBehavior = new Array<Action>();
+	/** @internal */ readonly transitionBehavior = new Array<Action>();
 
 	/**
 	 * The full set of [[Action]]s that will be invoked when this [[Transition]] is traversed.
-	 * @note This includes the exit [[Action]]s of the [[source]] [[Vertex]] and entry [[Action]]s of the [[target]] [[Vertex]] as necessary.
+	 * @note This includes the exit [[Action]]s of the [[source]] [[Vertex]] and entry [[Action]]s of the [[target]] [[Vertex]].
 	 */
 	/** @internal */ onTraverse: Array<Action>;
 
@@ -458,7 +461,7 @@ export class Transition {
 	 * @param source The target [[Vertex]] of the [[Transition]]; this is an optional parameter, omitting it will create an [[Internal]] [[Transition]].
 	 * @param kind The kind the [[Transition]]; use this to set [[Local]] or [[External]] (the default if omitted) transition semantics.
 	 */
-	public constructor(public source: Vertex, public target?: Vertex, public kind: TransitionKind = TransitionKind.External) {
+	public constructor(public readonly source: Vertex, public readonly target?: Vertex, public readonly kind: TransitionKind = TransitionKind.External) {
 		if (!this.target) {
 			this.kind = TransitionKind.Internal;
 		}
@@ -487,7 +490,7 @@ export class Transition {
 	/**
 	 * Defines the guard condition for the [[Transition]].
 	 * @param guard The guard condition that must evaluate true for the [[Transition]] to be traversed.
-	 * @note While this supports the fluent API style, multiple calls to the [[when]] method will will just result in the guard condition as specified in last [[when]] call made.
+	 * @note While this supports the fluent API style, multiple calls to the [[when]] method will will just result in the guard condition specified in last [[when]] call made.
 	 */
 	public when(guard: (message?: any, instance?: IInstance) => boolean) {
 		this.guard = guard;
@@ -539,11 +542,11 @@ export class Transition {
 
 /**
  * A working implementation of the [[IInstance]] interface.
- * @note It is possible to create other custom state machine instance classes in other ways (e.g. as serialisable JSON); just implement the same members and methods as this class.
+ * @note It is possible to create other custom state machine instance classes in other ways (e.g. serialisable JSON); just implement the [[IInstance]] interface.
  */
 export class StateMachineInstance implements IInstance {
 	/** The last known state of any [[Region]] within the state machine instance. */
-	/** @internal */ last: { [id: string]: State } = {};
+	/** @internal */ readonly last: { [id: string]: State } = {};
 
 	/** Indicates that the [[StateMachine]] instance reached was terminated by reaching a [[Terminate]] [[PseudoState]]. */
 	public isTerminated: boolean = false;
@@ -584,7 +587,7 @@ export abstract class Visitor<TArg1> {
 	 * @param arg2 An optional parameter passed into the accept method.
 	 * @param arg3 An optional parameter passed into the accept method.
 	 */
-	public visitNamedElement<TParent>(namedElement: Vertex | Region, arg1?: TArg1, arg2?: any, arg3?: any): any {
+	public visitNamedElement(namedElement: Vertex | Region, arg1?: TArg1, arg2?: any, arg3?: any): any {
 	}
 
 	/**
@@ -685,7 +688,7 @@ export abstract class Visitor<TArg1> {
  * @param deepHistory True if [[PseudoStateKind.DeepHistory]] semantics are in play.
  */
 export interface Action {
-	(message?: any, instance?: IInstance, deepHistory?: boolean): any;
+	(message: any, instance: IInstance, deepHistory?: boolean): any;
 }
 
 /** Interface used for logging, warnings and errors; create implementations of this interface and set the [[console]] variable to an instance of it. */
@@ -729,7 +732,7 @@ export interface IInstance {
 	 * Returns the last known [[State]] for a given [[Region]].
 	 * @param region The [[Region]] to get the last known [[State]] for.
 	 */
-	getCurrent(region: Region): State;
+	getCurrent(region: Region | undefined): State;
 }
 
 /**
@@ -776,7 +779,7 @@ export function isComplete(stateOrRegion: State | Region, instance: IInstance): 
  * @param instance The state machine instance.
  * @param deepHistory True if [[DeepHistory]] semantics are in force at the time the behavior is invoked.
  */
-/** @internal */ function invoke(to: Array<Action>, message?: any, instance?: IInstance, deepHistory: boolean = false) {
+/** @internal */ function invoke(to: Array<Action>, message: any, instance: IInstance, deepHistory: boolean = false) {
 	for (const action of to) {
 		action(message, instance, deepHistory);
 	}
@@ -800,13 +803,11 @@ export function initialise(model: StateMachine, instance?: IInstance, autoInitia
 			initialise(model);
 		}
 
-		// log as required
 		console.log(`initialise ${instance}`);
 
 		// enter the state machine instance for the first time
 		invoke(model.onInitialise, undefined, instance);
 	} else {
-		// log as required
 		console.log(`initialise ${model.name}`);
 
 		// initialise the state machine model
@@ -829,7 +830,6 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 		initialise(model);
 	}
 
-	// log as required
 	console.log(`${instance} evaluate ${message}`);
 
 	// terminated state machine instances will not evaluate messages
@@ -841,7 +841,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 }
 
 /**
- * Evaluates messages against a [[State]], executing a [[Transition]] as appropriate.
+ * Evaluates messages against a [[State]], executing a [[Transition]].
  * @param state The [[State]].
  * @param instance The state machine instance.
  * @param message The message to evaluate.
@@ -902,7 +902,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 	// process static conditional branches - build up all the transition behavior prior to executing
 	while (target && target instanceof PseudoState && target.kind === PseudoStateKind.Junction) {
 		// proceed to the next transition
-		tran = selectTransition(target as PseudoState, instance, message);
+		tran = selectTransition(target, instance, message);
 		target = tran.target;
 
 		// concatenate behavior before and after junctions
@@ -913,7 +913,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 	invoke(onTraverse, message, instance);
 
 	if (target) {
-		// process dynamic conditional branches as required
+		// process dynamic conditional branches if required
 		if (target instanceof PseudoState && target.kind === PseudoStateKind.Choice) {
 			traverse(selectTransition(target, instance, message), instance, message);
 		}
@@ -943,7 +943,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 	if (results.length > 1) {
 		console.error(`Multiple outbound transition guards returned true at ${pseudoState} for ${message}`);
 	}
-	
+
 	return results[0] || findElse(pseudoState);
 }
 
@@ -955,13 +955,13 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 /** Interface used to temporarily hold behavior during [[StateMachine]] initialisation. */
 /** @internal */ class Behavior {
 	/** The [[Action]]s to execute when leaving a [[Vertex]] or [[Region]] during a state transition (including and cascaded [[Action]]s). */
-	leave = new Array<Action>();
+	readonly leave = new Array<Action>();
 
 	/** The initial [[Action]]s to execute when entering a [[Vertex]] or [[Region]] during a state transition. */
-	beginEnter = new Array<Action>();
+	readonly beginEnter = new Array<Action>();
 
 	/** The follow-on [[Action]]s to execute when entering a [[Vertex]] or [[Region]] during a state transition (including and cascaded [[Action]]s). */
-	endEnter = new Array<Action>();
+	readonly endEnter = new Array<Action>();
 
 	/** The full set of [[Action]]s to execute when entering a [[Vertex]] or [[Region]] during a state transition (including and cascaded [[Action]]s). */
 	enter(): Array<Action> {
@@ -1003,7 +1003,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 		// add a test for completion
 		if (internalTransitionsTriggerCompletion) {
 			transition.onTraverse.push((message, instance) => {
-				const state = transition.source as State; // NOTE: internal transitions source
+				const state = transition.source as State; // the source of an internal transition must be a state
 
 				// fire a completion transition
 				if (isComplete(state, instance)) {
@@ -1016,7 +1016,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 	// initialise transitions within the same region
 	visitLocalTransition(transition: Transition, behavior: (vertexOrRegion: Vertex | Region) => Behavior) {
 		transition.onTraverse.push((message, instance) => {
-			const targetAncestors = transition.target.ancestry();
+			const targetAncestors = transition.target!.ancestry(); // local transitions will have a target
 			let i = 0;
 
 			// find the first inactive element in the target ancestry
@@ -1034,20 +1034,20 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 			}
 
 			// trigger cascade
-			invoke(behavior(transition.target).endEnter, message, instance);
+			invoke(behavior(transition.target!).endEnter, message, instance);
 		});
 	}
 
 	// initialise external transitions: these are abritarily complex
 	visitExternalTransition(transition: Transition, behavior: (vertexOrRegion: Vertex | Region) => Behavior) {
 		const sourceAncestors = transition.source.ancestry(),
-			targetAncestors = transition.target.ancestry();
+			targetAncestors = transition.target!.ancestry(); // external transtions always have a target
 		let i = Math.min(sourceAncestors.length, targetAncestors.length) - 1;
 
 		// find the index of the first uncommon ancestor (or for external transitions, the source)
 		while (sourceAncestors[i - 1] !== targetAncestors[i - 1]) { --i; }
 
-		// leave source ancestry as required and perform the transition effect
+		// leave source ancestry and perform the transition effect
 		push(transition.onTraverse, behavior(sourceAncestors[i]).leave, transition.transitionBehavior);
 
 		// enter the target ancestry
@@ -1056,7 +1056,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 		}
 
 		// trigger cascade
-		push(transition.onTraverse, behavior(transition.target).endEnter);
+		push(transition.onTraverse, behavior(transition.target!).endEnter);
 	}
 
 	cascadeElementEntry(transition: Transition, behavior: (vertexOrRegion: Vertex | Region) => Behavior, vertex: Vertex, next: Vertex, task: (behavior: Array<Action>) => void) {
@@ -1076,7 +1076,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 
 /** Bootstraps all the elements within a state machine model. */
 /** @internal */ class InitialiseElements extends Visitor<boolean> {
-	/** @internal */ behaviors: { [id: string]: Behavior } = {};
+	/** @internal */ readonly behaviors: { [id: string]: Behavior } = {};
 
 	/** @internal */ behavior(namedElement: Vertex | Region): Behavior {
 		return this.behaviors[namedElement.toString()] || (this.behaviors[namedElement.toString()] = new Behavior());
@@ -1090,7 +1090,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 	}
 
 	visitRegion(region: Region, deepHistoryAbove: boolean) {
-		const regionInitial = region.vertices.reduce<PseudoState>((result, vertex) => vertex instanceof PseudoState && vertex.isInitial() ? vertex : result, undefined);
+		const regionInitial = region.vertices.reduce<PseudoState | undefined>((result, vertex) => vertex instanceof PseudoState && vertex.isInitial() ? vertex : result, undefined);
 
 		for (const vertex of region.vertices) {
 			vertex.accept(this, deepHistoryAbove || (regionInitial && regionInitial.kind === PseudoStateKind.DeepHistory));
@@ -1101,7 +1101,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 
 		// enter the appropriate child vertex when entering the region
 		if (deepHistoryAbove || !regionInitial || regionInitial.isHistory()) { // NOTE: history needs to be determined at runtime
-			this.behavior(region).endEnter.push((message, instance, deepHistory) => invoke((this.behavior((deepHistory || regionInitial.isHistory()) ? instance.getCurrent(region) || regionInitial : regionInitial)).enter(), message, instance, deepHistory || regionInitial.kind === PseudoStateKind.DeepHistory));
+			this.behavior(region).endEnter.push((message, instance, deepHistory) => invoke((this.behavior((deepHistory || regionInitial!.isHistory()) ? instance.getCurrent(region) || regionInitial! : regionInitial!)).enter(), message, instance, deepHistory || regionInitial!.kind === PseudoStateKind.DeepHistory)); // TODO: can we really assert regionInitial is not null?
 		} else {
 			push(this.behavior(region).endEnter, this.behavior(regionInitial).enter());
 		}
@@ -1312,7 +1312,7 @@ export function validate(model: StateMachine): void {
 
 		// Local transition target vertices must be a child of the source vertex
 		if (transition.kind === TransitionKind.Local) {
-			if (transition.target.ancestry().indexOf(transition.source) === -1) {
+			if (transition.target && transition.target.ancestry().indexOf(transition.source) === -1) {
 				console.error(`${transition}: local transition target vertices must be a child of the source composite sate.`);
 			}
 		}
