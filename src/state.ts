@@ -893,34 +893,29 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
  * @returns Always returns true.
  */
 /** @internal */ function traverse(transition: Transition, instance: IInstance, message?: any): boolean {
-	let tran = transition;
-	let target = tran.target;
-	let onTraverse = new Array<Action>();
-
-	push(onTraverse, tran.onTraverse);
+	let onTraverse = transition.onTraverse.slice(0);
 
 	// process static conditional branches - build up all the transition behavior prior to executing
-	while (target && target instanceof PseudoState && target.kind === PseudoStateKind.Junction) {
+	while (transition.target && transition.target instanceof PseudoState && transition.target.kind === PseudoStateKind.Junction) {
 		// proceed to the next transition
-		tran = selectTransition(target, instance, message);
-		target = tran.target;
+		transition = selectTransition(transition.target, instance, message);
 
 		// concatenate behavior before and after junctions
-		push(onTraverse, tran.onTraverse);
+		push(onTraverse, transition.onTraverse);
 	}
 
 	// execute the transition behavior
 	invoke(onTraverse, message, instance);
 
-	if (target) {
+	if (transition.target) {
 		// process dynamic conditional branches if required
-		if (target instanceof PseudoState && target.kind === PseudoStateKind.Choice) {
-			traverse(selectTransition(target, instance, message), instance, message);
+		if (transition.target instanceof PseudoState && transition.target.kind === PseudoStateKind.Choice) {
+			traverse(selectTransition(transition.target, instance, message), instance, message);
 		}
 
 		// test for completion transitions
-		else if (target instanceof State && isComplete(target, instance)) {
-			evaluateState(target, instance, target);
+		else if (transition.target instanceof State && isComplete(transition.target, instance)) {
+			evaluateState(transition.target, instance, transition.target);
 		}
 	}
 
@@ -934,17 +929,17 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
  * @param message The message that triggerd the transition to the [[PseudoState]].
  */
 /** @internal */ function selectTransition(pseudoState: PseudoState, instance: IInstance, message: any): Transition {
-	const results = pseudoState.outgoing.filter(transition => transition.guard(message, instance));
+	const transitions = pseudoState.outgoing.filter(transition => transition.guard(message, instance));
 
 	if (pseudoState.kind === PseudoStateKind.Choice) {
-		return results.length !== 0 ? results[random(results.length)] : findElse(pseudoState);
+		return transitions.length !== 0 ? transitions[random(transitions.length)] : findElse(pseudoState);
 	}
 
-	if (results.length > 1) {
+	if (transitions.length > 1) {
 		console.error(`Multiple outbound transition guards returned true at ${pseudoState} for ${message}`);
 	}
 
-	return results[0] || findElse(pseudoState);
+	return transitions[0] || findElse(pseudoState);
 }
 
 /** Look for an else [[Transition]] from a [[Junction]] or [[Choice]] [[PseudoState]]. */
@@ -1003,11 +998,8 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 		// add a test for completion
 		if (internalTransitionsTriggerCompletion) {
 			transition.onTraverse.push((message, instance) => {
-				const state = transition.source as State; // the source of an internal transition must be a state
-
-				// fire a completion transition
-				if (isComplete(state, instance)) {
-					evaluateState(state, instance, state);
+				if (transition.source instanceof State && isComplete(transition.source, instance)) {
+					evaluateState(transition.source, instance, transition.source);
 				}
 			});
 		}
@@ -1040,8 +1032,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 
 	// initialise external transitions: these are abritarily complex
 	visitExternalTransition(transition: Transition, behavior: (vertexOrRegion: Vertex | Region) => Behavior) {
-		const sourceAncestors = transition.source.ancestry(),
-			targetAncestors = transition.target!.ancestry(); // external transtions always have a target
+		const sourceAncestors = transition.source.ancestry(), targetAncestors = transition.target!.ancestry(); // external transtions always have a target
 		let i = Math.min(sourceAncestors.length, targetAncestors.length) - 1;
 
 		// find the index of the first uncommon ancestor (or for external transitions, the source)
@@ -1092,6 +1083,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 	visitRegion(region: Region, deepHistoryAbove: boolean) {
 		const regionInitial = region.vertices.reduce<PseudoState | undefined>((result, vertex) => vertex instanceof PseudoState && vertex.isInitial() ? vertex : result, undefined);
 
+		// cascade to child vertices
 		for (const vertex of region.vertices) {
 			vertex.accept(this, deepHistoryAbove || (regionInitial && regionInitial.kind === PseudoStateKind.DeepHistory));
 		}
@@ -1101,8 +1093,9 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 
 		// enter the appropriate child vertex when entering the region
 		if (deepHistoryAbove || !regionInitial || regionInitial.isHistory()) { // NOTE: history needs to be determined at runtime
-			this.behavior(region).endEnter.push((message, instance, deepHistory) => invoke((this.behavior((deepHistory || regionInitial!.isHistory()) ? instance.getCurrent(region) || regionInitial! : regionInitial!)).enter(), message, instance, deepHistory || regionInitial!.kind === PseudoStateKind.DeepHistory)); // TODO: can we really assert regionInitial is not null?
+			this.behavior(region).endEnter.push((message, instance, deepHistory) => invoke((this.behavior((deepHistory || regionInitial!.isHistory()) ? instance.getCurrent(region) || regionInitial! : regionInitial!)).enter(), message, instance, deepHistory || regionInitial!.kind === PseudoStateKind.DeepHistory));
 		} else {
+			// TODO: validate initial region
 			push(this.behavior(region).endEnter, this.behavior(regionInitial).enter());
 		}
 
