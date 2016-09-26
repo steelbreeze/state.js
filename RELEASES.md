@@ -3,6 +3,7 @@ Moved to TypeScript 2.0:
 * protected constructors on abstract claseses;
 * made readonly properties readonly;
 * compile with strictNullChecks set to true;
+* exploit dotted type guards;
 * explicitly define types that may be undefined.
 
 Moved isHistory and isInitial methods back to PseudoState class as the extension methods to the enum feels like a bit of a hack.
