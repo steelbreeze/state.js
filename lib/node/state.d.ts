@@ -118,7 +118,7 @@ export declare abstract class Vertex extends NamedElement<Region | undefined> {
      * @param parent The parent [[State]] or [[Region]].
      * @note Specifting a [[State]] as the parent with cause the constructor to make this [[Vertex]] as child of the [[State]]s [[defaultRegion]].
      */
-    protected constructor(name: string, parent: State | Region | undefined);
+    protected constructor(name: string, parent?: State | Region);
     /** Returns the root [[StateMachine]] instance that this [[Vertex]] is a part of. */
     getRoot(): StateMachine;
     /** Returns the ancestry of the [[Vertex]], form the root [[StateMachine]] to this [[Vertex]]. */
@@ -190,7 +190,7 @@ export declare class State extends Vertex {
      * @param parent The parent [[State]] or [[Region]] that this [[State is a child of]].
      * @note When the parent parameter is of type [[State]], a default [[Region]] is created and subsiquently accessible via the [[defaultRegion]] method.
      */
-    constructor(name: string, parent: State | Region | undefined);
+    constructor(name: string, parent?: State | Region);
     /**
      * Returns the default [[Region]] for the state.
      * @note A default [[Region]] is created on demand if the [[State]] is passed into a child [[Vertex]] constructor..
@@ -451,7 +451,7 @@ export interface IInstance {
      * Returns the last known [[State]] for a given [[Region]].
      * @param region The [[Region]] to get the last known [[State]] for.
      */
-    getCurrent(region: Region | undefined): State;
+    getCurrent(region?: Region): State;
 }
 /**
  * Tests a [[State]] or [[Region]] within a state machine instance to see if its lifecycle is complete.

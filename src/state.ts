@@ -165,7 +165,7 @@ export abstract class Vertex extends NamedElement<Region | undefined> {
 	 * @param parent The parent [[State]] or [[Region]].
 	 * @note Specifting a [[State]] as the parent with cause the constructor to make this [[Vertex]] as child of the [[State]]s [[defaultRegion]].
 	 */
-	protected constructor(name: string, parent: State | Region | undefined) {
+	protected constructor(name: string, parent?: State | Region) {
 		super(name, parent instanceof State ? parent.getDefaultRegion() : parent);
 
 		if (this.parent) {
@@ -289,7 +289,7 @@ export class State extends Vertex {
 	 * @param parent The parent [[State]] or [[Region]] that this [[State is a child of]].
 	 * @note When the parent parameter is of type [[State]], a default [[Region]] is created and subsiquently accessible via the [[defaultRegion]] method.
 	 */
-	public constructor(name: string, parent: State | Region | undefined) {
+	public constructor(name: string, parent?: State | Region) {
 		super(name, parent);
 	}
 
@@ -732,7 +732,7 @@ export interface IInstance {
 	 * Returns the last known [[State]] for a given [[Region]].
 	 * @param region The [[Region]] to get the last known [[State]] for.
 	 */
-	getCurrent(region: Region | undefined): State;
+	getCurrent(region?: Region): State;
 }
 
 /**
