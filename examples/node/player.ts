@@ -2,19 +2,19 @@ import * as state from "../../lib/node/state";
 import { JSONInstance } from "./JSONInstance";
 
 // send log messages, warnings and errors to the console
-state.console = console;
+state.setConsole(console);
 
 // create the state machine model elements
-var model = new state.StateMachine ("model");
-var initial = new state.PseudoState ("initial", model, state.PseudoStateKind.Initial);
-var operational = new state.State ("operational", model);
-var flipped = new state.State ("flipped", model);
-var finalState = new state.FinalState ("final", model);
-var deepHistory = new state.PseudoState ("history", operational, state.PseudoStateKind.DeepHistory);
-var stopped = new state.State ("stopped", operational);
-var active = new state.State ("active", operational).entry (() => console.log("Engage head")).exit (() => console.log("Disengage head"));
-var running = new state.State ("running", active).entry (() => console.log("Start motor")).exit (() => console.log("Stop motor"));
-var paused = new state.State ("paused", active);
+const model = new state.StateMachine ("model");
+const initial = new state.PseudoState ("initial", model, state.PseudoStateKind.Initial);
+const operational = new state.State ("operational", model);
+const flipped = new state.State ("flipped", model);
+const finalState = new state.FinalState ("final", model);
+const deepHistory = new state.PseudoState ("history", operational, state.PseudoStateKind.DeepHistory);
+const stopped = new state.State ("stopped", operational);
+const active = new state.State ("active", operational).entry (() => console.log("Engage head")).exit (() => console.log("Disengage head"));
+const running = new state.State ("running", active).entry (() => console.log("Start motor")).exit (() => console.log("Stop motor"));
+const paused = new state.State ("paused", active);
 
 // create the state machine model transitions
 initial.to (operational);
@@ -28,7 +28,7 @@ flipped.to (operational).when (s => s === "flip");
 operational.to (finalState).when (s => s === "off");
 
 // create a new state machine instance (this stores the active state configuration, allowing many instances to work with a single model)
-var instance = new JSONInstance("player");
+let instance = new JSONInstance("player");
 
 // initialse the state machine instance (also initialises the model if not already initialised explicitly or via another instance)
 state.initialise(model, instance);

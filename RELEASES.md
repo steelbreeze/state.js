@@ -4,9 +4,12 @@ Moved to TypeScript 2.0:
 * made readonly properties readonly;
 * compile with strictNullChecks set to true;
 * exploit dotted type guards;
+* replaced console property with getConsole and setConsole;
 * explicitly define types that may be undefined.
 
 Moved isHistory and isInitial methods back to PseudoState class as the extension methods to the enum feels like a bit of a hack.
+
+Remove the untyped arg2 and arg3 from the Visitor pattern; if more information is required use a class as arg1.
 
 ## Version 5.9.0
 BREAKING CHANGE: reorganised the lib directory; the lib/node directory is provides a CommonJS version and lib/web directory provides a web based version.

@@ -2,7 +2,7 @@
 var state = require("../../lib/node/state"); // use this form if local
 
 // send log messages, warnings and errors to the console
-state.console = console;
+state.setConsole(console);
 
 // create the state machine model elements
 var model = new state.StateMachine("model");

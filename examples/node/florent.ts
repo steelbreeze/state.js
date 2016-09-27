@@ -1,17 +1,17 @@
 import * as state from "../../lib/node/state";
 
-var model = new state.StateMachine("model");
+const model = new state.StateMachine("model");
 
-var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
-var on = new state.State("on", model);
-var off = new state.State("off", model);
-var clean = new state.State("clean", model);
-var final = new state.State("final", model);
-var history = new state.PseudoState("history", on, state.PseudoStateKind.ShallowHistory);
-var idle = new state.State("idle", on);
-var moveItem = new state.State("moveItem", on);
-var showMoveItemPattern = new state.State("showMoveItemPattern", on);
-var hideMoveItemPattern = new state.State("hideMoveItemPattern", on);
+const initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
+const on = new state.State("on", model);
+const off = new state.State("off", model);
+const clean = new state.State("clean", model);
+const final = new state.State("final", model);
+const history = new state.PseudoState("history", on, state.PseudoStateKind.ShallowHistory);
+const idle = new state.State("idle", on);
+const moveItem = new state.State("moveItem", on);
+const showMoveItemPattern = new state.State("showMoveItemPattern", on);
+const hideMoveItemPattern = new state.State("hideMoveItemPattern", on);
 
 initial.to(idle);
 on.to(off).when(s => s === "Disable");
@@ -27,9 +27,9 @@ hideMoveItemPattern.to(idle);
 
 state.validate(model);
 
-var instance = new state.StateMachineInstance("florent");
+let instance = new state.StateMachineInstance("florent");
 
-state.console = console;
+state.setConsole(console);
 
 state.initialise(model, instance);
 

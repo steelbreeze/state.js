@@ -6,9 +6,9 @@ var instance = new state.StateMachineInstance("test");
 instance.calls = 0;
 instance.logs = 0;
 
-var oldConsole = state.console;
+var oldConsole = state.getConsole();
 
-state.console = ({ log: function (message) { console.log(message); instance.logs++; } })
+state.setConsole({ log: function (message) { console.log(message); instance.logs++; } });
 
 var model = new state.StateMachine("model");
 var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
@@ -46,4 +46,4 @@ describe("Custom logging", function () {
 	});
 });
 
-state.console = oldConsole;
+state.setConsole(oldConsole);

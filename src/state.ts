@@ -14,10 +14,7 @@ export enum PseudoStateKind {
 	/**
 	 * Enables a dynamic conditional branches; within a compound [[Transition]].
 	 *
-	 * All outbound transition guards from a [[Choice]] [[PseudoState]] are evaluated upon entering the [[PseudoState]]:
-	 * if a single [[Transition]] is found, it will be traversed;
-	 * if many are found, an arbitary one will be selected and traversed;
-	 * if none evaluate true, and there is no 'else transition' defined, the machine is deemed illformed and an exception will be thrown.
+	 * All outbound transition guards from a [[Choice]] [[PseudoState]] are evaluated upon entering the [[PseudoState]]: if a single [[Transition]] is found, it will be traversed; if many are found, an arbitary one will be selected and traversed; if none evaluate true, and there is no 'else transition' defined, the machine is deemed illformed and an exception will be thrown.
 	 */
 	Choice,
 
@@ -29,9 +26,8 @@ export enum PseudoStateKind {
 
 	/**
 	 * Enables a static conditional branches; within a compound [[Transition]].
-	 * All outbound transition guards from a [[Junction]] [[PseudoState]] are evaluated upon entering the [[PseudoState]]:
-	 * if a single [[Transition]] is found, it will be traversed;
-	 * if many or none evaluate true, and there is no 'else transition' defined, the machine is deemed illformed and an exception will be thrown.
+	 * 
+	 * All outbound transition guards from a [[Junction]] [[PseudoState]] are evaluated upon entering the [[PseudoState]]: if a single [[Transition]] is found, it will be traversed; if many or none evaluate true, and there is no 'else transition' defined, the machine is deemed illformed and an exception will be thrown.
 	 */
 	Junction,
 
@@ -143,11 +139,9 @@ export class Region extends NamedElement<State> {
 	 * @param TArg1 The type of the first optional parameter.
 	 * @param visitor The [[Visitor]] instance.
 	 * @param arg1 An optional argument to pass into the [[Visitor]].
-	 * @param arg2 An optional argument to pass into the [[Visitor]].
-	 * @param arg3 An optional argument to pass into the [[Visitor]].
 	 */
-	public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any {
-		return visitor.visitRegion(this, arg1, arg2, arg3);
+	public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1): void {
+		return visitor.visitRegion(this, arg1);
 	}
 }
 
@@ -170,8 +164,9 @@ export abstract class Vertex extends NamedElement<Region | undefined> {
 
 		if (this.parent) {
 			this.parent.vertices.push(this);
-			this.getRoot().clean = false;
 		}
+
+		this.getRoot().clean = false;
 	}
 
 	/** Returns the root [[StateMachine]] instance that this [[Vertex]] is a part of. */
@@ -213,10 +208,8 @@ export abstract class Vertex extends NamedElement<Region | undefined> {
 	 * @param TArg1 The type of the first optional parameter.
 	 * @param visitor The [[Visitor]] instance.
 	 * @param arg1 An optional argument to pass into the [[Visitor]].
-	 * @param arg2 An optional argument to pass into the [[Visitor]].
-	 * @param arg3 An optional argument to pass into the [[Visitor]].
 	 */
-	public abstract accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any;
+	public abstract accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1): void;
 }
 
 /**
@@ -257,11 +250,9 @@ export class PseudoState extends Vertex {
 	 * Accepts an instance of a [[Visitor]] and calls the [[visitPseudoState]] method on it.
 	 * @param visitor The [[Visitor]] instance.
 	 * @param arg1 An optional argument to pass into the [[Visitor]].
-	 * @param arg2 An optional argument to pass into the [[Visitor]].
-	 * @param arg3 An optional argument to pass into the [[Visitor]].
 	 */
-	public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any {
-		return visitor.visitPseudoState(this, arg1, arg2, arg3);
+	public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1): void {
+		return visitor.visitPseudoState(this, arg1);
 	}
 }
 
@@ -359,11 +350,9 @@ export class State extends Vertex {
 	 * @param TArg1 The type of the first optional parameter.
 	 * @param visitor The [[Visitor]] instance.
 	 * @param arg1 An optional argument to pass into the [[Visitor]].
-	 * @param arg2 An optional argument to pass into the [[Visitor]].
-	 * @param arg3 An optional argument to pass into the [[Visitor]].
 	 */
-	public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any {
-		return visitor.visitState(this, arg1, arg2, arg3);
+	public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1): void {
+		return visitor.visitState(this, arg1);
 	}
 }
 
@@ -386,11 +375,9 @@ export class FinalState extends State {
 	 * @param TArg1 The type of the first optional parameter.
 	 * @param visitor The [[Visitor]] instance.
 	 * @param arg1 An optional argument to pass into the [[Visitor]].
-	 * @param arg2 An optional argument to pass into the [[Visitor]].
-	 * @param arg3 An optional argument to pass into the [[Visitor]].
 	 */
-	public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any {
-		return visitor.visitFinalState(this, arg1, arg2, arg3);
+	public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1): void {
+		return visitor.visitFinalState(this, arg1);
 	}
 }
 
@@ -423,13 +410,17 @@ export class StateMachine extends State {
 	 * @param TArg1 The type of the first optional parameter.
 	 * @param visitor The [[Visitor]] instance.
 	 * @param arg1 An optional argument to pass into the [[Visitor]].
-	 * @param arg2 An optional argument to pass into the [[Visitor]].
-	 * @param arg3 An optional argument to pass into the [[Visitor]].
 	 */
-	public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any {
-		return visitor.visitStateMachine(this, arg1, arg2, arg3);
+	public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1): void {
+		return visitor.visitStateMachine(this, arg1);
 	}
 }
+
+/** A function that always returns true. */
+/** @internal */ let TrueFunc = () => { return true; };
+
+/** A function that always returns false. */
+/** @internal */ let FalseFunc = () => { return false; };
 
 /**
  * Represents a [[State]] change that may occur in response to a message; essentially, the [[Transition]] represents a path between two [[Vertex]] instances.
@@ -437,12 +428,6 @@ export class StateMachine extends State {
  * Transitions come in a variety of types and are described by the [[TransitionKind]] enumeration.
  */
 export class Transition {
-	/** The default guard condition where the [[source]] [[Vertex]] is a [[PseudoState]]. */
-	/** @internal */ static readonly PseudoStateGuard = () => { return true; };
-
-	/** Guard condition for [[else]] [[Transition]]s. */
-	/** @internal */ static readonly ElseGuard = () => { return false; };
-
 	/** The guard condition associated with this [[Transition]]. */
 	/** @internal */ guard: (message?: any, instance?: IInstance) => boolean;
 
@@ -466,7 +451,7 @@ export class Transition {
 			this.kind = TransitionKind.Internal;
 		}
 
-		this.guard = source instanceof PseudoState ? Transition.PseudoStateGuard : (message => message === this.source);
+		this.guard = source instanceof PseudoState ? TrueFunc : (message => message === this.source);
 
 		this.source.outgoing.push(this);
 
@@ -482,7 +467,7 @@ export class Transition {
 	 * Else [[Transitions]]s can be used at [[Junction]] or [[Choice]] [[PseudoState]] if no other [[Transition]] guards evaluate true, an else [[Transition]] if present will be traversed.
 	 */
 	public else() {
-		this.guard = Transition.ElseGuard;
+		this.guard = FalseFunc;
 
 		return this;
 	}
@@ -527,11 +512,9 @@ export class Transition {
 	 * @param TArg1 The type of the first optional parameter.
 	 * @param visitor The [[Visitor]] instance.
 	 * @param arg1 An optional argument to pass into the [[Visitor]].
-	 * @param arg2 An optional argument to pass into the [[Visitor]].
-	 * @param arg3 An optional argument to pass into the [[Visitor]].
 	 */
-	public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1, arg2?: any, arg3?: any): any {
-		return visitor.visitTransition(this, arg1, arg2, arg3);
+	public accept<TArg1>(visitor: Visitor<TArg1>, arg1?: TArg1): void {
+		return visitor.visitTransition(this, arg1);
 	}
 
 	/** Returns a the [[Transition]] name. */
@@ -584,24 +567,20 @@ export abstract class Visitor<TArg1> {
 	 * Visits a [[NamedElement]] within a [[StateMachine]] model.
 	 * @param region The [[Vertex]] or [[Region]] being visited.
 	 * @param arg1 An optional parameter passed into the accept method.
-	 * @param arg2 An optional parameter passed into the accept method.
-	 * @param arg3 An optional parameter passed into the accept method.
 	 */
-	public visitNamedElement(namedElement: Vertex | Region, arg1?: TArg1, arg2?: any, arg3?: any): any {
+	public visitNamedElement(namedElement: Vertex | Region, arg1?: TArg1): void {
 	}
 
 	/**
 	 * Visits a [[Region]] within a [[StateMachine]] model.
 	 * @param region The [[Region]] being visited.
 	 * @param arg1 An optional parameter passed into the accept method.
-	 * @param arg2 An optional parameter passed into the accept method.
-	 * @param arg3 An optional parameter passed into the accept method.
 	 */
-	public visitRegion(region: Region, arg1?: TArg1, arg2?: any, arg3?: any): any {
-		this.visitNamedElement(region, arg1, arg2, arg3);
+	public visitRegion(region: Region, arg1?: TArg1): void {
+		this.visitNamedElement(region, arg1);
 
 		for (const vertex of region.vertices) {
-			vertex.accept(this, arg1, arg2, arg3);
+			vertex.accept(this, arg1);
 		}
 	}
 
@@ -609,14 +588,12 @@ export abstract class Visitor<TArg1> {
 	 * Visits a [[Vertex]] within a [[StateMachine]] model.
 	 * @param vertex The [[Vertex]] being visited.
 	 * @param arg1 An optional parameter passed into the accept method.
-	 * @param arg2 An optional parameter passed into the accept method.
-	 * @param arg3 An optional parameter passed into the accept method.
 	 */
-	public visitVertex(vertex: Vertex, arg1?: TArg1, arg2?: any, arg3?: any): any {
-		this.visitNamedElement(vertex, arg1, arg2, arg3);
+	public visitVertex(vertex: Vertex, arg1?: TArg1): void {
+		this.visitNamedElement(vertex, arg1);
 
 		for (const transition of vertex.outgoing) {
-			transition.accept(this, arg1, arg2, arg3);
+			transition.accept(this, arg1);
 		}
 	}
 
@@ -624,25 +601,21 @@ export abstract class Visitor<TArg1> {
 	 * Visits a [[PseudoState]] within a [[StateMachine]] model.
 	 * @param pseudoState The [[PseudoState]] being visited.
 	 * @param arg1 An optional parameter passed into the accept method.
-	 * @param arg2 An optional parameter passed into the accept method.
-	 * @param arg3 An optional parameter passed into the accept method.
 	 */
-	public visitPseudoState(pseudoState: PseudoState, arg1?: TArg1, arg2?: any, arg3?: any): any {
-		return this.visitVertex(pseudoState, arg1, arg2, arg3);
+	public visitPseudoState(pseudoState: PseudoState, arg1?: TArg1): void {
+		return this.visitVertex(pseudoState, arg1);
 	}
 
 	/**
 	 * Visits a [[State]] within a [[StateMachine]] model.
 	 * @param state The [[State]] being visited.
 	 * @param arg1 An optional parameter passed into the accept method.
-	 * @param arg2 An optional parameter passed into the accept method.
-	 * @param arg3 An optional parameter passed into the accept method.
 	 */
-	public visitState(state: State, arg1?: TArg1, arg2?: any, arg3?: any): any {
-		const result = this.visitVertex(state, arg1, arg2, arg3);
+	public visitState(state: State, arg1?: TArg1): void {
+		const result = this.visitVertex(state, arg1);
 
 		for (const region of state.regions) {
-			region.accept(this, arg1, arg2, arg3);
+			region.accept(this, arg1);
 		}
 
 		return result;
@@ -652,32 +625,26 @@ export abstract class Visitor<TArg1> {
 	 * Visits a [[FinalState]] within a [[StateMachine]] model.
 	 * @param finalState The [[FinalState]] being visited.
 	 * @param arg1 An optional parameter passed into the accept method.
-	 * @param arg2 An optional parameter passed into the accept method.
-	 * @param arg3 An optional parameter passed into the accept method.
 	 */
-	public visitFinalState(finalState: FinalState, arg1?: TArg1, arg2?: any, arg3?: any): any {
-		return this.visitState(finalState, arg1, arg2, arg3);
+	public visitFinalState(finalState: FinalState, arg1?: TArg1): void {
+		return this.visitState(finalState, arg1);
 	}
 
 	/**
 	 * Visits a [[StateMachine]] within a [[StateMachine]] model.
 	 * @param state machine The [[StateMachine]] being visited.
 	 * @param arg1 An optional parameter passed into the accept method.
-	 * @param arg2 An optional parameter passed into the accept method.
-	 * @param arg3 An optional parameter passed into the accept method.
 	 */
-	public visitStateMachine(model: StateMachine, arg1?: TArg1, arg2?: any, arg3?: any): any {
-		return this.visitState(model, arg1, arg2, arg3);
+	public visitStateMachine(model: StateMachine, arg1?: TArg1): void {
+		return this.visitState(model, arg1);
 	}
 
 	/**
 	 * Visits a [[Transition]] within a [[StateMachine]] model.
 	 * @param transition The [[Transition]] being visited.
 	 * @param arg1 An optional parameter passed into the accept method.
-	 * @param arg2 An optional parameter passed into the accept method.
-	 * @param arg3 An optional parameter passed into the accept method.
 	 */
-	public visitTransition(transition: Transition, arg1?: TArg1, arg2?: any, arg3?: any): any {
+	public visitTransition(transition: Transition, arg1?: TArg1): void {
 	}
 }
 
@@ -688,7 +655,7 @@ export abstract class Visitor<TArg1> {
  * @param deepHistory True if [[PseudoStateKind.DeepHistory]] semantics are in play.
  */
 export interface Action {
-	(message: any, instance: IInstance, deepHistory?: boolean): any;
+	(message: any, instance: IInstance, deepHistory?: boolean): void;
 }
 
 /** Interface used for logging, warnings and errors; create implementations of this interface and set the [[console]] variable to an instance of it. */
@@ -944,7 +911,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 
 /** Look for an else [[Transition]] from a [[Junction]] or [[Choice]] [[PseudoState]]. */
 /** @internal */ function findElse(pseudoState: PseudoState): Transition {
-	return pseudoState.outgoing.filter(transition => transition.guard === Transition.ElseGuard)[0];
+	return pseudoState.outgoing.filter(transition => transition.guard === FalseFunc)[0];
 }
 
 /** Interface used to temporarily hold behavior during [[StateMachine]] initialisation. */
@@ -1176,14 +1143,22 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
  * 
  * Assign am object conforming to the [[IConsole]] interface to change the default behavior.
  */
-export let console: IConsole = defaultConsole;
+let console: IConsole = defaultConsole;
+
+export function getConsole(): IConsole {
+	return console;
+}
+
+export function setConsole(newConsole: IConsole) {
+	console = newConsole;
+}
 
 /**
  * Flag to make internal [[Transition]]s trigger completion events for [[State]] they are in.
  * 
  * By default, internal [[Transition]]s do not trigger completion events.
  */
-export let internalTransitionsTriggerCompletion: Boolean = false;
+export var internalTransitionsTriggerCompletion: boolean = false;
 
 /**
  * Validates a [[StateMachine]] model for correctness (see the constraints defined within the UML Superstructure specification).
@@ -1198,7 +1173,7 @@ export function validate(model: StateMachine): void {
 /** Class used to validate a [[StateMachine]] model for semantic integrity. */
 /** @internal */ class Validator extends Visitor<string> {
 	/** Validates a [[PseudoState]]. */
-	public visitPseudoState(pseudoState: PseudoState): any {
+	public visitPseudoState(pseudoState: PseudoState): void {
 		super.visitPseudoState(pseudoState);
 
 		if (pseudoState.kind === PseudoStateKind.Choice || pseudoState.kind === PseudoStateKind.Junction) {
@@ -1209,12 +1184,12 @@ export function validate(model: StateMachine): void {
 			}
 
 			// choice and junction pseudo state can have at most one else transition
-			if (pseudoState.outgoing.filter((transition: Transition) => { return transition.guard === Transition.ElseGuard; }).length > 1) {
+			if (pseudoState.outgoing.filter((transition: Transition) => { return transition.guard === FalseFunc; }).length > 1) {
 				console.error(`${pseudoState}: ${pseudoState.kind} pseudo states cannot have more than one Else transitions.`);
 			}
 		} else {
 			// non choice/junction pseudo state may not have else transitions
-			if (pseudoState.outgoing.filter((transition: Transition) => { return transition.guard === Transition.ElseGuard; }).length !== 0) {
+			if (pseudoState.outgoing.filter((transition: Transition) => { return transition.guard === FalseFunc; }).length !== 0) {
 				console.error(`${pseudoState}: ${pseudoState.kind} pseudo states cannot have Else transitions.`);
 			}
 
@@ -1225,7 +1200,7 @@ export function validate(model: StateMachine): void {
 					console.error(`${pseudoState}: initial pseudo states must have no more than one outgoing transition.`);
 				} else if (pseudoState.outgoing.length === 1) {
 					// [9] The outgoing transition from an initial vertex may have a behavior, but not a trigger or guard.
-					if (pseudoState.outgoing[0].guard !== Transition.PseudoStateGuard) {
+					if (pseudoState.outgoing[0].guard !== TrueFunc) {
 						console.error(`${pseudoState}: initial pseudo states cannot have a guard condition.`);
 					}
 				}
@@ -1234,7 +1209,7 @@ export function validate(model: StateMachine): void {
 	}
 
 	/** Validates a [[Region]]. */
-	public visitRegion(region: Region): any {
+	public visitRegion(region: Region): void {
 		super.visitRegion(region);
 
 		// [1] A region can have at most one initial vertex.
@@ -1266,7 +1241,7 @@ export function validate(model: StateMachine): void {
 			console.error(`${region}: regions may have at most one shallow history pseudo state.`);
 		}
 	}
-	public visitState(state: State): any {
+	public visitState(state: State): void {
 		super.visitState(state);
 
 		if (state.regions.filter(region => region.name === Region.defaultName).length > 1) {
@@ -1275,7 +1250,7 @@ export function validate(model: StateMachine): void {
 	}
 
 	/** Validates a [[FinalState]]. */
-	public visitFinalState(finalState: FinalState): any {
+	public visitFinalState(finalState: FinalState): void {
 		super.visitFinalState(finalState);
 
 		// [1] A final state cannot have any outgoing transitions.
@@ -1300,7 +1275,7 @@ export function validate(model: StateMachine): void {
 	}
 
 	/** Validates a [[Transition]]. */
-	public visitTransition(transition: Transition): any {
+	public visitTransition(transition: Transition): void {
 		super.visitTransition(transition);
 
 		// Local transition target vertices must be a child of the source vertex

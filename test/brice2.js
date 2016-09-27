@@ -2,9 +2,6 @@
 var assert = require("assert"),
 	state = require("../lib/node/state");
 
-// direct log, warning and error messages to the console
-state.console = console;
-
 // enable completion events to be raised after internal transtions
 state.internalTransitionsTriggerCompletion = true;
 

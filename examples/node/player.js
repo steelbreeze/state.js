@@ -2,7 +2,7 @@
 var state = require("../../lib/node/state");
 var JSONInstance_1 = require("./JSONInstance");
 // send log messages, warnings and errors to the console
-state.console = console;
+state.setConsole(console);
 // create the state machine model elements
 var model = new state.StateMachine("model");
 var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);

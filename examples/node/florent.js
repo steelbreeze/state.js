@@ -24,7 +24,7 @@ showMoveItemPattern.to(hideMoveItemPattern).when(function (s) { return s === "Re
 hideMoveItemPattern.to(idle);
 state.validate(model);
 var instance = new state.StateMachineInstance("florent");
-state.console = console;
+state.setConsole(console);
 state.initialise(model, instance);
 state.evaluate(model, instance, "Disable");
 state.evaluate(model, instance, "Enable");

@@ -2,8 +2,6 @@
 var assert = require("assert"),
 	state = require("../lib/node/state");
 
-state.console = console;
-
 var model = new state.StateMachine("model");
 var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
 var state1 = new state.State("state1", model);
