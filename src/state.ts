@@ -417,10 +417,10 @@ export class StateMachine extends State {
 }
 
 /** A function that always returns true. */
-/** @internal */ let TrueFunc = () => { return true; };
+/** @internal */ const TrueFunc = () => { return true; };
 
 /** A function that always returns false. */
-/** @internal */ let FalseFunc = () => { return false; };
+/** @internal */ const FalseFunc = () => { return false; };
 
 /**
  * Represents a [[State]] change that may occur in response to a message; essentially, the [[Transition]] represents a path between two [[Vertex]] instances.
@@ -726,11 +726,6 @@ export function isComplete(stateOrRegion: State | Region, instance: IInstance): 
 	}
 }
 
-/** The default method used to produce a random number; defaulting to simplified implementation seen in Mozilla Math.random() page. */
-/** @internal */ const defaultRandom = function (max: number): number {
-	return Math.floor(Math.random() * max);
-};
-
 /** Concatenates arrays of [[Action]]s. */
 /** @internal */ function push(to: Array<Action>, ...actions: Array<Array<Action>>): void {
 	for (const set of actions) {
@@ -753,7 +748,15 @@ export function isComplete(stateOrRegion: State | Region, instance: IInstance): 
 }
 
 /** The function used for to generate random numbers; may be overriden for testing or other specific purposes. */
-export let random: (max: number) => number = defaultRandom;
+export let random: (max: number) => number = (max: number) => Math.floor(Math.random() * max);
+
+/**
+ * Updates the method used to generate random numbers.
+ * @param value The new method that will be used to generate random numbers.
+ */
+export function setRandom(value: (max: number) => number): void {
+	random = value;
+}
 
 /**
  * Initialises a state machine instance and/or [[StateMachine]] model.
@@ -1041,10 +1044,8 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 	}
 
 	visitNamedElement(namedElement: Vertex | Region, deepHistoryAbove: boolean) {
-		if (console !== defaultConsole) {
-			this.behavior(namedElement).leave.push((message, instance) => console.log(`${instance} leave ${namedElement}`));
-			this.behavior(namedElement).beginEnter.push((message, instance) => console.log(`${instance} enter ${namedElement}`));
-		}
+		this.behavior(namedElement).leave.push((message, instance) => console.log(`${instance} leave ${namedElement}`));
+		this.behavior(namedElement).beginEnter.push((message, instance) => console.log(`${instance} enter ${namedElement}`));
 	}
 
 	visitRegion(region: Region, deepHistoryAbove: boolean) {
@@ -1123,42 +1124,30 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 	}
 }
 
-/**
- * The default console implementation.
- * This may be overriden by assigning an object conforming to the [[IConsole]] interface to the [[console]] variable.
- */
-/** @internal */ const defaultConsole = {
-	/** Default implementation of the log method. */
+/** The object used for log, warning and error messages. */
+export let console: IConsole = {
 	log(message?: any, ...optionalParams: any[]): void { },
-
-	/** Default implementation of the warn method. */
 	warn(message?: any, ...optionalParams: any[]): void { },
-
-	/** Default implementation of the error method. */
-	error(message?: any, ...optionalParams: any[]): void { throw message; }
-};
+	error(message?: any, ...optionalParams: any[]): void { throw message; } };
 
 /**
- * The object used for log, warning and error messages.
- * 
- * Assign am object conforming to the [[IConsole]] interface to change the default behavior.
+ * Replace the default console object to implement custom logging.
+ * @param newConsole An implementation of the [[IConsole]] interface to send log, warning and error messages to.
  */
-let console: IConsole = defaultConsole;
-
-export function getConsole(): IConsole {
-	return console;
-}
-
-export function setConsole(newConsole: IConsole) {
+export function setConsole(newConsole: IConsole): void {
 	console = newConsole;
 }
 
-/**
- * Flag to make internal [[Transition]]s trigger completion events for [[State]] they are in.
- * 
- * By default, internal [[Transition]]s do not trigger completion events.
- */
+/** Flag to make internal [[Transition]]s trigger completion events for [[State]] they are in. */
 export var internalTransitionsTriggerCompletion: boolean = false;
+
+/**
+ * Change the bahaviour of internal [[Transition]]s in respect to trigering completion events for the [[State] they are in.
+ * @param value True for internal [[Transition]]s in respect to trigering completion events for the [[State] they are in.
+ */
+export function setInternalTransitionsTriggerCompletion(value: boolean): void {
+	internalTransitionsTriggerCompletion = value;
+}
 
 /**
  * Validates a [[StateMachine]] model for correctness (see the constraints defined within the UML Superstructure specification).

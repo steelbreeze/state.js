@@ -430,6 +430,11 @@ export declare function isComplete(stateOrRegion: State | Region, instance: IIns
 /** The function used for to generate random numbers; may be overriden for testing or other specific purposes. */
 export declare let random: (max: number) => number;
 /**
+ * Updates the method used to generate random numbers.
+ * @param value The new method that will be used to generate random numbers.
+ */
+export declare function setRandom(value: (max: number) => number): void;
+/**
  * Initialises a state machine instance and/or [[StateMachine]] model.
  *
  * Passing just the [[StateMachine]] model will initialise the model, passing the [[StateMachine]] model and instance will initialse the instance and if necessary, the model.
@@ -447,14 +452,20 @@ export declare function initialise(model: StateMachine, instance?: IInstance, au
  * @returns Returns true if the message caused a [[Transition]].
  */
 export declare function evaluate(model: StateMachine, instance: IInstance, message: any, autoInitialiseModel?: boolean): boolean;
-export declare function getConsole(): IConsole;
-export declare function setConsole(newConsole: IConsole): void;
+/** The object used for log, warning and error messages. */
+export declare let console: IConsole;
 /**
- * Flag to make internal [[Transition]]s trigger completion events for [[State]] they are in.
- *
- * By default, internal [[Transition]]s do not trigger completion events.
+ * Replace the default console object to implement custom logging.
+ * @param newConsole An implementation of the [[IConsole]] interface to send log, warning and error messages to.
  */
+export declare function setConsole(newConsole: IConsole): void;
+/** Flag to make internal [[Transition]]s trigger completion events for [[State]] they are in. */
 export declare var internalTransitionsTriggerCompletion: boolean;
+/**
+ * Change the bahaviour of internal [[Transition]]s in respect to trigering completion events for the [[State] they are in.
+ * @param value True for internal [[Transition]]s in respect to trigering completion events for the [[State] they are in.
+ */
+export declare function setInternalTransitionsTriggerCompletion(value: boolean): void;
 /**
  * Validates a [[StateMachine]] model for correctness (see the constraints defined within the UML Superstructure specification).
  *

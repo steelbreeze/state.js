@@ -4,7 +4,10 @@ Moved to TypeScript 2.0:
 * made readonly properties readonly;
 * compile with strictNullChecks set to true;
 * exploit dotted type guards;
-* replaced console property with getConsole and setConsole;
+* add a setProperty as where ther were previourly read/write properties:
+  * console augmented with setConsole;
+  * random augmented with setRandom;
+  * internalTransitionsTriggerCompletion augmented with setInternalTransitionsTriggerCompletion;
 * explicitly define types that may be undefined.
 
 Moved isHistory and isInitial methods back to PseudoState class as the extension methods to the enum feels like a bit of a hack.

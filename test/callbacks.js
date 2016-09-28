@@ -6,7 +6,7 @@ var instance = new state.StateMachineInstance("test");
 instance.calls = 0;
 instance.logs = 0;
 
-var oldConsole = state.getConsole();
+var oldConsole = state.console;
 
 state.setConsole({ log: function (message) { console.log(message); instance.logs++; } });
 

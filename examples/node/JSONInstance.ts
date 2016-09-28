@@ -30,7 +30,7 @@ export class JSONInstance implements state.IInstance {
 
 	/** Returns the current State for a given Region. */
 	public getCurrent(region: state.Region): state.State {
-		let lastKnown = this.getNode(region).lastKnown;
+		const lastKnown = this.getNode(region).lastKnown;
 
 		return region.vertices.reduce<state.State>((result, item) => item instanceof state.State && item.name === lastKnown ? item : result, undefined);
 	}
@@ -38,7 +38,7 @@ export class JSONInstance implements state.IInstance {
 	/** Finds a node within the active state configuration for a given Region. */
 	private getNode(state: state.State | state.Region): IJSONNode {
 		if (state.parent) {
-			let parentNode = this.getNode(state.parent);
+			const parentNode = this.getNode(state.parent);
 			let node = parentNode.children.reduce((result, item) => item.name === state.name ? item : result, undefined);
 
 			if (!node) {
