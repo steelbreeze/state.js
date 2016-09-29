@@ -5,10 +5,15 @@ Moved to TypeScript 2.0:
 * compile with strictNullChecks set to true;
 * exploit dotted type guards;
 * add a setProperty as where ther were previourly read/write properties:
-  * console augmented with setConsole;
-  * random augmented with setRandom;
-  * internalTransitionsTriggerCompletion augmented with setInternalTransitionsTriggerCompletion;
+  * ```console``` augmented with ```setConsole```method;
+  * ```random``` augmented with ```setRandom```method;
+  * ```internalTransitionsTriggerCompletion``` augmented with ```setInternalTransitionsTriggerCompletion``` method;
 * explicitly define types that may be undefined.
+
+Fixed a few issues based on TypeScript Do's and Don'ts:
+* Return boolean rather than Boolean;
+* Return void from ```visit...``` and accept methods rather than ```any```.
+* Remove optional parameters from callbacks.
 
 Moved isHistory and isInitial methods back to PseudoState class as the extension methods to the enum feels like a bit of a hack.
 

@@ -4,6 +4,12 @@
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
 /**
+ * Finite state machine library
+ * Copyright (c) 2014-6 David Mesquita-Morris
+ * Licensed under the MIT and GPL v3 licences
+ * http://state.software
+ */
+/**
  * An enumeration used to dictate the behavior of instances of the [[PseudoState]] class.
  *
  * Use these constants as the `kind` parameter when creating new [[PseudoState]] instances to define their behavior (see the description of each member).
@@ -379,7 +385,7 @@ export declare abstract class Visitor<TArg1> {
  * @param deepHistory True if [[PseudoStateKind.DeepHistory]] semantics are in play.
  */
 export interface Action {
-    (message: any, instance: IInstance, deepHistory?: boolean): void;
+    (message: any, instance: IInstance, deepHistory: boolean): void;
 }
 /** Interface used for logging, warnings and errors; create implementations of this interface and set the [[console]] variable to an instance of it. */
 export interface IConsole {

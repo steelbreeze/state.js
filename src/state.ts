@@ -1,4 +1,4 @@
-/*
+/**
  * Finite state machine library
  * Copyright (c) 2014-6 David Mesquita-Morris
  * Licensed under the MIT and GPL v3 licences
@@ -655,7 +655,7 @@ export abstract class Visitor<TArg1> {
  * @param deepHistory True if [[PseudoStateKind.DeepHistory]] semantics are in play.
  */
 export interface Action {
-	(message: any, instance: IInstance, deepHistory?: boolean): void;
+	(message: any, instance: IInstance, deepHistory: boolean): void;
 }
 
 /** Interface used for logging, warnings and errors; create implementations of this interface and set the [[console]] variable to an instance of it. */
