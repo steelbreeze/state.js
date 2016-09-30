@@ -38,7 +38,7 @@ $ npm install state.js
 var state = require("state.js");
 
 // send log messages, warnings and errors to the console
-state.console = console;
+state.setConsole(console);
 
 // create the state machine model elements
 var model = new state.StateMachine("model");
@@ -81,7 +81,7 @@ Alternatively, download direct from [lib/web/state.js](https://github.com/steelb
 ```html
 <script>
 	// send log messages, warnings and errors to the console
-	state.console = console;
+	state.setConsole(console);
 
 	// create the state machine model elements
 	var model = new state.StateMachine("model");
