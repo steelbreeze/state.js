@@ -1,16 +1,18 @@
 {
 	"name": "state",
-	"version": "5.10.0",
-	"homepage": "https://github.com/steelbreeze/state.js",
-	"authors": [
-		"David Mesquita-Morris <david.mm@me.com>"
-	],
 	"description": "Hierarchical finite state machine",
 	"main": "lib/web/state.js",
+	"authors": [
+		"David Mesquita-Morris"
+	],
 	"moduleType": [
 		"globals",
 		"node"
 	],
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/steelbreeze/state.js.git"
+	},
 	"keywords": [
 		"state machine",
 		"finite state machine",
@@ -33,7 +35,10 @@
 		"transition",
 		"completion"
 	],
-	"license": "MIT",
+	"license": [
+		"MIT",
+		"GPL-3.0"
+	],
 	"ignore": [
 		"**/.*",
 		"package.json",
@@ -41,6 +46,8 @@
 		"coverage",
 		"scripts",
 		"src",
-		"test"
+		"test",
+		"lib/node",
+		"examples/node"
 	]
 }
