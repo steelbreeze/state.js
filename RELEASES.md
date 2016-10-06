@@ -1,3 +1,8 @@
+## Version 5.10.1
+Added a JSONInsance class to allowing saving/load of state machine state as a JSON string
+
+Deprecate FinalStateClass: as it is just a State that has no outbound transitions.
+
 ## Version 5.10.0
 Moved to TypeScript 2.0:
 * protected constructors on abstract claseses;
