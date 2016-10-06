@@ -7,7 +7,7 @@ var model = new state.StateMachine( "history" );
 var initial = new state.PseudoState( "initial", model, state.PseudoStateKind.Initial);
 var shallow = new state.State( "shallow", model );
 var deep = new state.State( "deep", model );
-var end = new state.FinalState( "final", model );
+var end = new state.State( "final", model );
 
 var s1 = new state.State( "s1", shallow );
 var s2 = new state.State( "s2", shallow );

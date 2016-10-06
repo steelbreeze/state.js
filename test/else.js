@@ -9,7 +9,7 @@ var initial = new state.PseudoState("initial", model);
 var choice = new state.PseudoState("choice", model, state.PseudoStateKind.Choice);
 var junction = new state.PseudoState("junction", model, state.PseudoStateKind.Junction);
 
-var finalState = new state.FinalState("final", model);
+var finalState = new state.State("final", model);
 
 initial.to(choice);
 choice.to(junction).when(function(message, instance) { return !instance.hello }).effect(function (message, instance) {instance.hello = "hello"; });

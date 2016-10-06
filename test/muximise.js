@@ -7,7 +7,7 @@ var model = new state.StateMachine( "model" );
 var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
 var ortho = new state.State("ortho", model);
 var simple = new state.State("simple", model);
-var final = new state.FinalState("final", model);
+var final = new state.State("final", model);
 
 var r1 = new state.Region("r1", ortho);
 var r2 = new state.Region("r2", ortho);
@@ -18,8 +18,8 @@ var i2 = new state.PseudoState("initial", r2, state.PseudoStateKind.ShallowHisto
 var s1 = new state.State("s1", r1);
 var s2 = new state.State("s2", r2);
 
-var f1 = new state.FinalState("f1", r1);
-var f2 = new state.FinalState("f2", r2);
+var f1 = new state.State("f1", r1);
+var f2 = new state.State("f2", r2);
 
 initial.to(ortho);
 

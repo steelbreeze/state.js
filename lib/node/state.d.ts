@@ -223,6 +223,7 @@ export declare class State extends Vertex {
 /**
  * A [[State]] within a [[StateMachine]] model that represents completion of the life of the containing [[Region]] for the state machine instance.
  * @note A [[FinalState]] cannot have outbound transitions.
+ * @depricated The FinalState class will be removed in a future version as it adds nothing over and above the State class.
  */
 export declare class FinalState extends State {
     /**
@@ -317,11 +318,64 @@ export declare class StateMachineInstance implements IInstance {
      * @param name The optional name of the [[StateMachineInstance]].
      */
     constructor(name?: string);
-    /** Updates the last known [[State]] for a given [[Region]]. */
+    /**
+     * Updates the last known [[State]] for a given [[Region]].
+     * @param region The [[Region]] to set the last known [[State]] of.
+     * @param state The last known [[State]] of the given [[Region]].
+     */
     setCurrent(region: Region, state: State): void;
-    /** Returns the last known [[State]] for a given [[Region]]. */
+    /**
+     * Returns the last known [[State]] for a given [[Region]].
+     * @param region The [[Region]] to get the last known [[State]] of.
+     * @returns The last known [[State]] of the given [[Region]].
+     */
     getCurrent(region: Region): State;
-    /** Returns the name of the [[StateMachineInstance]]. */
+    /**
+     * Returns the name of the [[StateMachineInstance]].
+     * @returns The name of this [[StateMachineInstance]].
+     */
+    toString(): string;
+}
+/** Manages the active state configuration of a state machine instance using a serializable JSON structure. */
+export declare class JSONInstance implements IInstance {
+    name: string;
+    /** The active state configuration represented as a JSON object */
+    private activeStateConfiguration;
+    /** Indicates that the state machine instance has reached a [[PseudoStateKind.Terminate]] [[PseudoState]] and therfore will no longer respond to messages. */
+    isTerminated: boolean;
+    /**
+     * Creates a new instance of the [[JSONInstance]] class.
+     * @param name The optional name of the [[JSONInstance]].
+     */
+    constructor(name?: string);
+    /**
+     * Updates the last known [[State]] for a given [[Region]].
+     * @param region The [[Region]] to set the last known [[State]] of.
+     * @param state The last known [[State]] of the given [[Region]].
+     */
+    setCurrent(region: Region, state: State): void;
+    /**
+     * Returns the last known [[State]] for a given [[Region]].
+     * @param region The [[Region]] to get the last known [[State]] of.
+     * @returns The last known [[State]] of the given [[Region]].
+     */
+    getCurrent(region: Region): State | undefined;
+    /** Finds a node within the active state configuration for a given Region. */
+    private getNode(stateOrRegion);
+    /**
+     * Returns the active state configuration as a JSON string.
+     * @returns A JSON string representation of the active state configuration.
+     */
+    toJSON(): string;
+    /**
+     * Sets the active state configuration from a JSON string.
+     * @param json A JSON string representation of the active state configuration.
+     */
+    fromJSON(json: string): any;
+    /**
+     * Returns the name of the [[StateMachineInstance]].
+     * @returns The name of this [[StateMachineInstance]].
+     */
     toString(): string;
 }
 /**
@@ -411,6 +465,8 @@ export interface IConsole {
  * State machine instances hold the active state configuration for an instance of a [[StateMachine]] model. The state library allows there to be multiple state machine instances for a [[StateMachine]] model. By creating implementations of this interface, you can control how the active state configuration is managed, e.g. if persistence is required.
  */
 export interface IInstance {
+    /** The name of the state macine instance. */
+    name: string;
     /** Indicates that the state machine instance has reached a [[PseudoStateKind.Terminate]] [[PseudoState]] and therfore will no longer respond to messages. */
     isTerminated: boolean;
     /**
@@ -423,7 +479,7 @@ export interface IInstance {
      * Returns the last known [[State]] for a given [[Region]].
      * @param region The [[Region]] to get the last known [[State]] for.
      */
-    getCurrent(region?: Region): State;
+    getCurrent(region?: Region): State | undefined;
 }
 /**
  * Tests a [[State]] or [[Region]] within a state machine instance to see if its lifecycle is complete.

@@ -10,10 +10,10 @@ var activity2 = new state.State("activity2", model);
 var activity3 = new state.State("activity3", model);
 var junction1 = new state.PseudoState("junction1", model, state.PseudoStateKind.Junction);
 var junction2 = new state.PseudoState("junction2", model, state.PseudoStateKind.Junction);
-var end = new state.FinalState("end", model);
+var end = new state.State("end", model);
 
 var subInitial = new state.PseudoState("subInitial", activity2, state.PseudoStateKind.Initial);
-var subEnd = new state.FinalState("subEnd", activity2);
+var subEnd = new state.State("subEnd", activity2);
 
 subInitial.to(subEnd);
 initial.to(activity1);

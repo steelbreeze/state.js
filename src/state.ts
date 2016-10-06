@@ -543,17 +543,117 @@ export class StateMachineInstance implements IInstance {
 		this.name = name;
 	}
 
-	/** Updates the last known [[State]] for a given [[Region]]. */
+	/**
+	 * Updates the last known [[State]] for a given [[Region]].
+	 * @param region The [[Region]] to set the last known [[State]] of.
+	 * @param state The last known [[State]] of the given [[Region]]. 
+	 */
 	setCurrent(region: Region, state: State): void {
 		this.last[region.toString()] = state;
 	}
 
-	/** Returns the last known [[State]] for a given [[Region]]. */
+	/**
+	 * Returns the last known [[State]] for a given [[Region]].
+	 * @param region The [[Region]] to get the last known [[State]] of.
+	 * @returns The last known [[State]] of the given [[Region]]. 
+	 */
 	getCurrent(region: Region): State {
 		return this.last[region.toString()];
 	}
 
-	/** Returns the name of the [[StateMachineInstance]]. */
+	/**
+	 * Returns the name of the [[StateMachineInstance]].
+	 * @returns The name of this [[StateMachineInstance]].
+	 */
+	public toString(): string {
+		return this.name;
+	}
+}
+
+/** Definition of a node within a JSON representation of the active state configuration of a state machine model. */
+interface IJSONNode {
+	/** The name of the named element. */
+	name: string;
+
+	/** Child nodes. */
+	children: IJSONNode[];
+
+	/** The last known state for nodes representing regions. */
+	lastKnown?: string;
+}
+
+/** Manages the active state configuration of a state machine instance using a serializable JSON structure. */
+export class JSONInstance implements IInstance {
+	/** The active state configuration represented as a JSON object */
+	private activeStateConfiguration: IJSONNode;
+
+	/** Indicates that the state machine instance has reached a [[PseudoStateKind.Terminate]] [[PseudoState]] and therfore will no longer respond to messages. */
+	public isTerminated: boolean = false;
+
+	/**
+	 * Creates a new instance of the [[JSONInstance]] class.
+	 * @param name The optional name of the [[JSONInstance]].
+	 */
+	public constructor(public name: string = "unnamed") { }
+
+	/**
+	 * Updates the last known [[State]] for a given [[Region]].
+	 * @param region The [[Region]] to set the last known [[State]] of.
+	 * @param state The last known [[State]] of the given [[Region]]. 
+	 */
+	public setCurrent(region: Region, state: State): void {
+		this.getNode(region).lastKnown = state.name;
+	}
+
+	/**
+	 * Returns the last known [[State]] for a given [[Region]].
+	 * @param region The [[Region]] to get the last known [[State]] of.
+	 * @returns The last known [[State]] of the given [[Region]]. 
+	 */
+	public getCurrent(region: Region): State | undefined {
+		const lastKnown = this.getNode(region).lastKnown;
+
+		return region.vertices.reduce<State | undefined>((result, item) => item instanceof State && item.name === lastKnown ? item : result, undefined);
+	}
+
+	/** Finds a node within the active state configuration for a given Region. */
+	private getNode(stateOrRegion: State | Region): IJSONNode {
+		if (stateOrRegion.parent) {
+			const parentNode = this.getNode(stateOrRegion.parent);
+			let node = parentNode.children.reduce((result, item) => item.name === stateOrRegion.name ? item : result, undefined);
+
+			if (!node) {
+				node = { "name": stateOrRegion.name, "children": [] };
+
+				parentNode.children.push(node);
+			}
+
+			return node;
+		} else {
+			return this.activeStateConfiguration || (this.activeStateConfiguration = { "name": stateOrRegion.name, "children": [] });
+		}
+	}
+
+	/**
+	 * Returns the active state configuration as a JSON string.
+	 * @returns A JSON string representation of the active state configuration.
+	 */
+	public toJSON(): string {
+		return JSON.stringify(this.activeStateConfiguration);
+	}
+
+	/**
+	 * Sets the active state configuration from a JSON string.
+	 * @param json A JSON string representation of the active state configuration.
+	 */
+	public fromJSON(json: string) {
+		return this.activeStateConfiguration = JSON.parse(json);
+	}
+
+	/**
+	 * Returns the name of the [[StateMachineInstance]].
+	 * @returns The name of this [[StateMachineInstance]].
+	 */
 	public toString(): string {
 		return this.name;
 	}
@@ -686,6 +786,9 @@ export interface IConsole {
  * State machine instances hold the active state configuration for an instance of a [[StateMachine]] model. The state library allows there to be multiple state machine instances for a [[StateMachine]] model. By creating implementations of this interface, you can control how the active state configuration is managed, e.g. if persistence is required.
  */
 export interface IInstance {
+	/** The name of the state macine instance. */
+	name: string;
+
 	/** Indicates that the state machine instance has reached a [[PseudoStateKind.Terminate]] [[PseudoState]] and therfore will no longer respond to messages. */
 	isTerminated: boolean;
 
@@ -700,7 +803,7 @@ export interface IInstance {
 	 * Returns the last known [[State]] for a given [[Region]].
 	 * @param region The [[Region]] to get the last known [[State]] for.
 	 */
-	getCurrent(region?: Region): State;
+	getCurrent(region?: Region): State | undefined;
 }
 
 /**
@@ -721,7 +824,7 @@ export interface IInstance {
  */
 export function isComplete(stateOrRegion: State | Region, instance: IInstance): boolean {
 	if (stateOrRegion instanceof Region) {
-		return instance.getCurrent(stateOrRegion).isFinal();
+		return instance.getCurrent(stateOrRegion)!.isFinal(); // TODO: fix!
 	} else {
 		return stateOrRegion.regions.every(region => { return isComplete(region, instance); });
 	}
@@ -774,7 +877,7 @@ export function initialise(model: StateMachine, instance?: IInstance, autoInitia
 			initialise(model);
 		}
 
-		console.log(`initialise ${instance}`);
+		console.log(`initialise ${instance.name}`);
 
 		// enter the state machine instance for the first time
 		invoke(model.onInitialise, undefined, instance);
@@ -801,7 +904,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 		initialise(model);
 	}
 
-	console.log(`${instance} evaluate ${message}`);
+	console.log(`${instance.name} evaluate ${message}`);
 
 	// terminated state machine instances will not evaluate messages
 	if (instance.isTerminated) {
@@ -824,7 +927,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 	// delegate to child regions first if a non-continuation
 	if (message !== state) {
 		state.regions.every(region => {
-			if (evaluateState(instance.getCurrent(region), instance, message)) {
+			if (evaluateState(instance.getCurrent(region)!, instance, message)) { // TODO: fix!
 				result = true;
 
 				return isActive(state, instance); // NOTE: this just controls the every loop; also isActive is a litte costly so using sparingly
@@ -986,7 +1089,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 			while (isActive(targetAncestors[i], instance)) { ++i; }
 
 			// exit the active sibling
-			invoke(behavior(instance.getCurrent(targetAncestors[i].parent)).leave, message, instance);
+			invoke(behavior(instance.getCurrent(targetAncestors[i].parent)!).leave, message, instance); // TODO: fix!
 
 			// perform the transition action;
 			invoke(transition.transitionBehavior, message, instance);
@@ -1045,8 +1148,8 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 	}
 
 	visitNamedElement(namedElement: Vertex | Region, deepHistoryAbove: boolean) {
-		this.behavior(namedElement).leave.push((message, instance) => console.log(`${instance} leave ${namedElement}`));
-		this.behavior(namedElement).beginEnter.push((message, instance) => console.log(`${instance} enter ${namedElement}`));
+		this.behavior(namedElement).leave.push((message, instance) => console.log(`${instance.name} leave ${namedElement.qualifiedName}`));
+		this.behavior(namedElement).beginEnter.push((message, instance) => console.log(`${instance.name} enter ${namedElement.qualifiedName}`));
 	}
 
 	visitRegion(region: Region, deepHistoryAbove: boolean) {
@@ -1058,7 +1161,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 		}
 
 		// leave the curent active child state when exiting the region
-		this.behavior(region).leave.push((message, instance) => invoke(this.behavior(instance.getCurrent(region)).leave, message, instance));
+		this.behavior(region).leave.push((message, instance) => invoke(this.behavior(instance.getCurrent(region)!).leave, message, instance)); // TODO: fix!
 
 		// enter the appropriate child vertex when entering the region
 		if (deepHistoryAbove || !regionInitial || regionInitial.isHistory()) { // NOTE: history needs to be determined at runtime
@@ -1080,7 +1183,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 				if (instance.getCurrent(pseudoState.parent)) {
 					invoke(this.behavior(pseudoState).leave, message, instance);
 
-					invoke(this.behavior(instance.getCurrent(pseudoState.parent)).enter(), message, instance, deepHistory || pseudoState.kind === PseudoStateKind.DeepHistory);
+					invoke(this.behavior(instance.getCurrent(pseudoState.parent)!).enter(), message, instance, deepHistory || pseudoState.kind === PseudoStateKind.DeepHistory); // TODO: fix!
 				} else {
 					traverse(pseudoState.outgoing[0], instance);
 				}
