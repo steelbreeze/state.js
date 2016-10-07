@@ -223,7 +223,7 @@ export declare class State extends Vertex {
 /**
  * A [[State]] within a [[StateMachine]] model that represents completion of the life of the containing [[Region]] for the state machine instance.
  * @note A [[FinalState]] cannot have outbound transitions.
- * @depricated The FinalState class will be removed in a future version as it adds nothing over and above the State class.
+ * @depricated since v5.10.1 (use [[State]] class instead).
  */
 export declare class FinalState extends State {
     /**
