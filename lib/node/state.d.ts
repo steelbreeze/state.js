@@ -465,8 +465,6 @@ export interface IConsole {
  * State machine instances hold the active state configuration for an instance of a [[StateMachine]] model. The state library allows there to be multiple state machine instances for a [[StateMachine]] model. By creating implementations of this interface, you can control how the active state configuration is managed, e.g. if persistence is required.
  */
 export interface IInstance {
-    /** The name of the state macine instance. */
-    name: string;
     /** Indicates that the state machine instance has reached a [[PseudoStateKind.Terminate]] [[PseudoState]] and therfore will no longer respond to messages. */
     isTerminated: boolean;
     /**
