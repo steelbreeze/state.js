@@ -121,7 +121,7 @@ export class Region extends NamedElement<State> {
 
 	/** Removes this [[Region]] instance from the [[StateMachine]] model. */
 	public remove() {
-		for (let vertex of this.vertices) {
+		for (const vertex of this.vertices) {
 			vertex.remove();
 		}
 
@@ -181,8 +181,8 @@ export abstract class Vertex extends NamedElement<Region | undefined> {
 
 	/** Removes the [[Vertex]] from the [[StateMachine]] model. */
 	public remove() {
-		for (let transitions of [this.outgoing, this.incoming]) {
-			for (let transition of transitions) {
+		for (const transitions of [this.outgoing, this.incoming]) {
+			for (const transition of transitions) {
 				transition.remove();
 			}
 		}
@@ -314,7 +314,7 @@ export class State extends Vertex {
 
 	/** Removes this [[State]] instance from the [[StateMachine]] model. */
 	public remove() {
-		for (let region of this.regions) {
+		for (const region of this.regions) {
 			region.remove();
 		}
 
@@ -824,7 +824,9 @@ export interface IInstance {
  */
 export function isComplete(stateOrRegion: State | Region, instance: IInstance): boolean {
 	if (stateOrRegion instanceof Region) {
-		return instance.getCurrent(stateOrRegion)!.isFinal(); // TODO: fix!
+		const currentState = instance.getCurrent(stateOrRegion);
+
+		return (currentState !== undefined) && currentState.isFinal();
 	} else {
 		return stateOrRegion.regions.every(region => { return isComplete(region, instance); });
 	}
@@ -927,7 +929,9 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 	// delegate to child regions first if a non-continuation
 	if (message !== state) {
 		state.regions.every(region => {
-			if (evaluateState(instance.getCurrent(region)!, instance, message)) { // TODO: fix!
+			const currentState = instance.getCurrent(region);
+
+			if (currentState && evaluateState(currentState, instance, message)) {
 				result = true;
 
 				return isActive(state, instance); // NOTE: this just controls the every loop; also isActive is a litte costly so using sparingly
@@ -1034,7 +1038,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 
 	/** The full set of [[Action]]s to execute when entering a [[Vertex]] or [[Region]] during a state transition (including and cascaded [[Action]]s). */
 	enter(): Array<Action> {
-		let result = new Array<Action>();
+		const result = new Array<Action>();
 
 		push(result, this.beginEnter, this.endEnter);
 
@@ -1088,8 +1092,12 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 			// find the first inactive element in the target ancestry
 			while (isActive(targetAncestors[i], instance)) { ++i; }
 
-			// exit the active sibling
-			invoke(behavior(instance.getCurrent(targetAncestors[i].parent)!).leave, message, instance); // TODO: fix!
+			// exit the active sibling // TODO: check logic
+			const currentState = instance.getCurrent(targetAncestors[i].parent);
+
+			if (currentState) {
+				invoke(behavior(currentState).leave, message, instance);
+			}
 
 			// perform the transition action;
 			invoke(transition.transitionBehavior, message, instance);
@@ -1161,7 +1169,13 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 		}
 
 		// leave the curent active child state when exiting the region
-		this.behavior(region).leave.push((message, instance) => invoke(this.behavior(instance.getCurrent(region)!).leave, message, instance)); // TODO: fix!
+		this.behavior(region).leave.push((message, instance) => {
+			const currentState = instance.getCurrent(region);
+
+			if (currentState) {
+				invoke(this.behavior(currentState).leave, message, instance);
+			}
+		});
 
 		// enter the appropriate child vertex when entering the region
 		if (deepHistoryAbove || !regionInitial || regionInitial.isHistory()) { // NOTE: history needs to be determined at runtime
@@ -1183,7 +1197,11 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 				if (instance.getCurrent(pseudoState.parent)) {
 					invoke(this.behavior(pseudoState).leave, message, instance);
 
-					invoke(this.behavior(instance.getCurrent(pseudoState.parent)!).enter(), message, instance, deepHistory || pseudoState.kind === PseudoStateKind.DeepHistory); // TODO: fix!
+					const currentState = instance.getCurrent(pseudoState.parent);
+
+					if (currentState) {
+						invoke(this.behavior(currentState).enter(), message, instance, deepHistory || pseudoState.kind === PseudoStateKind.DeepHistory);
+					}
 				} else {
 					traverse(pseudoState.outgoing[0], instance);
 				}
@@ -1232,7 +1250,8 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 export let console: IConsole = {
 	log(message?: any, ...optionalParams: any[]): void { },
 	warn(message?: any, ...optionalParams: any[]): void { },
-	error(message?: any, ...optionalParams: any[]): void { throw message; } };
+	error(message?: any, ...optionalParams: any[]): void { throw message; }
+};
 
 /**
  * Replace the default console object to implement custom logging.

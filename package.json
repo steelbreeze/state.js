@@ -1,9 +1,9 @@
 {
 	"name": "state.js",
 	"version": "5.10.1",
-	"author": "David Mesquita-Morris <david.mm@me.com>",
+	"author": "David Mesquita-Morris",
 	"contributors": [
-		"David Mesquita-Morris <david.mm@me.com>"
+		"David Mesquita-Morris"
 	],
 	"description": "Hierarchical finite state machine",
 	"main": "./lib/node/state",
