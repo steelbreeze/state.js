@@ -7,6 +7,8 @@ Replace a few ```let``` declarations with ```const``` where the value is not cha
 
 Deprecate FinalStateClass as it is just a State that has no outbound transitions; this will be droped in the 6.0 release.
 
+Remove IConsole interface and made it an implicit.
+
 ## Version 5.10.0
 Moved to TypeScript 2.0:
 * protected constructors on abstract claseses;
