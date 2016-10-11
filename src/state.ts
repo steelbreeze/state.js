@@ -1000,7 +1000,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 	return pseudoState.outgoing.filter(transition => transition.guard === FalseFunc)[0];
 }
 
-/** Interface used to temporarily hold behavior during [[StateMachine]] initialisation. */
+/** Class used to temporarily hold behavior during [[StateMachine]] initialisation. */
 /** @internal */ class Behavior {
 	/** The [[Action]]s to execute when leaving a [[Vertex]] or [[Region]] during a state transition (including and cascaded [[Action]]s). */
 	readonly leave = new Array<Action>();
