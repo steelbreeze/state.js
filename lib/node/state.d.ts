@@ -441,24 +441,6 @@ export declare abstract class Visitor<TArg1> {
 export interface Action {
     (message: any, instance: IInstance, deepHistory: boolean): void;
 }
-/** Interface used for logging, warnings and errors; create implementations of this interface and set the [[console]] variable to an instance of it. */
-export interface IConsole {
-    /**
-     * Outputs a log message.
-     * @param message The object to log.
-     */
-    log(message?: any, ...optionalParams: any[]): void;
-    /**
-     * Outputs a warnnig message.
-     * @param message The object to log.
-     */
-    warn(message?: any, ...optionalParams: any[]): void;
-    /**
-     * Outputs an error message.
-     * @param message The object to log.
-     */
-    error(message?: any, ...optionalParams: any[]): void;
-}
 /**
  * The interface used to describe a state machine instance.
  *
@@ -513,12 +495,20 @@ export declare function initialise(model: StateMachine, instance?: IInstance, au
  */
 export declare function evaluate(model: StateMachine, instance: IInstance, message: any, autoInitialiseModel?: boolean): boolean;
 /** The object used for log, warning and error messages. */
-export declare let console: IConsole;
+export declare let console: {
+    log(message?: any, ...optionalParams: any[]): void;
+    warn(message?: any, ...optionalParams: any[]): void;
+    error(message?: any, ...optionalParams: any[]): void;
+};
 /**
  * Replace the default console object to implement custom logging.
- * @param newConsole An implementation of the [[IConsole]] interface to send log, warning and error messages to.
+ * @param newConsole An object to send log, warning and error messages to.
  */
-export declare function setConsole(newConsole: IConsole): void;
+export declare function setConsole(newConsole: {
+    log(message?: any, ...optionalParams: any[]): void;
+    warn(message?: any, ...optionalParams: any[]): void;
+    error(message?: any, ...optionalParams: any[]): void;
+}): void;
 /** Flag to make internal [[Transition]]s trigger completion events for [[State]] they are in. */
 export declare var internalTransitionsTriggerCompletion: boolean;
 /**

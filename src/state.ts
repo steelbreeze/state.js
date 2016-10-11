@@ -327,7 +327,6 @@ export class State extends Vertex {
 	 */
 	public exit(exitAction: Action) {
 		this.exitBehavior.push(exitAction);
-
 		this.getRoot().clean = false;
 
 		return this;
@@ -339,7 +338,6 @@ export class State extends Vertex {
 	 */
 	public entry(entryAction: Action) {
 		this.entryBehavior.push(entryAction);
-
 		this.getRoot().clean = false;
 
 		return this;
@@ -491,7 +489,6 @@ export class Transition {
 	 */
 	public effect(transitionAction: Action) {
 		this.transitionBehavior.push(transitionAction);
-
 		this.source.getRoot().clean = false;
 
 		return this;
@@ -759,27 +756,6 @@ export interface Action {
 	(message: any, instance: IInstance, deepHistory: boolean): void;
 }
 
-/** Interface used for logging, warnings and errors; create implementations of this interface and set the [[console]] variable to an instance of it. */
-export interface IConsole {
-	/**
-	 * Outputs a log message.
-	 * @param message The object to log.
-	 */
-	log(message?: any, ...optionalParams: any[]): void;
-
-	/**
-	 * Outputs a warnnig message.
-	 * @param message The object to log.
-	 */
-	warn(message?: any, ...optionalParams: any[]): void;
-
-	/**
-	 * Outputs an error message.
-	 * @param message The object to log.
-	 */
-	error(message?: any, ...optionalParams: any[]): void;
-}
-
 /**
  * The interface used to describe a state machine instance.
  * 
@@ -809,7 +785,7 @@ export interface IInstance {
  * @param instance The state machine instance.
  */
 /** @internal */ function isActive(vertex: Vertex, instance: IInstance): boolean {
-	return vertex.parent ? (isActive(vertex.parent.parent, instance) && (instance.getCurrent(vertex.parent) === vertex)) : true;
+	return vertex.parent ? isActive(vertex.parent.parent, instance) && instance.getCurrent(vertex.parent) === vertex : true;
 }
 
 /**
@@ -823,9 +799,9 @@ export function isComplete(stateOrRegion: State | Region, instance: IInstance): 
 	if (stateOrRegion instanceof Region) {
 		const currentState = instance.getCurrent(stateOrRegion);
 
-		return (currentState !== undefined) && currentState.isFinal();
+		return currentState !== undefined && currentState.isFinal();
 	} else {
-		return stateOrRegion.regions.every(region => { return isComplete(region, instance); });
+		return stateOrRegion.regions.every(region => isComplete(region, instance));
 	}
 }
 
@@ -840,12 +816,13 @@ export function isComplete(stateOrRegion: State | Region, instance: IInstance): 
 
 /**
  * Invokes behavior.
+ * @param actions The set of [[Action]]s to invoke.
  * @param message The message that caused the [[Transition]] to be traversed that is triggering this behavior.
  * @param instance The state machine instance.
  * @param deepHistory True if [[DeepHistory]] semantics are in force at the time the behavior is invoked.
  */
-/** @internal */ function invoke(to: Array<Action>, message: any, instance: IInstance, deepHistory: boolean = false) {
-	for (const action of to) {
+/** @internal */ function invoke(actions: Array<Action>, message: any, instance: IInstance, deepHistory: boolean = false) {
+	for (const action of actions) {
 		action(message, instance, deepHistory);
 	}
 }
@@ -937,6 +914,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 			return true; // NOTE: this just controls the every loop
 		});
 	}
+
 	// if a transition occured in a child region, check for completions
 	if (result) {
 		if ((message !== state) && isComplete(state, instance)) {
@@ -1244,7 +1222,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 }
 
 /** The object used for log, warning and error messages. */
-export let console: IConsole = {
+export let console = {
 	log(message?: any, ...optionalParams: any[]): void { },
 	warn(message?: any, ...optionalParams: any[]): void { },
 	error(message?: any, ...optionalParams: any[]): void { throw message; }
@@ -1252,9 +1230,13 @@ export let console: IConsole = {
 
 /**
  * Replace the default console object to implement custom logging.
- * @param newConsole An implementation of the [[IConsole]] interface to send log, warning and error messages to.
+ * @param newConsole An object to send log, warning and error messages to.
  */
-export function setConsole(newConsole: IConsole): void {
+export function setConsole(newConsole: {
+	log(message?: any, ...optionalParams: any[]): void;
+	warn(message?: any, ...optionalParams: any[]): void;
+	error(message?: any, ...optionalParams: any[]): void;
+}): void {
 	console = newConsole;
 }
 
