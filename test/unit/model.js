@@ -1,4 +1,4 @@
-var state = require("../lib/node/state");
+var state = require("../../lib/node/state");
 
 var model = new state.StateMachine("model");
 var initial = new state.PseudoState("initial", model);
@@ -11,3 +11,10 @@ stateA.to(stateB).when(function (message) { return message === "move" });
 var visitor = new state.Visitor();
 
 model.accept(visitor);
+
+
+
+
+
+
+
