@@ -1,3 +1,15 @@
+export interface Behavior {
+	(message: any, instance: IInstance): void;
+}
+
+interface Action {
+	(message: any, instance: IInstance, deepHistory: boolean): void;
+}
+
+export interface Guard {
+	(message: any, instance: IInstance): boolean;
+}
+
 export enum PseudoStateKind {
 	Choice,
 	DeepHistory,
@@ -13,6 +25,7 @@ export enum TransitionKind {
 }
 
 export interface Element {
+	getAncestors(): Array<Element>;
 	getRoot(): StateMachine;
 	toString(): string;
 }
@@ -25,6 +38,10 @@ export abstract class NamedElement<TParent extends Element> implements Element {
 		this.qualifiedName = parent ? parent.toString() + NamedElement.namespaceSeparator + name : name;
 
 		console.log("created " + this);
+	}
+
+	getAncestors(): Array<Element> {
+		return this.parent.getAncestors().concat(this);
 	}
 
 	getRoot(): StateMachine {
@@ -82,6 +99,14 @@ export class PseudoState extends Vertex {
 		super(name, parent);
 	}
 
+	isHistory(): boolean {
+		return this.kind === PseudoStateKind.DeepHistory || this.kind === PseudoStateKind.ShallowHistory;
+	}
+
+	isInitial(): boolean {
+		return this.kind === PseudoStateKind.Initial || this.isHistory();
+	}
+
 	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
 		visitor.visitPseudoState(this, arg);
 	}
@@ -90,6 +115,9 @@ export class PseudoState extends Vertex {
 export class State extends Vertex {
 	readonly regions = new Array<Region>();
 	defaultRegion: Region;
+	entryBehavior = new Array<Behavior>();
+	exitBehavior = new Array<Behavior>();
+
 
 	constructor(name: string, parent: Region | State | StateMachine) {
 		super(name, parent);
@@ -97,6 +125,38 @@ export class State extends Vertex {
 
 	getDefaultRegion(): Region {
 		return this.defaultRegion || (this.defaultRegion = new Region(Region.defaultName, this));
+	}
+
+	isFinal(): boolean {
+		return this.outgoing.length === 0;
+	}
+
+	isSimple(): boolean {
+		return this.regions.length === 0;
+	}
+
+	isComposite(): boolean {
+		return this.regions.length > 0;
+	}
+
+	isOrthogonal(): boolean {
+		return this.regions.length > 1;
+	}
+
+	exit(action: Behavior) {
+		this.exitBehavior.push(action);
+
+		this.getRoot().clean = false;
+
+		return this;
+	}
+
+	enter(action: Behavior) {
+		this.exitBehavior.push(action);
+
+		this.getRoot().clean = false;
+
+		return this;
 	}
 
 	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
@@ -108,12 +168,17 @@ export class StateMachine implements Element {
 	readonly regions = new Array<Region>();
 	defaultRegion: Region | undefined = undefined;
 	clean: boolean = false;
+	private onInitialise = new Array<Action>();
 
 	constructor(public readonly name: string) {
 	}
 
 	getDefaultRegion(): Region {
 		return this.defaultRegion || (this.defaultRegion = new Region(Region.defaultName, this));
+	}
+
+	getAncestors(): Array<Element> {
+		return [this];
 	}
 
 	getRoot(): StateMachine {
@@ -130,7 +195,9 @@ export class StateMachine implements Element {
 }
 
 export class Transition {
-	guard: (message: any, instance: IInstance) => boolean;
+	guard: Guard;
+	effectBehavior = new Array<Behavior>();
+	private onTraverse = new Array<Action>();
 
 	constructor(public readonly source: Vertex, public readonly target?: Vertex, public readonly kind: TransitionKind = TransitionKind.External) {
 		this.guard = source instanceof PseudoState ? () => true : message => message === this.source;
@@ -147,14 +214,26 @@ export class Transition {
 		console.log("created transition from " + source + " to " + target);
 	}
 
-	when(guard: (message: any, instance: IInstance) => boolean) {
+	when(guard: Guard) {
 		this.guard = guard;
+
+		return this;
+	}
+
+	effect(action: Behavior) {
+		this.effectBehavior.push(action);
+
+		this.source.getRoot().clean = false;
 
 		return this;
 	}
 
 	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
 		visitor.visitTransition(this, arg);
+	}
+
+	toString(): string {
+		return TransitionKind[this.kind] + "(" + (this.kind === TransitionKind.Internal ? this.source : (this.source + " -> " + this.target)) + ")";
 	}
 }
 
@@ -164,10 +243,18 @@ export class Visitor<TArg> {
 	}
 
 	visitRegion(region: Region, arg?: TArg): void {
+		for (const vertex of region.vertices) {
+			vertex.accept(this, arg);
+		}
+
 		this.visitElement(region, arg);
 	}
 
 	visitVertex(vertex: Vertex, arg?: TArg): void {
+		for (const transition of vertex.outgoing) {
+			transition.accept(this, arg);
+		}
+
 		this.visitElement(vertex, arg);
 	}
 
@@ -176,6 +263,10 @@ export class Visitor<TArg> {
 	}
 
 	visitState(state: State, arg?: TArg): void {
+		for (const region of state.regions) {
+			region.accept(this, arg);
+		}
+
 		this.visitVertex(state, arg);
 	}
 
@@ -188,8 +279,8 @@ export class Visitor<TArg> {
 	}
 
 	visitTransition(transition: Transition, arg?: TArg): void {
+		console.log("visiting " + transition);
 	}
-
 }
 
 export interface IInstance {
@@ -197,4 +288,3 @@ export interface IInstance {
 
 	getCurrent(region: Region): State;
 }
-

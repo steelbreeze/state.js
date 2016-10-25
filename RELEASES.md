@@ -1,3 +1,9 @@
+# Version 6.0.0
+The changes in v6 are significant enough to warrant the major version increment:
+* Removed FinalState class;
+* StateMachine now inherits from NamedElement, not State;
+* Visitor internals call accept methods;
+
 ## Version 5.10.1
 Added a JSONInsance class to allowing saving/load of state machine state as a JSON string
 
