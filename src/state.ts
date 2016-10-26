@@ -214,18 +214,14 @@ export class Transition {
 		console.log("created transition from " + source + " to " + target);
 	}
 
-	else() {
+	else() { // NOTE: no need to invalidate the machine as the transition actions have not changed.
 		this.guard = () => false;
-
-		this.source.getRoot().clean = false;
 
 		return this;
 	}
 
-	when(guard: Guard) {
+	when(guard: Guard) { // NOTE: no need to invalidate the machine as the transition actions have not changed.
 		this.guard = guard;
-
-		this.source.getRoot().clean = false;
 
 		return this;
 	}
