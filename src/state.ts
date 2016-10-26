@@ -306,3 +306,8 @@ export class DictionaryInstance implements IInstance {
 		return this.activeStateConfiguration[region.qualifiedName];
 	}
 }
+
+// TODO: check logic once real instances are available
+function isActive(vertex: Vertex, instance: IInstance): boolean {
+	return vertex.parent.parent instanceof StateMachine ? true : isActive(vertex.parent.parent, instance) && instance.getCurrent(vertex.parent) === vertex;
+}
