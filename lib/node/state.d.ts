@@ -93,6 +93,7 @@ export declare class Transition {
     effectBehavior: Behavior[];
     private onTraverse;
     constructor(source: Vertex, target?: Vertex, kind?: TransitionKind);
+    else(): this;
     when(guard: Guard): this;
     effect(action: Behavior): this;
     accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
@@ -109,5 +110,12 @@ export declare class Visitor<TArg> {
 }
 export interface IInstance {
     setCurrent(region: Region, state: State): void;
-    getCurrent(region: Region): State;
+    getCurrent(region: Region): State | undefined;
+}
+export declare class DictionaryInstance implements IInstance {
+    readonly activeStateConfiguration: {
+        [id: string]: State;
+    };
+    setCurrent(region: Region, state: State): void;
+    getCurrent(region: Region): State | undefined;
 }

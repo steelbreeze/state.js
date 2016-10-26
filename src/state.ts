@@ -1,9 +1,9 @@
-export interface Behavior {
-	(message: any, instance: IInstance): void;
-}
-
 interface Action {
 	(message: any, instance: IInstance, deepHistory: boolean): void;
+}
+
+export interface Behavior {
+	(message: any, instance: IInstance): void;
 }
 
 export interface Guard {
@@ -214,8 +214,18 @@ export class Transition {
 		console.log("created transition from " + source + " to " + target);
 	}
 
+	else() {
+		this.guard = () => false;
+
+		this.source.getRoot().clean = false;
+
+		return this;
+	}
+
 	when(guard: Guard) {
 		this.guard = guard;
+
+		this.source.getRoot().clean = false;
 
 		return this;
 	}
@@ -286,5 +296,17 @@ export class Visitor<TArg> {
 export interface IInstance {
 	setCurrent(region: Region, state: State): void;
 
-	getCurrent(region: Region): State;
+	getCurrent(region: Region): State | undefined;
+}
+
+export class DictionaryInstance implements IInstance {
+	readonly activeStateConfiguration: { [id: string]: State } = {};
+
+	setCurrent(region: Region, state: State): void {
+		this.activeStateConfiguration[region.qualifiedName] = state;
+	}
+
+	getCurrent(region: Region): State | undefined {
+		return this.activeStateConfiguration[region.qualifiedName];
+	}
 }
