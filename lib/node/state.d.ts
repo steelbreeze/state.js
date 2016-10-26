@@ -33,7 +33,10 @@ export declare enum PseudoStateKind {
     Junction = 3,
     /** Ensures that re-entry of the enclosing [[Region]] will start at the last known active state configuration. */
     ShallowHistory = 4,
-    /** Entering a terminate [[PseudoState]] implies that the execution of [[StateMachine]] is terminated and will not respond to any more messages. */
+    /**
+     * Entering a terminate [[PseudoState]] implies that the execution of [[StateMachine]] is terminated and will not respond to any more messages.
+     * @depricated since v5.10.2 (use a transition to a top-leval state with no outbound transitions).
+     * */
     Terminate = 5,
 }
 /**
@@ -329,7 +332,7 @@ export declare class StateMachineInstance implements IInstance {
      * @param region The [[Region]] to get the last known [[State]] of.
      * @returns The last known [[State]] of the given [[Region]].
      */
-    getCurrent(region: Region): State;
+    getCurrent(region: Region): State | undefined;
     /**
      * Returns the name of the [[StateMachineInstance]].
      * @returns The name of this [[StateMachineInstance]].
