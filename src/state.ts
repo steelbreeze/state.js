@@ -554,7 +554,7 @@ export class StateMachineInstance implements IInstance {
 	 * @param region The [[Region]] to get the last known [[State]] of.
 	 * @returns The last known [[State]] of the given [[Region]]. 
 	 */
-	getCurrent(region: Region): State {
+	getCurrent(region: Region): State | undefined {
 		return this.last[region.toString()];
 	}
 
