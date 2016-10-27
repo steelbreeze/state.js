@@ -2,6 +2,20 @@ interface Action {
 	(message: any, instance: IInstance, deepHistory: boolean): void;
 }
 
+function push(to: Array<Action>, ...actions: Array<Array<Action>>): void {
+	for (const set of actions) {
+		for (const action of set) {
+			to.push(action);
+		}
+	}
+}
+
+function invoke(actions: Array<Action>, message: any, instance: IInstance, deepHistory: boolean = false): void {
+	for (const action of actions) {
+		action(message, instance, deepHistory);
+	}
+}
+
 export interface Behavior {
 	(message: any, instance: IInstance): void;
 }
@@ -27,6 +41,7 @@ export enum TransitionKind {
 export interface Element {
 	getAncestors(): Array<Element>;
 	getRoot(): StateMachine;
+	isActive(instance: IInstance): boolean;
 	toString(): string;
 }
 
@@ -48,12 +63,16 @@ export abstract class NamedElement<TParent extends Element> implements Element {
 		return this.parent.getRoot();
 	}
 
-	toString(): string {
-		return this.qualifiedName;
+	isActive(instance: IInstance): boolean {
+		return this.parent.isActive(instance);
 	}
 
 	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
 		visitor.visitElement(this, arg);
+	}
+
+	toString(): string {
+		return this.qualifiedName;
 	}
 }
 
@@ -67,6 +86,12 @@ export class Region extends NamedElement<State | StateMachine> {
 
 		this.parent.regions.push(this);
 		this.getRoot().clean = false;
+	}
+
+	isComplete(instance: IInstance): boolean {
+		const currentState = instance.getCurrent(this);
+
+		return currentState !== undefined && currentState.isFinal();
 	}
 
 	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
@@ -159,6 +184,14 @@ export class State extends Vertex {
 		return this;
 	}
 
+	isActive(instance: IInstance): boolean {
+		return super.isActive(instance) && instance.getCurrent(this.parent) === this;
+	}
+
+	isComplete(instance: IInstance): boolean {
+		return this.regions.every(region => region.isComplete(instance));
+	}
+
 	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
 		visitor.visitState(this, arg);
 	}
@@ -187,6 +220,14 @@ export class StateMachine implements Element {
 
 	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
 		visitor.visitStateMachine(this, arg);
+	}
+
+	isActive(instance: IInstance): boolean {
+		return true;
+	}
+
+	isComplete(instance: IInstance): boolean {
+		return this.regions.every(region => region.isComplete(instance));
 	}
 
 	toString(): string {
@@ -305,9 +346,4 @@ export class DictionaryInstance implements IInstance {
 	getCurrent(region: Region): State | undefined {
 		return this.activeStateConfiguration[region.qualifiedName];
 	}
-}
-
-// TODO: check logic once real instances are available
-function isActive(vertex: Vertex, instance: IInstance): boolean {
-	return vertex.parent.parent instanceof StateMachine ? true : isActive(vertex.parent.parent, instance) && instance.getCurrent(vertex.parent) === vertex;
 }

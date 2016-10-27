@@ -24,6 +24,7 @@ export declare enum TransitionKind {
 export interface Element {
     getAncestors(): Array<Element>;
     getRoot(): StateMachine;
+    isActive(instance: IInstance): boolean;
     toString(): string;
 }
 export declare abstract class NamedElement<TParent extends Element> implements Element {
@@ -34,13 +35,15 @@ export declare abstract class NamedElement<TParent extends Element> implements E
     protected constructor(name: string, parent: TParent);
     getAncestors(): Array<Element>;
     getRoot(): StateMachine;
-    toString(): string;
+    isActive(instance: IInstance): boolean;
     accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
+    toString(): string;
 }
 export declare class Region extends NamedElement<State | StateMachine> {
     static defaultName: string;
     readonly vertices: Vertex[];
     constructor(name: string, parent: State | StateMachine);
+    isComplete(instance: IInstance): boolean;
     accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
 }
 export declare class Vertex extends NamedElement<Region> {
@@ -70,6 +73,8 @@ export declare class State extends Vertex {
     isOrthogonal(): boolean;
     exit(action: Behavior): this;
     enter(action: Behavior): this;
+    isActive(instance: IInstance): boolean;
+    isComplete(instance: IInstance): boolean;
     accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
 }
 export declare class StateMachine implements Element {
@@ -83,6 +88,8 @@ export declare class StateMachine implements Element {
     getAncestors(): Array<Element>;
     getRoot(): StateMachine;
     accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
+    isActive(instance: IInstance): boolean;
+    isComplete(instance: IInstance): boolean;
     toString(): string;
 }
 export declare class Transition {
