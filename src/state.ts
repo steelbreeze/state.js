@@ -1,3 +1,9 @@
+export let random: (max: number) => number = (max: number) => Math.floor(Math.random() * max);
+
+export function setRandom(value: (max: number) => number): void {
+	random = value;
+}
+
 interface Action {
 	(message: any, instance: IInstance, deepHistory: boolean): void;
 }
@@ -10,7 +16,7 @@ function push(to: Array<Action>, ...actions: Array<Array<Action>>): void {
 	}
 }
 
-function invoke(actions: Array<Action>, message: any, instance: IInstance, deepHistory: boolean = false): void {
+function invoke(actions: Array<Action>, message: any, instance: IInstance, deepHistory: boolean): void {
 	for (const action of actions) {
 		action(message, instance, deepHistory);
 	}
@@ -230,6 +236,23 @@ export class StateMachine implements Element {
 		return this.regions.every(region => region.isComplete(instance));
 	}
 
+	initialise(instance?: IInstance, autoInitialiseModel: boolean = true): void {
+		if (instance) {
+			if (autoInitialiseModel && this.clean === false) {
+				this.initialise();
+			}
+
+			console.log(`initialise ${instance}`);
+
+			invoke(this.onInitialise, undefined, instance, false);
+		} else {
+			console.log(`initialise ${this}`);
+
+			// TODO: accept initialier
+			this.clean = true;
+		}
+	}
+
 	toString(): string {
 		return this.name;
 	}
@@ -339,11 +362,17 @@ export interface IInstance {
 export class DictionaryInstance implements IInstance {
 	readonly activeStateConfiguration: { [id: string]: State } = {};
 
+	constructor(public readonly name: string) { }
+
 	setCurrent(region: Region, state: State): void {
 		this.activeStateConfiguration[region.qualifiedName] = state;
 	}
 
 	getCurrent(region: Region): State | undefined {
 		return this.activeStateConfiguration[region.qualifiedName];
+	}
+
+	toString(): string {
+		return this.name;
 	}
 }

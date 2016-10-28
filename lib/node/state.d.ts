@@ -3,6 +3,8 @@
 // Definitions by: David Mesquita-Morris <http://state.software>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
+export declare let random: (max: number) => number;
+export declare function setRandom(value: (max: number) => number): void;
 export interface Behavior {
     (message: any, instance: IInstance): void;
 }
@@ -90,6 +92,7 @@ export declare class StateMachine implements Element {
     accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
     isActive(instance: IInstance): boolean;
     isComplete(instance: IInstance): boolean;
+    initialise(instance?: IInstance, autoInitialiseModel?: boolean): void;
     toString(): string;
 }
 export declare class Transition {
@@ -120,9 +123,12 @@ export interface IInstance {
     getCurrent(region: Region): State | undefined;
 }
 export declare class DictionaryInstance implements IInstance {
+    readonly name: string;
     readonly activeStateConfiguration: {
         [id: string]: State;
     };
+    constructor(name: string);
     setCurrent(region: Region, state: State): void;
     getCurrent(region: Region): State | undefined;
+    toString(): string;
 }

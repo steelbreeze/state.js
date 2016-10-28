@@ -11,9 +11,6 @@ stateA.to(stateB).when(function (message) { return message === "move" });
 
 var visitor = new state.Visitor();
 
-stateA.getAncestors().forEach(function (element) {
-	console.log(element + " is ancestor of " + stateA);
-});
+var instance = new state.DictionaryInstance("unit_model");
 
-
-
+model.initialise(instance);
