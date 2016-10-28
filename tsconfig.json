@@ -3,7 +3,7 @@
 		"strictNullChecks": true,
 		"noImplicitAny": true,
 		"noImplicitReturns": true,
-		"noUnusedLocals": false,
+		"noUnusedLocals": true,
 		"stripInternal": true,
 		"declaration": true,
 		"outDir": "lib/node"

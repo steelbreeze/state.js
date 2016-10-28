@@ -8,6 +8,7 @@ interface Action {
 	(message: any, instance: IInstance, deepHistory: boolean): void;
 }
 
+/*
 function push(to: Array<Action>, ...actions: Array<Array<Action>>): void {
 	for (const set of actions) {
 		for (const action of set) {
@@ -15,6 +16,7 @@ function push(to: Array<Action>, ...actions: Array<Array<Action>>): void {
 		}
 	}
 }
+*/
 
 function invoke(actions: Array<Action>, message: any, instance: IInstance, deepHistory: boolean): void {
 	for (const action of actions) {
@@ -248,6 +250,8 @@ export class StateMachine implements Element {
 		} else {
 			console.log(`initialise ${this}`);
 
+			this.accept(new InitialiseStateMachine());
+
 			// TODO: accept initialier
 			this.clean = true;
 		}
@@ -261,7 +265,7 @@ export class StateMachine implements Element {
 export class Transition {
 	guard: Guard;
 	effectBehavior = new Array<Behavior>();
-	private onTraverse = new Array<Action>();
+	// private onTraverse = new Array<Action>();
 
 	constructor(public readonly source: Vertex, public readonly target?: Vertex, public readonly kind: TransitionKind = TransitionKind.External) {
 		this.guard = source instanceof PseudoState ? () => true : message => message === this.source;
@@ -375,4 +379,8 @@ export class DictionaryInstance implements IInstance {
 	toString(): string {
 		return this.name;
 	}
+}
+
+class InitialiseStateMachine extends Visitor<boolean> {
+
 }

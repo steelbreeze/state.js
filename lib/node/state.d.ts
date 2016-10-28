@@ -101,7 +101,6 @@ export declare class Transition {
     readonly kind: TransitionKind;
     guard: Guard;
     effectBehavior: Behavior[];
-    private onTraverse;
     constructor(source: Vertex, target?: Vertex, kind?: TransitionKind);
     else(): this;
     when(guard: Guard): this;
