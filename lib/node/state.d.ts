@@ -5,6 +5,9 @@
 
 export declare let random: (max: number) => number;
 export declare function setRandom(value: (max: number) => number): void;
+export interface Action {
+    (message: any, instance: IInstance, deepHistory: boolean): void;
+}
 export interface Behavior {
     (message: any, instance: IInstance): void;
 }
@@ -84,7 +87,7 @@ export declare class StateMachine implements Element {
     readonly regions: Region[];
     defaultRegion: Region | undefined;
     clean: boolean;
-    private onInitialise;
+    onInitialise: Action[];
     constructor(name: string);
     getDefaultRegion(): Region;
     getAncestors(): Array<Element>;

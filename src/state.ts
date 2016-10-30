@@ -4,19 +4,19 @@ export function setRandom(value: (max: number) => number): void {
 	random = value;
 }
 
-interface Action {
+export interface Action {
 	(message: any, instance: IInstance, deepHistory: boolean): void;
 }
 
-/*
-function push(to: Array<Action>, ...actions: Array<Array<Action>>): void {
+function pushh(to: Array<Action>, ...actions: Array<Array<Action>>): Array<Action> {
 	for (const set of actions) {
 		for (const action of set) {
 			to.push(action);
 		}
 	}
+
+	return to;
 }
-*/
 
 function invoke(actions: Array<Action>, message: any, instance: IInstance, deepHistory: boolean): void {
 	for (const action of actions) {
@@ -209,7 +209,7 @@ export class StateMachine implements Element {
 	readonly regions = new Array<Region>();
 	defaultRegion: Region | undefined = undefined;
 	clean: boolean = false;
-	private onInitialise = new Array<Action>();
+	onInitialise = new Array<Action>(); // TODO: make private
 
 	constructor(public readonly name: string) {
 	}
@@ -252,7 +252,6 @@ export class StateMachine implements Element {
 
 			this.accept(new InitialiseStateMachine());
 
-			// TODO: accept initialier
 			this.clean = true;
 		}
 	}
@@ -381,6 +380,22 @@ export class DictionaryInstance implements IInstance {
 	}
 }
 
-class InitialiseStateMachine extends Visitor<boolean> {
+class ElementAction {
+	readonly leave = new Array<Action>();
+	readonly beginEnter = new Array<Action>();
+	readonly endEnter = new Array<Action>();
+}
 
+class InitialiseStateMachine extends Visitor<boolean> {
+	readonly elementActions: { [id: string]: ElementAction } = {};
+
+	getElementAction(elemenet: Element): ElementAction {
+		return this.elementActions[elemenet.toString()] || (this.elementActions[elemenet.toString()] = new ElementAction());
+	}
+
+	visitStateMachine(stateMachine: StateMachine, deepHistoryAbove: boolean): void {
+		for (const region of stateMachine.regions) {
+			pushh(stateMachine.onInitialise, this.getElementAction(region).endEnter);
+		}
+	}
 }
