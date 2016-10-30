@@ -4,18 +4,16 @@ export function setRandom(value: (max: number) => number): void {
 	random = value;
 }
 
-export interface Action {
+export interface Action { // TODO: make private
 	(message: any, instance: IInstance, deepHistory: boolean): void;
 }
 
-function pushh(to: Array<Action>, ...actions: Array<Array<Action>>): Array<Action> {
+function pushh(to: Array<Action>, ...actions: Array<Array<Action>>): void {
 	for (const set of actions) {
 		for (const action of set) {
 			to.push(action);
 		}
 	}
-
-	return to;
 }
 
 function invoke(actions: Array<Action>, message: any, instance: IInstance, deepHistory: boolean): void {
