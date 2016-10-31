@@ -379,18 +379,18 @@ export class DictionaryInstance implements IInstance {
 	}
 }
 
-class ElementAction {
+class ElementActions {
 	readonly leave = new Array<Action>();
 	readonly beginEnter = new Array<Action>();
 	readonly endEnter = new Array<Action>();
 }
 
 class InitialiseStateMachine extends Visitor<boolean> {
-	readonly elementActions: { [id: string]: ElementAction } = {};
+	readonly elementActions: { [id: string]: ElementActions } = {};
 	readonly transitions = new Array<Transition>();
 
-	getActions(elemenet: Element): ElementAction {
-		return this.elementActions[elemenet.toString()] || (this.elementActions[elemenet.toString()] = new ElementAction());
+	getActions(elemenet: Element): ElementActions {
+		return this.elementActions[elemenet.toString()] || (this.elementActions[elemenet.toString()] = new ElementActions());
 	}
 
 	visitElement(element: Element, deepHistory: boolean): void {
