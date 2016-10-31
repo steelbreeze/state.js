@@ -1,3 +1,12 @@
+// push any number of arrays into a target array
+function pushh<TItem>(target: Array<TItem>, ...sources: Array<Array<TItem>>): void {
+	for (const source of sources) {
+		for (const item of source) {
+			target.push(item);
+		}
+	}
+}
+
 export let random: (max: number) => number = (max: number) => Math.floor(Math.random() * max);
 
 export function setRandom(value: (max: number) => number): void {
@@ -6,14 +15,6 @@ export function setRandom(value: (max: number) => number): void {
 
 export interface Action { // TODO: make private
 	(message: any, instance: IInstance, deepHistory: boolean): void;
-}
-
-function pushh(to: Array<Action>, ...actions: Array<Array<Action>>): void {
-	for (const set of actions) {
-		for (const action of set) {
-			to.push(action);
-		}
-	}
 }
 
 function invoke(actions: Array<Action>, message: any, instance: IInstance, deepHistory: boolean): void {
@@ -386,14 +387,34 @@ class ElementAction {
 
 class InitialiseStateMachine extends Visitor<boolean> {
 	readonly elementActions: { [id: string]: ElementAction } = {};
+	readonly transitions = new Array<Transition>();
 
-	getElementAction(elemenet: Element): ElementAction {
+	getActions(elemenet: Element): ElementAction {
 		return this.elementActions[elemenet.toString()] || (this.elementActions[elemenet.toString()] = new ElementAction());
 	}
 
+	visitElement(element: Element, deepHistory: boolean): void {
+		this.getActions(element).leave.push((message, instance) => console.log(`${instance} leave ${element}`));
+		this.getActions(element).beginEnter.push((message, instance) => console.log(`${instance} enter ${element}`));
+	}
+
+	visitTransition(transition: Transition, deepHistoryAbove: boolean) {
+		super.visitTransition(transition, deepHistoryAbove);
+
+		this.transitions.push(transition);
+	}
+
 	visitStateMachine(stateMachine: StateMachine, deepHistoryAbove: boolean): void {
+		super.visitStateMachine(stateMachine, deepHistoryAbove);
+
+		// initialise the transitions only once all elemenets have been initialised
+		for (const transition of this.transitions) {
+			console.log("init trans: " + transition);
+		}
+
+		// enter each child region on state machine entry
 		for (const region of stateMachine.regions) {
-			pushh(stateMachine.onInitialise, this.getElementAction(region).endEnter);
+			pushh(stateMachine.onInitialise, this.getActions(region).beginEnter, this.getActions(region).endEnter);
 		}
 	}
 }
