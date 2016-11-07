@@ -7,12 +7,15 @@ function pushh<TItem>(target: Array<TItem>, ...sources: Array<Array<TItem>>): vo
 	}
 }
 
+/** Random number generation method. */
 export let random: (max: number) => number = (max: number) => Math.floor(Math.random() * max);
 
+/** Set a custom random number generation method. */
 export function setRandom(value: (max: number) => number): void {
 	random = value;
 }
 
+// prototype of method used internally when defining actions performed during state transitions.
 export interface Action { // TODO: make private
 	(message: any, instance: IInstance, deepHistory: boolean): void;
 }
@@ -30,6 +33,8 @@ export interface Behavior {
 export interface Guard {
 	(message: any, instance: IInstance): boolean;
 }
+
+const GuardElse = (message: any, instance: IInstance) => false;
 
 export enum PseudoStateKind {
 	Choice,
@@ -139,6 +144,24 @@ export class PseudoState extends Vertex {
 		return this.kind === PseudoStateKind.Initial || this.isHistory();
 	}
 
+	selectTransition(instance: IInstance, message: any): Transition {
+		const transitions = this.outgoing.filter(transition => transition.guard(message, instance));
+
+		if (this.kind === PseudoStateKind.Choice) {
+			return transitions.length !== 0 ? transitions[random(transitions.length)] : this.findElse();
+		}
+
+		if (transitions.length > 1) {
+			console.error(`Multiple outbound transition guards returned true at ${this} for ${message}`);
+		}
+
+		return transitions[0] || this.findElse();
+	}
+
+	findElse(): Transition {
+		return this.outgoing.filter(transition => transition.guard === GuardElse)[0];
+	}
+
 	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
 		visitor.visitPseudoState(this, arg);
 	}
@@ -199,6 +222,45 @@ export class State extends Vertex {
 		return this.regions.every(region => region.isComplete(instance));
 	}
 
+	evaluateState(instance: IInstance, message: any): boolean {
+		let result = false;
+
+		// delegate to child regions first if a non-continuation
+		if (message !== this) {
+			this.regions.every(region => {
+				const currentState = instance.getCurrent(region);
+
+				if (currentState && currentState.evaluateState(instance, message)) {
+					result = true;
+
+					return this.isActive(instance); // NOTE: this just controls the every loop; also isActive is a litte costly so using sparingly
+				}
+
+				return true; // NOTE: this just controls the every loop
+			});
+		}
+
+		// if a transition occured in a child region, check for completions
+		if (result) {
+			if ((message !== this) && this.isComplete(instance)) {
+				this.evaluateState(instance, this);
+			}
+		} else {
+			// otherwise look for a transition from this state
+			const transitions = this.outgoing.filter(transition => transition.guard(message, instance));
+
+			if (transitions.length === 1) {
+				// execute if a single transition was found
+				result = transitions[0].traverse(instance, message);
+			} else if (transitions.length > 1) {
+				// error if multiple transitions evaluated true
+				console.error(`${this}: multiple outbound transitions evaluated true for message ${message}`);
+			}
+		}
+
+		return result;
+	}
+
 	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
 		visitor.visitState(this, arg);
 	}
@@ -255,6 +317,36 @@ export class StateMachine implements Element {
 		}
 	}
 
+	evaluate(model: StateMachine, instance: IInstance, message: any, autoInitialiseModel: boolean = true): boolean {
+		// initialise the state machine model if necessary
+		if (autoInitialiseModel && model.clean === false) {
+			this.initialise();
+		}
+
+		console.log(`${instance} evaluate ${message}`);
+
+		return this.evaluateState(instance, message);
+	}
+
+	evaluateState(instance: IInstance, message: any): boolean {
+		let result = false;
+
+		// delegate to child regions first if a non-continuation
+		this.regions.every(region => {
+			const currentState = instance.getCurrent(region);
+
+			if (currentState && currentState.evaluateState(instance, message)) {
+				result = true;
+
+				return this.isActive(instance); // NOTE: this just controls the every loop; also isActive is a litte costly so using sparingly
+			}
+
+			return true; // NOTE: this just controls the every loop
+		});
+
+		return result;
+	}
+
 	toString(): string {
 		return this.name;
 	}
@@ -263,7 +355,7 @@ export class StateMachine implements Element {
 export class Transition {
 	guard: Guard;
 	effectBehavior = new Array<Behavior>();
-	// private onTraverse = new Array<Action>();
+	onTraverse = new Array<Action>();
 
 	constructor(public readonly source: Vertex, public readonly target?: Vertex, public readonly kind: TransitionKind = TransitionKind.External) {
 		this.guard = source instanceof PseudoState ? () => true : message => message === this.source;
@@ -281,7 +373,7 @@ export class Transition {
 	}
 
 	else() { // NOTE: no need to invalidate the machine as the transition actions have not changed.
-		this.guard = () => false;
+		this.guard = GuardElse;
 
 		return this;
 	}
@@ -299,6 +391,38 @@ export class Transition {
 
 		return this;
 	}
+
+	traverse(instance: IInstance, message?: any): boolean {
+		let onTraverse = this.onTraverse.slice(0);
+		let transition: Transition = this;
+
+		// process static conditional branches - build up all the transition behavior prior to executing
+		while (transition.target && transition.target instanceof PseudoState && transition.target.kind === PseudoStateKind.Junction) {
+			// proceed to the next transition
+			transition = transition.target.selectTransition(instance, message);
+
+			// concatenate behavior before and after junctions
+			pushh(onTraverse, transition.onTraverse);
+		}
+
+		// execute the transition behavior
+		invoke(onTraverse, message, instance, false);
+
+		if (transition.target) {
+			// process dynamic conditional branches if required
+			if (transition.target instanceof PseudoState && transition.target.kind === PseudoStateKind.Choice) {
+				transition.target.selectTransition(instance, message).traverse(instance, message);
+			}
+
+			// test for completion transitions
+			else if (transition.target instanceof State && transition.target.isComplete(instance)) {
+				transition.target.evaluateState(instance, transition.target);
+			}
+		}
+
+		return true;
+	}
+
 
 	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
 		visitor.visitTransition(this, arg);
@@ -379,10 +503,10 @@ export class DictionaryInstance implements IInstance {
 	}
 }
 
-class ElementActions {
-	readonly leave = new Array<Action>();
-	readonly beginEnter = new Array<Action>();
-	readonly endEnter = new Array<Action>();
+type ElementActions = {
+	leave: Array<Action>,
+	beginEnter: Array<Action>;
+	endEnter: Array<Action>;
 }
 
 class InitialiseStateMachine extends Visitor<boolean> {
@@ -390,12 +514,65 @@ class InitialiseStateMachine extends Visitor<boolean> {
 	readonly transitions = new Array<Transition>();
 
 	getActions(elemenet: Element): ElementActions {
-		return this.elementActions[elemenet.toString()] || (this.elementActions[elemenet.toString()] = new ElementActions());
+		return this.elementActions[elemenet.toString()] || (this.elementActions[elemenet.toString()] = { leave: [], beginEnter: [], endEnter: [] });
 	}
 
-	visitElement(element: Element, deepHistory: boolean): void {
+	visitElement(element: Element, deepHistoryAbove: boolean): void {
 		this.getActions(element).leave.push((message, instance) => console.log(`${instance} leave ${element}`));
 		this.getActions(element).beginEnter.push((message, instance) => console.log(`${instance} enter ${element}`));
+	}
+
+	visitRegion(region: Region, deepHistoryAbove: boolean): void {
+		// find the initial pseudo state of this region
+		const regionInitial = region.vertices.reduce<PseudoState | undefined>((result, vertex) => vertex instanceof PseudoState && vertex.isInitial() && (result === undefined || result.isHistory()) ? vertex : result, undefined);
+
+		// cascade to child vertices
+		super.visitRegion(region, deepHistoryAbove || (regionInitial && regionInitial.kind === PseudoStateKind.DeepHistory)); // TODO: determine if we need to break this up or move it
+
+		// leave the curent active child state when exiting the region
+		this.getActions(region).leave.push((message, instance) => {
+			const currentState = instance.getCurrent(region);
+
+			if (currentState) {
+				invoke(this.getActions(currentState).leave, message, instance, false);
+			}
+		});
+
+		// enter the appropriate child vertex when entering the region
+		if (deepHistoryAbove || !regionInitial || regionInitial.isHistory()) { // NOTE: history needs to be determined at runtime
+			this.getActions(region).endEnter.push((message, instance, deepHistory) => {
+				const actions = this.getActions((deepHistory || regionInitial!.isHistory()) ? instance.getCurrent(region) || regionInitial! : regionInitial!);
+				const history = deepHistory || regionInitial!.kind === PseudoStateKind.DeepHistory;
+
+				invoke(actions.beginEnter, message, instance, history);
+				invoke(actions.endEnter, message, instance, history);
+			});
+		} else {
+			// TODO: validate initial region
+			pushh(this.getActions(region).endEnter, this.getActions(regionInitial).beginEnter, this.getActions(regionInitial).endEnter);
+		}
+	}
+
+	visitPseudoState(pseudoState: PseudoState, deepHistoryAbove: boolean) {
+		super.visitPseudoState(pseudoState, deepHistoryAbove);
+
+		// evaluate comppletion transitions once vertex entry is complete
+		if (pseudoState.isInitial()) {
+			this.getActions(pseudoState).endEnter.push((message, instance, deepHistory) => {
+				if (instance.getCurrent(pseudoState.parent)) {
+					invoke(this.getActions(pseudoState).leave, message, instance, false);
+
+					const currentState = instance.getCurrent(pseudoState.parent);
+
+					if (currentState) {
+						invoke(this.getActions(currentState).beginEnter, message, instance, deepHistory || pseudoState.kind === PseudoStateKind.DeepHistory);
+						invoke(this.getActions(currentState).endEnter, message, instance, deepHistory || pseudoState.kind === PseudoStateKind.DeepHistory);
+					}
+				} else {
+					pseudoState.outgoing[0].traverse(instance);
+				}
+			});
+		}
 	}
 
 	visitTransition(transition: Transition, deepHistoryAbove: boolean) {

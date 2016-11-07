@@ -3,7 +3,9 @@
 // Definitions by: David Mesquita-Morris <http://state.software>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
+/** Random number generation method. */
 export declare let random: (max: number) => number;
+/** Set a custom random number generation method. */
 export declare function setRandom(value: (max: number) => number): void;
 export interface Action {
     (message: any, instance: IInstance, deepHistory: boolean): void;
@@ -63,6 +65,8 @@ export declare class PseudoState extends Vertex {
     constructor(name: string, parent: Region | State | StateMachine, kind?: PseudoStateKind);
     isHistory(): boolean;
     isInitial(): boolean;
+    selectTransition(instance: IInstance, message: any): Transition;
+    findElse(): Transition;
     accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
 }
 export declare class State extends Vertex {
@@ -80,6 +84,7 @@ export declare class State extends Vertex {
     enter(action: Behavior): this;
     isActive(instance: IInstance): boolean;
     isComplete(instance: IInstance): boolean;
+    evaluateState(instance: IInstance, message: any): boolean;
     accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
 }
 export declare class StateMachine implements Element {
@@ -96,6 +101,8 @@ export declare class StateMachine implements Element {
     isActive(instance: IInstance): boolean;
     isComplete(instance: IInstance): boolean;
     initialise(instance?: IInstance, autoInitialiseModel?: boolean): void;
+    evaluate(model: StateMachine, instance: IInstance, message: any, autoInitialiseModel?: boolean): boolean;
+    evaluateState(instance: IInstance, message: any): boolean;
     toString(): string;
 }
 export declare class Transition {
@@ -104,10 +111,12 @@ export declare class Transition {
     readonly kind: TransitionKind;
     guard: Guard;
     effectBehavior: Behavior[];
+    onTraverse: Action[];
     constructor(source: Vertex, target?: Vertex, kind?: TransitionKind);
     else(): this;
     when(guard: Guard): this;
     effect(action: Behavior): this;
+    traverse(instance: IInstance, message?: any): boolean;
     accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
     toString(): string;
 }
