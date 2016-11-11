@@ -14,3 +14,5 @@ var visitor = new state.Visitor();
 var instance = new state.DictionaryInstance("unit_model");
 
 model.initialise(instance);
+
+model.evaluate(instance, "move");

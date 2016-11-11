@@ -101,7 +101,7 @@ export declare class StateMachine implements Element {
     isActive(instance: IInstance): boolean;
     isComplete(instance: IInstance): boolean;
     initialise(instance?: IInstance, autoInitialiseModel?: boolean): void;
-    evaluate(model: StateMachine, instance: IInstance, message: any, autoInitialiseModel?: boolean): boolean;
+    evaluate(instance: IInstance, message: any, autoInitialiseModel?: boolean): boolean;
     evaluateState(instance: IInstance, message: any): boolean;
     toString(): string;
 }
@@ -143,3 +143,5 @@ export declare class DictionaryInstance implements IInstance {
     getCurrent(region: Region): State | undefined;
     toString(): string;
 }
+export declare var internalTransitionsTriggerCompletion: boolean;
+export declare function setInternalTransitionsTriggerCompletion(value: boolean): void;

@@ -1,12 +1,3 @@
-// push any number of arrays into a target array
-function pushh<TItem>(target: Array<TItem>, ...sources: Array<Array<TItem>>): void {
-	for (const source of sources) {
-		for (const item of source) {
-			target.push(item);
-		}
-	}
-}
-
 /** Random number generation method. */
 export let random: (max: number) => number = (max: number) => Math.floor(Math.random() * max);
 
@@ -18,6 +9,14 @@ export function setRandom(value: (max: number) => number): void {
 // prototype of method used internally when defining actions performed during state transitions.
 export interface Action { // TODO: make private
 	(message: any, instance: IInstance, deepHistory: boolean): void;
+}
+
+function pushh(target: Array<Action>, ...sources: Array<Array<Action>>): void {
+	for (const source of sources) {
+		for (const item of source) {
+			target.push(item);
+		}
+	}
 }
 
 function invoke(actions: Array<Action>, message: any, instance: IInstance, deepHistory: boolean): void {
@@ -63,8 +62,6 @@ export abstract class NamedElement<TParent extends Element> implements Element {
 
 	protected constructor(public readonly name: string, public readonly parent: TParent) {
 		this.qualifiedName = parent ? parent.toString() + NamedElement.namespaceSeparator + name : name;
-
-		console.log("created " + this);
 	}
 
 	getAncestors(): Array<Element> {
@@ -317,9 +314,9 @@ export class StateMachine implements Element {
 		}
 	}
 
-	evaluate(model: StateMachine, instance: IInstance, message: any, autoInitialiseModel: boolean = true): boolean {
+	evaluate(instance: IInstance, message: any, autoInitialiseModel: boolean = true): boolean {
 		// initialise the state machine model if necessary
-		if (autoInitialiseModel && model.clean === false) {
+		if (autoInitialiseModel && this.clean === false) {
 			this.initialise();
 		}
 
@@ -368,8 +365,6 @@ export class Transition {
 		else {
 			this.kind = TransitionKind.Internal;
 		}
-
-		console.log("created transition from " + source + " to " + target);
 	}
 
 	else() { // NOTE: no need to invalidate the machine as the transition actions have not changed.
@@ -435,7 +430,6 @@ export class Transition {
 
 export class Visitor<TArg> {
 	visitElement(element: Element, arg?: TArg): void {
-		console.log("visiting " + element.toString());
 	}
 
 	visitRegion(region: Region, arg?: TArg): void {
@@ -475,7 +469,6 @@ export class Visitor<TArg> {
 	}
 
 	visitTransition(transition: Transition, arg?: TArg): void {
-		console.log("visiting " + transition);
 	}
 }
 
@@ -575,10 +568,25 @@ class InitialiseStateMachine extends Visitor<boolean> {
 		}
 	}
 
-	visitTransition(transition: Transition, deepHistoryAbove: boolean) {
-		super.visitTransition(transition, deepHistoryAbove);
+	visitState(state: State, deepHistoryAbove: boolean) {
+		// NOTE: manually iterate over the child regions to control the sequence of behavior
+		for (const region of state.regions) {
+			region.accept(this, deepHistoryAbove);
 
-		this.transitions.push(transition);
+			pushh(this.getActions(state).leave, this.getActions(region).leave);
+			pushh(this.getActions(state).endEnter, this.getActions(region).beginEnter, this.getActions(region).endEnter);
+		}
+
+		this.visitVertex(state, deepHistoryAbove);
+
+		// add the user defined behavior when entering and exiting states
+		pushh(this.getActions(state).leave, state.exitBehavior);
+		pushh(this.getActions(state).beginEnter, state.entryBehavior);
+
+		// update the parent regions current state
+		this.getActions(state).beginEnter.push((message, instance) => {
+			instance.setCurrent(state.parent, state);
+		});
 	}
 
 	visitStateMachine(stateMachine: StateMachine, deepHistoryAbove: boolean): void {
@@ -586,7 +594,19 @@ class InitialiseStateMachine extends Visitor<boolean> {
 
 		// initialise the transitions only once all elemenets have been initialised
 		for (const transition of this.transitions) {
-			console.log("init trans: " + transition);
+			switch (transition.kind) {
+				case TransitionKind.Internal:
+					this.visitInternalTransition(transition);
+					break;
+
+				case TransitionKind.Local:
+					this.visitLocalTransition(transition);
+					break;
+
+				case TransitionKind.External:
+					this.visitExternalTransition(transition);
+					break;
+			}
 		}
 
 		// enter each child region on state machine entry
@@ -594,4 +614,52 @@ class InitialiseStateMachine extends Visitor<boolean> {
 			pushh(stateMachine.onInitialise, this.getActions(region).beginEnter, this.getActions(region).endEnter);
 		}
 	}
+
+	visitTransition(transition: Transition, deepHistoryAbove: boolean) {
+		super.visitTransition(transition, deepHistoryAbove);
+
+		this.transitions.push(transition);
+	}
+
+	visitInternalTransition(transition: Transition): void {
+		// perform the transition behavior
+		pushh(transition.onTraverse, transition.effectBehavior);
+
+		// add a test for completion
+		if (internalTransitionsTriggerCompletion) {
+			transition.onTraverse.push((message, instance) => {
+				if (transition.source instanceof State && transition.source.isComplete(instance)) {
+					transition.source.evaluateState(instance, transition.source);
+				}
+			});
+		}
+	}
+
+	visitLocalTransition(transition: Transition): void {
+	}
+
+	visitExternalTransition(transition: Transition): void {
+		const sourceAncestors = transition.source.getAncestors(), targetAncestors = transition.target!.getAncestors(); // external transtions always have a target
+		let i = Math.min(sourceAncestors.length, targetAncestors.length) - 1;
+
+		// find the index of the first uncommon ancestor (or for external transitions, the source)
+		while (sourceAncestors[i - 1] !== targetAncestors[i - 1]) { --i; }
+
+		// leave source ancestry and perform the transition effect
+		pushh(transition.onTraverse, this.getActions(sourceAncestors[i]).leave, transition.effectBehavior);
+
+		// enter the target ancestry
+		while (i < targetAncestors.length) {
+			pushh(transition.onTraverse, this.getActions(targetAncestors[i++]).beginEnter);
+		}
+
+		// trigger cascade
+		pushh(transition.onTraverse, this.getActions(transition.target!).endEnter);
+	}
+}
+
+export var internalTransitionsTriggerCompletion: boolean = false;
+
+export function setInternalTransitionsTriggerCompletion(value: boolean): void {
+	internalTransitionsTriggerCompletion = value;
 }
