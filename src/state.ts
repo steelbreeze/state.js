@@ -1,3 +1,23 @@
+
+/** The object used for log, warning and error messages. */
+export let console = {
+	log(message?: any, ...optionalParams: any[]): void { },
+	warn(message?: any, ...optionalParams: any[]): void { },
+	error(message?: any, ...optionalParams: any[]): void { throw message; }
+};
+
+/**
+ * Replace the default console object to implement custom logging.
+ * @param newConsole An object to send log, warning and error messages to.
+ */
+export function setConsole(newConsole: {
+	log(message?: any, ...optionalParams: any[]): void;
+	warn(message?: any, ...optionalParams: any[]): void;
+	error(message?: any, ...optionalParams: any[]): void;
+}): void {
+	console = newConsole;
+}
+
 /** Random number generation method. */
 export let random: (max: number) => number = (max: number) => Math.floor(Math.random() * max);
 
@@ -203,8 +223,8 @@ export class State extends Vertex {
 		return this;
 	}
 
-	enter(action: Behavior) {
-		this.exitBehavior.push(action);
+	entry(action: Behavior) {
+		this.entryBehavior.push(action);
 
 		this.getRoot().clean = false;
 

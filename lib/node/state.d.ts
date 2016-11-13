@@ -3,6 +3,21 @@
 // Definitions by: David Mesquita-Morris <http://state.software>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
+/** The object used for log, warning and error messages. */
+export declare let console: {
+    log(message?: any, ...optionalParams: any[]): void;
+    warn(message?: any, ...optionalParams: any[]): void;
+    error(message?: any, ...optionalParams: any[]): void;
+};
+/**
+ * Replace the default console object to implement custom logging.
+ * @param newConsole An object to send log, warning and error messages to.
+ */
+export declare function setConsole(newConsole: {
+    log(message?: any, ...optionalParams: any[]): void;
+    warn(message?: any, ...optionalParams: any[]): void;
+    error(message?: any, ...optionalParams: any[]): void;
+}): void;
 /** Random number generation method. */
 export declare let random: (max: number) => number;
 /** Set a custom random number generation method. */
@@ -81,7 +96,7 @@ export declare class State extends Vertex {
     isComposite(): boolean;
     isOrthogonal(): boolean;
     exit(action: Behavior): this;
-    enter(action: Behavior): this;
+    entry(action: Behavior): this;
     isActive(instance: IInstance): boolean;
     isComplete(instance: IInstance): boolean;
     evaluateState(instance: IInstance, message: any): boolean;
