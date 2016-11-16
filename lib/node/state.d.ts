@@ -22,6 +22,8 @@ export declare function setConsole(newConsole: {
 export declare let random: (max: number) => number;
 /** Set a custom random number generation method. */
 export declare function setRandom(value: (max: number) => number): void;
+export declare var internalTransitionsTriggerCompletion: boolean;
+export declare function setInternalTransitionsTriggerCompletion(value: boolean): void;
 export interface Action {
     (message: any, instance: IInstance, deepHistory: boolean): void;
 }
@@ -158,5 +160,3 @@ export declare class DictionaryInstance implements IInstance {
     getCurrent(region: Region): State | undefined;
     toString(): string;
 }
-export declare var internalTransitionsTriggerCompletion: boolean;
-export declare function setInternalTransitionsTriggerCompletion(value: boolean): void;

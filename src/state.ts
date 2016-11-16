@@ -1,4 +1,3 @@
-
 /** The object used for log, warning and error messages. */
 export let console = {
 	log(message?: any, ...optionalParams: any[]): void { },
@@ -24,6 +23,12 @@ export let random: (max: number) => number = (max: number) => Math.floor(Math.ra
 /** Set a custom random number generation method. */
 export function setRandom(value: (max: number) => number): void {
 	random = value;
+}
+
+export var internalTransitionsTriggerCompletion: boolean = false;
+
+export function setInternalTransitionsTriggerCompletion(value: boolean): void {
+	internalTransitionsTriggerCompletion = value;
 }
 
 // prototype of method used internally when defining actions performed during state transitions.
@@ -676,10 +681,4 @@ class InitialiseStateMachine extends Visitor<boolean> {
 		// trigger cascade
 		pushh(transition.onTraverse, this.getActions(transition.target!).endEnter);
 	}
-}
-
-export var internalTransitionsTriggerCompletion: boolean = false;
-
-export function setInternalTransitionsTriggerCompletion(value: boolean): void {
-	internalTransitionsTriggerCompletion = value;
 }
