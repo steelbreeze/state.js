@@ -2,6 +2,9 @@
 var assert = require("assert"),
 	state = require("../lib/node/state");
 
+var oldConsole = state.console;
+state.setConsole(console);
+
 var model = new state.StateMachine("compTest");
 var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
 
@@ -23,13 +26,13 @@ junction1.to(junction2).else();
 junction2.to(activity3).else();
 activity3.to(end);
 
-state.validate(model);
-
-var instance = new state.StateMachineInstance("instance");
-state.initialise(model, instance);
+var instance = new state.DictionaryInstance("instance");
+model.initialise(instance);
 
 describe("test/transitions.js", function () {
-	it("Completion transitions should be triggered by state entry", function(){
-		assert.equal(true, state.isComplete(model, instance));
+	it("Completion transitions should be triggered by state entry", function () {
+		assert.equal(true, model.isComplete(instance));
 	});
 });
+
+state.setConsole(oldConsole);

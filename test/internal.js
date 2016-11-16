@@ -2,6 +2,9 @@
 var assert = require("assert"),
 	state = require("../lib/node/state");
 
+var oldConsole = state.console;
+state.setConsole(console);
+
 var model = new state.StateMachine("model");
 var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
 var target = new state.State("state", model).entry(function (message, instance) { instance.entryCount++; }).exit(function (message, instance) { instance.exitCount++; });
@@ -11,18 +14,16 @@ initial.to(target);
 target.to().when(function (message) { return message === "internal"; }).effect(function (message, instance) { instance.transitionCount++; });
 target.to(target).when(function (message) { return message === "external"; }).effect(function (message, instance) { instance.transitionCount++; });
 
-var instance = new state.StateMachineInstance("instance");
+var instance = new state.DictionaryInstance("instance");
 instance.entryCount = 0;
 instance.exitCount = 0;
 instance.transitionCount = 0;
 
-state.validate(model);
-
-state.initialise(model, instance);
+model.initialise(instance);
 
 describe("test/internal.js", function () {
 	it("Internal transitions do not trigger a state transition", function () {
-		state.evaluate(model, instance, "internal");
+		model.evaluate(instance, "internal");
 
 		assert.equal(target, instance.getCurrent(model.getDefaultRegion()));
 		assert.equal(1, instance.entryCount);
@@ -31,7 +32,7 @@ describe("test/internal.js", function () {
 	});
 
 	it("External transitions do trigger a state transition", function () {
-		state.evaluate(model, instance, "external");
+		model.evaluate(instance, "external");
 
 		assert.equal(target, instance.getCurrent(model.getDefaultRegion()));
 		assert.equal(2, instance.entryCount);
@@ -39,3 +40,5 @@ describe("test/internal.js", function () {
 		assert.equal(2, instance.transitionCount);
 	});
 });
+
+state.setConsole(oldConsole);
