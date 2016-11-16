@@ -2,6 +2,9 @@
 var assert = require("assert"),
 	state = require("../lib/node/state");
 
+var oldConsole = state.console;
+state.setConsole(console);
+
 var model = new state.StateMachine("model");
 var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
 var state1 = new state.State("state1", model);
@@ -36,16 +39,16 @@ state3.to(state8).when(function (c) { return c === "event1"; });
 state7.to(state5).when(function (c) { return c === "event2"; });
 state7.to(state5).when(function (c) { return c === "event1"; });
 
-state.validate(model);
-
-var instance = new state.StateMachineInstance("p3pp3r");
-state.initialise(model, instance);
+var instance = new state.DictionaryInstance("p3pp3r");
+model.initialise(instance);
 
 describe("test/p3pp3r.js", function () {
-	it("All regions of orthogonal state must be exited during the external transition", function(){
-		state.evaluate(model, instance, "event2");
+	it("All regions of orthogonal state must be exited during the external transition", function () {
+		model.evaluate(instance, "event2");
 
 		assert.equal(state2, instance.getCurrent(model.getDefaultRegion()));
 		assert.equal(state4, instance.getCurrent(regionB));
 	});
 });
+
+state.setConsole(oldConsole);
