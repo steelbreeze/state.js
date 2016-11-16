@@ -2,6 +2,9 @@
 var assert = require("assert"),
 	state = require("../lib/node/state");
 
+var oldConsole = state.console;
+state.setConsole(console);
+
 var model = new state.StateMachine("model");
 var initial1 = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
 var myComposite1 = new state.State("composite1", model);
@@ -12,18 +15,18 @@ var state2 = new state.State("state2", myComposite1);
 
 initial1.to(myComposite1);
 initial2.to(state1);
-myComposite1.to(state3).when(function(c) { return c === "a";});
-state1.to(state2).when(function(c) { return c === "a";});
+myComposite1.to(state3).when(function (c) { return c === "a"; });
+state1.to(state2).when(function (c) { return c === "a"; });
 
-state.validate(model);
-
-var instance = new state.StateMachineInstance();
-state.initialise(model, instance);
+var instance = new state.DictionaryInstance();
+model.initialise(instance);
 
 describe("test/brice.js", function () {
-	it("Transitions should be selected depth-first", function(){
-		state.evaluate(model, instance, "a");
+	it("Transitions should be selected depth-first", function () {
+		model.evaluate(instance, "a");
 
 		assert.equal(state2, instance.getCurrent(myComposite1.getDefaultRegion()));
 	});
 });
+
+state.setConsole(oldConsole);
