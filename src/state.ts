@@ -443,7 +443,6 @@ export class Transition {
 		return true;
 	}
 
-
 	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
 		visitor.visitTransition(this, arg);
 	}
@@ -661,6 +660,42 @@ class InitialiseStateMachine extends Visitor<boolean> {
 	}
 
 	visitLocalTransition(transition: Transition): void {
+		console.log("BOOTSTRAP  " + transition);
+
+		transition.onTraverse.push((message, instance) => {
+			const targetAncestors = transition.target!.getAncestors(); // local transitions will have a target
+			let i = 0;
+
+			console.log("HAVE " + targetAncestors.length);
+
+			// find the first inactive element in the target ancestry
+			while (targetAncestors[i].isActive(instance)) { ++i; }
+			// exit the active sibling // TODO: check logic
+			const curr = targetAncestors[i];
+
+			console.log("CURR: " + curr);
+
+			/*	
+						if (curr instanceof Region) {
+							const currentState = instance.getCurrent(curr);
+			
+							if (currentState) {
+								invoke(this.getActions(currentState).leave, message, instance, false);
+							}
+						}
+			
+						// perform the transition action;
+						invoke(transition.onTraverse, message, instance, false);
+			
+						// enter the target ancestry
+						while (i < targetAncestors.length) {
+							invoke(this.getActions(targetAncestors[i++]).beginEnter, message, instance, false);
+						}
+			
+						// trigger cascade
+						invoke(this.getActions(transition.target!).endEnter, message, instance, false);
+*/
+		});
 	}
 
 	visitExternalTransition(transition: Transition): void {

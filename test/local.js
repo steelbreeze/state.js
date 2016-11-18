@@ -1,6 +1,9 @@
 /* global describe, it */
 var assert = require("assert"),
-    state = require("../lib/node/state"); // use this form if local
+	state = require("../lib/node/state");
+
+var oldConsole = state.console;
+state.setConsole(console);
 
 // create the state machine model elements
 var model = new state.StateMachine("model");
@@ -18,31 +21,35 @@ stateA.to(stateB).when(function (message) { return message === "move"; });
 
 bInitial.to(bStateI);
 
-stateB.to(bStateII, state.TransitionKind.Local).when(function (message) { return message === "local"; });
-stateB.to(bStateII, state.TransitionKind.External).when(function (message) { return message === "external"; });
+var local = stateB.to(bStateII, state.TransitionKind.Local).when(function (message) { return message === "local"; });
+var exter = stateB.to(bStateII, state.TransitionKind.External).when(function (message) { return message === "external"; });
 
-state.validate(model);
+console.log("LOCAL is " + state.TransitionKind[local.kind]);
+console.log("EXTER is " + state.TransitionKind[exter.kind]);
 
 // create a state machine instance
-var instance = new state.StateMachineInstance("instance");
+var instance = new state.DictionaryInstance("instance");
 instance.stateBExitCount = 0;
 
 // initialise the model and instance
-state.initialise(model, instance);
+model.initialise(instance);
 
 // send the machine instance a message for evaluation, this will trigger the transition from stateA to stateB
-state.evaluate(model, instance, "move");
+model.evaluate(instance, "move");
 
-describe("test/local.js", function () {
-	it("Local transitions do not exit the source composite state", function () {
-		state.evaluate(model, instance, "local");
+describe("Orthogonal state completion", function () {
+	model.evaluate(instance, "local");
 
+	// ensure that completion transitions for orthogonal states are triggered after completion of all child regions
+	it("Completion transition fires once all regions of an orthogonal state are complete", function () {
 		assert.equal(0, instance.stateBExitCount);
 	});
 
-	it("External transitions do exit the source composite state", function () {
-		state.evaluate(model, instance, "external");
+	model.evaluate(instance, "external");
 
+	it("External transitions do exit the source composite state", function () {
 		assert.equal(1, instance.stateBExitCount);
 	});
 });
+
+state.setConsole(oldConsole);
