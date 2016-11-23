@@ -345,7 +345,7 @@ export class StateMachine implements Element {
 			this.initialise();
 		}
 
-		console.log(`${instance} evaluate ${message}`);
+		console.log(`${instance} evaluate message: ${message}`);
 
 		return this.evaluateState(instance, message);
 	}
@@ -660,41 +660,36 @@ class InitialiseStateMachine extends Visitor<boolean> {
 	}
 
 	visitLocalTransition(transition: Transition): void {
-		console.log("BOOTSTRAP  " + transition);
-
 		transition.onTraverse.push((message, instance) => {
 			const targetAncestors = transition.target!.getAncestors(); // local transitions will have a target
 			let i = 0;
 
-			console.log("HAVE " + targetAncestors.length);
-
 			// find the first inactive element in the target ancestry
-			while (targetAncestors[i].isActive(instance)) { ++i; }
-			// exit the active sibling // TODO: check logic
-			const curr = targetAncestors[i];
+			while (targetAncestors[i].isActive(instance)) {
+				i++;
+			}
 
-			console.log("CURR: " + curr);
+			// TODO: create a test to see if we need region logic
+			if (targetAncestors[i] instanceof Region) {
+				throw "Need to implement Region logic";
+			}
 
-			/*	
-						if (curr instanceof Region) {
-							const currentState = instance.getCurrent(curr);
-			
-							if (currentState) {
-								invoke(this.getActions(currentState).leave, message, instance, false);
-							}
-						}
-			
-						// perform the transition action;
-						invoke(transition.onTraverse, message, instance, false);
-			
-						// enter the target ancestry
-						while (i < targetAncestors.length) {
-							invoke(this.getActions(targetAncestors[i++]).beginEnter, message, instance, false);
-						}
-			
-						// trigger cascade
-						invoke(this.getActions(transition.target!).endEnter, message, instance, false);
-*/
+			const firstToEnter = targetAncestors[i] as State;
+			const firstToExit = instance.getCurrent(firstToEnter.parent);
+
+			// exit the source state
+			invoke(this.getActions(firstToExit!).leave, message, instance, false);
+
+			// perform the transition action;
+			invoke(transition.effectBehavior, message, instance, false);
+
+			// enter the target ancestry
+			while (i < targetAncestors.length) {
+				invoke(this.getActions(targetAncestors[i++]).beginEnter, message, instance, false);
+			}
+
+			// trigger cascade
+			invoke(this.getActions(transition.target!).endEnter, message, instance, false);
 		});
 	}
 
