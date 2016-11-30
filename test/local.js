@@ -46,6 +46,7 @@ model.initialise(instance);
 // send the machine instance a message for evaluation, this will trigger the transition from stateA to stateB
 model.evaluate(instance, "move");
 model.evaluate(instance, "local");
+model.evaluate(instance, "external");
 
 describe("Local transition tests", function () {
 	it("External transition fired OK", function () {

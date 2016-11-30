@@ -698,7 +698,10 @@ class InitialiseStateMachine extends Visitor<boolean> {
 		let i = Math.min(sourceAncestors.length, targetAncestors.length) - 1;
 
 		// find the index of the first uncommon ancestor (or for external transitions, the source)
-		while (sourceAncestors[i - 1] !== targetAncestors[i - 1]) { --i; }
+		while (sourceAncestors[i] !== targetAncestors[i]) { --i; }
+
+		// TODO: roll to a state
+		console.log("LCA is " + sourceAncestors[i]);
 
 		// leave source ancestry and perform the transition effect
 		pushh(transition.onTraverse, this.getActions(sourceAncestors[i]).leave, transition.effectBehavior);
