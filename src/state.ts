@@ -949,6 +949,8 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
  * @returns Always returns true.
  */
 /** @internal */ function traverse(transition: Transition, instance: IInstance, message?: any): boolean {
+//    console.log("TRAVERSE " + transition);
+
     let onTraverse = transition.onTraverse.slice(0);
 
     // process static conditional branches - build up all the transition behavior prior to executing
@@ -1091,7 +1093,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 
             // enter the target ancestry
             while (i < targetAncestors.length) {
-                this.cascadeElementEntry(transition, behavior, targetAncestors[i++], targetAncestors[i], behavior => invoke(behavior, message, instance));
+                this.cascadeElementEntry(behavior, targetAncestors[i++], targetAncestors[i], behavior => invoke(behavior, message, instance));
             }
 
             // trigger cascade
@@ -1101,35 +1103,65 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 
     // initialise external transitions: these are abritarily complex
     visitExternalTransition(transition: Transition, behavior: (vertexOrRegion: Vertex | Region) => Behavior) {
-        console.log("BOOTSTRAP " + transition);
+//        console.log("BOOTSTRAP " + transition);
 
         const sourceAncestors = transition.source.ancestry(), targetAncestors = transition.target!.ancestry(); // external transtions always have a target
-        let i = Math.min(sourceAncestors.length, targetAncestors.length) - 1;
+        let j = sourceAncestors.length - 1;
+        let i = Math.min(j, targetAncestors.length - 1);
 
         // find the index of the first uncommon ancestor (or for external transitions, the source)
         while (sourceAncestors[i - 1] !== targetAncestors[i - 1]) { --i; }
 
-        // leave source ancestry and perform the transition effect
-        push(transition.onTraverse, behavior(sourceAncestors[i]).leave(), transition.transitionBehavior);
+
+        push(transition.onTraverse, behavior(transition.source).leave());
+//        console.log("- leave " + transition.source);
+
+        while (j-- > i) {
+            //            push(transition.onTraverse, behavior(sourceAncestors[j]).beginLeave);
+            this.cascadeElementLeave(behavior, sourceAncestors[j], sourceAncestors[j], behavior => push(transition.onTraverse, behavior));
+        }
+
+        push(transition.onTraverse, transition.transitionBehavior);
 
         // enter the target ancestry
         while (i < targetAncestors.length) {
-            this.cascadeElementEntry(transition, behavior, targetAncestors[i++], targetAncestors[i], behavior => push(transition.onTraverse, behavior));
+            this.cascadeElementEntry(behavior, targetAncestors[i++], targetAncestors[i], behavior => push(transition.onTraverse, behavior));
         }
 
         // trigger cascade
         push(transition.onTraverse, behavior(transition.target!).endEnter);
+//        console.log("- endEnter " + transition.target);
     }
 
-    cascadeElementEntry(transition: Transition, behavior: (vertexOrRegion: Vertex | Region) => Behavior, vertex: Vertex, next: Vertex, task: (behavior: Array<Action>) => void) {
+    cascadeElementLeave(behavior: (vertexOrRegion: Vertex | Region) => Behavior, vertex: Vertex, next: Vertex, task: (behavior: Array<Action>) => void) {
+        if (vertex instanceof State) {
+            for (const region of vertex.regions) {
+                task(behavior(region).beginLeave);
+//                console.log("- beginLeave " + region);
+
+                if (region !== vertex.parent) {
+                    task(behavior(region).endLeave);
+//                    console.log("- endLeave " + region);
+                }
+            }
+        }
+
+        task(behavior(vertex).beginLeave);
+//        console.log("- beginLeave " + vertex);
+    }
+
+    cascadeElementEntry(behavior: (vertexOrRegion: Vertex | Region) => Behavior, vertex: Vertex, next: Vertex, task: (behavior: Array<Action>) => void) {
         task(behavior(vertex).beginEnter);
+//        console.log("- beginEnter " + vertex);
 
         if (next && vertex instanceof State) {
             for (const region of vertex.regions) {
                 task(behavior(region).beginEnter);
+  //              console.log("- beginEnter " + region);
 
                 if (region !== next.parent) {
                     task(behavior(region).endEnter);
+//                    console.log("- endEnter " + region);
                 }
             }
         }
@@ -1156,7 +1188,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
         for (const vertex of region.vertices) {
             vertex.accept(this, deepHistoryAbove || (regionInitial && regionInitial.kind === PseudoStateKind.DeepHistory));
         }
-        
+        /*
                 // leave the curent active child state when exiting the region
                 this.behavior(region).endLeave.push((message, instance) => {
                     const currentState = instance.getCurrent(region);
@@ -1165,7 +1197,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
                         invoke(this.behavior(currentState).leave(), message, instance);
                     }
                 });
-        
+        */
         // enter the appropriate child vertex when entering the region
         if (deepHistoryAbove || !regionInitial || regionInitial.isHistory()) { // NOTE: history needs to be determined at runtime
             this.behavior(region).endEnter.push((message, instance, deepHistory) => invoke((this.behavior((deepHistory || regionInitial!.isHistory()) ? instance.getCurrent(region) || regionInitial! : regionInitial!)).enter(), message, instance, deepHistory || regionInitial!.kind === PseudoStateKind.DeepHistory));
