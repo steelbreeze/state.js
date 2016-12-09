@@ -36,7 +36,7 @@ export declare enum PseudoStateKind {
     /**
      * Entering a terminate [[PseudoState]] implies that the execution of [[StateMachine]] is terminated and will not respond to any more messages.
      * @depricated since v5.10.2 (use a transition to a top-leval state with no outbound transitions).
-     * */
+     */
     Terminate = 5,
 }
 /**
