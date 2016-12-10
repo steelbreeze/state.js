@@ -529,7 +529,10 @@ export class Transition {
  * @note It is possible to create other custom state machine instance classes in other ways (e.g. serialisable JSON); just implement the [[IInstance]] interface.
  */
 export class StateMachineInstance implements IInstance {
-	/** The last known state of any [[Region]] within the state machine instance. */
+	/** The last known [[Vertex]] of any [[Region]] within the state machine instance. */
+	/** @internal */ readonly current: { [id: string]: Vertex } = {};
+
+	/** The last known [[State]] of any [[Region]] within the state machine instance. */
 	/** @internal */ readonly last: { [id: string]: State } = {};
 
 	/** Indicates that the [[StateMachine]] instance reached was terminated by reaching a [[Terminate]] [[PseudoState]]. */
@@ -546,10 +549,23 @@ export class StateMachineInstance implements IInstance {
 	/**
 	 * Updates the last known [[State]] for a given [[Region]].
 	 * @param region The [[Region]] to set the last known [[State]] of.
-	 * @param state The last known [[State]] of the given [[Region]]. 
+	 * @param vertex The last known [[Vertex]] of the given [[Region]]. 
 	 */
-	setCurrent(region: Region, state: State): void {
-		this.last[region.toString()] = state;
+	setCurrent(region: Region, vertex: Vertex): void {
+		this.current[region.toString()] = vertex;
+
+		if (vertex instanceof State) {
+			this.last[region.toString()] = vertex;
+		}
+	}
+
+	/**
+	 * Returns the last known [[Vertex]] for a given [[Region]].
+	 * @param region The [[Region]] to get the last known [[Vertex]] of.
+	 * @returns The last known [[Vertex]] of the given [[Region]]. 
+	 */
+	getCurrent(region: Region): Vertex | undefined {
+		return this.current[region.toString()];
 	}
 
 	/**
@@ -557,7 +573,7 @@ export class StateMachineInstance implements IInstance {
 	 * @param region The [[Region]] to get the last known [[State]] of.
 	 * @returns The last known [[State]] of the given [[Region]]. 
 	 */
-	getCurrent(region: Region): State | undefined {
+	getLastKnownState(region: Region): State | undefined {
 		return this.last[region.toString()];
 	}
 
@@ -584,6 +600,9 @@ interface IJSONNode {
 
 /** Manages the active state configuration of a state machine instance using a serializable JSON structure. */
 export class JSONInstance implements IInstance {
+	/** The last known [[Vertex]] of any [[Region]] within the state machine instance. */
+	/** @internal */ readonly current: { [id: string]: Vertex } = {};
+
 	/** The active state configuration represented as a JSON object */
 	private activeStateConfiguration: IJSONNode;
 
@@ -599,10 +618,23 @@ export class JSONInstance implements IInstance {
 	/**
 	 * Updates the last known [[State]] for a given [[Region]].
 	 * @param region The [[Region]] to set the last known [[State]] of.
-	 * @param state The last known [[State]] of the given [[Region]]. 
+	 * @param vertex The last known [[Vertex]] of the given [[Region]]. 
 	 */
-	public setCurrent(region: Region, state: State): void {
-		this.getNode(region).lastKnown = state.name;
+	public setCurrent(region: Region, vertex: Vertex): void {
+		this.current[region.toString()] = vertex;
+
+		if (vertex instanceof State) {
+			this.getNode(region).lastKnown = vertex.name;
+		}
+	}
+
+	/**
+	 * Returns the last known [[Vertex]] for a given [[Region]].
+	 * @param region The [[Region]] to get the last known [[Vertex]] of.
+	 * @returns The last known [[Vertex]] of the given [[Region]]. 
+	 */
+	getCurrent(region: Region): Vertex | undefined {
+		return this.current[region.toString()];
 	}
 
 	/**
@@ -610,7 +642,7 @@ export class JSONInstance implements IInstance {
 	 * @param region The [[Region]] to get the last known [[State]] of.
 	 * @returns The last known [[State]] of the given [[Region]]. 
 	 */
-	public getCurrent(region: Region): State | undefined {
+	public getLastKnownState(region: Region): State | undefined {
 		const lastKnown = this.getNode(region).lastKnown;
 
 		return region.vertices.reduce<State | undefined>((result, item) => item instanceof State && item.name === lastKnown ? item : result, undefined);
@@ -771,15 +803,21 @@ export interface IInstance {
 	/**
 	 * Updates the last known [[State]] for a given [[Region]].
 	 * @param region The [[Region]] to update the last known [[State]] for.
-	 * @param state The last known [[State]] for the given [[Region]].
+	 * @param vertex The last known [[Vertex]] for the given [[Region]].
 	 */
-	setCurrent(region: Region, state: State): void;
+	setCurrent(region: Region, vertex: Vertex): void;
+
+	/**
+	 * Returns the last known [[Vertex]] for a given [[Region]].
+	 * @param region The [[Region]] to get the last known [[Vertex]] for.
+	 */
+	getCurrent(region?: Region): Vertex | undefined;
 
 	/**
 	 * Returns the last known [[State]] for a given [[Region]].
 	 * @param region The [[Region]] to get the last known [[State]] for.
 	 */
-	getCurrent(region?: Region): State | undefined;
+	getLastKnownState(region?: Region): State | undefined;
 }
 
 /**
@@ -788,7 +826,7 @@ export interface IInstance {
  * @param instance The state machine instance.
  */
 /** @internal */ function isActive(vertex: Vertex, instance: IInstance): boolean {
-	return vertex.parent ? isActive(vertex.parent.parent, instance) && instance.getCurrent(vertex.parent) === vertex : true;
+	return vertex.parent ? isActive(vertex.parent.parent, instance) && instance.getLastKnownState(vertex.parent) === vertex : true;
 }
 
 /**
@@ -800,7 +838,7 @@ export interface IInstance {
  */
 export function isComplete(stateOrRegion: State | Region, instance: IInstance): boolean {
 	if (stateOrRegion instanceof Region) {
-		const currentState = instance.getCurrent(stateOrRegion);
+		const currentState = instance.getLastKnownState(stateOrRegion);
 
 		return currentState !== undefined && currentState.isFinal();
 	} else {
@@ -906,7 +944,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 	// delegate to child regions first if a non-continuation
 	if (message !== state) {
 		state.regions.every(region => {
-			const currentState = instance.getCurrent(region);
+			const currentState = instance.getLastKnownState(region);
 
 			if (currentState && evaluateState(currentState, instance, message)) {
 				result = true;
@@ -1071,7 +1109,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 			while (isActive(targetAncestors[i], instance)) { ++i; }
 
 			// exit the active sibling // TODO: check logic
-			const currentState = instance.getCurrent(targetAncestors[i].parent);
+			const currentState = instance.getCurrent(targetAncestors[i].parent); // NOTE: possible fix
 
 			if (currentState) {
 				invoke(behavior(currentState).leave, message, instance);
@@ -1148,7 +1186,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 
 		// leave the curent active child state when exiting the region
 		this.behavior(region).leave.push((message, instance) => {
-			const currentState = instance.getCurrent(region);
+			const currentState = instance.getCurrent(region); // NOTE: fix for Joel bug
 
 			if (currentState) {
 				invoke(this.behavior(currentState).leave, message, instance);
@@ -1157,7 +1195,7 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 
 		// enter the appropriate child vertex when entering the region
 		if (deepHistoryAbove || !regionInitial || regionInitial.isHistory()) { // NOTE: history needs to be determined at runtime
-			this.behavior(region).endEnter.push((message, instance, deepHistory) => invoke((this.behavior((deepHistory || regionInitial!.isHistory()) ? instance.getCurrent(region) || regionInitial! : regionInitial!)).enter(), message, instance, deepHistory || regionInitial!.kind === PseudoStateKind.DeepHistory));
+			this.behavior(region).endEnter.push((message, instance, deepHistory) => invoke((this.behavior((deepHistory || regionInitial!.isHistory()) ? instance.getLastKnownState(region) || regionInitial! : regionInitial!)).enter(), message, instance, deepHistory || regionInitial!.kind === PseudoStateKind.DeepHistory));
 		} else {
 			// TODO: validate initial region
 			push(this.behavior(region).endEnter, this.behavior(regionInitial).enter());
@@ -1166,16 +1204,27 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 		this.visitNamedElement(region, deepHistoryAbove);
 	}
 
+	visitVertex(vertex: Vertex, deepHistoryAbove: boolean) {
+		super.visitVertex(vertex, deepHistoryAbove);
+
+		// update the parent regions current state
+		this.behavior(vertex).beginEnter.push((message, instance) => {
+			if (vertex.parent) {
+				instance.setCurrent(vertex.parent, vertex);
+			}
+		});
+	}
+
 	visitPseudoState(pseudoState: PseudoState, deepHistoryAbove: boolean) {
 		super.visitPseudoState(pseudoState, deepHistoryAbove);
 
 		// evaluate comppletion transitions once vertex entry is complete
 		if (pseudoState.isInitial()) {
 			this.behavior(pseudoState).endEnter.push((message, instance, deepHistory) => {
-				if (instance.getCurrent(pseudoState.parent)) {
+				if (instance.getLastKnownState(pseudoState.parent)) {
 					invoke(this.behavior(pseudoState).leave, message, instance);
 
-					const currentState = instance.getCurrent(pseudoState.parent);
+					const currentState = instance.getLastKnownState(pseudoState.parent);
 
 					if (currentState) {
 						invoke(this.behavior(currentState).enter(), message, instance, deepHistory || pseudoState.kind === PseudoStateKind.DeepHistory);
@@ -1204,13 +1253,6 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 		// add the user defined behavior when entering and exiting states
 		push(this.behavior(state).leave, state.exitBehavior);
 		push(this.behavior(state).beginEnter, state.entryBehavior);
-
-		// update the parent regions current state
-		this.behavior(state).beginEnter.push((message, instance) => {
-			if (state.parent) {
-				instance.setCurrent(state.parent, state);
-			}
-		});
 	}
 
 	visitStateMachine(stateMachine: StateMachine, deepHistoryAbove: boolean) {

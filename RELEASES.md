@@ -1,3 +1,10 @@
+## Version 5.11.0
+Fix bug in transtions originating from pseudo states that cross composite state boundaries; this necessitates the following breaking changes:
+* Make IInstance.setCurrent and IInstance.getCurrent set and get the last known Vertex for a given Region (was State previously);
+* Add IInstance.getLastKnownState to return the last active State of an instance.
+
+**Note:** any custom implementations of IInstance will need changing.
+
 ## Version 5.10.1
 Added a JSONInsance class to allowing saving/load of state machine state as a JSON string
 

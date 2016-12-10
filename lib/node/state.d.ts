@@ -324,15 +324,21 @@ export declare class StateMachineInstance implements IInstance {
     /**
      * Updates the last known [[State]] for a given [[Region]].
      * @param region The [[Region]] to set the last known [[State]] of.
-     * @param state The last known [[State]] of the given [[Region]].
+     * @param vertex The last known [[Vertex]] of the given [[Region]].
      */
-    setCurrent(region: Region, state: State): void;
+    setCurrent(region: Region, vertex: Vertex): void;
+    /**
+     * Returns the last known [[Vertex]] for a given [[Region]].
+     * @param region The [[Region]] to get the last known [[Vertex]] of.
+     * @returns The last known [[Vertex]] of the given [[Region]].
+     */
+    getCurrent(region: Region): Vertex | undefined;
     /**
      * Returns the last known [[State]] for a given [[Region]].
      * @param region The [[Region]] to get the last known [[State]] of.
      * @returns The last known [[State]] of the given [[Region]].
      */
-    getCurrent(region: Region): State | undefined;
+    getLastKnownState(region: Region): State | undefined;
     /**
      * Returns the name of the [[StateMachineInstance]].
      * @returns The name of this [[StateMachineInstance]].
@@ -354,15 +360,21 @@ export declare class JSONInstance implements IInstance {
     /**
      * Updates the last known [[State]] for a given [[Region]].
      * @param region The [[Region]] to set the last known [[State]] of.
-     * @param state The last known [[State]] of the given [[Region]].
+     * @param vertex The last known [[Vertex]] of the given [[Region]].
      */
-    setCurrent(region: Region, state: State): void;
+    setCurrent(region: Region, vertex: Vertex): void;
+    /**
+     * Returns the last known [[Vertex]] for a given [[Region]].
+     * @param region The [[Region]] to get the last known [[Vertex]] of.
+     * @returns The last known [[Vertex]] of the given [[Region]].
+     */
+    getCurrent(region: Region): Vertex | undefined;
     /**
      * Returns the last known [[State]] for a given [[Region]].
      * @param region The [[Region]] to get the last known [[State]] of.
      * @returns The last known [[State]] of the given [[Region]].
      */
-    getCurrent(region: Region): State | undefined;
+    getLastKnownState(region: Region): State | undefined;
     /** Finds a node within the active state configuration for a given Region. */
     private getNode(stateOrRegion);
     /**
@@ -455,14 +467,19 @@ export interface IInstance {
     /**
      * Updates the last known [[State]] for a given [[Region]].
      * @param region The [[Region]] to update the last known [[State]] for.
-     * @param state The last known [[State]] for the given [[Region]].
+     * @param vertex The last known [[Vertex]] for the given [[Region]].
      */
-    setCurrent(region: Region, state: State): void;
+    setCurrent(region: Region, vertex: Vertex): void;
+    /**
+     * Returns the last known [[Vertex]] for a given [[Region]].
+     * @param region The [[Region]] to get the last known [[Vertex]] for.
+     */
+    getCurrent(region?: Region): Vertex | undefined;
     /**
      * Returns the last known [[State]] for a given [[Region]].
      * @param region The [[Region]] to get the last known [[State]] for.
      */
-    getCurrent(region?: Region): State | undefined;
+    getLastKnownState(region?: Region): State | undefined;
 }
 /**
  * Tests a [[State]] or [[Region]] within a state machine instance to see if its lifecycle is complete.
