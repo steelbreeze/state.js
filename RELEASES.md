@@ -4,6 +4,7 @@ The changes in v6 are significant enough to warrant the major version increment:
 * StateMachine now inherits from NamedElement, not State;
 * Visitor internals call accept methods;
 * Remove concept of a terminated state machine instance and PseudoStateKind.Terminate.
+* Add in 5.11 edits.
 
 ## Version 5.10.1
 Added a JSONInsance class to allowing saving/load of state machine state as a JSON string

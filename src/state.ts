@@ -123,7 +123,7 @@ export class Region extends NamedElement<State | StateMachine> {
 	}
 
 	isComplete(instance: IInstance): boolean {
-		const currentState = instance.getCurrent(this);
+		const currentState = instance.getLastKnownState(this);
 
 		return currentState !== undefined && currentState.isFinal();
 	}
@@ -237,7 +237,7 @@ export class State extends Vertex {
 	}
 
 	isActive(instance: IInstance): boolean {
-		return super.isActive(instance) && instance.getCurrent(this.parent) === this;
+		return super.isActive(instance) && instance.getLastKnownState(this.parent) === this;
 	}
 
 	isComplete(instance: IInstance): boolean {
@@ -250,7 +250,7 @@ export class State extends Vertex {
 		// delegate to child regions first if a non-continuation
 		if (message !== this) {
 			this.regions.every(region => {
-				const currentState = instance.getCurrent(region);
+				const currentState = instance.getLastKnownState(region);
 
 				if (currentState && currentState.evaluateState(instance, message)) {
 					result = true;
@@ -355,7 +355,7 @@ export class StateMachine implements Element {
 
 		// delegate to child regions first if a non-continuation
 		this.regions.every(region => {
-			const currentState = instance.getCurrent(region);
+			const currentState = instance.getLastKnownState(region);
 
 			if (currentState && currentState.evaluateState(instance, message)) {
 				result = true;
@@ -497,21 +497,32 @@ export class Visitor<TArg> {
 }
 
 export interface IInstance {
-	setCurrent(region: Region, state: State): void;
+	setCurrent(region: Region, vertex: Vertex): void;
 
-	getCurrent(region: Region): State | undefined;
+	getCurrent(region: Region): Vertex | undefined;
+
+	getLastKnownState(region: Region): State | undefined;
 }
 
 export class DictionaryInstance implements IInstance {
+	readonly current: { [id: string]: Vertex } = {};
 	readonly activeStateConfiguration: { [id: string]: State } = {};
 
 	constructor(public readonly name: string) { }
 
-	setCurrent(region: Region, state: State): void {
-		this.activeStateConfiguration[region.qualifiedName] = state;
+	setCurrent(region: Region, vertex: Vertex): void {
+		this.current[region.qualifiedName] = vertex;
+
+		if (vertex instanceof State) {
+			this.activeStateConfiguration[region.qualifiedName] = vertex;
+		}
 	}
 
-	getCurrent(region: Region): State | undefined {
+	getCurrent(region: Region): Vertex | undefined {
+		return this.current[region.qualifiedName];
+	}
+
+	getLastKnownState(region: Region): State | undefined {
 		return this.activeStateConfiguration[region.qualifiedName];
 	}
 
@@ -558,7 +569,7 @@ class InitialiseStateMachine extends Visitor<boolean> {
 		// enter the appropriate child vertex when entering the region
 		if (deepHistoryAbove || !regionInitial || regionInitial.isHistory()) { // NOTE: history needs to be determined at runtime
 			this.getActions(region).endEnter.push((message, instance, deepHistory) => {
-				const actions = this.getActions((deepHistory || regionInitial!.isHistory()) ? instance.getCurrent(region) || regionInitial! : regionInitial!);
+				const actions = this.getActions((deepHistory || regionInitial!.isHistory()) ? instance.getLastKnownState(region) || regionInitial! : regionInitial!);
 				const history = deepHistory || regionInitial!.kind === PseudoStateKind.DeepHistory;
 
 				invoke(actions.beginEnter, message, instance, history);
@@ -570,16 +581,25 @@ class InitialiseStateMachine extends Visitor<boolean> {
 		}
 	}
 
+	visitVertex(vertex: Vertex, deepHistoryAbove: boolean) {
+		super.visitVertex(vertex, deepHistoryAbove);
+
+		// update the parent regions current state
+		this.getActions(vertex).beginEnter.push((message, instance) => {
+			instance.setCurrent(vertex.parent, vertex);
+		});
+	}
+
 	visitPseudoState(pseudoState: PseudoState, deepHistoryAbove: boolean) {
 		super.visitPseudoState(pseudoState, deepHistoryAbove);
 
 		// evaluate comppletion transitions once vertex entry is complete
 		if (pseudoState.isInitial()) {
 			this.getActions(pseudoState).endEnter.push((message, instance, deepHistory) => {
-				if (instance.getCurrent(pseudoState.parent)) {
+				if (instance.getLastKnownState(pseudoState.parent)) {
 					invoke(this.getActions(pseudoState).leave, message, instance, false);
 
-					const currentState = instance.getCurrent(pseudoState.parent);
+					const currentState = instance.getLastKnownState(pseudoState.parent);
 
 					if (currentState) {
 						invoke(this.getActions(currentState).beginEnter, message, instance, deepHistory || pseudoState.kind === PseudoStateKind.DeepHistory);
@@ -606,11 +626,6 @@ class InitialiseStateMachine extends Visitor<boolean> {
 		// add the user defined behavior when entering and exiting states
 		pushh(this.getActions(state).leave, state.exitBehavior);
 		pushh(this.getActions(state).beginEnter, state.entryBehavior);
-
-		// update the parent regions current state
-		this.getActions(state).beginEnter.push((message, instance) => {
-			instance.setCurrent(state.parent, state);
-		});
 	}
 
 	visitStateMachine(stateMachine: StateMachine, deepHistoryAbove: boolean): void {
@@ -694,17 +709,17 @@ class InitialiseStateMachine extends Visitor<boolean> {
 	}
 
 	visitExternalTransition(transition: Transition): void {
+		console.log("BOOTSTRAP " + transition);
+
 		const sourceAncestors = transition.source.getAncestors(), targetAncestors = transition.target!.getAncestors(); // external transtions always have a target
-		let i = Math.min(sourceAncestors.length, targetAncestors.length) - 1;
+		let i = 0;
 
-		// find the index of the first uncommon ancestor (or for external transitions, the source)
-		while (sourceAncestors[i] !== targetAncestors[i]) { --i; }
-
-		// TODO: roll to a state
-		console.log("LCA is " + sourceAncestors[i]);
+		// find the first uncommon ancestors		
+		while (sourceAncestors[i] === targetAncestors[i]) {i++;}
 
 		// leave source ancestry and perform the transition effect
 		pushh(transition.onTraverse, this.getActions(sourceAncestors[i]).leave, transition.effectBehavior);
+		console.log("- leave " + sourceAncestors[i]);
 
 		// enter the target ancestry
 		while (i < targetAncestors.length) {

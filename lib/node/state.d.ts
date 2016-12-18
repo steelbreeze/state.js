@@ -147,16 +147,21 @@ export declare class Visitor<TArg> {
     visitTransition(transition: Transition, arg?: TArg): void;
 }
 export interface IInstance {
-    setCurrent(region: Region, state: State): void;
-    getCurrent(region: Region): State | undefined;
+    setCurrent(region: Region, vertex: Vertex): void;
+    getCurrent(region: Region): Vertex | undefined;
+    getLastKnownState(region: Region): State | undefined;
 }
 export declare class DictionaryInstance implements IInstance {
     readonly name: string;
+    readonly current: {
+        [id: string]: Vertex;
+    };
     readonly activeStateConfiguration: {
         [id: string]: State;
     };
     constructor(name: string);
-    setCurrent(region: Region, state: State): void;
-    getCurrent(region: Region): State | undefined;
+    setCurrent(region: Region, vertex: Vertex): void;
+    getCurrent(region: Region): Vertex | undefined;
+    getLastKnownState(region: Region): State | undefined;
     toString(): string;
 }

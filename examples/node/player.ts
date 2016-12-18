@@ -27,14 +27,14 @@ flipped.to (operational).when (s => s === "flip");
 operational.to (finalState).when (s => s === "off");
 
 // create a new state machine instance (this stores the active state configuration, allowing many instances to work with a single model)
-let instance = new state.JSONInstance("player");
+let instance = new state.DictionaryInstance("player");
 
 // initialse the state machine instance (also initialises the model if not already initialised explicitly or via another instance)
-state.initialise(model, instance);
+model.initialise(instance);
 
 // send messages to the state machine to cause state transitions
-state.evaluate(model, instance, "play");
-state.evaluate(model, instance, "pause");
-state.evaluate(model, instance, "stop");
+model.evaluate(instance, "play");
+model.evaluate(instance, "pause");
+model.evaluate(instance, "stop");
 
-console.log(instance.toJSON());
+// console.log(instance.toJSON());
