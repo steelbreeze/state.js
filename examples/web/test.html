@@ -56,6 +56,7 @@
 				active.to(stopped).when(function (s) { return s === "stop"; });
 				running.to(paused).when(function (s) { return s === "pause"; });
 				paused.to(running).when(function (s) { return s === "play"; });
+				paused.to(running).when(function (s) { return s === "pause"; });
 				operational.to(flipped).when(function (s) { return s === "flip"; });
 				flipped.to(operational).when(function (s) { return s === "flip"; });
 				operational.to(finalState).when(function (s) { return s === "off"; });

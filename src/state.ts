@@ -709,8 +709,6 @@ class InitialiseStateMachine extends Visitor<boolean> {
 	}
 
 	visitExternalTransition(transition: Transition): void {
-		// 		console.log("BOOTSTRAP " + transition);
-
 		const sourceAncestors = transition.source.getAncestors(), targetAncestors = transition.target!.getAncestors(); // external transtions always have a target
 		let i = 0;
 
@@ -718,17 +716,14 @@ class InitialiseStateMachine extends Visitor<boolean> {
 		while (sourceAncestors[i] === targetAncestors[i]) { i++; }
 
 		// leave source ancestry and perform the transition effect
-		// 		console.log("- leave " + sourceAncestors[i]);
 		pushh(transition.onTraverse, this.getActions(sourceAncestors[i]).leave, transition.effectBehavior);
 
 		// enter the target ancestry
 		while (i < targetAncestors.length) {
-			// 			console.log("- beginEnter " + targetAncestors[i]);
 			pushh(transition.onTraverse, this.getActions(targetAncestors[i++]).beginEnter);
 		}
 
 		// trigger cascade
-		// 		console.log("- beginEnter " + transition.target);
 		pushh(transition.onTraverse, this.getActions(transition.target!).endEnter);
 	}
 }
