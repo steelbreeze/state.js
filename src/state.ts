@@ -554,9 +554,6 @@ class InitialiseStateMachine extends Visitor<boolean> {
 		// find the initial pseudo state of this region
 		const regionInitial = region.vertices.reduce<PseudoState | undefined>((result, vertex) => vertex instanceof PseudoState && vertex.isInitial() && (result === undefined || result.isHistory()) ? vertex : result, undefined);
 
-		// cascade to child vertices
-		super.visitRegion(region, deepHistoryAbove || (regionInitial && regionInitial.kind === PseudoStateKind.DeepHistory)); // TODO: determine if we need to break this up or move it
-
 		// leave the curent active child state when exiting the region
 		this.getActions(region).leave.push((message, instance) => {
 			const currentState = instance.getCurrent(region);
@@ -565,6 +562,9 @@ class InitialiseStateMachine extends Visitor<boolean> {
 				invoke(this.getActions(currentState).leave, message, instance, false);
 			}
 		});
+
+		// cascade to child vertices
+		super.visitRegion(region, deepHistoryAbove || (regionInitial && regionInitial.kind === PseudoStateKind.DeepHistory)); // TODO: determine if we need to break this up or move it
 
 		// enter the appropriate child vertex when entering the region
 		if (deepHistoryAbove || !regionInitial || regionInitial.isHistory()) { // NOTE: history needs to be determined at runtime
@@ -709,24 +709,26 @@ class InitialiseStateMachine extends Visitor<boolean> {
 	}
 
 	visitExternalTransition(transition: Transition): void {
-		console.log("BOOTSTRAP " + transition);
+		//		console.log("BOOTSTRAP " + transition);
 
 		const sourceAncestors = transition.source.getAncestors(), targetAncestors = transition.target!.getAncestors(); // external transtions always have a target
 		let i = 0;
 
 		// find the first uncommon ancestors		
-		while (sourceAncestors[i] === targetAncestors[i]) {i++;}
+		while (sourceAncestors[i] === targetAncestors[i]) { i++; }
 
 		// leave source ancestry and perform the transition effect
+		//		console.log("- leave " + sourceAncestors[i]);
 		pushh(transition.onTraverse, this.getActions(sourceAncestors[i]).leave, transition.effectBehavior);
-		console.log("- leave " + sourceAncestors[i]);
 
 		// enter the target ancestry
 		while (i < targetAncestors.length) {
+			//			console.log("- beginEnter " + targetAncestors[i]);
 			pushh(transition.onTraverse, this.getActions(targetAncestors[i++]).beginEnter);
 		}
 
 		// trigger cascade
+		//		console.log("- beginEnter " + transition.target);
 		pushh(transition.onTraverse, this.getActions(transition.target!).endEnter);
 	}
 }
