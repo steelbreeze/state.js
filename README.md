@@ -120,7 +120,7 @@ state.js is dual-licenecd under the MIT and GPL v3 licences.
 [npm-url]: https://npmjs.org/package/state.js
 [downloads-image]: https://img.shields.io/npm/dm/state.js.svg
 [downloads-url]: https://npmjs.org/package/state.js
-[travis-image]: https://travis-ci.org/steelbreeze/state.js.svg
+[travis-image]: https://travis-ci.org/steelbreeze/state.js.svg?branch=master
 [travis-url]: https://travis-ci.org/steelbreeze/state.js
 [cc-image]: https://codeclimate.com/github/steelbreeze/state.js/badges/gpa.svg
 [cc-url]: https://codeclimate.com/github/steelbreeze/state.js

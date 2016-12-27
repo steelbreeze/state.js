@@ -333,7 +333,9 @@ export class StateMachine implements Element {
 		} else {
 			console.log(`initialise ${this}`);
 
+		console.log("INITIALISE A");
 			this.accept(new InitialiseStateMachine());
+		console.log("INITIALISE B");
 
 			this.clean = true;
 		}
@@ -413,6 +415,8 @@ export class Transition {
 	}
 
 	traverse(instance: IInstance, message?: any): boolean {
+		console.log("TRAVERSE " + this);
+
 		let onTraverse = this.onTraverse.slice(0);
 		let transition: Transition = this;
 
@@ -633,6 +637,8 @@ class InitialiseStateMachine extends Visitor<boolean> {
 
 		// initialise the transitions only once all elemenets have been initialised
 		for (const transition of this.transitions) {
+			console.log("BOOTSTRAP INT " + transition);
+
 			switch (transition.kind) {
 				case TransitionKind.Internal:
 					this.visitInternalTransition(transition);
