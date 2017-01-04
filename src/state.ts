@@ -333,9 +333,9 @@ export class StateMachine implements Element {
 		} else {
 			console.log(`initialise ${this}`);
 
-		console.log("INITIALISE A");
+// 			console.log("INITIALISE A");
 			this.accept(new InitialiseStateMachine());
-		console.log("INITIALISE B");
+// 			console.log("INITIALISE B");
 
 			this.clean = true;
 		}
@@ -415,7 +415,7 @@ export class Transition {
 	}
 
 	traverse(instance: IInstance, message?: any): boolean {
-		console.log("TRAVERSE " + this);
+		// 		console.log("TRAVERSE " + this);
 
 		let onTraverse = this.onTraverse.slice(0);
 		let transition: Transition = this;
@@ -637,7 +637,7 @@ class InitialiseStateMachine extends Visitor<boolean> {
 
 		// initialise the transitions only once all elemenets have been initialised
 		for (const transition of this.transitions) {
-			console.log("BOOTSTRAP INT " + transition);
+			console.log("BOOTSTRAP " + transition);
 
 			switch (transition.kind) {
 				case TransitionKind.Internal:
@@ -721,15 +721,24 @@ class InitialiseStateMachine extends Visitor<boolean> {
 		// find the first uncommon ancestors		
 		while (sourceAncestors[i] === targetAncestors[i]) { i++; }
 
+		if (i === sourceAncestors.length) { i--; }
+
+		// 		console.log("- i = " + i);
+		// 		console.log("- sourceAncestors.length = " + sourceAncestors.length);
+
 		// leave source ancestry and perform the transition effect
+		console.log("- leave " + sourceAncestors[i]);
+
 		pushh(transition.onTraverse, this.getActions(sourceAncestors[i]).leave, transition.effectBehavior);
 
 		// enter the target ancestry
 		while (i < targetAncestors.length) {
+			console.log("- enter " + targetAncestors[i]);
 			pushh(transition.onTraverse, this.getActions(targetAncestors[i++]).beginEnter);
 		}
 
 		// trigger cascade
+		console.log("- enter " + transition.target);
 		pushh(transition.onTraverse, this.getActions(transition.target!).endEnter);
 	}
 }
