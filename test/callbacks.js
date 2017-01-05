@@ -40,7 +40,7 @@ describe("test/callbacks.js", function () {
 
 describe("Custom logging", function () {
 	it("Logger called during initialisation and state transitions", function () {
-		assert.equal(9, instance.logs);
+		assert.equal(13, instance.logs);
 	});
 });
 
