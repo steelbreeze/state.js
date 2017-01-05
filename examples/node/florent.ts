@@ -25,13 +25,11 @@ idle.to(showMoveItemPattern).when(s => s === "ReleaseInput");
 showMoveItemPattern.to(hideMoveItemPattern).when(s => s === "ReleaseInput");
 hideMoveItemPattern.to(idle);
 
-state.validate(model);
-
-let instance = new state.StateMachineInstance("florent");
+let instance = new state.DictionaryInstance("florent");
 
 state.setConsole(console);
 
-state.initialise(model, instance);
+model.initialise(instance);
 
-state.evaluate(model, instance, "Disable");
-state.evaluate(model, instance, "Enable");
+model.evaluate(instance, "Disable");
+model.evaluate(instance, "Enable");

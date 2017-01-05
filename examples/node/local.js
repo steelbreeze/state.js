@@ -18,10 +18,10 @@ initialA.to(stateAA);
 stateA.to(stateAB, state.TransitionKind.Local).when(function(s) {return s === "move";});
 
 // create a state machine instance
-var instance = new state.StateMachineInstance("instance");
+var instance = new state.DictionaryInstance("instance");
 
 // initialise the model and instance
-state.initialise(model, instance);
+model.initialise(instance);
 
 // send the machine instance a message for evaluation, this will trigger the transition from stateA to stateB
-state.evaluate(model, instance, "move");
+model.evaluate(instance, "move");

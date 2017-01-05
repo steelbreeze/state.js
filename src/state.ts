@@ -713,7 +713,11 @@ class InitialiseStateMachine extends Visitor<boolean> {
 		let i = Math.min(sourceAncestors.length, targetAncestors.length) - 1;
 
 		// find the first uncommon ancestors
-		while (sourceAncestors[i] !== targetAncestors[i]) { --i; }
+		while (sourceAncestors[i] !== targetAncestors[i]) { i -= 1; }
+
+		if(sourceAncestors[i] instanceof Region) {
+			i += 1;
+		}
 
 		// leave source ancestry and perform the transition effect
 		pushh(transition.onTraverse, this.getActions(sourceAncestors[i]).leave, transition.effectBehavior);
