@@ -11,7 +11,7 @@
 
 If you like state.js, please star it.
 
-> **Update:** state.js is now available via [Bower](http://bower.io)
+> **Update:** state.js v6 is nearing completion - see the release notes in the v6 branch for information.
 
 ## Getting started
 
