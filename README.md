@@ -15,6 +15,8 @@ If you like state.js, please star it.
 
 ## Getting started
 
+[![Join the chat at https://gitter.im/steelbreeze/state.js](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/steelbreeze/state.js?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 The state.js API is split into:
 
 1. Classes that represent a state machine model (State, PseudoState, Transition, etc.)
