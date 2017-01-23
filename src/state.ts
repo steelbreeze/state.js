@@ -1,38 +1,52 @@
-/** The object used for log, warning and error messages. */
+/** The object used for log, warning and error messages. By default, log messages are ignored and errors throw exceptions. */
 export let console = {
 	log(message?: any, ...optionalParams: any[]): void { },
-	warn(message?: any, ...optionalParams: any[]): void { },
 	error(message?: any, ...optionalParams: any[]): void { throw message; }
 };
 
 /**
  * Replace the default console object to implement custom logging.
- * @param newConsole An object to send log, warning and error messages to.
+ * @param newConsole An object to send log, warning and error messages to. THis must implement log and error methods as per the global console object.
  */
 export function setConsole(newConsole: {
 	log(message?: any, ...optionalParams: any[]): void;
-	warn(message?: any, ...optionalParams: any[]): void;
 	error(message?: any, ...optionalParams: any[]): void;
 }): void {
 	console = newConsole;
 }
 
-/** Random number generation method. */
+/**Random number generation method. */
 export let random: (max: number) => number = (max: number) => Math.floor(Math.random() * max);
 
-/** Set a custom random number generation method. */
+/**
+ * Sets the  random number generation method.
+ * @param value A methos to generate random numbers. 
+ */
 export function setRandom(value: (max: number) => number): void {
 	random = value;
 }
 
+/** Flag to control completion transition behaviour of internal transitions. */
 export var internalTransitionsTriggerCompletion: boolean = false;
 
+/**
+ * Change completion transition behaviour of internal transitions.
+ * @param value True to have internal transitions triggering completin transitions.
+ */
 export function setInternalTransitionsTriggerCompletion(value: boolean): void {
 	internalTransitionsTriggerCompletion = value;
 }
 
-// prototype of method used internally when defining actions performed during state transitions.
-export interface Action { // TODO: make private
+/** Prototype of transition guard conditions. */
+export interface Guard {
+	(message: any, instance: IInstance): boolean;
+}
+
+export interface Behavior {
+	(message: any, instance: IInstance): void;
+}
+
+export interface Action { // TODO: make package private
 	(message: any, instance: IInstance, deepHistory: boolean): void;
 }
 
@@ -48,14 +62,6 @@ function invoke(actions: Array<Action>, message: any, instance: IInstance, deepH
 	for (const action of actions) {
 		action(message, instance, deepHistory);
 	}
-}
-
-export interface Behavior {
-	(message: any, instance: IInstance): void;
-}
-
-export interface Guard {
-	(message: any, instance: IInstance): boolean;
 }
 
 const GuardElse = (message: any, instance: IInstance) => false;
@@ -292,7 +298,7 @@ export class StateMachine implements Element {
 	readonly regions = new Array<Region>();
 	defaultRegion: Region | undefined = undefined;
 	clean: boolean = false;
-	onInitialise = new Array<Action>(); // TODO: make private
+	onInitialise = new Array<Action>();
 
 	constructor(public readonly name: string) {
 	}
@@ -416,16 +422,16 @@ export class Transition {
 		let onTraverse = this.onTraverse.slice(0);
 		let transition: Transition = this;
 
-		// process static conditional branches - build up all the transition behavior prior to executing
+		// process static conditional branches - build up all the transition actions prior to executing
 		while (transition.target && transition.target instanceof PseudoState && transition.target.kind === PseudoStateKind.Junction) {
 			// proceed to the next transition
 			transition = transition.target.selectTransition(instance, message);
 
-			// concatenate behavior before and after junctions
+			// concatenate actions before and after junctions
 			pushh(onTraverse, transition.onTraverse);
 		}
 
-		// execute the transition behavior
+		// execute the transition actions
 		invoke(onTraverse, message, instance, false);
 
 		if (transition.target) {
@@ -613,7 +619,7 @@ class InitialiseStateMachine extends Visitor<boolean> {
 	}
 
 	visitState(state: State, deepHistoryAbove: boolean) {
-		// NOTE: manually iterate over the child regions to control the sequence of behavior
+		// NOTE: manually iterate over the child regions to control the sequence of initialisation
 		for (const region of state.regions) {
 			region.accept(this, deepHistoryAbove);
 
@@ -695,7 +701,7 @@ class InitialiseStateMachine extends Visitor<boolean> {
 			// exit the source state
 			invoke(this.getActions(firstToExit!).leave, message, instance, false);
 
-			// perform the transition action;
+			// perform the transition behavior;
 			invoke(transition.effectBehavior, message, instance, false);
 
 			// enter the target ancestry
@@ -715,11 +721,11 @@ class InitialiseStateMachine extends Visitor<boolean> {
 		// find the first uncommon ancestors
 		while (sourceAncestors[i] !== targetAncestors[i]) { i -= 1; }
 
-		if(sourceAncestors[i] instanceof Region) {
+		if (sourceAncestors[i] instanceof Region) {
 			i += 1;
 		}
 
-		// leave source ancestry and perform the transition effect
+		// leave source ancestry and perform the transition behavior
 		pushh(transition.onTraverse, this.getActions(sourceAncestors[i]).leave, transition.effectBehavior);
 
 		// enter the target ancestry

@@ -3,35 +3,42 @@
 // Definitions by: David Mesquita-Morris <http://state.software>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
-/** The object used for log, warning and error messages. */
+/** The object used for log, warning and error messages. By default, log messages are ignored and errors throw exceptions. */
 export declare let console: {
     log(message?: any, ...optionalParams: any[]): void;
-    warn(message?: any, ...optionalParams: any[]): void;
     error(message?: any, ...optionalParams: any[]): void;
 };
 /**
  * Replace the default console object to implement custom logging.
- * @param newConsole An object to send log, warning and error messages to.
+ * @param newConsole An object to send log, warning and error messages to. THis must implement log and error methods as per the global console object.
  */
 export declare function setConsole(newConsole: {
     log(message?: any, ...optionalParams: any[]): void;
-    warn(message?: any, ...optionalParams: any[]): void;
     error(message?: any, ...optionalParams: any[]): void;
 }): void;
-/** Random number generation method. */
+/**Random number generation method. */
 export declare let random: (max: number) => number;
-/** Set a custom random number generation method. */
+/**
+ * Sets the  random number generation method.
+ * @param value A methos to generate random numbers.
+ */
 export declare function setRandom(value: (max: number) => number): void;
+/** Flag to control completion transition behaviour of internal transitions. */
 export declare var internalTransitionsTriggerCompletion: boolean;
+/**
+ * Change completion transition behaviour of internal transitions.
+ * @param value True to have internal transitions triggering completin transitions.
+ */
 export declare function setInternalTransitionsTriggerCompletion(value: boolean): void;
-export interface Action {
-    (message: any, instance: IInstance, deepHistory: boolean): void;
+/** Prototype of transition guard conditions. */
+export interface Guard {
+    (message: any, instance: IInstance): boolean;
 }
 export interface Behavior {
     (message: any, instance: IInstance): void;
 }
-export interface Guard {
-    (message: any, instance: IInstance): boolean;
+export interface Action {
+    (message: any, instance: IInstance, deepHistory: boolean): void;
 }
 export declare enum PseudoStateKind {
     Choice = 0,
