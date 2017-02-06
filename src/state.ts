@@ -37,34 +37,43 @@ export function setInternalTransitionsTriggerCompletion(value: boolean): void {
 	internalTransitionsTriggerCompletion = value;
 }
 
-/** Prototype of transition guard conditions. */
+/** Prototype of transition guard condition callbacks. */
 export interface Guard {
 	(message: any, instance: IInstance): boolean;
 }
 
+/** Prototype of state and transition beh callbacks. */
 export interface Behavior {
 	(message: any, instance: IInstance): void;
 }
 
-export interface Action { // TODO: make package private
-	(message: any, instance: IInstance, deepHistory: boolean): void;
-}
+/** Class that the behavior built up for state transitions. */
+export class Action {
+	private actions: Array<(message: any, instance: IInstance, deepHistory: boolean) => void> = [];
 
-function pushh(target: Array<Action>, ...sources: Array<Array<Action>>): void {
-	for (const source of sources) {
-		for (const item of source) {
-			target.push(item);
+	/**
+	 * Creates a new instance of the Action class.
+	 */
+	constructor(actions?: Action) {
+		if (actions) {
+			this.push(actions);
+		}
+	}
+
+	push(actions: Action): void;
+	push(actions: Array<(message: any, instance: IInstance, deepHistory: boolean) => void>): void;
+	push(actions: any): void {
+		for (const action of actions instanceof Action ? actions.actions : actions) {
+			this.actions.push(action);
+		}
+	}
+
+	invoke(message: any, instance: IInstance, deepHistory: boolean): void {
+		for (const action of this.actions) {
+			action(message, instance, deepHistory);
 		}
 	}
 }
-
-function invoke(actions: Array<Action>, message: any, instance: IInstance, deepHistory: boolean): void {
-	for (const action of actions) {
-		action(message, instance, deepHistory);
-	}
-}
-
-const GuardElse = (message: any, instance: IInstance) => false;
 
 export enum PseudoStateKind {
 	Choice,
@@ -187,7 +196,7 @@ export class PseudoState extends Vertex {
 	}
 
 	findElse(): Transition {
-		return this.outgoing.filter(transition => transition.guard === GuardElse)[0];
+		return this.outgoing.filter(transition => transition.guard === Transition.Else)[0];
 	}
 
 	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
@@ -298,7 +307,7 @@ export class StateMachine implements Element {
 	readonly regions = new Array<Region>();
 	defaultRegion: Region | undefined = undefined;
 	clean: boolean = false;
-	onInitialise = new Array<Action>();
+	onInitialise = new Action();
 
 	constructor(public readonly name: string) {
 	}
@@ -335,7 +344,7 @@ export class StateMachine implements Element {
 
 			console.log(`initialise ${instance}`);
 
-			invoke(this.onInitialise, undefined, instance, false);
+			this.onInitialise.invoke(undefined, instance, false);
 		} else {
 			console.log(`initialise ${this}`);
 
@@ -381,9 +390,10 @@ export class StateMachine implements Element {
 }
 
 export class Transition {
+	static Else = (message: any, instance: IInstance) => false;
 	guard: Guard;
 	effectBehavior = new Array<Behavior>();
-	onTraverse = new Array<Action>();
+	onTraverse = new Action();
 
 	constructor(public readonly source: Vertex, public readonly target?: Vertex, public readonly kind: TransitionKind = TransitionKind.External) {
 		this.guard = source instanceof PseudoState ? () => true : message => message === this.source;
@@ -399,7 +409,7 @@ export class Transition {
 	}
 
 	else() { // NOTE: no need to invalidate the machine as the transition actions have not changed.
-		this.guard = GuardElse;
+		this.guard = Transition.Else;
 
 		return this;
 	}
@@ -419,7 +429,7 @@ export class Transition {
 	}
 
 	traverse(instance: IInstance, message?: any): boolean {
-		let onTraverse = this.onTraverse.slice(0);
+		let onTraverse = new Action(this.onTraverse);
 		let transition: Transition = this;
 
 		// process static conditional branches - build up all the transition actions prior to executing
@@ -428,11 +438,11 @@ export class Transition {
 			transition = transition.target.selectTransition(instance, message);
 
 			// concatenate actions before and after junctions
-			pushh(onTraverse, transition.onTraverse);
+			onTraverse.push(transition.onTraverse);
 		}
 
 		// execute the transition actions
-		invoke(onTraverse, message, instance, false);
+		onTraverse.invoke(message, instance, false);
 
 		if (transition.target) {
 			// process dynamic conditional branches if required
@@ -538,9 +548,9 @@ export class DictionaryInstance implements IInstance {
 }
 
 type ElementActions = {
-	leave: Array<Action>,
-	beginEnter: Array<Action>;
-	endEnter: Array<Action>;
+	leave: Action;
+	beginEnter: Action;
+	endEnter: Action;
 }
 
 class InitialiseStateMachine extends Visitor<boolean> {
@@ -548,12 +558,12 @@ class InitialiseStateMachine extends Visitor<boolean> {
 	readonly transitions = new Array<Transition>();
 
 	getActions(elemenet: Element): ElementActions {
-		return this.elementActions[elemenet.toString()] || (this.elementActions[elemenet.toString()] = { leave: [], beginEnter: [], endEnter: [] });
+		return this.elementActions[elemenet.toString()] || (this.elementActions[elemenet.toString()] = { leave: new Action(), beginEnter: new Action(), endEnter: new Action() });
 	}
 
 	visitElement(element: Element, deepHistoryAbove: boolean): void {
-		this.getActions(element).leave.push((message, instance) => console.log(`${instance} leave ${element}`));
-		this.getActions(element).beginEnter.push((message, instance) => console.log(`${instance} enter ${element}`));
+		this.getActions(element).leave.push([(message, instance) => console.log(`${instance} leave ${element}`)]); // TODO: remove square braces
+		this.getActions(element).beginEnter.push([(message, instance) => console.log(`${instance} enter ${element}`)]); // TODO: remove square braces
 	}
 
 	visitRegion(region: Region, deepHistoryAbove: boolean): void {
@@ -561,29 +571,30 @@ class InitialiseStateMachine extends Visitor<boolean> {
 		const regionInitial = region.vertices.reduce<PseudoState | undefined>((result, vertex) => vertex instanceof PseudoState && vertex.isInitial() && (result === undefined || result.isHistory()) ? vertex : result, undefined);
 
 		// leave the curent active child state when exiting the region
-		this.getActions(region).leave.push((message, instance) => {
+		this.getActions(region).leave.push([(message, instance) => { // TODO: remove square braces
 			const currentState = instance.getCurrent(region);
 
 			if (currentState) {
-				invoke(this.getActions(currentState).leave, message, instance, false);
+				this.getActions(currentState).leave.invoke(message, instance, false);
 			}
-		});
+		}]);
 
 		// cascade to child vertices
 		super.visitRegion(region, deepHistoryAbove || (regionInitial && regionInitial.kind === PseudoStateKind.DeepHistory)); // TODO: determine if we need to break this up or move it
 
 		// enter the appropriate child vertex when entering the region
 		if (deepHistoryAbove || !regionInitial || regionInitial.isHistory()) { // NOTE: history needs to be determined at runtime
-			this.getActions(region).endEnter.push((message, instance, deepHistory) => {
+			this.getActions(region).endEnter.push([(message, instance, deepHistory) => { // TODO: remove square braces
 				const actions = this.getActions((deepHistory || regionInitial!.isHistory()) ? instance.getLastKnownState(region) || regionInitial! : regionInitial!);
 				const history = deepHistory || regionInitial!.kind === PseudoStateKind.DeepHistory;
 
-				invoke(actions.beginEnter, message, instance, history);
-				invoke(actions.endEnter, message, instance, history);
-			});
+				actions.beginEnter.invoke(message, instance, history);
+				actions.endEnter.invoke(message, instance, history);
+			}]);
 		} else {
 			// TODO: validate initial region
-			pushh(this.getActions(region).endEnter, this.getActions(regionInitial).beginEnter, this.getActions(regionInitial).endEnter);
+			this.getActions(region).endEnter.push(this.getActions(regionInitial).beginEnter);
+			this.getActions(region).endEnter.push(this.getActions(regionInitial).endEnter);
 		}
 	}
 
@@ -591,9 +602,9 @@ class InitialiseStateMachine extends Visitor<boolean> {
 		super.visitVertex(vertex, deepHistoryAbove);
 
 		// update the parent regions current state
-		this.getActions(vertex).beginEnter.push((message, instance) => {
+		this.getActions(vertex).beginEnter.push([(message, instance) => { // TODO: remove square braces
 			instance.setCurrent(vertex.parent, vertex);
-		});
+		}]);
 	}
 
 	visitPseudoState(pseudoState: PseudoState, deepHistoryAbove: boolean) {
@@ -601,20 +612,20 @@ class InitialiseStateMachine extends Visitor<boolean> {
 
 		// evaluate comppletion transitions once vertex entry is complete
 		if (pseudoState.isInitial()) {
-			this.getActions(pseudoState).endEnter.push((message, instance, deepHistory) => {
+			this.getActions(pseudoState).endEnter.push([(message, instance, deepHistory) => { // TODO: remove square braces
 				if (instance.getLastKnownState(pseudoState.parent)) {
-					invoke(this.getActions(pseudoState).leave, message, instance, false);
+					this.getActions(pseudoState).leave.invoke(message, instance, false);
 
 					const currentState = instance.getLastKnownState(pseudoState.parent);
 
 					if (currentState) {
-						invoke(this.getActions(currentState).beginEnter, message, instance, deepHistory || pseudoState.kind === PseudoStateKind.DeepHistory);
-						invoke(this.getActions(currentState).endEnter, message, instance, deepHistory || pseudoState.kind === PseudoStateKind.DeepHistory);
+						this.getActions(currentState).beginEnter.invoke(message, instance, deepHistory || pseudoState.kind === PseudoStateKind.DeepHistory);
+						this.getActions(currentState).endEnter.invoke(message, instance, deepHistory || pseudoState.kind === PseudoStateKind.DeepHistory);
 					}
 				} else {
 					pseudoState.outgoing[0].traverse(instance);
 				}
-			});
+			}]);
 		}
 	}
 
@@ -623,15 +634,16 @@ class InitialiseStateMachine extends Visitor<boolean> {
 		for (const region of state.regions) {
 			region.accept(this, deepHistoryAbove);
 
-			pushh(this.getActions(state).leave, this.getActions(region).leave);
-			pushh(this.getActions(state).endEnter, this.getActions(region).beginEnter, this.getActions(region).endEnter);
+			this.getActions(state).leave.push(this.getActions(region).leave);
+			this.getActions(state).endEnter.push(this.getActions(region).beginEnter);
+			this.getActions(state).endEnter.push(this.getActions(region).endEnter);
 		}
 
 		this.visitVertex(state, deepHistoryAbove);
 
 		// add the user defined behavior when entering and exiting states
-		pushh(this.getActions(state).leave, state.exitBehavior);
-		pushh(this.getActions(state).beginEnter, state.entryBehavior);
+		this.getActions(state).leave.push(state.exitBehavior);
+		this.getActions(state).beginEnter.push(state.entryBehavior);
 	}
 
 	visitStateMachine(stateMachine: StateMachine, deepHistoryAbove: boolean): void {
@@ -656,7 +668,8 @@ class InitialiseStateMachine extends Visitor<boolean> {
 
 		// enter each child region on state machine entry
 		for (const region of stateMachine.regions) {
-			pushh(stateMachine.onInitialise, this.getActions(region).beginEnter, this.getActions(region).endEnter);
+			stateMachine.onInitialise.push(this.getActions(region).beginEnter);
+			stateMachine.onInitialise.push(this.getActions(region).endEnter);
 		}
 	}
 
@@ -668,20 +681,20 @@ class InitialiseStateMachine extends Visitor<boolean> {
 
 	visitInternalTransition(transition: Transition): void {
 		// perform the transition behavior
-		pushh(transition.onTraverse, transition.effectBehavior);
+		transition.onTraverse.push(transition.effectBehavior);
 
 		// add a test for completion
 		if (internalTransitionsTriggerCompletion) {
-			transition.onTraverse.push((message, instance) => {
+			transition.onTraverse.push([(message, instance) => { // TODO: remove need for square brackets
 				if (transition.source instanceof State && transition.source.isComplete(instance)) {
 					transition.source.evaluateState(instance, transition.source);
 				}
-			});
+			}]);
 		}
 	}
 
 	visitLocalTransition(transition: Transition): void {
-		transition.onTraverse.push((message, instance) => {
+		transition.onTraverse.push([(message, instance, deepHistory) => { // TODO: remove need for square brackets
 			const targetAncestors = transition.target!.getAncestors(); // local transitions will have a target
 			let i = 0;
 
@@ -699,19 +712,21 @@ class InitialiseStateMachine extends Visitor<boolean> {
 			const firstToExit = instance.getCurrent(firstToEnter.parent);
 
 			// exit the source state
-			invoke(this.getActions(firstToExit!).leave, message, instance, false);
+			this.getActions(firstToExit!).leave.invoke(message, instance, false);
 
 			// perform the transition behavior;
-			invoke(transition.effectBehavior, message, instance, false);
+			for (const action of transition.effectBehavior) {
+				action(message, instance);
+			}
 
 			// enter the target ancestry
 			while (i < targetAncestors.length) {
-				invoke(this.getActions(targetAncestors[i++]).beginEnter, message, instance, false);
+				this.getActions(targetAncestors[i++]).beginEnter.invoke(message, instance, false);
 			}
 
 			// trigger cascade
-			invoke(this.getActions(transition.target!).endEnter, message, instance, false);
-		});
+			this.getActions(transition.target!).endEnter.invoke(message, instance, false);
+		}]);
 	}
 
 	visitExternalTransition(transition: Transition): void {
@@ -726,14 +741,15 @@ class InitialiseStateMachine extends Visitor<boolean> {
 		}
 
 		// leave source ancestry and perform the transition behavior
-		pushh(transition.onTraverse, this.getActions(sourceAncestors[i]).leave, transition.effectBehavior);
+		transition.onTraverse.push(this.getActions(sourceAncestors[i]).leave);
+		transition.onTraverse.push(transition.effectBehavior);
 
 		// enter the target ancestry
 		while (i < targetAncestors.length) {
-			pushh(transition.onTraverse, this.getActions(targetAncestors[i++]).beginEnter);
+			transition.onTraverse.push(this.getActions(targetAncestors[i++]).beginEnter);
 		}
 
 		// trigger cascade
-		pushh(transition.onTraverse, this.getActions(transition.target!).endEnter);
+		transition.onTraverse.push(this.getActions(transition.target!).endEnter);
 	}
 }

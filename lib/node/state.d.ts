@@ -30,15 +30,24 @@ export declare var internalTransitionsTriggerCompletion: boolean;
  * @param value True to have internal transitions triggering completin transitions.
  */
 export declare function setInternalTransitionsTriggerCompletion(value: boolean): void;
-/** Prototype of transition guard conditions. */
+/** Prototype of transition guard condition callbacks. */
 export interface Guard {
     (message: any, instance: IInstance): boolean;
 }
+/** Prototype of state and transition beh callbacks. */
 export interface Behavior {
     (message: any, instance: IInstance): void;
 }
-export interface Action {
-    (message: any, instance: IInstance, deepHistory: boolean): void;
+/** Class that the behavior built up for state transitions. */
+export declare class Action {
+    private actions;
+    /**
+     * Creates a new instance of the Action class.
+     */
+    constructor(actions?: Action);
+    push(actions: Action): void;
+    push(actions: Array<(message: any, instance: IInstance, deepHistory: boolean) => void>): void;
+    invoke(message: any, instance: IInstance, deepHistory: boolean): void;
 }
 export declare enum PseudoStateKind {
     Choice = 0,
@@ -116,7 +125,7 @@ export declare class StateMachine implements Element {
     readonly regions: Region[];
     defaultRegion: Region | undefined;
     clean: boolean;
-    onInitialise: Action[];
+    onInitialise: Action;
     constructor(name: string);
     getDefaultRegion(): Region;
     getAncestors(): Array<Element>;
@@ -133,9 +142,10 @@ export declare class Transition {
     readonly source: Vertex;
     readonly target: Vertex;
     readonly kind: TransitionKind;
+    static Else: (message: any, instance: IInstance) => boolean;
     guard: Guard;
     effectBehavior: Behavior[];
-    onTraverse: Action[];
+    onTraverse: Action;
     constructor(source: Vertex, target?: Vertex, kind?: TransitionKind);
     else(): this;
     when(guard: Guard): this;
