@@ -38,15 +38,22 @@ export interface Guard {
 export interface Behavior {
     (message: any, instance: IInstance): void;
 }
+export interface Action {
+    (message: any, instance: IInstance, deepHistory: boolean): void;
+}
 /** Class that the behavior built up for state transitions. */
-export declare class Action {
-    private actions;
+export declare class Actions {
+    private readonly actions;
     /**
-     * Creates a new instance of the Action class.
+     * Creates a new instance of the [[Action]] class.
+     * @param actions An optional existing [[Action]] to seed the initial behavior from; use this when a copy constructor is required.
      */
-    constructor(actions?: Action);
-    push(actions: Action): void;
-    push(actions: Array<(message: any, instance: IInstance, deepHistory: boolean) => void>): void;
+    constructor(actions?: Actions);
+    /**
+     * Appends the the [[Action]] with the contents of another [[Action]], behavior or array of behavior
+     * @param actions The actions to copy behavior from.
+     */
+    push(action: Actions | Action): void;
     invoke(message: any, instance: IInstance, deepHistory: boolean): void;
 }
 export declare enum PseudoStateKind {
@@ -104,9 +111,9 @@ export declare class PseudoState extends Vertex {
 }
 export declare class State extends Vertex {
     readonly regions: Region[];
+    readonly entryBehavior: Actions;
+    readonly exitBehavior: Actions;
     defaultRegion: Region;
-    entryBehavior: Behavior[];
-    exitBehavior: Behavior[];
     constructor(name: string, parent: Region | State | StateMachine);
     getDefaultRegion(): Region;
     isFinal(): boolean;
@@ -125,7 +132,7 @@ export declare class StateMachine implements Element {
     readonly regions: Region[];
     defaultRegion: Region | undefined;
     clean: boolean;
-    onInitialise: Action;
+    readonly onInitialise: Actions;
     constructor(name: string);
     getDefaultRegion(): Region;
     getAncestors(): Array<Element>;
@@ -143,9 +150,9 @@ export declare class Transition {
     readonly target: Vertex;
     readonly kind: TransitionKind;
     static Else: (message: any, instance: IInstance) => boolean;
+    readonly effectBehavior: Actions;
+    readonly onTraverse: Actions;
     guard: Guard;
-    effectBehavior: Behavior[];
-    onTraverse: Action;
     constructor(source: Vertex, target?: Vertex, kind?: TransitionKind);
     else(): this;
     when(guard: Guard): this;
