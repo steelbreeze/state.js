@@ -50,10 +50,16 @@ export declare class Actions {
      */
     constructor(actions?: Actions);
     /**
-     * Appends the the [[Action]] with the contents of another [[Action]], behavior or array of behavior
-     * @param actions The actions to copy behavior from.
+     * Appends the [[Action]] with the contents of another [[Action]] or [[Action]].
+     * @param action The [[Actions]] or [[Action]] to append.
      */
     push(action: Actions | Action): void;
+    /**
+     * Calls each [[Action]] in turn with the supplied parameters upon a state transtion.
+     * @param message The message that caused the state transition.
+     * @param instance The state machine instance.
+     * @param deepHistory For internal use only.
+     */
     invoke(message: any, instance: IInstance, deepHistory: boolean): void;
 }
 export declare enum PseudoStateKind {
@@ -105,8 +111,6 @@ export declare class PseudoState extends Vertex {
     constructor(name: string, parent: Region | State | StateMachine, kind?: PseudoStateKind);
     isHistory(): boolean;
     isInitial(): boolean;
-    selectTransition(instance: IInstance, message: any): Transition;
-    findElse(): Transition;
     accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
 }
 export declare class State extends Vertex {
@@ -120,11 +124,10 @@ export declare class State extends Vertex {
     isSimple(): boolean;
     isComposite(): boolean;
     isOrthogonal(): boolean;
-    exit(action: Behavior): this;
-    entry(action: Behavior): this;
     isActive(instance: IInstance): boolean;
     isComplete(instance: IInstance): boolean;
-    evaluateState(instance: IInstance, message: any): boolean;
+    exit(action: Behavior): this;
+    entry(action: Behavior): this;
     accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
 }
 export declare class StateMachine implements Element {
@@ -142,7 +145,6 @@ export declare class StateMachine implements Element {
     isComplete(instance: IInstance): boolean;
     initialise(instance?: IInstance, autoInitialiseModel?: boolean): void;
     evaluate(instance: IInstance, message: any, autoInitialiseModel?: boolean): boolean;
-    evaluateState(instance: IInstance, message: any): boolean;
     toString(): string;
 }
 export declare class Transition {
@@ -157,7 +159,6 @@ export declare class Transition {
     else(): this;
     when(guard: Guard): this;
     effect(action: Behavior): this;
-    traverse(instance: IInstance, message?: any): boolean;
     accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
     toString(): string;
 }

@@ -66,8 +66,8 @@ export class Actions {
 	}
 
 	/**
-	 * Appends the the [[Action]] with the contents of another [[Action]], behavior or array of behavior
-	 * @param actions The actions to copy behavior from.
+	 * Appends the [[Action]] with the contents of another [[Action]] or [[Action]].
+	 * @param action The [[Actions]] or [[Action]] to append.
 	 */
 	push(action: Actions | Action): void {
 		if (action instanceof Actions) {
@@ -79,6 +79,12 @@ export class Actions {
 		}
 	}
 
+	/**
+	 * Calls each [[Action]] in turn with the supplied parameters upon a state transtion.
+	 * @param message The message that caused the state transition.
+	 * @param instance The state machine instance.
+	 * @param deepHistory For internal use only.
+	 */
 	invoke(message: any, instance: IInstance, deepHistory: boolean): void {
 		for (const action of this.actions) {
 			action(message, instance, deepHistory);
@@ -192,24 +198,6 @@ export class PseudoState extends Vertex {
 		return this.kind === PseudoStateKind.Initial || this.isHistory();
 	}
 
-	/*internal*/ selectTransition(instance: IInstance, message: any): Transition {
-		const transitions = this.outgoing.filter(transition => transition.guard(message, instance));
-
-		if (this.kind === PseudoStateKind.Choice) {
-			return transitions.length !== 0 ? transitions[random(transitions.length)] : this.findElse();
-		}
-
-		if (transitions.length > 1) {
-			console.error(`Multiple outbound transition guards returned true at ${this} for ${message}`);
-		}
-
-		return transitions[0] || this.findElse();
-	}
-
-	/*internal*/ findElse(): Transition {
-		return this.outgoing.filter(transition => transition.guard === Transition.Else)[0];
-	}
-
 	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
 		visitor.visitPseudoState(this, arg);
 	}
@@ -245,6 +233,14 @@ export class State extends Vertex {
 		return this.regions.length > 1;
 	}
 
+	isActive(instance: IInstance): boolean {
+		return super.isActive(instance) && instance.getLastKnownState(this.parent) === this;
+	}
+
+	isComplete(instance: IInstance): boolean {
+		return this.regions.every(region => region.isComplete(instance));
+	}
+
 	exit(action: Behavior) {
 		this.exitBehavior.push(action);
 
@@ -259,53 +255,6 @@ export class State extends Vertex {
 		this.getRoot().clean = false;
 
 		return this;
-	}
-
-	isActive(instance: IInstance): boolean {
-		return super.isActive(instance) && instance.getLastKnownState(this.parent) === this;
-	}
-
-	isComplete(instance: IInstance): boolean {
-		return this.regions.every(region => region.isComplete(instance));
-	}
-
-	/*internal*/ evaluateState(instance: IInstance, message: any): boolean {
-		let result = false;
-
-		// delegate to child regions first if a non-continuation
-		if (message !== this) {
-			this.regions.every(region => {
-				const currentState = instance.getLastKnownState(region);
-
-				if (currentState && currentState.evaluateState(instance, message)) {
-					result = true;
-
-					return this.isActive(instance); // NOTE: this just controls the every loop; also isActive is a litte costly so using sparingly
-				}
-
-				return true; // NOTE: this just controls the every loop
-			});
-		}
-
-		// if a transition occured in a child region, check for completions
-		if (result) {
-			if ((message !== this) && this.isComplete(instance)) {
-				this.evaluateState(instance, this);
-			}
-		} else {
-			// otherwise look for a transition from this state
-			const transitions = this.outgoing.filter(transition => transition.guard(message, instance));
-
-			if (transitions.length === 1) {
-				// execute if a single transition was found
-				result = transitions[0].traverse(instance, message);
-			} else if (transitions.length > 1) {
-				// error if multiple transitions evaluated true
-				console.error(`${this}: multiple outbound transitions evaluated true for message ${message}`);
-			}
-		}
-
-		return result;
 	}
 
 	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
@@ -372,26 +321,7 @@ export class StateMachine implements Element {
 
 		console.log(`${instance} evaluate message: ${message}`);
 
-		return this.evaluateState(instance, message);
-	}
-
-	/*internal*/ evaluateState(instance: IInstance, message: any): boolean {
-		let result = false;
-
-		// delegate to child regions first if a non-continuation
-		this.regions.every(region => {
-			const currentState = instance.getLastKnownState(region);
-
-			if (currentState && currentState.evaluateState(instance, message)) {
-				result = true;
-
-				return this.isActive(instance); // NOTE: this just controls the every loop; also isActive is a litte costly so using sparingly
-			}
-
-			return true; // NOTE: this just controls the every loop
-		});
-
-		return result;
+		return evaluateStateM(this, instance, message);
 	}
 
 	toString(): string {
@@ -436,37 +366,6 @@ export class Transition {
 		this.source.getRoot().clean = false;
 
 		return this;
-	}
-
-	/*internal*/ traverse(instance: IInstance, message?: any): boolean {
-		let onTraverse = new Actions(this.onTraverse);
-		let transition: Transition = this;
-
-		// process static conditional branches - build up all the transition actions prior to executing
-		while (transition.target && transition.target instanceof PseudoState && transition.target.kind === PseudoStateKind.Junction) {
-			// proceed to the next transition
-			transition = transition.target.selectTransition(instance, message);
-
-			// concatenate actions before and after junctions
-			onTraverse.push(transition.onTraverse);
-		}
-
-		// execute the transition actions
-		onTraverse.invoke(message, instance, false);
-
-		if (transition.target) {
-			// process dynamic conditional branches if required
-			if (transition.target instanceof PseudoState && transition.target.kind === PseudoStateKind.Choice) {
-				transition.target.selectTransition(instance, message).traverse(instance, message);
-			}
-
-			// test for completion transitions
-			else if (transition.target instanceof State && transition.target.isComplete(instance)) {
-				transition.target.evaluateState(instance, transition.target);
-			}
-		}
-
-		return true;
 	}
 
 	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
@@ -633,7 +532,7 @@ class InitialiseStateMachine extends Visitor<boolean> {
 						this.getActions(currentState).endEnter.invoke(message, instance, deepHistory || pseudoState.kind === PseudoStateKind.DeepHistory);
 					}
 				} else {
-					pseudoState.outgoing[0].traverse(instance);
+					traverse(pseudoState.outgoing[0], instance);
 				}
 			});
 		}
@@ -697,7 +596,7 @@ class InitialiseStateMachine extends Visitor<boolean> {
 		if (internalTransitionsTriggerCompletion) {
 			transition.onTraverse.push((message, instance) => {
 				if (transition.source instanceof State && transition.source.isComplete(instance)) {
-					transition.source.evaluateState(instance, transition.source);
+					evaluateState(transition.source, instance, transition.source);
 				}
 			});
 		}
@@ -760,4 +659,112 @@ class InitialiseStateMachine extends Visitor<boolean> {
 		// trigger cascade
 		transition.onTraverse.push(this.getActions(transition.target!).endEnter);
 	}
+}
+
+function selectTransition(pseudoState: PseudoState, instance: IInstance, message: any): Transition {
+	const transitions = pseudoState.outgoing.filter(transition => transition.guard(message, instance));
+
+	if (pseudoState.kind === PseudoStateKind.Choice) {
+		return transitions.length !== 0 ? transitions[random(transitions.length)] : findElse(pseudoState);
+	}
+
+	if (transitions.length > 1) {
+		console.error(`Multiple outbound transition guards returned true at ${pseudoState} for ${message}`);
+	}
+
+	return transitions[0] || findElse(pseudoState);
+}
+
+function findElse(pseudoState: PseudoState): Transition {
+	return pseudoState.outgoing.filter(transition => transition.guard === Transition.Else)[0];
+}
+
+function evaluateStateM(state: StateMachine, instance: IInstance, message: any): boolean {
+	let result = false;
+
+	// delegate to child regions first if a non-continuation
+	state.regions.every(region => {
+		const currentState = instance.getLastKnownState(region);
+
+		if (currentState && evaluateState(currentState, instance, message)) {
+			result = true;
+
+			return state.isActive(instance); // NOTE: this just controls the every loop; also isActive is a litte costly so using sparingly
+		}
+
+		return true; // NOTE: this just controls the every loop
+	});
+
+	return result;
+}
+
+
+function evaluateState(state: State, instance: IInstance, message: any): boolean {
+	let result = false;
+
+	// delegate to child regions first if a non-continuation
+	if (message !== state) {
+		state.regions.every(region => {
+			const currentState = instance.getLastKnownState(region);
+
+			if (currentState && evaluateState(currentState, instance, message)) {
+				result = true;
+
+				return state.isActive(instance); // NOTE: this just controls the every loop; also isActive is a litte costly so using sparingly
+			}
+
+			return true; // NOTE: this just controls the every loop
+		});
+	}
+
+	// if a transition occured in a child region, check for completions
+	if (result) {
+		if ((message !== state) && state.isComplete(instance)) {
+			evaluateState(state, instance, state);
+		}
+	} else {
+		// otherwise look for a transition from this state
+		const transitions = state.outgoing.filter(transition => transition.guard(message, instance));
+
+		if (transitions.length === 1) {
+			// execute if a single transition was found
+			result = traverse(transitions[0], instance, message);
+		} else if (transitions.length > 1) {
+			// error if multiple transitions evaluated true
+			console.error(`${state}: multiple outbound transitions evaluated true for message ${message}`);
+		}
+	}
+
+	return result;
+}
+
+function traverse(origin: Transition, instance: IInstance, message?: any): boolean {
+	let onTraverse = new Actions(origin.onTraverse);
+	let transition: Transition = origin;
+
+	// process static conditional branches - build up all the transition actions prior to executing
+	while (transition.target && transition.target instanceof PseudoState && transition.target.kind === PseudoStateKind.Junction) {
+		// proceed to the next transition
+		transition = selectTransition(transition.target, instance, message);
+
+		// concatenate actions before and after junctions
+		onTraverse.push(transition.onTraverse);
+	}
+
+	// execute the transition actions
+	onTraverse.invoke(message, instance, false);
+
+	if (transition.target) {
+		// process dynamic conditional branches if required
+		if (transition.target instanceof PseudoState && transition.target.kind === PseudoStateKind.Choice) {
+			traverse(selectTransition(transition.target, instance, message), instance, message);
+		}
+
+		// test for completion transitions
+		else if (transition.target instanceof State && transition.target.isComplete(instance)) {
+			evaluateState(transition.target, instance, transition.target);
+		}
+	}
+
+	return true;
 }
