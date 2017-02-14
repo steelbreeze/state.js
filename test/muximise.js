@@ -2,8 +2,8 @@
 var assert = require("assert"),
 	state = require("../lib/node/state");
 
-var oldConsole = state.console;
-state.setConsole(console);
+var oldLogger = state.logger;
+state.setLogger(console);
 
 var model = new state.StateMachine("model");
 
@@ -82,4 +82,4 @@ describe("test/muximise.js", function () {
 	});
 });
 
-state.setConsole(oldConsole);
+state.setLogger(oldLogger);

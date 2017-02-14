@@ -27,7 +27,7 @@ hideMoveItemPattern.to(idle);
 
 let instance = new state.DictionaryInstance("florent");
 
-state.setConsole(console);
+state.setLogger(console);
 
 model.initialise(instance);
 

@@ -2,8 +2,8 @@
 var assert = require("assert"),
 	state = require("../lib/node/state");
 
-var oldConsole = state.console;
-state.setConsole(console);
+var oldLogger = state.logger;
+state.setLogger(console);
 
 // enable completion events to be raised after internal transtions
 state.setInternalTransitionsTriggerCompletion(true);
@@ -41,4 +41,4 @@ describe("test/brice2.js", function () {
 	});
 });
 
-state.setConsole(oldConsole);
+state.setLogger(oldLogger);

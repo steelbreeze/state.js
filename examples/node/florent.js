@@ -23,7 +23,7 @@ idle.to(showMoveItemPattern).when(function (s) { return s === "ReleaseInput"; })
 showMoveItemPattern.to(hideMoveItemPattern).when(function (s) { return s === "ReleaseInput"; });
 hideMoveItemPattern.to(idle);
 var instance = new state.DictionaryInstance("florent");
-state.setConsole(console);
+state.setLogger(console);
 model.initialise(instance);
 model.evaluate(instance, "Disable");
 model.evaluate(instance, "Enable");

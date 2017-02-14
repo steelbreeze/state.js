@@ -3,26 +3,29 @@
 // Definitions by: David Mesquita-Morris <http://state.software>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
-/** The object used for log, warning and error messages. By default, log messages are ignored and errors throw exceptions. */
-export declare let console: {
+/** Type signature for logging; this type signature allows for the default console to be used. */
+export declare type Logger = {
     log(message?: any, ...optionalParams: any[]): void;
     error(message?: any, ...optionalParams: any[]): void;
 };
+/** The object used for loggin error messages. By default, log messages are ignored and errors throw exceptions. */
+export declare let logger: Logger;
 /**
- * Replace the default console object to implement custom logging.
- * @param newConsole An object to send log, warning and error messages to. THis must implement log and error methods as per the global console object.
+ * Replace the default logger with custom logging.
+ * @param newLogger An object to send log and error messages to. This must implement the [[Logger]] interface.
+ * @returns Returns the previous implementation of the logger.
  */
-export declare function setConsole(newConsole: {
-    log(message?: any, ...optionalParams: any[]): void;
-    error(message?: any, ...optionalParams: any[]): void;
-}): void;
-/**Random number generation method. */
-export declare let random: (max: number) => number;
+export declare function setLogger(newLogger: Logger): Logger;
+/** Type signature for random number generation. */
+export declare type Random = (max: number) => number;
+/** Random number generation method. */
+export declare let random: Random;
 /**
- * Sets the  random number generation method.
- * @param value A methos to generate random numbers.
+ * Sets the random number generation method.
+ * @param newRandom A method to generate random numbers. This must conform to the [[Random]] type.
+ * @returns Returns the previous implementation of the random number generator.
  */
-export declare function setRandom(value: (max: number) => number): void;
+export declare function setRandom(newRandom: Random): Random;
 /** Flag to control completion transition behaviour of internal transitions. */
 export declare var internalTransitionsTriggerCompletion: boolean;
 /**
@@ -31,16 +34,9 @@ export declare var internalTransitionsTriggerCompletion: boolean;
  */
 export declare function setInternalTransitionsTriggerCompletion(value: boolean): void;
 /** Prototype of transition guard condition callbacks. */
-export interface Guard {
-    (message: any, instance: IInstance): boolean;
-}
-/** Prototype of state and transition beh callbacks. */
-export interface Behavior {
-    (message: any, instance: IInstance): void;
-}
-export interface Action {
-    (message: any, instance: IInstance, deepHistory: boolean): void;
-}
+export declare type Guard = (message: any, instance: IInstance) => boolean;
+/** Prototype of state and transition behavior callbacks. */
+export declare type Action = (message: any, instance: IInstance, deepHistory?: boolean) => void;
 /** Class that the behavior built up for state transitions. */
 export declare class Actions {
     private readonly actions;
@@ -126,8 +122,8 @@ export declare class State extends Vertex {
     isOrthogonal(): boolean;
     isActive(instance: IInstance): boolean;
     isComplete(instance: IInstance): boolean;
-    exit(action: Behavior): this;
-    entry(action: Behavior): this;
+    exit(action: Action): this;
+    entry(action: Action): this;
     accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
 }
 export declare class StateMachine implements Element {
@@ -158,7 +154,7 @@ export declare class Transition {
     constructor(source: Vertex, target?: Vertex, kind?: TransitionKind);
     else(): this;
     when(guard: Guard): this;
-    effect(action: Behavior): this;
+    effect(action: Action): this;
     accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
     toString(): string;
 }

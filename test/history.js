@@ -2,8 +2,8 @@
 var assert = require("assert"),
 	state = require("../lib/node/state");
 
-var oldConsole = state.console;
-state.setConsole(console);
+var oldLogger = state.logger;
+state.setLogger(console);
 
 var model = new state.StateMachine("history");
 
@@ -37,4 +37,4 @@ describe("test/history.js", function () {
 	});
 });
 
-state.setConsole(oldConsole);
+state.setLogger(oldLogger);

@@ -1,7 +1,7 @@
 "use strict";
 var state = require("../../lib/node/state");
 // send log messages, warnings and errors to the console
-state.setConsole(console);
+state.setLogger(console);
 // create the state machine model elements
 var model = new state.StateMachine("model");
 var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
@@ -11,8 +11,8 @@ var stateB = new state.State("stateB", model);
 initial.to(stateA);
 stateA.to(stateB).when(function (message) { return message === "move"; });
 // create a state machine instance
-var instance = new state.StateMachineInstance("instance");
+var instance = new state.DictionaryInstance("instance");
 // initialise the model and instance
-state.initialise(model, instance);
+model.initialise(instance);
 // send the machine instance a message for evaluation, this will trigger the transition from stateA to stateB
-state.evaluate(model, instance, "move");
+model.evaluate(instance, "move");

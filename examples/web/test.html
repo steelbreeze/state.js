@@ -9,79 +9,79 @@
 	<h1>state.js example</h1>
 	<p>This example implements a simple controller for a cassette player according to the model below:</p>
 	<div id="log" style="float: right; width: auto; height: 401px; overflow: scroll;"></div>
-<div>
-	<img id="imgStopped" style="display: none" src="controller_stopped.png" />
-<img id="imgRunning" style="display: none" src="controller_running.png" />
-<img id="imgPaused" style="display: none" src="controller_paused.png" />
-<img id="imgFinal" style="display: none" src="controller_final.png" />
-<img id="imgFlipped" style="display: none" src="controller_flipped.png" />
-</div>
-<p>Press the buttons below to send events to the controller:</p>
-<button type="button" id="play">play</button>
-<button type="button" id="pause">pause</button>
-<button type="button" id="stop">stop</button>
-<button type="button" id="flip">flip</button>
-<button type="button" id="off">off</button>
-<p id="head">Head: disengaged</p>
-<p id="motor">Motor: stopped</p>
+	<div>
+		<img id="imgStopped" style="display: none" src="controller_stopped.png" />
+		<img id="imgRunning" style="display: none" src="controller_running.png" />
+		<img id="imgPaused" style="display: none" src="controller_paused.png" />
+		<img id="imgFinal" style="display: none" src="controller_final.png" />
+		<img id="imgFlipped" style="display: none" src="controller_flipped.png" />
+	</div>
+	<p>Press the buttons below to send events to the controller:</p>
+	<button type="button" id="play">play</button>
+	<button type="button" id="pause">pause</button>
+	<button type="button" id="stop">stop</button>
+	<button type="button" id="flip">flip</button>
+	<button type="button" id="off">off</button>
+	<p id="head">Head: disengaged</p>
+	<p id="motor">Motor: stopped</p>
 
-<!-- import jQuery -->
-<script type="text/javascript" src="jquery-1.11.2.min.js"></script>
+	<!-- import jQuery -->
+	<script type="text/javascript" src="jquery-1.11.2.min.js"></script>
 
-<!-- import the state machine runtime; NOTE: the use of the class attribute defines the global object that the state.js API is bound to -->
-<script type="text/javascript" src="../../lib/web/state.min.js" target="state"></script>
+	<!-- import the state machine runtime; NOTE: the use of the class attribute defines the global object that the state.js API is bound to -->
+	<script type="text/javascript" src="../../lib/web/state.min.js" target="state"></script>
 
-<!-- script to wire the core player to the web page -->
-<script>
-			/* global $, state */
-			$(document).ready(function () {
-				state.setConsole({ log: function (text) { $("#log").prepend(text + "<br/>"); } });
+	<!-- script to wire the core player to the web page -->
+	<script>
+		/* global $, state */
+		$(document).ready(function () {
+			state.setLogger({ log: function (text) { $("#log").prepend(text + "<br/>"); } });
 
-				/* create the state machine model elements */
-				var model = new state.StateMachine("model");
-				var initial = new state.PseudoState("initial", model);
-				var operational = new state.State("operational", model);
-				var flipped = new state.State("flipped", model);
-				var finalState = new state.State("final", model);
-				var deepHistory = new state.PseudoState("history", operational, state.PseudoStateKind.DeepHistory);
-				var stopped = new state.State("stopped", operational);
-				var active = new state.State("active", operational);
-				var running = new state.State("running", active);
-				var paused = new state.State("paused", active);
+			/* create the state machine model elements */
+			var model = new state.StateMachine("model");
+			var initial = new state.PseudoState("initial", model);
+			var operational = new state.State("operational", model);
+			var flipped = new state.State("flipped", model);
+			var finalState = new state.State("final", model);
+			var deepHistory = new state.PseudoState("history", operational, state.PseudoStateKind.DeepHistory);
+			var stopped = new state.State("stopped", operational);
+			var active = new state.State("active", operational);
+			var running = new state.State("running", active);
+			var paused = new state.State("paused", active);
 
-				/* create the state machine model transitions */
-				initial.to(operational);
-				deepHistory.to(stopped);
-				stopped.to(running).when(function (s) { return s === "play"; });
-				active.to(stopped).when(function (s) { return s === "stop"; });
-				running.to(paused).when(function (s) { return s === "pause"; });
-				paused.to(running).when(function (s) { return s === "play"; });
-				paused.to(running).when(function (s) { return s === "pause"; });
-				operational.to(flipped).when(function (s) { return s === "flip"; });
-				flipped.to(operational).when(function (s) { return s === "flip"; });
-				operational.to(finalState).when(function (s) { return s === "off"; });
+			/* create the state machine model transitions */
+			initial.to(operational);
+			deepHistory.to(stopped);
+			stopped.to(running).when(function (s) { return s === "play"; });
+			active.to(stopped).when(function (s) { return s === "stop"; });
+			running.to(paused).when(function (s) { return s === "pause"; });
+			paused.to(running).when(function (s) { return s === "play"; });
+			paused.to(running).when(function (s) { return s === "pause"; });
+			operational.to(flipped).when(function (s) { return s === "flip"; });
+			flipped.to(operational).when(function (s) { return s === "flip"; });
+			operational.to(finalState).when(function (s) { return s === "off"; });
 
-				/* add core behavior to appropriate states and transitions in the player machine*/
-				active.entry(function () { $("#head").text("Head: engaged"); }).exit(function () { $("#head").text("Head: disengaged"); });
-				running.entry(function () { $("#motor").text("Motor: running"); }).exit(function () { $("#motor").text("Motor: stopped"); });
+			/* add core behavior to appropriate states and transitions in the player machine*/
+			active.entry(function () { $("#head").text("Head: engaged"); }).exit(function () { $("#head").text("Head: disengaged"); });
+			running.entry(function () { $("#motor").text("Motor: running"); }).exit(function () { $("#motor").text("Motor: stopped"); });
 
-				/* add a little more behavior to states to adjust the graphic*/
-				stopped.entry(function () { $("#imgStopped").show(); }).exit(function () { $("#imgStopped").hide(); });
-				running.entry(function () { $("#imgRunning").show(); }).exit(function () { $("#imgRunning").hide(); });
-				paused.entry(function () { $("#imgPaused").show(); }).exit(function () { $("#imgPaused").hide(); });
-				finalState.entry(function () { $("#imgFinal").show(); }).exit(function () { $("#imgFinal").hide(); });
-				flipped.entry(function () { $("#imgFlipped").show(); }).exit(function () { $("#imgFlipped").hide(); });
+			/* add a little more behavior to states to adjust the graphic*/
+			stopped.entry(function () { $("#imgStopped").show(); }).exit(function () { $("#imgStopped").hide(); });
+			running.entry(function () { $("#imgRunning").show(); }).exit(function () { $("#imgRunning").hide(); });
+			paused.entry(function () { $("#imgPaused").show(); }).exit(function () { $("#imgPaused").hide(); });
+			finalState.entry(function () { $("#imgFinal").show(); }).exit(function () { $("#imgFinal").hide(); });
+			flipped.entry(function () { $("#imgFlipped").show(); }).exit(function () { $("#imgFlipped").hide(); });
 
-				/* create the state machine instance object */
-				var instance = new state.DictionaryInstance("player");
+			/* create the state machine instance object */
+			var instance = new state.DictionaryInstance("player");
 
-				/* initialise the state machine model and instance */
-				model.initialise(instance);
+			/* initialise the state machine model and instance */
+			model.initialise(instance);
 
-				/* pass button values to the state machine when clicked */
-				$("button").click(function (button) { model.evaluate(instance, this.id); });
-			});
-		</script>
+			/* pass button values to the state machine when clicked */
+			$("button").click(function (button) { model.evaluate(instance, this.id); });
+		});
+	</script>
 </body>
 
 </html>

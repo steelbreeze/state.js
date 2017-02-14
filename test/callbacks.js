@@ -6,9 +6,9 @@ var instance = new state.DictionaryInstance("callbacks_instance");
 instance.calls = 0;
 instance.logs = 0;
 
-var oldConsole = state.console;
+var oldLogger = state.logger;
 
-state.setConsole({ log: function (message) { console.log(message); instance.logs++; } });
+state.setLogger({ log: function (message) { console.log(message); instance.logs++; } });
 
 var model = new state.StateMachine("callbacks_model");
 var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
@@ -44,4 +44,4 @@ describe("Custom logging", function () {
 	});
 });
 
-state.setConsole(oldConsole);
+state.setLogger(oldLogger);

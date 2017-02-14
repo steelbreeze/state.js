@@ -1,7 +1,7 @@
 import * as state from "../../lib/node/state";
 
 // send log messages, warnings and errors to the console
-state.setConsole(console);
+state.setLogger(console);
 
 // create the state machine model elements
 const model = new state.StateMachine("model");
@@ -14,10 +14,10 @@ initial.to(stateA);
 stateA.to(stateB).when(message => message === "move");
 
 // create a state machine instance
-let instance = new state.StateMachineInstance("instance");
+let instance = new state.DictionaryInstance("instance");
 
 // initialise the model and instance
-state.initialise(model, instance);
+model.initialise(instance);
 
 // send the machine instance a message for evaluation, this will trigger the transition from stateA to stateB
-state.evaluate(model, instance, "move");
+model.evaluate(instance, "move");

@@ -14,8 +14,8 @@
 var assert = require("assert"),
 	state = require("../lib/node/state");
 
-var oldConsole = state.console;
-state.setConsole(console);
+var oldLogger = state.logger;
+state.setLogger(console);
 
 // create the state machine model elements
 var model = new state.StateMachine("model");
@@ -71,4 +71,4 @@ describe("Local transition tests", function () {
 //	});
 //});
 
-state.setConsole(oldConsole);
+state.setLogger(oldLogger);

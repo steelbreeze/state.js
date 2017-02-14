@@ -1,29 +1,45 @@
-/** The object used for log, warning and error messages. By default, log messages are ignored and errors throw exceptions. */
-export let console = {
+/** Type signature for logging; this type signature allows for the default console to be used. */
+export type Logger = {
+	log(message?: any, ...optionalParams: any[]): void;
+	error(message?: any, ...optionalParams: any[]): void;
+}
+
+/** The object used for loggin error messages. By default, log messages are ignored and errors throw exceptions. */
+export let logger: Logger = {
 	log(message?: any, ...optionalParams: any[]): void { },
 	error(message?: any, ...optionalParams: any[]): void { throw message; }
 };
 
 /**
- * Replace the default console object to implement custom logging.
- * @param newConsole An object to send log, warning and error messages to. THis must implement log and error methods as per the global console object.
+ * Replace the default logger with custom logging.
+ * @param newLogger An object to send log and error messages to. This must implement the [[Logger]] type.
+ * @returns Returns the previous implementation of the logger.
  */
-export function setConsole(newConsole: {
-	log(message?: any, ...optionalParams: any[]): void;
-	error(message?: any, ...optionalParams: any[]): void;
-}): void {
-	console = newConsole;
+export function setLogger(newLogger: Logger): Logger {
+	const result = logger;
+
+	logger = newLogger;
+
+	return result;
 }
 
-/**Random number generation method. */
-export let random: (max: number) => number = (max: number) => Math.floor(Math.random() * max);
+/** Type signature for random number generation. */
+export type Random = (max: number) => number;
+
+/** Random number generation method. */
+export let random: Random = (max: number) => Math.floor(Math.random() * max);
 
 /**
- * Sets the  random number generation method.
- * @param value A methos to generate random numbers. 
+ * Sets the random number generation method.
+ * @param newRandom A method to generate random numbers. This must conform to the [[Random]] type.
+ * @returns Returns the previous implementation of the random number generator.
  */
-export function setRandom(value: (max: number) => number): void {
-	random = value;
+export function setRandom(newRandom: Random): Random {
+	const result = random;
+
+	random = newRandom;
+
+	return result;
 }
 
 /** Flag to control completion transition behaviour of internal transitions. */
@@ -38,21 +54,14 @@ export function setInternalTransitionsTriggerCompletion(value: boolean): void {
 }
 
 /** Prototype of transition guard condition callbacks. */
-export interface Guard {
-	(message: any, instance: IInstance): boolean;
-}
+export type Guard = (message: any, instance: IInstance) => boolean;
 
-/** Prototype of state and transition beh callbacks. */
-export interface Behavior {
-	(message: any, instance: IInstance): void;
-}
-
-export interface Action {
-	(message: any, instance: IInstance, deepHistory: boolean): void;
-}
+/** Prototype of state and transition behavior callbacks. */
+export type Action = (message: any, instance: IInstance, deepHistory?: boolean) => void;
 
 /** Class that the behavior built up for state transitions. */
 export class Actions {
+	/** Container for all the behaviour. */
 	private readonly actions: Array<Action> = [];
 
 	/**
@@ -92,6 +101,7 @@ export class Actions {
 	}
 }
 
+/** An enumeration used to dictate the behavior of instances of the [[PseudoState]] class. Use these constants as the `kind` parameter when creating new [[PseudoState]] instances. */
 export enum PseudoStateKind {
 	Choice,
 	DeepHistory,
@@ -106,10 +116,22 @@ export enum TransitionKind {
 	Local
 }
 
+/** Common interface for all nodes within a state machine model. */
 export interface Element {
+	/** Returns an array of all the ancestors of the [[Element]], from the root of the state machine model to the [[Element]] instance itself. */
 	getAncestors(): Array<Element>;
+
+	/** Returns the root [[StateMachine]] [[Element]]. */
 	getRoot(): StateMachine;
+
+	/**
+	 * Determines if an [[Element]] is currently active for a given state machine instance.
+	 * @param instance The state machin instance.
+	 * @returns Returs true if the [[Element]] is active within the given state machine instance.
+	 */
 	isActive(instance: IInstance): boolean;
+
+	/** Returns the name of the [[Element]]. */
 	toString(): string;
 }
 
@@ -121,14 +143,21 @@ export abstract class NamedElement<TParent extends Element> implements Element {
 		this.qualifiedName = parent ? parent.toString() + NamedElement.namespaceSeparator + name : name;
 	}
 
+	/** Returns an array of all the ancestors of the element, from the root of the state machine model to the element itself. */
 	getAncestors(): Array<Element> {
 		return this.parent.getAncestors().concat(this);
 	}
 
+	/** Returns the root [[StateMachine]] element. */
 	getRoot(): StateMachine {
 		return this.parent.getRoot();
 	}
 
+	/**
+	 * Determines if an [[Element]] is currently active for a given state machine instance.
+	 * @param instance The state machine instance.
+	 * @returns Returs true if the [[Element]] is active within the given state machine instance.
+	 */
 	isActive(instance: IInstance): boolean {
 		return this.parent.isActive(instance);
 	}
@@ -137,6 +166,7 @@ export abstract class NamedElement<TParent extends Element> implements Element {
 		visitor.visitElement(this, arg);
 	}
 
+	/** Returns the name of the [[Element]]. */
 	toString(): string {
 		return this.qualifiedName;
 	}
@@ -233,6 +263,11 @@ export class State extends Vertex {
 		return this.regions.length > 1;
 	}
 
+	/**
+	 * Determines if an [[Element]] is currently active for a given state machine instance.
+	 * @param instance The state machine instance.
+	 * @returns Returs true if the [[Element]] is active within the given state machine instance.
+	 */
 	isActive(instance: IInstance): boolean {
 		return super.isActive(instance) && instance.getLastKnownState(this.parent) === this;
 	}
@@ -241,7 +276,7 @@ export class State extends Vertex {
 		return this.regions.every(region => region.isComplete(instance));
 	}
 
-	exit(action: Behavior) {
+	exit(action: Action) {
 		this.exitBehavior.push(action);
 
 		this.getRoot().clean = false;
@@ -249,7 +284,7 @@ export class State extends Vertex {
 		return this;
 	}
 
-	entry(action: Behavior) {
+	entry(action: Action) {
 		this.entryBehavior.push(action);
 
 		this.getRoot().clean = false;
@@ -275,10 +310,12 @@ export class StateMachine implements Element {
 		return this.defaultRegion || (this.defaultRegion = new Region(Region.defaultName, this));
 	}
 
+	/** Returns an array of all the ancestors of the element, from the root of the state machine model to the element itself. */
 	getAncestors(): Array<Element> {
 		return [this];
 	}
 
+	/** Returns the root [[StateMachine]] element. */
 	getRoot(): StateMachine {
 		return this;
 	}
@@ -287,6 +324,11 @@ export class StateMachine implements Element {
 		visitor.visitStateMachine(this, arg);
 	}
 
+	/**
+	 * Determines if an [[Element]] is currently active for a given state machine instance.
+	 * @param instance The state machine instance.
+	 * @returns Returs true if the [[Element]] is active within the given state machine instance.
+	 */
 	isActive(instance: IInstance): boolean {
 		return true;
 	}
@@ -301,11 +343,11 @@ export class StateMachine implements Element {
 				this.initialise();
 			}
 
-			console.log(`initialise ${instance}`);
+			logger.log(`initialise ${instance}`);
 
 			this.onInitialise.invoke(undefined, instance, false);
 		} else {
-			console.log(`initialise ${this}`);
+			logger.log(`initialise ${this}`);
 
 			this.accept(new InitialiseStateMachine());
 
@@ -319,11 +361,12 @@ export class StateMachine implements Element {
 			this.initialise();
 		}
 
-		console.log(`${instance} evaluate message: ${message}`);
+		logger.log(`${instance} evaluate message: ${message}`);
 
-		return evaluateStateM(this, instance, message);
+		return evaluate(this, instance, message);
 	}
 
+	/** Returns the name of the [[Element]]. */
 	toString(): string {
 		return this.name;
 	}
@@ -360,7 +403,7 @@ export class Transition {
 		return this;
 	}
 
-	effect(action: Behavior) {
+	effect(action: Action) {
 		this.effectBehavior.push(action);
 
 		this.source.getRoot().clean = false;
@@ -471,8 +514,8 @@ class InitialiseStateMachine extends Visitor<boolean> {
 	}
 
 	visitElement(element: Element, deepHistoryAbove: boolean): void {
-		this.getActions(element).leave.push((message, instance) => console.log(`${instance} leave ${element}`));
-		this.getActions(element).beginEnter.push((message, instance) => console.log(`${instance} enter ${element}`));
+		this.getActions(element).leave.push((message, instance) => logger.log(`${instance} leave ${element}`));
+		this.getActions(element).beginEnter.push((message, instance) => logger.log(`${instance} enter ${element}`));
 	}
 
 	visitRegion(region: Region, deepHistoryAbove: boolean): void {
@@ -596,7 +639,7 @@ class InitialiseStateMachine extends Visitor<boolean> {
 		if (internalTransitionsTriggerCompletion) {
 			transition.onTraverse.push((message, instance) => {
 				if (transition.source instanceof State && transition.source.isComplete(instance)) {
-					evaluateState(transition.source, instance, transition.source);
+					evaluate(transition.source, instance, transition.source);
 				}
 			});
 		}
@@ -661,6 +704,10 @@ class InitialiseStateMachine extends Visitor<boolean> {
 	}
 }
 
+function findElse(pseudoState: PseudoState): Transition {
+	return pseudoState.outgoing.filter(transition => transition.guard === Transition.Else)[0];
+}
+
 function selectTransition(pseudoState: PseudoState, instance: IInstance, message: any): Transition {
 	const transitions = pseudoState.outgoing.filter(transition => transition.guard(message, instance));
 
@@ -669,37 +716,17 @@ function selectTransition(pseudoState: PseudoState, instance: IInstance, message
 	}
 
 	if (transitions.length > 1) {
-		console.error(`Multiple outbound transition guards returned true at ${pseudoState} for ${message}`);
+		logger.error(`Multiple outbound transition guards returned true at ${pseudoState} for ${message}`);
 	}
 
 	return transitions[0] || findElse(pseudoState);
 }
 
-function findElse(pseudoState: PseudoState): Transition {
-	return pseudoState.outgoing.filter(transition => transition.guard === Transition.Else)[0];
-}
-
-function evaluateStateM(state: StateMachine, instance: IInstance, message: any): boolean {
-	let result = false;
-
-	// delegate to child regions first if a non-continuation
-	state.regions.every(region => {
-		const currentState = instance.getLastKnownState(region);
-
-		if (currentState && evaluateState(currentState, instance, message)) {
-			result = true;
-
-			return state.isActive(instance); // NOTE: this just controls the every loop; also isActive is a litte costly so using sparingly
-		}
-
-		return true; // NOTE: this just controls the every loop
-	});
-
-	return result;
-}
-
-
-function evaluateState(state: State, instance: IInstance, message: any): boolean {
+/**
+ * Passes a message to a state and state machine instance combination for evaluation; tests guard conditions and evaluates transitions as needed.
+ * @returns Returns true if a state transition occured.
+ */
+function evaluate(state: StateMachine | State, instance: IInstance, message: any): boolean {
 	let result = false;
 
 	// delegate to child regions first if a non-continuation
@@ -707,38 +734,48 @@ function evaluateState(state: State, instance: IInstance, message: any): boolean
 		state.regions.every(region => {
 			const currentState = instance.getLastKnownState(region);
 
-			if (currentState && evaluateState(currentState, instance, message)) {
+			if (currentState && evaluate(currentState, instance, message)) {
 				result = true;
 
-				return state.isActive(instance); // NOTE: this just controls the every loop; also isActive is a litte costly so using sparingly
+				return state.isActive(instance);
 			}
 
-			return true; // NOTE: this just controls the every loop
+			return true;
 		});
 	}
 
-	// if a transition occured in a child region, check for completions
-	if (result) {
-		if ((message !== state) && state.isComplete(instance)) {
-			evaluateState(state, instance, state);
-		}
-	} else {
-		// otherwise look for a transition from this state
-		const transitions = state.outgoing.filter(transition => transition.guard(message, instance));
+	if (state instanceof State) {
+		// if a transition occured in a child region, check for completions
+		if (result) {
+			if ((message !== state) && state.isComplete(instance)) {
+				evaluate(state, instance, state);
+			}
+		} else {
+			// otherwise look for a transition from this state
+			const transitions = state.outgoing.filter(transition => transition.guard(message, instance));
 
-		if (transitions.length === 1) {
-			// execute if a single transition was found
-			result = traverse(transitions[0], instance, message);
-		} else if (transitions.length > 1) {
-			// error if multiple transitions evaluated true
-			console.error(`${state}: multiple outbound transitions evaluated true for message ${message}`);
+			if (transitions.length === 1) {
+				// execute if a single transition was found
+				traverse(transitions[0], instance, message);
+
+				result = true;
+			} else if (transitions.length > 1) {
+				// error if multiple transitions evaluated true
+				logger.error(`${state}: multiple outbound transitions evaluated true for message ${message}`);
+			}
 		}
 	}
 
 	return result;
 }
 
-function traverse(origin: Transition, instance: IInstance, message?: any): boolean {
+/**
+ * Traverses a transition; implements dynamic and static conditional branching and completion transition chaining.
+ * @param origin The transition to traverse.
+ * @param instance The state machin instance.
+ * @param message The message that caused the state transition.
+ */
+function traverse(origin: Transition, instance: IInstance, message?: any) {
 	let onTraverse = new Actions(origin.onTraverse);
 	let transition: Transition = origin;
 
@@ -762,9 +799,7 @@ function traverse(origin: Transition, instance: IInstance, message?: any): boole
 
 		// test for completion transitions
 		else if (transition.target instanceof State && transition.target.isComplete(instance)) {
-			evaluateState(transition.target, instance, transition.target);
+			evaluate(transition.target, instance, transition.target);
 		}
 	}
-
-	return true;
 }

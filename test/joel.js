@@ -1,7 +1,7 @@
 var state = require('../lib/node/state.js');
 
-var oldConsole = state.console;
-state.setConsole(console);
+var oldLogger = state.logger;
+state.setLogger(console);
 
 
 var model = new state.StateMachine('model');
@@ -19,4 +19,4 @@ var instance = new state.DictionaryInstance('instance');
 
 model.initialise(instance);
 
-state.setConsole(oldConsole);
+state.setLogger(oldLogger);

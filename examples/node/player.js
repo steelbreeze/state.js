@@ -1,7 +1,7 @@
 "use strict";
 var state = require("../../lib/node/state");
 // send log messages, warnings and errors to the console
-state.setConsole(console);
+state.setLogger(console);
 // create the state machine model elements
 var model = new state.StateMachine("model");
 var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
