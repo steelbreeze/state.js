@@ -14,8 +14,7 @@
 var assert = require("assert"),
 	state = require("../lib/node/state");
 
-var oldLogger = state.logger;
-state.setLogger(console);
+var oldLogger = state.setLogger(console);
 
 // create the state machine model elements
 var model = new state.StateMachine("model");

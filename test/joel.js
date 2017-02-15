@@ -1,7 +1,6 @@
 var state = require('../lib/node/state.js');
 
-var oldLogger = state.logger;
-state.setLogger(console);
+var oldLogger = state.setLogger(console);
 
 
 var model = new state.StateMachine('model');

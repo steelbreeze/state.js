@@ -6,9 +6,7 @@ var instance = new state.DictionaryInstance("callbacks_instance");
 instance.calls = 0;
 instance.logs = 0;
 
-var oldLogger = state.logger;
-
-state.setLogger({ log: function (message) { console.log(message); instance.logs++; } });
+var oldLogger = state.setLogger({ log: function (message) { console.log(message); instance.logs++; } });
 
 var model = new state.StateMachine("callbacks_model");
 var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);

@@ -12,7 +12,7 @@ export declare type Logger = {
 export declare let logger: Logger;
 /**
  * Replace the default logger with custom logging.
- * @param newLogger An object to send log and error messages to. This must implement the [[Logger]] interface.
+ * @param newLogger An object to send log and error messages to. This must implement the [[Logger]] type.
  * @returns Returns the previous implementation of the logger.
  */
 export declare function setLogger(newLogger: Logger): Logger;
@@ -39,6 +39,7 @@ export declare type Guard = (message: any, instance: IInstance) => boolean;
 export declare type Action = (message: any, instance: IInstance, deepHistory?: boolean) => void;
 /** Class that the behavior built up for state transitions. */
 export declare class Actions {
+    /** Container for all the behaviour. */
     private readonly actions;
     /**
      * Creates a new instance of the [[Action]] class.
@@ -58,6 +59,7 @@ export declare class Actions {
      */
     invoke(message: any, instance: IInstance, deepHistory: boolean): void;
 }
+/** An enumeration used to dictate the behavior of instances of the [[PseudoState]] class. Use these constants as the `kind` parameter when creating new [[PseudoState]] instances. */
 export declare enum PseudoStateKind {
     Choice = 0,
     DeepHistory = 1,
@@ -70,22 +72,45 @@ export declare enum TransitionKind {
     Internal = 1,
     Local = 2,
 }
+/** Common interface for all nodes within a state machine model. */
 export interface Element {
+    /** Returns an array of all the ancestors of the [[Element]], from the root of the state machine model to the [[Element]] instance itself. */
     getAncestors(): Array<Element>;
+    /** Returns the root [[StateMachine]] [[Element]]. */
     getRoot(): StateMachine;
+    /**
+     * Determines if an [[Element]] is currently active for a given state machine instance.
+     * @param instance The state machin instance.
+     * @returns Returs true if the [[Element]] is active within the given state machine instance.
+     */
     isActive(instance: IInstance): boolean;
-    toString(): string;
 }
+/** Common base class for all nodes within a state machine model that have a name. */
 export declare abstract class NamedElement<TParent extends Element> implements Element {
     readonly name: string;
     readonly parent: TParent;
+    /** The string used to seperate [[Element]]s within a fully qualifiedName; this may be updated if required. */
     static namespaceSeparator: string;
+    /** The fully qualified name of the [[Element]]. */
     readonly qualifiedName: string;
+    /**
+     * Creates a new instance of the [[NamedElement]].
+     * @param name The name of the [[NamedElement]].
+     * @param parent The parent [[NamedElement]] of this [[NamedElement]].
+     */
     protected constructor(name: string, parent: TParent);
+    /** Returns an array of all the ancestors of the element, from the root of the state machine model to the element itself. */
     getAncestors(): Array<Element>;
+    /** Returns the root [[StateMachine]] element. */
     getRoot(): StateMachine;
+    /**
+     * Determines if an [[Element]] is currently active for a given state machine instance.
+     * @param instance The state machine instance.
+     * @returns Returs true if the [[Element]] is active within the given state machine instance.
+     */
     isActive(instance: IInstance): boolean;
     accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
+    /** Returns the name of the [[Element]]. */
     toString(): string;
 }
 export declare class Region extends NamedElement<State | StateMachine> {
@@ -120,6 +145,11 @@ export declare class State extends Vertex {
     isSimple(): boolean;
     isComposite(): boolean;
     isOrthogonal(): boolean;
+    /**
+     * Determines if an [[Element]] is currently active for a given state machine instance.
+     * @param instance The state machine instance.
+     * @returns Returs true if the [[Element]] is active within the given state machine instance.
+     */
     isActive(instance: IInstance): boolean;
     isComplete(instance: IInstance): boolean;
     exit(action: Action): this;
@@ -134,13 +164,21 @@ export declare class StateMachine implements Element {
     readonly onInitialise: Actions;
     constructor(name: string);
     getDefaultRegion(): Region;
+    /** Returns an array of all the ancestors of the element, from the root of the state machine model to the element itself. */
     getAncestors(): Array<Element>;
+    /** Returns the root [[StateMachine]] element. */
     getRoot(): StateMachine;
     accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
+    /**
+     * Determines if an [[Element]] is currently active for a given state machine instance.
+     * @param instance The state machine instance.
+     * @returns Returs true if the [[Element]] is active within the given state machine instance.
+     */
     isActive(instance: IInstance): boolean;
     isComplete(instance: IInstance): boolean;
     initialise(instance?: IInstance, autoInitialiseModel?: boolean): void;
     evaluate(instance: IInstance, message: any, autoInitialiseModel?: boolean): boolean;
+    /** Returns the name of the [[Element]]. */
     toString(): string;
 }
 export declare class Transition {

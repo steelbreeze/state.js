@@ -130,15 +130,21 @@ export interface Element {
 	 * @returns Returs true if the [[Element]] is active within the given state machine instance.
 	 */
 	isActive(instance: IInstance): boolean;
-
-	/** Returns the name of the [[Element]]. */
-	toString(): string;
 }
 
+/** Common base class for all nodes within a state machine model that have a name. */
 export abstract class NamedElement<TParent extends Element> implements Element {
+	/** The string used to seperate [[Element]]s within a fully qualifiedName; this may be updated if required. */
 	static namespaceSeparator = ".";
+
+	/** The fully qualified name of the [[Element]]. */
 	readonly qualifiedName: string;
 
+	/**
+	 * Creates a new instance of the [[NamedElement]].
+	 * @param name The name of the [[NamedElement]].
+	 * @param parent The parent [[NamedElement]] of this [[NamedElement]].
+	 */
 	protected constructor(public readonly name: string, public readonly parent: TParent) {
 		this.qualifiedName = parent ? parent.toString() + NamedElement.namespaceSeparator + name : name;
 	}

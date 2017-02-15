@@ -2,8 +2,7 @@
 var assert = require("assert"),
 	state = require("../lib/node/state");
 
-var oldConsole = state.logger;
-state.setLogger(console);
+var oldConsole = state.setLogger(console);
 
 var model = new state.StateMachine("model");
 var initial = new state.PseudoState("initial", model);

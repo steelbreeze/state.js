@@ -4,6 +4,8 @@ The changes in v6 are significant enough to warrant the major version increment:
 * StateMachine now inherits from NamedElement, not State;
 * Visitor internals call accept methods;
 * Remove concept of a terminated state machine instance and PseudoStateKind.Terminate.
+* Renamed console to logger, setConsole to setLogger.
+* setLogger and setRandom return the old implementation.
 * Add in 5.11 edits.
 
 ## Version 5.10.1
