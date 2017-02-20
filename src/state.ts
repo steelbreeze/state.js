@@ -135,10 +135,10 @@ export interface Element {
 /** Common base class for all nodes within a state machine model that have a name. */
 export abstract class NamedElement<TParent extends Element> implements Element {
 	/** The string used to seperate [[Element]]s within a fully qualifiedName; this may be updated if required. */
-	static namespaceSeparator = ".";
+	public static namespaceSeparator = ".";
 
 	/** The fully qualified name of the [[Element]]. */
-	readonly qualifiedName: string;
+	public readonly qualifiedName: string;
 
 	/**
 	 * Creates a new instance of the [[NamedElement]].
@@ -150,12 +150,12 @@ export abstract class NamedElement<TParent extends Element> implements Element {
 	}
 
 	/** Returns an array of all the ancestors of the element, from the root of the state machine model to the element itself. */
-	getAncestors(): Array<Element> {
+	public getAncestors(): Array<Element> {
 		return this.parent.getAncestors().concat(this);
 	}
 
 	/** Returns the root [[StateMachine]] element. */
-	getRoot(): StateMachine {
+	public getRoot(): StateMachine {
 		return this.parent.getRoot();
 	}
 
@@ -164,43 +164,69 @@ export abstract class NamedElement<TParent extends Element> implements Element {
 	 * @param instance The state machine instance.
 	 * @returns Returs true if the [[Element]] is active within the given state machine instance.
 	 */
-	isActive(instance: IInstance): boolean {
+	public isActive(instance: IInstance): boolean {
 		return this.parent.isActive(instance);
 	}
 
-	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
+	/**
+	 * Accepts a [[Visitor]] instance and walks the state machine model hierarchy from this node down; create custom visitors by overriding the [[Visitor]] class.
+	 * @param TArg The type of and optional argument that will be passed back to the [[Visitor]] instance.
+	 * @param visitor The [[Visitor]] instance.
+	 * @param TArg An optional argument that will be passed back to the [[Visitor]] instance.
+	 */
+	public accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
 		visitor.visitElement(this, arg);
 	}
 
 	/** Returns the name of the [[Element]]. */
-	toString(): string {
+	public toString(): string {
 		return this.qualifiedName;
 	}
 }
 
+/** A [[Region]] is a container of [[Vertex]] instances within a state machine hierarchy. [[Region]] instances will be injected automatically when creating composite [[State]]s; alternatively, then may be created explicitly. */
 export class Region extends NamedElement<State | StateMachine> {
-	static defaultName = "default";
+	/** The default name for automatically created [[Region]] instances. */
+	public static defaultName = "default";
 
-	readonly vertices = new Array<Vertex>();
+	/** The child [[Vertex]] instances that are the children of this [[Region]]. */
+	public readonly vertices = new Array<Vertex>();
 
-	constructor(name: string, parent: State | StateMachine) {
+	/**
+	 * Creates a new instance of the [[Region]] class.
+	 * @param name The short name for the [[Region]] instance; this will form part of fully qualified names of child [[Vertex]] and [[Region]] instances.
+	 * @param parent The parent [[State]] or [[StateMachine]] instance.
+	 */
+	public constructor(name: string, parent: State | StateMachine) {
 		super(name, parent);
 
 		this.parent.regions.push(this);
 		this.getRoot().clean = false;
 	}
 
-	isComplete(instance: IInstance): boolean {
+	/**
+	 * Tests a state machine instance to see if a specific [[Region]] is deemed to be complete; having been entered and exited.
+	 * @param The state machine instance.
+	 * @returns True if the [[Region]] is complete for the given state machine instance.
+	 */
+	public isComplete(instance: IInstance): boolean {
 		const currentState = instance.getLastKnownState(this);
 
 		return currentState !== undefined && currentState.isFinal();
 	}
 
-	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
+	/**
+	 * Accepts a [[Visitor]] instance and walks the state machine model hierarchy from this node down; create custom visitors by overriding the [[Visitor]] class.
+	 * @param TArg The type of and optional argument that will be passed back to the [[Visitor]] instance.
+	 * @param visitor The [[Visitor]] instance.
+	 * @param TArg An optional argument that will be passed back to the [[Visitor]] instance.
+	 */
+	public accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
 		visitor.visitRegion(this, arg);
 	}
 }
 
+/** Represents a node with the graph that forms one part of a state machine model. */
 export class Vertex extends NamedElement<Region> {
 	readonly outgoing = new Array<Transition>();
 	readonly incoming = new Array<Transition>();
@@ -216,6 +242,12 @@ export class Vertex extends NamedElement<Region> {
 		return new Transition(this, target, kind);
 	}
 
+	/**
+	 * Accepts a [[Visitor]] instance and walks the state machine model hierarchy from this node down; create custom visitors by overriding the [[Visitor]] class.
+	 * @param TArg The type of and optional argument that will be passed back to the [[Visitor]] instance.
+	 * @param visitor The [[Visitor]] instance.
+	 * @param TArg An optional argument that will be passed back to the [[Visitor]] instance.
+	 */
 	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
 		visitor.visitVertex(this, arg);
 	}
@@ -234,6 +266,12 @@ export class PseudoState extends Vertex {
 		return this.kind === PseudoStateKind.Initial || this.isHistory();
 	}
 
+	/**
+	 * Accepts a [[Visitor]] instance and walks the state machine model hierarchy from this node down; create custom visitors by overriding the [[Visitor]] class.
+	 * @param TArg The type of and optional argument that will be passed back to the [[Visitor]] instance.
+	 * @param visitor The [[Visitor]] instance.
+	 * @param TArg An optional argument that will be passed back to the [[Visitor]] instance.
+	 */
 	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
 		visitor.visitPseudoState(this, arg);
 	}
@@ -298,6 +336,12 @@ export class State extends Vertex {
 		return this;
 	}
 
+	/**
+	 * Accepts a [[Visitor]] instance and walks the state machine model hierarchy from this node down; create custom visitors by overriding the [[Visitor]] class.
+	 * @param TArg The type of and optional argument that will be passed back to the [[Visitor]] instance.
+	 * @param visitor The [[Visitor]] instance.
+	 * @param TArg An optional argument that will be passed back to the [[Visitor]] instance.
+	 */
 	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
 		visitor.visitState(this, arg);
 	}
@@ -326,6 +370,12 @@ export class StateMachine implements Element {
 		return this;
 	}
 
+	/**
+	 * Accepts a [[Visitor]] instance and walks the state machine model hierarchy from this node down; create custom visitors by overriding the [[Visitor]] class.
+	 * @param TArg The type of and optional argument that will be passed back to the [[Visitor]] instance.
+	 * @param visitor The [[Visitor]] instance.
+	 * @param TArg An optional argument that will be passed back to the [[Visitor]] instance.
+	 */
 	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
 		visitor.visitStateMachine(this, arg);
 	}
@@ -417,6 +467,12 @@ export class Transition {
 		return this;
 	}
 
+	/**
+	 * Accepts a [[Visitor]] instance and walks the state machine model hierarchy from this node down; create custom visitors by overriding the [[Visitor]] class.
+	 * @param TArg The type of and optional argument that will be passed back to the [[Visitor]] instance.
+	 * @param visitor The [[Visitor]] instance.
+	 * @param TArg An optional argument that will be passed back to the [[Visitor]] instance.
+	 */
 	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
 		visitor.visitTransition(this, arg);
 	}

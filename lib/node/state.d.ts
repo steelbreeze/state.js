@@ -109,22 +109,54 @@ export declare abstract class NamedElement<TParent extends Element> implements E
      * @returns Returs true if the [[Element]] is active within the given state machine instance.
      */
     isActive(instance: IInstance): boolean;
+    /**
+     * Accepts a [[Visitor]] instance and walks the state machine model hierarchy from this node down; create custom visitors by overriding the [[Visitor]] class.
+     * @param TArg The type of and optional argument that will be passed back to the [[Visitor]] instance.
+     * @param visitor The [[Visitor]] instance.
+     * @param TArg An optional argument that will be passed back to the [[Visitor]] instance.
+     */
     accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
     /** Returns the name of the [[Element]]. */
     toString(): string;
 }
+/** A [[Region]] is a container of [[Vertex]] instances within a state machine hierarchy. [[Region]] instances will be injected automatically when creating composite [[State]]s; alternatively, then may be created explicitly. */
 export declare class Region extends NamedElement<State | StateMachine> {
+    /** The default name for automatically created [[Region]] instances. */
     static defaultName: string;
+    /** The child [[Vertex]] instances that are the children of this [[Region]]. */
     readonly vertices: Vertex[];
+    /**
+     * Creates a new instance of the [[Region]] class.
+     * @param name The short name for the [[Region]] instance; this will form part of fully qualified names of child [[Vertex]] and [[Region]] instances.
+     * @param parent The parent [[State]] or [[StateMachine]] instance.
+     */
     constructor(name: string, parent: State | StateMachine);
+    /**
+     * Tests a state machine instance to see if a specific [[Region]] is deemed to be complete; having been entered and exited.
+     * @param The state machine instance.
+     * @returns True if the [[Region]] is complete for the given state machine instance.
+     */
     isComplete(instance: IInstance): boolean;
+    /**
+     * Accepts a [[Visitor]] instance and walks the state machine model hierarchy from this node down; create custom visitors by overriding the [[Visitor]] class.
+     * @param TArg The type of and optional argument that will be passed back to the [[Visitor]] instance.
+     * @param visitor The [[Visitor]] instance.
+     * @param TArg An optional argument that will be passed back to the [[Visitor]] instance.
+     */
     accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
 }
+/** Represents a node with the graph that forms one part of a state machine model. */
 export declare class Vertex extends NamedElement<Region> {
     readonly outgoing: Transition[];
     readonly incoming: Transition[];
     constructor(name: string, parent: Region | State | StateMachine);
     to(target?: Vertex, kind?: TransitionKind): Transition;
+    /**
+     * Accepts a [[Visitor]] instance and walks the state machine model hierarchy from this node down; create custom visitors by overriding the [[Visitor]] class.
+     * @param TArg The type of and optional argument that will be passed back to the [[Visitor]] instance.
+     * @param visitor The [[Visitor]] instance.
+     * @param TArg An optional argument that will be passed back to the [[Visitor]] instance.
+     */
     accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
 }
 export declare class PseudoState extends Vertex {
@@ -132,6 +164,12 @@ export declare class PseudoState extends Vertex {
     constructor(name: string, parent: Region | State | StateMachine, kind?: PseudoStateKind);
     isHistory(): boolean;
     isInitial(): boolean;
+    /**
+     * Accepts a [[Visitor]] instance and walks the state machine model hierarchy from this node down; create custom visitors by overriding the [[Visitor]] class.
+     * @param TArg The type of and optional argument that will be passed back to the [[Visitor]] instance.
+     * @param visitor The [[Visitor]] instance.
+     * @param TArg An optional argument that will be passed back to the [[Visitor]] instance.
+     */
     accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
 }
 export declare class State extends Vertex {
@@ -154,6 +192,12 @@ export declare class State extends Vertex {
     isComplete(instance: IInstance): boolean;
     exit(action: Action): this;
     entry(action: Action): this;
+    /**
+     * Accepts a [[Visitor]] instance and walks the state machine model hierarchy from this node down; create custom visitors by overriding the [[Visitor]] class.
+     * @param TArg The type of and optional argument that will be passed back to the [[Visitor]] instance.
+     * @param visitor The [[Visitor]] instance.
+     * @param TArg An optional argument that will be passed back to the [[Visitor]] instance.
+     */
     accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
 }
 export declare class StateMachine implements Element {
@@ -168,6 +212,12 @@ export declare class StateMachine implements Element {
     getAncestors(): Array<Element>;
     /** Returns the root [[StateMachine]] element. */
     getRoot(): StateMachine;
+    /**
+     * Accepts a [[Visitor]] instance and walks the state machine model hierarchy from this node down; create custom visitors by overriding the [[Visitor]] class.
+     * @param TArg The type of and optional argument that will be passed back to the [[Visitor]] instance.
+     * @param visitor The [[Visitor]] instance.
+     * @param TArg An optional argument that will be passed back to the [[Visitor]] instance.
+     */
     accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
     /**
      * Determines if an [[Element]] is currently active for a given state machine instance.
@@ -193,6 +243,12 @@ export declare class Transition {
     else(): this;
     when(guard: Guard): this;
     effect(action: Action): this;
+    /**
+     * Accepts a [[Visitor]] instance and walks the state machine model hierarchy from this node down; create custom visitors by overriding the [[Visitor]] class.
+     * @param TArg The type of and optional argument that will be passed back to the [[Visitor]] instance.
+     * @param visitor The [[Visitor]] instance.
+     * @param TArg An optional argument that will be passed back to the [[Visitor]] instance.
+     */
     accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
     toString(): string;
 }
