@@ -1,3 +1,48 @@
+declare global {
+	interface Array<T> {
+		select(predicate: (item: T) => boolean): T | undefined;
+	}
+}
+
+Array.prototype.select = function <T>(predicate: (item: T) => boolean): T | undefined {
+	for (let i = 0; i < this.length; i++) {
+		if (predicate(this[i])) {
+			return this[i];
+		}
+	}
+
+	return;
+};
+
+/** Namespace for tree data structures and associated algorithms. */
+export namespace Tree {
+	export interface INode {
+		parent: any;
+	}
+
+	export interface Node<TNode extends INode> extends INode {
+		parent: TNode;
+	}
+
+	export function Ancestors<TNode extends INode>(node: TNode): Array<TNode> {
+		const result = node.parent ? Ancestors(node.parent) : new Array<TNode>();
+
+		result.push(node);
+
+		return result;
+	}
+
+	export function LCA<TNode extends INode>(ancestry1: Array<TNode>, ancestry2: Array<TNode>): number {
+		let result = 0;
+
+		while (ancestry1[result] === ancestry2[result]) {
+			result++;
+		}
+
+		return result - 1;
+	}
+}
+
 /** Type signature for logging; this type signature allows for the default console to be used. */
 export type Logger = {
 	log(message?: any, ...optionalParams: any[]): void;
@@ -117,10 +162,7 @@ export enum TransitionKind {
 }
 
 /** Common interface for all nodes within a state machine model. */
-export interface Element {
-	/** Returns an array of all the ancestors of the [[Element]], from the root of the state machine model to the [[Element]] instance itself. */
-	getAncestors(): Array<Element>;
-
+export interface IElement extends Tree.INode {
 	/** Returns the root [[StateMachine]] [[Element]]. */
 	getRoot(): StateMachine;
 
@@ -129,11 +171,11 @@ export interface Element {
 	 * @param instance The state machin instance.
 	 * @returns Returs true if the [[Element]] is active within the given state machine instance.
 	 */
-	isActive(instance: IInstance): boolean;
+	isActive(instance: IInstance): boolean; // TODO: remove from here
 }
 
 /** Common base class for all nodes within a state machine model that have a name. */
-export abstract class NamedElement<TParent extends Element> implements Element {
+export abstract class Element<TElement extends IElement> implements IElement, Tree.Node<TElement> {
 	/** The string used to seperate [[Element]]s within a fully qualifiedName; this may be updated if required. */
 	public static namespaceSeparator = ".";
 
@@ -145,13 +187,8 @@ export abstract class NamedElement<TParent extends Element> implements Element {
 	 * @param name The name of the [[NamedElement]].
 	 * @param parent The parent [[NamedElement]] of this [[NamedElement]].
 	 */
-	protected constructor(public readonly name: string, public readonly parent: TParent) {
-		this.qualifiedName = parent ? parent.toString() + NamedElement.namespaceSeparator + name : name;
-	}
-
-	/** Returns an array of all the ancestors of the element, from the root of the state machine model to the element itself. */
-	public getAncestors(): Array<Element> {
-		return this.parent.getAncestors().concat(this);
+	protected constructor(public readonly name: string, public readonly parent: TElement) {
+		this.qualifiedName = parent ? parent.toString() + Element.namespaceSeparator + name : name;
 	}
 
 	/** Returns the root [[StateMachine]] element. */
@@ -165,7 +202,7 @@ export abstract class NamedElement<TParent extends Element> implements Element {
 	 * @returns Returs true if the [[Element]] is active within the given state machine instance.
 	 */
 	public isActive(instance: IInstance): boolean {
-		return this.parent.isActive(instance);
+		return this.parent.isActive(instance);  // TODO: remove from here
 	}
 
 	/**
@@ -185,12 +222,12 @@ export abstract class NamedElement<TParent extends Element> implements Element {
 }
 
 /** A [[Region]] is a container of [[Vertex]] instances within a state machine hierarchy. [[Region]] instances will be injected automatically when creating composite [[State]]s; alternatively, then may be created explicitly. */
-export class Region extends NamedElement<State | StateMachine> {
+export class Region extends Element<State | StateMachine> {
 	/** The default name for automatically created [[Region]] instances. */
 	public static defaultName = "default";
 
 	/** The child [[Vertex]] instances that are the children of this [[Region]]. */
-	public readonly vertices = new Array<Vertex>();
+	public readonly children = new Array<Vertex>();
 
 	/**
 	 * Creates a new instance of the [[Region]] class.
@@ -200,7 +237,7 @@ export class Region extends NamedElement<State | StateMachine> {
 	public constructor(name: string, parent: State | StateMachine) {
 		super(name, parent);
 
-		this.parent.regions.push(this);
+		this.parent.children.push(this);
 		this.getRoot().clean = false;
 	}
 
@@ -227,14 +264,14 @@ export class Region extends NamedElement<State | StateMachine> {
 }
 
 /** Represents a node with the graph that forms one part of a state machine model. */
-export class Vertex extends NamedElement<Region> {
+export class Vertex extends Element<Region> {
 	readonly outgoing = new Array<Transition>();
 	readonly incoming = new Array<Transition>();
 
 	constructor(name: string, parent: Region | State | StateMachine) {
 		super(name, parent instanceof Region ? parent : parent.getDefaultRegion());
 
-		this.parent.vertices.push(this);
+		this.parent.children.push(this);
 		this.getRoot().clean = false;
 	}
 
@@ -278,17 +315,12 @@ export class PseudoState extends Vertex {
 }
 
 export class State extends Vertex {
-	readonly regions = new Array<Region>();
+	readonly children = new Array<Region>();
 	readonly entryBehavior = new Actions();
 	readonly exitBehavior = new Actions();
-	defaultRegion: Region;
-
-	constructor(name: string, parent: Region | State | StateMachine) {
-		super(name, parent);
-	}
 
 	getDefaultRegion(): Region {
-		return this.defaultRegion || (this.defaultRegion = new Region(Region.defaultName, this));
+		return this.children.select(item => item.name === Region.defaultName) || new Region(Region.defaultName, this);
 	}
 
 	isFinal(): boolean {
@@ -296,15 +328,15 @@ export class State extends Vertex {
 	}
 
 	isSimple(): boolean {
-		return this.regions.length === 0;
+		return this.children.length === 0;
 	}
 
 	isComposite(): boolean {
-		return this.regions.length > 0;
+		return this.children.length > 0;
 	}
 
 	isOrthogonal(): boolean {
-		return this.regions.length > 1;
+		return this.children.length > 1;
 	}
 
 	/**
@@ -317,7 +349,7 @@ export class State extends Vertex {
 	}
 
 	isComplete(instance: IInstance): boolean {
-		return this.regions.every(region => region.isComplete(instance));
+		return this.children.every(region => region.isComplete(instance));
 	}
 
 	exit(action: Action) {
@@ -347,21 +379,20 @@ export class State extends Vertex {
 	}
 }
 
-export class StateMachine implements Element {
-	readonly regions = new Array<Region>();
-	defaultRegion: Region | undefined = undefined;
+export class StateMachine implements IElement {
+	readonly children = new Array<Region>();
 	clean: boolean = false;
 	readonly onInitialise = new Actions();
-
+	readonly parent = undefined;
 	constructor(public readonly name: string) {
 	}
 
 	getDefaultRegion(): Region {
-		return this.defaultRegion || (this.defaultRegion = new Region(Region.defaultName, this));
+		return this.children.select(item => item.name === Region.defaultName) || new Region(Region.defaultName, this);
 	}
 
 	/** Returns an array of all the ancestors of the element, from the root of the state machine model to the element itself. */
-	getAncestors(): Array<Element> {
+	getAncestors(): Array<IElement> {
 		return [this];
 	}
 
@@ -390,7 +421,7 @@ export class StateMachine implements Element {
 	}
 
 	isComplete(instance: IInstance): boolean {
-		return this.regions.every(region => region.isComplete(instance));
+		return this.children.every(region => region.isComplete(instance));
 	}
 
 	initialise(instance?: IInstance, autoInitialiseModel: boolean = true): void {
@@ -483,11 +514,11 @@ export class Transition {
 }
 
 export class Visitor<TArg> {
-	visitElement(element: Element, arg?: TArg): void {
+	visitElement(element: IElement, arg?: TArg): void {
 	}
 
 	visitRegion(region: Region, arg?: TArg): void {
-		for (const vertex of region.vertices) {
+		for (const vertex of region.children) {
 			vertex.accept(this, arg);
 		}
 
@@ -507,7 +538,7 @@ export class Visitor<TArg> {
 	}
 
 	visitState(state: State, arg?: TArg): void {
-		for (const region of state.regions) {
+		for (const region of state.children) {
 			region.accept(this, arg);
 		}
 
@@ -515,7 +546,7 @@ export class Visitor<TArg> {
 	}
 
 	visitStateMachine(stateMachine: StateMachine, arg?: TArg): void {
-		for (const region of stateMachine.regions) {
+		for (const region of stateMachine.children) {
 			region.accept(this, arg);
 		}
 
@@ -571,18 +602,18 @@ class InitialiseStateMachine extends Visitor<boolean> {
 	readonly elementActions: { [id: string]: ElementActions } = {};
 	readonly transitions = new Array<Transition>();
 
-	getActions(elemenet: Element): ElementActions {
+	getActions(elemenet: IElement): ElementActions {
 		return this.elementActions[elemenet.toString()] || (this.elementActions[elemenet.toString()] = new ElementActions());
 	}
 
-	visitElement(element: Element, deepHistoryAbove: boolean): void {
+	visitElement(element: IElement, deepHistoryAbove: boolean): void {
 		this.getActions(element).leave.push((message, instance) => logger.log(`${instance} leave ${element}`));
 		this.getActions(element).beginEnter.push((message, instance) => logger.log(`${instance} enter ${element}`));
 	}
 
 	visitRegion(region: Region, deepHistoryAbove: boolean): void {
 		// find the initial pseudo state of this region
-		const regionInitial = region.vertices.reduce<PseudoState | undefined>((result, vertex) => vertex instanceof PseudoState && vertex.isInitial() && (result === undefined || result.isHistory()) ? vertex : result, undefined);
+		const regionInitial = region.children.reduce<PseudoState | undefined>((result, vertex) => vertex instanceof PseudoState && vertex.isInitial() && (result === undefined || result.isHistory()) ? vertex : result, undefined);
 
 		// leave the curent active child state when exiting the region
 		this.getActions(region).leave.push((message, instance) => {
@@ -645,7 +676,7 @@ class InitialiseStateMachine extends Visitor<boolean> {
 
 	visitState(state: State, deepHistoryAbove: boolean) {
 		// NOTE: manually iterate over the child regions to control the sequence of initialisation
-		for (const region of state.regions) {
+		for (const region of state.children) {
 			region.accept(this, deepHistoryAbove);
 
 			this.getActions(state).leave.push(this.getActions(region).leave);
@@ -681,7 +712,7 @@ class InitialiseStateMachine extends Visitor<boolean> {
 		}
 
 		// enter each child region on state machine entry
-		for (const region of stateMachine.regions) {
+		for (const region of stateMachine.children) {
 			stateMachine.onInitialise.push(this.getActions(region).beginEnter);
 			stateMachine.onInitialise.push(this.getActions(region).endEnter);
 		}
@@ -709,7 +740,7 @@ class InitialiseStateMachine extends Visitor<boolean> {
 
 	visitLocalTransition(transition: Transition): void {
 		transition.onTraverse.push((message, instance, deepHistory) => {
-			const targetAncestors = transition.target!.getAncestors(); // local transitions will have a target
+			const targetAncestors = Tree.Ancestors(transition.target!); // local transitions will have a target
 			let i = 0;
 
 			// find the first inactive element in the target ancestry
@@ -742,7 +773,7 @@ class InitialiseStateMachine extends Visitor<boolean> {
 	}
 
 	visitExternalTransition(transition: Transition): void {
-		const sourceAncestors = transition.source.getAncestors(), targetAncestors = transition.target!.getAncestors(); // external transtions always have a target
+		const sourceAncestors = Tree.Ancestors(transition.source), targetAncestors = Tree.Ancestors(transition.target!); // external transtions always have a target
 		let i = Math.min(sourceAncestors.length, targetAncestors.length) - 1;
 
 		// find the first uncommon ancestors
@@ -793,7 +824,7 @@ function evaluate(state: StateMachine | State, instance: IInstance, message: any
 
 	// delegate to child regions first if a non-continuation
 	if (message !== state) {
-		state.regions.every(region => {
+		state.children.every(region => {
 			const currentState = instance.getLastKnownState(region);
 
 			if (currentState && evaluate(currentState, instance, message)) {

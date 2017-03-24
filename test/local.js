@@ -49,7 +49,7 @@ model.evaluate(instance, "external");
 
 describe("Local transition tests", function () {
 	it("External transition fired OK", function () {
-		assert.equal(true, instance.getCurrent(stateB.defaultRegion) === bStateII);
+		assert.equal(true, instance.getCurrent(stateB.getDefaultRegion()) === bStateII);
 	});
 });
 

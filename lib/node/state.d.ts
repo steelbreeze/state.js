@@ -3,6 +3,22 @@
 // Definitions by: David Mesquita-Morris <http://state.software>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
+declare global  {
+    interface Array<T> {
+        select(predicate: (item: T) => boolean): T | undefined;
+    }
+}
+/** Namespace for tree data structures and associated algorithms. */
+export declare namespace Tree {
+    interface INode {
+        parent: any;
+    }
+    interface Node<TNode extends INode> extends INode {
+        parent: TNode;
+    }
+    function Ancestors<TNode extends INode>(node: TNode): Array<TNode>;
+    function LCA<TNode extends INode>(ancestry1: Array<TNode>, ancestry2: Array<TNode>): number;
+}
 /** Type signature for logging; this type signature allows for the default console to be used. */
 export declare type Logger = {
     log(message?: any, ...optionalParams: any[]): void;
@@ -73,9 +89,7 @@ export declare enum TransitionKind {
     Local = 2,
 }
 /** Common interface for all nodes within a state machine model. */
-export interface Element {
-    /** Returns an array of all the ancestors of the [[Element]], from the root of the state machine model to the [[Element]] instance itself. */
-    getAncestors(): Array<Element>;
+export interface IElement extends Tree.INode {
     /** Returns the root [[StateMachine]] [[Element]]. */
     getRoot(): StateMachine;
     /**
@@ -86,9 +100,9 @@ export interface Element {
     isActive(instance: IInstance): boolean;
 }
 /** Common base class for all nodes within a state machine model that have a name. */
-export declare abstract class NamedElement<TParent extends Element> implements Element {
+export declare abstract class Element<TElement extends IElement> implements IElement, Tree.Node<TElement> {
     readonly name: string;
-    readonly parent: TParent;
+    readonly parent: TElement;
     /** The string used to seperate [[Element]]s within a fully qualifiedName; this may be updated if required. */
     static namespaceSeparator: string;
     /** The fully qualified name of the [[Element]]. */
@@ -98,9 +112,7 @@ export declare abstract class NamedElement<TParent extends Element> implements E
      * @param name The name of the [[NamedElement]].
      * @param parent The parent [[NamedElement]] of this [[NamedElement]].
      */
-    protected constructor(name: string, parent: TParent);
-    /** Returns an array of all the ancestors of the element, from the root of the state machine model to the element itself. */
-    getAncestors(): Array<Element>;
+    protected constructor(name: string, parent: TElement);
     /** Returns the root [[StateMachine]] element. */
     getRoot(): StateMachine;
     /**
@@ -120,11 +132,11 @@ export declare abstract class NamedElement<TParent extends Element> implements E
     toString(): string;
 }
 /** A [[Region]] is a container of [[Vertex]] instances within a state machine hierarchy. [[Region]] instances will be injected automatically when creating composite [[State]]s; alternatively, then may be created explicitly. */
-export declare class Region extends NamedElement<State | StateMachine> {
+export declare class Region extends Element<State | StateMachine> {
     /** The default name for automatically created [[Region]] instances. */
     static defaultName: string;
     /** The child [[Vertex]] instances that are the children of this [[Region]]. */
-    readonly vertices: Vertex[];
+    readonly children: Vertex[];
     /**
      * Creates a new instance of the [[Region]] class.
      * @param name The short name for the [[Region]] instance; this will form part of fully qualified names of child [[Vertex]] and [[Region]] instances.
@@ -146,7 +158,7 @@ export declare class Region extends NamedElement<State | StateMachine> {
     accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
 }
 /** Represents a node with the graph that forms one part of a state machine model. */
-export declare class Vertex extends NamedElement<Region> {
+export declare class Vertex extends Element<Region> {
     readonly outgoing: Transition[];
     readonly incoming: Transition[];
     constructor(name: string, parent: Region | State | StateMachine);
@@ -173,11 +185,9 @@ export declare class PseudoState extends Vertex {
     accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
 }
 export declare class State extends Vertex {
-    readonly regions: Region[];
+    readonly children: Region[];
     readonly entryBehavior: Actions;
     readonly exitBehavior: Actions;
-    defaultRegion: Region;
-    constructor(name: string, parent: Region | State | StateMachine);
     getDefaultRegion(): Region;
     isFinal(): boolean;
     isSimple(): boolean;
@@ -200,16 +210,16 @@ export declare class State extends Vertex {
      */
     accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
 }
-export declare class StateMachine implements Element {
+export declare class StateMachine implements IElement {
     readonly name: string;
-    readonly regions: Region[];
-    defaultRegion: Region | undefined;
+    readonly children: Region[];
     clean: boolean;
     readonly onInitialise: Actions;
+    readonly parent: undefined;
     constructor(name: string);
     getDefaultRegion(): Region;
     /** Returns an array of all the ancestors of the element, from the root of the state machine model to the element itself. */
-    getAncestors(): Array<Element>;
+    getAncestors(): Array<IElement>;
     /** Returns the root [[StateMachine]] element. */
     getRoot(): StateMachine;
     /**
@@ -253,7 +263,7 @@ export declare class Transition {
     toString(): string;
 }
 export declare class Visitor<TArg> {
-    visitElement(element: Element, arg?: TArg): void;
+    visitElement(element: IElement, arg?: TArg): void;
     visitRegion(region: Region, arg?: TArg): void;
     visitVertex(vertex: Vertex, arg?: TArg): void;
     visitPseudoState(pseudoState: PseudoState, arg?: TArg): void;
@@ -280,3 +290,4 @@ export declare class DictionaryInstance implements IInstance {
     getLastKnownState(region: Region): State | undefined;
     toString(): string;
 }
+export {};
