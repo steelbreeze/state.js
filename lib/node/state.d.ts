@@ -17,12 +17,6 @@ export declare var internalTransitionsTriggerCompletion: boolean;
 export declare function setInternalTransitionsTriggerCompletion(value: boolean): void;
 export declare type Guard = (message: any, instance: IInstance) => boolean;
 export declare type Action = (message: any, instance: IInstance, deepHistory?: boolean) => void;
-export declare class Actions {
-    private actions;
-    constructor(actions?: Actions);
-    push(action: Actions | Action): void;
-    invoke(message: any, instance: IInstance, deepHistory: boolean): void;
-}
 export declare enum PseudoStateKind {
     Choice = 0,
     DeepHistory = 1,
@@ -73,8 +67,8 @@ export declare class PseudoState extends Vertex {
 }
 export declare class State extends Vertex {
     static defaultRegion(state: State | StateMachine): Region;
-    readonly entryBehavior: Actions;
-    readonly exitBehavior: Actions;
+    readonly entryBehavior: Action[];
+    readonly exitBehavior: Action[];
     isFinal(): boolean;
     isSimple(): boolean;
     isComposite(): boolean;
@@ -89,7 +83,7 @@ export declare class StateMachine implements IElement {
     readonly name: string;
     readonly children: Region[];
     clean: boolean;
-    readonly onInitialise: Actions;
+    onInitialise: Action[];
     readonly parent: undefined;
     constructor(name: string);
     getRoot(): StateMachine;
@@ -105,8 +99,8 @@ export declare class Transition {
     readonly target: Vertex;
     readonly kind: TransitionKind;
     static Else: (message: any, instance: IInstance) => boolean;
-    readonly effectBehavior: Actions;
-    readonly onTraverse: Actions;
+    effectBehavior: Action[];
+    onTraverse: Action[];
     guard: Guard;
     constructor(source: Vertex, target?: Vertex, kind?: TransitionKind);
     else(): this;
