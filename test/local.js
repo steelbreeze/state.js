@@ -21,10 +21,11 @@ var model = new state.StateMachine("model");
 var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
 var stateA = new state.State("stateA", model);
 var stateB = new state.State("stateB", model).exit(function (message, instance) { instance.stateBExitCount++; });
+var regionB = new state.Region("regiobB", stateB);
 
-var bInitial = new state.PseudoState("bInitial", stateB);
-var bStateI = new state.State("bStateI", stateB);
-var bStateII = new state.State("bStateII", stateB);
+var bInitial = new state.PseudoState("bInitial", regionB);
+var bStateI = new state.State("bStateI", regionB);
+var bStateII = new state.State("bStateII", regionB);
 
 // create the state machine model transitions
 initial.to(stateA);
@@ -49,7 +50,7 @@ model.evaluate(instance, "external");
 
 describe("Local transition tests", function () {
 	it("External transition fired OK", function () {
-		assert.equal(true, instance.getCurrent(stateB.getDefaultRegion()) === bStateII);
+		assert.equal(true, instance.getCurrent(regionB) === bStateII);
 	});
 });
 

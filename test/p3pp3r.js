@@ -5,9 +5,10 @@ var assert = require("assert"),
 var oldLogger = state.setLogger(console);
 
 var model = new state.StateMachine("model");
-var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
-var state1 = new state.State("state1", model);
-var state2 = new state.State("state2", model);
+var region = new state.Region("region", model);
+var initial = new state.PseudoState("initial", region, state.PseudoStateKind.Initial);
+var state1 = new state.State("state1", region);
+var state2 = new state.State("state2", region);
 
 var regionA = new state.Region("regionA", state1);
 var initialA = new state.PseudoState("initialA", regionA, state.PseudoStateKind.Initial);
@@ -45,7 +46,7 @@ describe("test/p3pp3r.js", function () {
 	it("All regions of orthogonal state must be exited during the external transition", function () {
 		model.evaluate(instance, "event2");
 
-		assert.equal(state2, instance.getCurrent(model.getDefaultRegion()));
+		assert.equal(state2, instance.getCurrent(region));
 		assert.equal(state4, instance.getCurrent(regionB));
 	});
 });

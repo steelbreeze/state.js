@@ -1,22 +1,15 @@
 import * as Tree from "./tree";
 
-/** Type signature for logging; this type signature allows for the default console to be used. */
 export type Logger = {
 	log(message?: any, ...optionalParams: any[]): void;
 	error(message?: any, ...optionalParams: any[]): void;
 }
 
-/** The object used for loggin error messages. By default, log messages are ignored and errors throw exceptions. */
 export let logger: Logger = {
 	log(message?: any, ...optionalParams: any[]): void { },
 	error(message?: any, ...optionalParams: any[]): void { throw message; }
 };
 
-/**
- * Replace the default logger with custom logging.
- * @param newLogger An object to send log and error messages to. This must implement the [[Logger]] type.
- * @returns Returns the previous implementation of the logger.
- */
 export function setLogger(newLogger: Logger): Logger {
 	const result = logger;
 
@@ -25,17 +18,10 @@ export function setLogger(newLogger: Logger): Logger {
 	return result;
 }
 
-/** Type signature for random number generation. */
 export type Random = (max: number) => number;
 
-/** Random number generation method. */
 export let random: Random = (max: number) => Math.floor(Math.random() * max);
 
-/**
- * Sets the random number generation method.
- * @param newRandom A method to generate random numbers. This must conform to the [[Random]] type.
- * @returns Returns the previous implementation of the random number generator.
- */
 export function setRandom(newRandom: Random): Random {
 	const result = random;
 
@@ -44,42 +30,25 @@ export function setRandom(newRandom: Random): Random {
 	return result;
 }
 
-/** Flag to control completion transition behaviour of internal transitions. */
 export var internalTransitionsTriggerCompletion: boolean = false;
 
-/**
- * Change completion transition behaviour of internal transitions.
- * @param value True to have internal transitions triggering completin transitions.
- */
 export function setInternalTransitionsTriggerCompletion(value: boolean): void {
 	internalTransitionsTriggerCompletion = value;
 }
 
-/** Prototype of transition guard condition callbacks. */
 export type Guard = (message: any, instance: IInstance) => boolean;
 
-/** Prototype of state and transition behavior callbacks. */
 export type Action = (message: any, instance: IInstance, deepHistory?: boolean) => void;
 
-/** Class that the behavior built up for state transitions. */
 export class Actions {
-	/** Container for all the behaviour. */
-	private readonly actions: Array<Action> = [];
+	private actions = new Array<Action>();
 
-	/**
-	 * Creates a new instance of the [[Action]] class.
-	 * @param actions An optional existing [[Action]] to seed the initial behavior from; use this when a copy constructor is required.
-	 */
 	constructor(actions?: Actions) {
 		if (actions) {
 			this.push(actions);
 		}
 	}
 
-	/**
-	 * Appends the [[Action]] with the contents of another [[Action]] or [[Action]].
-	 * @param action The [[Actions]] or [[Action]] to append.
-	 */
 	push(action: Actions | Action): void {
 		if (action instanceof Actions) {
 			for (const item of action.actions) {
@@ -90,12 +59,6 @@ export class Actions {
 		}
 	}
 
-	/**
-	 * Calls each [[Action]] in turn with the supplied parameters upon a state transtion.
-	 * @param message The message that caused the state transition.
-	 * @param instance The state machine instance.
-	 * @param deepHistory For internal use only.
-	 */
 	invoke(message: any, instance: IInstance, deepHistory: boolean): void {
 		for (const action of this.actions) {
 			action(message, instance, deepHistory);
@@ -103,7 +66,6 @@ export class Actions {
 	}
 }
 
-/** An enumeration used to dictate the behavior of instances of the [[PseudoState]] class. Use these constants as the `kind` parameter when creating new [[PseudoState]] instances. */
 export enum PseudoStateKind {
 	Choice,
 	DeepHistory,
@@ -118,79 +80,43 @@ export enum TransitionKind {
 	Local
 }
 
-/** Common interface for all nodes within a state machine model. */
 export interface IElement extends Tree.INode {
-	/** Returns the root [[StateMachine]] [[Element]]. */
 	getRoot(): StateMachine;
 
-	/**
-	 * Determines if an [[Element]] is currently active for a given state machine instance.
-	 * @param instance The state machin instance.
-	 * @returns Returs true if the [[Element]] is active within the given state machine instance.
-	 */
 	isActive(instance: IInstance): boolean; // TODO: remove from here
 }
 
-/** Common base class for all nodes within a state machine model that have a name. */
-export abstract class Element<TParent extends IElement, TChild extends IElement> implements IElement, Tree.Node<TParent, TChild> {
-	/** The string used to seperate [[Element]]s within a fully qualifiedName; this may be updated if required. */
+export abstract class Element<TParent extends IElement, TChildren extends IElement> implements IElement, Tree.Node<TParent, TChildren> {
 	public static namespaceSeparator = ".";
 
-	/** The children of this element. */
-	public readonly children = new Array<TChild>();
+	public readonly children = new Array<TChildren>();
 
-	/** The fully qualified name of the [[Element]]. */
 	public readonly qualifiedName: string;
 
-	/**
-	 * Creates a new instance of the [[NamedElement]].
-	 * @param name The name of the [[NamedElement]].
-	 * @param parent The parent [[NamedElement]] of this [[NamedElement]].
-	 */
 	protected constructor(public readonly name: string, public readonly parent: TParent) {
 		this.qualifiedName = parent ? parent.toString() + Element.namespaceSeparator + name : name;
 	}
 
-	/** Returns the root [[StateMachine]] element. */
 	public getRoot(): StateMachine {
 		return this.parent.getRoot();
 	}
 
-	/**
-	 * Determines if an [[Element]] is currently active for a given state machine instance.
-	 * @param instance The state machine instance.
-	 * @returns Returs true if the [[Element]] is active within the given state machine instance.
-	 */
 	public isActive(instance: IInstance): boolean {
 		return this.parent.isActive(instance);  // TODO: remove from here
 	}
 
-	/**
-	 * Accepts a [[Visitor]] instance and walks the state machine model hierarchy from this node down; create custom visitors by overriding the [[Visitor]] class.
-	 * @param TArg The type of and optional argument that will be passed back to the [[Visitor]] instance.
-	 * @param visitor The [[Visitor]] instance.
-	 * @param TArg An optional argument that will be passed back to the [[Visitor]] instance.
-	 */
 	public accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
 		visitor.visitElement(this, arg);
 	}
 
-	/** Returns the name of the [[Element]]. */
 	public toString(): string {
 		return this.qualifiedName;
 	}
 }
 
-/** A [[Region]] is a container of [[Vertex]] instances within a state machine hierarchy. [[Region]] instances will be injected automatically when creating composite [[State]]s; alternatively, then may be created explicitly. */
 export class Region extends Element<State | StateMachine, Vertex> {
-	/** The default name for automatically created [[Region]] instances. */
 	public static defaultName = "default";
 
-	/**
-	 * Creates a new instance of the [[Region]] class.
-	 * @param name The short name for the [[Region]] instance; this will form part of fully qualified names of child [[Vertex]] and [[Region]] instances.
-	 * @param parent The parent [[State]] or [[StateMachine]] instance.
-	 */
 	public constructor(name: string, parent: State | StateMachine) {
 		super(name, parent);
 
@@ -198,35 +124,23 @@ export class Region extends Element<State | StateMachine, Vertex> {
 		this.getRoot().clean = false;
 	}
 
-	/**
-	 * Tests a state machine instance to see if a specific [[Region]] is deemed to be complete; having been entered and exited.
-	 * @param The state machine instance.
-	 * @returns True if the [[Region]] is complete for the given state machine instance.
-	 */
 	public isComplete(instance: IInstance): boolean {
 		const currentState = instance.getLastKnownState(this);
 
 		return currentState !== undefined && currentState.isFinal();
 	}
 
-	/**
-	 * Accepts a [[Visitor]] instance and walks the state machine model hierarchy from this node down; create custom visitors by overriding the [[Visitor]] class.
-	 * @param TArg The type of and optional argument that will be passed back to the [[Visitor]] instance.
-	 * @param visitor The [[Visitor]] instance.
-	 * @param TArg An optional argument that will be passed back to the [[Visitor]] instance.
-	 */
 	public accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
 		visitor.visitRegion(this, arg);
 	}
 }
 
-/** Represents a node with the graph that forms one part of a state machine model. */
 export class Vertex extends Element<Region, Region> {
 	readonly outgoing = new Array<Transition>();
 	readonly incoming = new Array<Transition>();
 
 	constructor(name: string, parent: Region | State | StateMachine) {
-		super(name, parent instanceof Region ? parent : parent.getDefaultRegion());
+		super(name, parent instanceof Region ? parent : State.defaultRegion(parent));
 
 		this.parent.children.push(this);
 		this.getRoot().clean = false;
@@ -236,12 +150,6 @@ export class Vertex extends Element<Region, Region> {
 		return new Transition(this, target, kind);
 	}
 
-	/**
-	 * Accepts a [[Visitor]] instance and walks the state machine model hierarchy from this node down; create custom visitors by overriding the [[Visitor]] class.
-	 * @param TArg The type of and optional argument that will be passed back to the [[Visitor]] instance.
-	 * @param visitor The [[Visitor]] instance.
-	 * @param TArg An optional argument that will be passed back to the [[Visitor]] instance.
-	 */
 	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
 		visitor.visitVertex(this, arg);
 	}
@@ -260,30 +168,24 @@ export class PseudoState extends Vertex {
 		return this.kind === PseudoStateKind.Initial || this.isHistory();
 	}
 
-	/**
-	 * Accepts a [[Visitor]] instance and walks the state machine model hierarchy from this node down; create custom visitors by overriding the [[Visitor]] class.
-	 * @param TArg The type of and optional argument that will be passed back to the [[Visitor]] instance.
-	 * @param visitor The [[Visitor]] instance.
-	 * @param TArg An optional argument that will be passed back to the [[Visitor]] instance.
-	 */
 	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
 		visitor.visitPseudoState(this, arg);
 	}
 }
 
 export class State extends Vertex {
-	readonly entryBehavior = new Actions();
-	readonly exitBehavior = new Actions();
-
-	getDefaultRegion(): Region {
-		for (const region of this.children) {
+	static defaultRegion(state: State | StateMachine) {
+		for (const region of state.children) {
 			if (region.name === Region.defaultName) {
 				return region;
 			}
 		}
 
-		return new Region(Region.defaultName, this);
+		return new Region(Region.defaultName, state);
 	}
+
+	readonly entryBehavior = new Actions();
+	readonly exitBehavior = new Actions();
 
 	isFinal(): boolean {
 		return this.outgoing.length === 0;
@@ -301,11 +203,6 @@ export class State extends Vertex {
 		return this.children.length > 1;
 	}
 
-	/**
-	 * Determines if an [[Element]] is currently active for a given state machine instance.
-	 * @param instance The state machine instance.
-	 * @returns Returs true if the [[Element]] is active within the given state machine instance.
-	 */
 	isActive(instance: IInstance): boolean {
 		return super.isActive(instance) && instance.getLastKnownState(this.parent) === this;
 	}
@@ -330,12 +227,6 @@ export class State extends Vertex {
 		return this;
 	}
 
-	/**
-	 * Accepts a [[Visitor]] instance and walks the state machine model hierarchy from this node down; create custom visitors by overriding the [[Visitor]] class.
-	 * @param TArg The type of and optional argument that will be passed back to the [[Visitor]] instance.
-	 * @param visitor The [[Visitor]] instance.
-	 * @param TArg An optional argument that will be passed back to the [[Visitor]] instance.
-	 */
 	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
 		visitor.visitState(this, arg);
 	}
@@ -349,36 +240,14 @@ export class StateMachine implements IElement {
 	constructor(public readonly name: string) {
 	}
 
-	getDefaultRegion(): Region {
-		for (const region of this.children) {
-			if (region.name === Region.defaultName) {
-				return region;
-			}
-		}
-
-		return new Region(Region.defaultName, this);
-	}
-
-	/** Returns the root [[StateMachine]] element. */
 	getRoot(): StateMachine {
 		return this;
 	}
 
-	/**
-	 * Accepts a [[Visitor]] instance and walks the state machine model hierarchy from this node down; create custom visitors by overriding the [[Visitor]] class.
-	 * @param TArg The type of and optional argument that will be passed back to the [[Visitor]] instance.
-	 * @param visitor The [[Visitor]] instance.
-	 * @param TArg An optional argument that will be passed back to the [[Visitor]] instance.
-	 */
 	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
 		visitor.visitStateMachine(this, arg);
 	}
 
-	/**
-	 * Determines if an [[Element]] is currently active for a given state machine instance.
-	 * @param instance The state machine instance.
-	 * @returns Returs true if the [[Element]] is active within the given state machine instance.
-	 */
 	isActive(instance: IInstance): boolean {
 		return true;
 	}
@@ -406,7 +275,6 @@ export class StateMachine implements IElement {
 	}
 
 	evaluate(instance: IInstance, message: any, autoInitialiseModel: boolean = true): boolean {
-		// initialise the state machine model if necessary
 		if (autoInitialiseModel && this.clean === false) {
 			this.initialise();
 		}
@@ -416,7 +284,6 @@ export class StateMachine implements IElement {
 		return evaluate(this, instance, message);
 	}
 
-	/** Returns the name of the [[Element]]. */
 	toString(): string {
 		return this.name;
 	}
@@ -461,12 +328,6 @@ export class Transition {
 		return this;
 	}
 
-	/**
-	 * Accepts a [[Visitor]] instance and walks the state machine model hierarchy from this node down; create custom visitors by overriding the [[Visitor]] class.
-	 * @param TArg The type of and optional argument that will be passed back to the [[Visitor]] instance.
-	 * @param visitor The [[Visitor]] instance.
-	 * @param TArg An optional argument that will be passed back to the [[Visitor]] instance.
-	 */
 	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
 		visitor.visitTransition(this, arg);
 	}
@@ -575,10 +436,8 @@ class InitialiseStateMachine extends Visitor<boolean> {
 	}
 
 	visitRegion(region: Region, deepHistoryAbove: boolean): void {
-		// find the initial pseudo state of this region
 		const regionInitial = region.children.reduce<PseudoState | undefined>((result, vertex) => vertex instanceof PseudoState && vertex.isInitial() && (result === undefined || result.isHistory()) ? vertex : result, undefined);
 
-		// leave the curent active child state when exiting the region
 		this.getActions(region).leave.push((message, instance) => {
 			const currentState = instance.getCurrent(region);
 
@@ -587,11 +446,9 @@ class InitialiseStateMachine extends Visitor<boolean> {
 			}
 		});
 
-		// cascade to child vertices
 		super.visitRegion(region, deepHistoryAbove || (regionInitial && regionInitial.kind === PseudoStateKind.DeepHistory)); // TODO: determine if we need to break this up or move it
 
-		// enter the appropriate child vertex when entering the region
-		if (deepHistoryAbove || !regionInitial || regionInitial.isHistory()) { // NOTE: history needs to be determined at runtime
+		if (deepHistoryAbove || !regionInitial || regionInitial.isHistory()) {
 			this.getActions(region).endEnter.push((message, instance, deepHistory) => {
 				const actions = this.getActions((deepHistory || regionInitial!.isHistory()) ? instance.getLastKnownState(region) || regionInitial! : regionInitial!);
 				const history = deepHistory || regionInitial!.kind === PseudoStateKind.DeepHistory;
@@ -600,7 +457,6 @@ class InitialiseStateMachine extends Visitor<boolean> {
 				actions.endEnter.invoke(message, instance, history);
 			});
 		} else {
-			// TODO: validate initial region
 			this.getActions(region).endEnter.push(this.getActions(regionInitial).beginEnter);
 			this.getActions(region).endEnter.push(this.getActions(regionInitial).endEnter);
 		}
@@ -609,7 +465,6 @@ class InitialiseStateMachine extends Visitor<boolean> {
 	visitVertex(vertex: Vertex, deepHistoryAbove: boolean) {
 		super.visitVertex(vertex, deepHistoryAbove);
 
-		// update the parent regions current state
 		this.getActions(vertex).beginEnter.push((message, instance) => {
 			instance.setCurrent(vertex.parent, vertex);
 		});
@@ -618,7 +473,6 @@ class InitialiseStateMachine extends Visitor<boolean> {
 	visitPseudoState(pseudoState: PseudoState, deepHistoryAbove: boolean) {
 		super.visitPseudoState(pseudoState, deepHistoryAbove);
 
-		// evaluate comppletion transitions once vertex entry is complete
 		if (pseudoState.isInitial()) {
 			this.getActions(pseudoState).endEnter.push((message, instance, deepHistory) => {
 				if (instance.getLastKnownState(pseudoState.parent)) {
@@ -638,7 +492,6 @@ class InitialiseStateMachine extends Visitor<boolean> {
 	}
 
 	visitState(state: State, deepHistoryAbove: boolean) {
-		// NOTE: manually iterate over the child regions to control the sequence of initialisation
 		for (const region of state.children) {
 			region.accept(this, deepHistoryAbove);
 
@@ -649,7 +502,6 @@ class InitialiseStateMachine extends Visitor<boolean> {
 
 		this.visitVertex(state, deepHistoryAbove);
 
-		// add the user defined behavior when entering and exiting states
 		this.getActions(state).leave.push(state.exitBehavior);
 		this.getActions(state).beginEnter.push(state.entryBehavior);
 	}
@@ -657,7 +509,6 @@ class InitialiseStateMachine extends Visitor<boolean> {
 	visitStateMachine(stateMachine: StateMachine, deepHistoryAbove: boolean): void {
 		super.visitStateMachine(stateMachine, deepHistoryAbove);
 
-		// initialise the transitions only once all elemenets have been initialised
 		for (const transition of this.transitions) {
 			switch (transition.kind) {
 				case TransitionKind.Internal:
@@ -674,7 +525,6 @@ class InitialiseStateMachine extends Visitor<boolean> {
 			}
 		}
 
-		// enter each child region on state machine entry
 		for (const region of stateMachine.children) {
 			stateMachine.onInitialise.push(this.getActions(region).beginEnter);
 			stateMachine.onInitialise.push(this.getActions(region).endEnter);
@@ -688,10 +538,8 @@ class InitialiseStateMachine extends Visitor<boolean> {
 	}
 
 	visitInternalTransition(transition: Transition): void {
-		// perform the transition behavior
 		transition.onTraverse.push(transition.effectBehavior);
 
-		// add a test for completion
 		if (internalTransitionsTriggerCompletion) {
 			transition.onTraverse.push((message, instance) => {
 				if (transition.source instanceof State && transition.source.isComplete(instance)) {
@@ -703,15 +551,13 @@ class InitialiseStateMachine extends Visitor<boolean> {
 
 	visitLocalTransition(transition: Transition): void {
 		transition.onTraverse.push((message, instance, deepHistory) => {
-			const targetAncestors = Tree.Ancestors(transition.target!); // local transitions will have a target
+			const targetAncestors = Tree.Ancestors(transition.target!);
 			let i = 0;
 
-			// find the first inactive element in the target ancestry
 			while (targetAncestors[i].isActive(instance)) {
 				i++;
 			}
 
-			// TODO: create a test to see if we need region logic
 			if (targetAncestors[i] instanceof Region) {
 				throw "Need to implement Region logic";
 			}
@@ -719,43 +565,36 @@ class InitialiseStateMachine extends Visitor<boolean> {
 			const firstToEnter = targetAncestors[i] as State;
 			const firstToExit = instance.getCurrent(firstToEnter.parent);
 
-			// exit the source state
 			this.getActions(firstToExit!).leave.invoke(message, instance, false);
 
-			// perform the transition behavior;
 			transition.effectBehavior.invoke(message, instance, false);
 
-			// enter the target ancestry
 			while (i < targetAncestors.length) {
 				this.getActions(targetAncestors[i++]).beginEnter.invoke(message, instance, false);
 			}
 
-			// trigger cascade
 			this.getActions(transition.target!).endEnter.invoke(message, instance, false);
 		});
 	}
 
 	visitExternalTransition(transition: Transition): void {
-		const sourceAncestors = Tree.Ancestors(transition.source), targetAncestors = Tree.Ancestors(transition.target!); // external transtions always have a target
+		const sourceAncestors = Tree.Ancestors(transition.source)
+		const targetAncestors = Tree.Ancestors(transition.target!);
 		let i = Math.min(sourceAncestors.length, targetAncestors.length) - 1;
 
-		// find the first uncommon ancestors
 		while (sourceAncestors[i] !== targetAncestors[i]) { i -= 1; }
 
 		if (sourceAncestors[i] instanceof Region) {
 			i += 1;
 		}
 
-		// leave source ancestry and perform the transition behavior
 		transition.onTraverse.push(this.getActions(sourceAncestors[i]).leave);
 		transition.onTraverse.push(transition.effectBehavior);
 
-		// enter the target ancestry
 		while (i < targetAncestors.length) {
 			transition.onTraverse.push(this.getActions(targetAncestors[i++]).beginEnter);
 		}
 
-		// trigger cascade
 		transition.onTraverse.push(this.getActions(transition.target!).endEnter);
 	}
 }
@@ -778,14 +617,9 @@ function selectTransition(pseudoState: PseudoState, instance: IInstance, message
 	return transitions[0] || findElse(pseudoState);
 }
 
-/**
- * Passes a message to a state and state machine instance combination for evaluation; tests guard conditions and evaluates transitions as needed.
- * @returns Returns true if a state transition occured.
- */
 function evaluate(state: StateMachine | State, instance: IInstance, message: any): boolean {
 	let result = false;
 
-	// delegate to child regions first if a non-continuation
 	if (message !== state) {
 		state.children.every(region => {
 			const currentState = instance.getLastKnownState(region);
@@ -801,22 +635,18 @@ function evaluate(state: StateMachine | State, instance: IInstance, message: any
 	}
 
 	if (state instanceof State) {
-		// if a transition occured in a child region, check for completions
 		if (result) {
 			if ((message !== state) && state.isComplete(instance)) {
 				evaluate(state, instance, state);
 			}
 		} else {
-			// otherwise look for a transition from this state
 			const transitions = state.outgoing.filter(transition => transition.guard(message, instance));
 
 			if (transitions.length === 1) {
-				// execute if a single transition was found
 				traverse(transitions[0], instance, message);
 
 				result = true;
 			} else if (transitions.length > 1) {
-				// error if multiple transitions evaluated true
 				logger.error(`${state}: multiple outbound transitions evaluated true for message ${message}`);
 			}
 		}
@@ -825,35 +655,23 @@ function evaluate(state: StateMachine | State, instance: IInstance, message: any
 	return result;
 }
 
-/**
- * Traverses a transition; implements dynamic and static conditional branching and completion transition chaining.
- * @param origin The transition to traverse.
- * @param instance The state machin instance.
- * @param message The message that caused the state transition.
- */
 function traverse(origin: Transition, instance: IInstance, message?: any) {
 	let onTraverse = new Actions(origin.onTraverse);
 	let transition: Transition = origin;
 
-	// process static conditional branches - build up all the transition actions prior to executing
 	while (transition.target && transition.target instanceof PseudoState && transition.target.kind === PseudoStateKind.Junction) {
-		// proceed to the next transition
 		transition = selectTransition(transition.target, instance, message);
 
-		// concatenate actions before and after junctions
 		onTraverse.push(transition.onTraverse);
 	}
 
-	// execute the transition actions
 	onTraverse.invoke(message, instance, false);
 
 	if (transition.target) {
-		// process dynamic conditional branches if required
 		if (transition.target instanceof PseudoState && transition.target.kind === PseudoStateKind.Choice) {
 			traverse(selectTransition(transition.target, instance, message), instance, message);
 		}
 
-		// test for completion transitions
 		else if (transition.target instanceof State && transition.target.isComplete(instance)) {
 			evaluate(transition.target, instance, transition.target);
 		}

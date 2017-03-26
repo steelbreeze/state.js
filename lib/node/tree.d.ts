@@ -2,21 +2,24 @@
 export interface INode {
     /** The parent node of this node. */
     parent: any;
+    /** The child nodes of this node. */
     children: Array<any>;
 }
 /**
  * A [[Node]] within a tree.
- * @param TNode The type of the [[Node]]'s parent [[Node]].
+ * @param TParent The type of the [[Node]]'s parent [[Node]].
+ * @param TChildren The type of the [[Node]]'s children [[Node]]s.
  */
-export interface Node<TParent extends INode, TChild extends INode> extends INode {
+export interface Node<TParent extends INode, TChildren extends INode> extends INode {
     /** The parent node of this node. */
     parent: TParent;
-    children: Array<TChild>;
+    /** The child nodes of this node. */
+    children: Array<TChildren>;
 }
 /**
  * Returns the ancestry of the [[Node]] from the root [[Node]] to the [[Node]] provided.
- * @param TNode The type of the [[Node]]'s parent [[Node]].
+ * @param TParent The type of the [[Node]]'s parent [[Node]].
  * @param node The [[Node]] to return the ancestry for.
  */
-export declare function Ancestors<TNode extends INode>(node: TNode): Array<TNode>;
-export declare function LCA<TNode extends INode>(ancestry1: Array<TNode>, ancestry2: Array<TNode>): number;
+export declare function Ancestors<TParent extends INode>(node: TParent): Array<TParent>;
+export declare function LCA<TParent extends INode>(ancestry1: Array<TParent>, ancestry2: Array<TParent>): number;

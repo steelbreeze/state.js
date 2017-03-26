@@ -9,9 +9,10 @@ state.setInternalTransitionsTriggerCompletion(true);
 
 // create the state machine model
 var model = new state.StateMachine("model");
-var initial = new state.PseudoState("initial", model);
-var S1 = new state.State("s1", model);
-var S2 = new state.State("s2", model);
+var region = new state.Region("region", model);
+var initial = new state.PseudoState("initial", region);
+var S1 = new state.State("s1", region);
+var S2 = new state.State("s2", region);
 
 // initial transition
 initial.to(S1);
@@ -36,7 +37,7 @@ describe("test/brice2.js", function () {
 	});
 
 	it("Internal transitions fire completion events if switch set", function () {
-		assert.equal(S2, instance.getCurrent(model.getDefaultRegion()));
+		assert.equal(S2, instance.getCurrent(region));
 	});
 });
 

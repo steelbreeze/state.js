@@ -5,8 +5,9 @@ var assert = require("assert"),
 var oldLogger = state.setLogger(console);
 
 var model = new state.StateMachine("model");
-var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
-var target = new state.State("state", model).entry(function (message, instance) { instance.entryCount++; }).exit(function (message, instance) { instance.exitCount++; });
+var region  = new state.Region("region", model);
+var initial = new state.PseudoState("initial", region, state.PseudoStateKind.Initial);
+var target = new state.State("state", region).entry(function (message, instance) { instance.entryCount++; }).exit(function (message, instance) { instance.exitCount++; });
 
 initial.to(target);
 
@@ -24,7 +25,7 @@ describe("test/internal.js", function () {
 	it("Internal transitions do not trigger a state transition", function () {
 		model.evaluate(instance, "internal");
 
-		assert.equal(target, instance.getCurrent(model.getDefaultRegion()));
+		assert.equal(target, instance.getCurrent(region));
 		assert.equal(1, instance.entryCount);
 		assert.equal(0, instance.exitCount);
 		assert.equal(1, instance.transitionCount);
@@ -33,7 +34,7 @@ describe("test/internal.js", function () {
 	it("External transitions do trigger a state transition", function () {
 		model.evaluate(instance, "external");
 
-		assert.equal(target, instance.getCurrent(model.getDefaultRegion()));
+		assert.equal(target, instance.getCurrent(region));
 		assert.equal(2, instance.entryCount);
 		assert.equal(1, instance.exitCount);
 		assert.equal(2, instance.transitionCount);

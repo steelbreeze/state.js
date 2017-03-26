@@ -7,14 +7,15 @@ var oldConsole = state.setLogger(console);
 var model = new state.StateMachine("model");
 var initial = new state.PseudoState("initial", model);
 var on = new state.State("on", model);
+var onRegion = new state.Region("onRegion", on);
 var off = new state.State("off", model);
 var clean = new state.State("clean", model);
 var final = new state.State("final", model);
-var history = new state.PseudoState("history", on, state.PseudoStateKind.ShallowHistory);
-var idle = new state.State("idle", on);
-var moveItem = new state.State("moveItem", on);
-var showMoveItemPattern = new state.State("showMoveItemPattern", on);
-var hideMoveItemPattern = new state.State("hideMoveItemPattern", on);
+var history = new state.PseudoState("history", onRegion, state.PseudoStateKind.ShallowHistory);
+var idle = new state.State("idle", onRegion);
+var moveItem = new state.State("moveItem", onRegion);
+var showMoveItemPattern = new state.State("showMoveItemPattern", onRegion);
+var hideMoveItemPattern = new state.State("hideMoveItemPattern", onRegion);
 
 initial.to(idle);
 on.to(off).when(function (s) { return s === "Disable" });
@@ -38,13 +39,13 @@ describe("test/florent.js", function () {
 		model.evaluate(instance, "Disable");
 		model.evaluate(instance, "Enable");
 
-		assert.equal(showMoveItemPattern, instance.getCurrent(on.getDefaultRegion()));
+		assert.equal(showMoveItemPattern, instance.getCurrent(onRegion));
 
 		model.evaluate(instance, "ReleaseInput");
 		model.evaluate(instance, "Disable");
 		model.evaluate(instance, "Enable");
 
-		assert.equal(idle, instance.getCurrent(on.getDefaultRegion()));
+		assert.equal(idle, instance.getCurrent(onRegion));
 	});
 });
 

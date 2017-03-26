@@ -5,12 +5,13 @@ var assert = require("assert"),
 var oldLogger = state.setLogger(console);
 
 var model = new state.StateMachine("model");
-var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
-var junction1 = new state.PseudoState("junction1", model, state.PseudoStateKind.Junction);
-var junction2 = new state.PseudoState("junction2", model, state.PseudoStateKind.Junction);
+var region = new state.Region("region", model);
+var initial = new state.PseudoState("initial", region, state.PseudoStateKind.Initial);
+var junction1 = new state.PseudoState("junction1", region, state.PseudoStateKind.Junction);
+var junction2 = new state.PseudoState("junction2", region, state.PseudoStateKind.Junction);
 
-var pass = new state.State("success", model);
-var fail = new state.State("error", model);
+var pass = new state.State("success", region);
+var fail = new state.State("error", region);
 
 initial.to(junction1);
 
@@ -26,7 +27,7 @@ describe("test/static.js", function () {
 	it("Junction transitions implement a static conditional branch", function () {
 		model.initialise(instance);
 
-		assert.equal(pass, instance.getCurrent(model.getDefaultRegion()));
+		assert.equal(pass, instance.getCurrent(region));
 	});
 
 	it("Junction transitions call all transition behavior after guards have been tested", function () {
