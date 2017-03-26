@@ -132,9 +132,12 @@ export interface IElement extends Tree.INode {
 }
 
 /** Common base class for all nodes within a state machine model that have a name. */
-export abstract class Element<TElement extends IElement> implements IElement, Tree.Node<TElement> {
+export abstract class Element<TParent extends IElement, TChild extends IElement> implements IElement, Tree.Node<TParent, TChild> {
 	/** The string used to seperate [[Element]]s within a fully qualifiedName; this may be updated if required. */
 	public static namespaceSeparator = ".";
+
+	/** The children of this element. */
+	public readonly children = new Array<TChild>();
 
 	/** The fully qualified name of the [[Element]]. */
 	public readonly qualifiedName: string;
@@ -144,7 +147,7 @@ export abstract class Element<TElement extends IElement> implements IElement, Tr
 	 * @param name The name of the [[NamedElement]].
 	 * @param parent The parent [[NamedElement]] of this [[NamedElement]].
 	 */
-	protected constructor(public readonly name: string, public readonly parent: TElement) {
+	protected constructor(public readonly name: string, public readonly parent: TParent) {
 		this.qualifiedName = parent ? parent.toString() + Element.namespaceSeparator + name : name;
 	}
 
@@ -179,12 +182,9 @@ export abstract class Element<TElement extends IElement> implements IElement, Tr
 }
 
 /** A [[Region]] is a container of [[Vertex]] instances within a state machine hierarchy. [[Region]] instances will be injected automatically when creating composite [[State]]s; alternatively, then may be created explicitly. */
-export class Region extends Element<State | StateMachine> {
+export class Region extends Element<State | StateMachine, Vertex> {
 	/** The default name for automatically created [[Region]] instances. */
 	public static defaultName = "default";
-
-	/** The child [[Vertex]] instances that are the children of this [[Region]]. */
-	public readonly children = new Array<Vertex>();
 
 	/**
 	 * Creates a new instance of the [[Region]] class.
@@ -221,7 +221,7 @@ export class Region extends Element<State | StateMachine> {
 }
 
 /** Represents a node with the graph that forms one part of a state machine model. */
-export class Vertex extends Element<Region> {
+export class Vertex extends Element<Region, Region> {
 	readonly outgoing = new Array<Transition>();
 	readonly incoming = new Array<Transition>();
 
@@ -272,7 +272,6 @@ export class PseudoState extends Vertex {
 }
 
 export class State extends Vertex {
-	readonly children = new Array<Region>();
 	readonly entryBehavior = new Actions();
 	readonly exitBehavior = new Actions();
 

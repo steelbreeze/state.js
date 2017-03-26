@@ -85,9 +85,10 @@ export interface IElement extends Tree.INode {
     isActive(instance: IInstance): boolean;
 }
 /** Common base class for all nodes within a state machine model that have a name. */
-export declare abstract class Element<TElement extends IElement> implements IElement, Tree.Node<TElement> {
+export declare abstract class Element<TParent extends IElement, TChild extends IElement> implements IElement, Tree.Node<TParent, TChild> {
     readonly name: string;
-    readonly parent: TElement;
+    readonly parent: TParent;
+    children: TChild[];
     /** The string used to seperate [[Element]]s within a fully qualifiedName; this may be updated if required. */
     static namespaceSeparator: string;
     /** The fully qualified name of the [[Element]]. */
@@ -97,7 +98,7 @@ export declare abstract class Element<TElement extends IElement> implements IEle
      * @param name The name of the [[NamedElement]].
      * @param parent The parent [[NamedElement]] of this [[NamedElement]].
      */
-    protected constructor(name: string, parent: TElement);
+    protected constructor(name: string, parent: TParent);
     /** Returns the root [[StateMachine]] element. */
     getRoot(): StateMachine;
     /**
@@ -117,11 +118,10 @@ export declare abstract class Element<TElement extends IElement> implements IEle
     toString(): string;
 }
 /** A [[Region]] is a container of [[Vertex]] instances within a state machine hierarchy. [[Region]] instances will be injected automatically when creating composite [[State]]s; alternatively, then may be created explicitly. */
-export declare class Region extends Element<State | StateMachine> {
+export declare class Region extends Element<State | StateMachine, Vertex> {
     /** The default name for automatically created [[Region]] instances. */
     static defaultName: string;
     /** The child [[Vertex]] instances that are the children of this [[Region]]. */
-    readonly children: Vertex[];
     /**
      * Creates a new instance of the [[Region]] class.
      * @param name The short name for the [[Region]] instance; this will form part of fully qualified names of child [[Vertex]] and [[Region]] instances.
@@ -143,7 +143,7 @@ export declare class Region extends Element<State | StateMachine> {
     accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
 }
 /** Represents a node with the graph that forms one part of a state machine model. */
-export declare class Vertex extends Element<Region> {
+export declare class Vertex extends Element<Region, Region> {
     readonly outgoing: Transition[];
     readonly incoming: Transition[];
     constructor(name: string, parent: Region | State | StateMachine);
@@ -170,7 +170,6 @@ export declare class PseudoState extends Vertex {
     accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
 }
 export declare class State extends Vertex {
-    readonly children: Region[];
     readonly entryBehavior: Actions;
     readonly exitBehavior: Actions;
     getDefaultRegion(): Region;

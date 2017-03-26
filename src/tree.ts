@@ -2,15 +2,17 @@
 export interface INode {
 	/** The parent node of this node. */
 	parent: any;
+	children: Array<any>;
 }
 
 /**
  * A [[Node]] within a tree.
  * @param TNode The type of the [[Node]]'s parent [[Node]].
  */
-export interface Node<TNode extends INode> extends INode {
+export interface Node<TParent extends INode, TChild extends INode> extends INode {
 	/** The parent node of this node. */
-	parent: TNode;
+	parent: TParent;
+	children: Array<TChild>;
 }
 
 /**
