@@ -1,47 +1,4 @@
-declare global {
-	interface Array<T> {
-		select(predicate: (item: T) => boolean): T | undefined;
-	}
-}
-
-Array.prototype.select = function <T>(predicate: (item: T) => boolean): T | undefined {
-	for (let i = 0; i < this.length; i++) {
-		if (predicate(this[i])) {
-			return this[i];
-		}
-	}
-
-	return;
-};
-
-/** Namespace for tree data structures and associated algorithms. */
-export namespace Tree {
-	export interface INode {
-		parent: any;
-	}
-
-	export interface Node<TNode extends INode> extends INode {
-		parent: TNode;
-	}
-
-	export function Ancestors<TNode extends INode>(node: TNode): Array<TNode> {
-		const result = node.parent ? Ancestors(node.parent) : new Array<TNode>();
-
-		result.push(node);
-
-		return result;
-	}
-
-	export function LCA<TNode extends INode>(ancestry1: Array<TNode>, ancestry2: Array<TNode>): number {
-		let result = 0;
-
-		while (ancestry1[result] === ancestry2[result]) {
-			result++;
-		}
-
-		return result - 1;
-	}
-}
+import * as Tree from "./tree";
 
 /** Type signature for logging; this type signature allows for the default console to be used. */
 export type Logger = {
@@ -320,7 +277,13 @@ export class State extends Vertex {
 	readonly exitBehavior = new Actions();
 
 	getDefaultRegion(): Region {
-		return this.children.select(item => item.name === Region.defaultName) || new Region(Region.defaultName, this);
+		for (const region of this.children) {
+			if (region.name === Region.defaultName) {
+				return region;
+			}
+		}
+
+		return new Region(Region.defaultName, this);
 	}
 
 	isFinal(): boolean {
@@ -388,12 +351,13 @@ export class StateMachine implements IElement {
 	}
 
 	getDefaultRegion(): Region {
-		return this.children.select(item => item.name === Region.defaultName) || new Region(Region.defaultName, this);
-	}
+		for (const region of this.children) {
+			if (region.name === Region.defaultName) {
+				return region;
+			}
+		}
 
-	/** Returns an array of all the ancestors of the element, from the root of the state machine model to the element itself. */
-	getAncestors(): Array<IElement> {
-		return [this];
+		return new Region(Region.defaultName, this);
 	}
 
 	/** Returns the root [[StateMachine]] element. */

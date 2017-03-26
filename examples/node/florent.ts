@@ -1,4 +1,4 @@
-import * as state from "../../lib/node/state";
+import state from "../../lib/node/state";
 
 const model = new state.StateMachine("model");
 

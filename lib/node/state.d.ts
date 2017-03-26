@@ -3,22 +3,7 @@
 // Definitions by: David Mesquita-Morris <http://state.software>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
-declare global  {
-    interface Array<T> {
-        select(predicate: (item: T) => boolean): T | undefined;
-    }
-}
-/** Namespace for tree data structures and associated algorithms. */
-export declare namespace Tree {
-    interface INode {
-        parent: any;
-    }
-    interface Node<TNode extends INode> extends INode {
-        parent: TNode;
-    }
-    function Ancestors<TNode extends INode>(node: TNode): Array<TNode>;
-    function LCA<TNode extends INode>(ancestry1: Array<TNode>, ancestry2: Array<TNode>): number;
-}
+import * as Tree from "./tree";
 /** Type signature for logging; this type signature allows for the default console to be used. */
 export declare type Logger = {
     log(message?: any, ...optionalParams: any[]): void;
@@ -218,8 +203,6 @@ export declare class StateMachine implements IElement {
     readonly parent: undefined;
     constructor(name: string);
     getDefaultRegion(): Region;
-    /** Returns an array of all the ancestors of the element, from the root of the state machine model to the element itself. */
-    getAncestors(): Array<IElement>;
     /** Returns the root [[StateMachine]] element. */
     getRoot(): StateMachine;
     /**
@@ -290,4 +273,3 @@ export declare class DictionaryInstance implements IInstance {
     getLastKnownState(region: Region): State | undefined;
     toString(): string;
 }
-export {};
