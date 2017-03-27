@@ -19,9 +19,7 @@ export declare function setRandom(newRandom: Random): Random;
 export declare var internalTransitionsTriggerCompletion: boolean;
 export declare function setInternalTransitionsTriggerCompletion(value: boolean): boolean;
 export declare type Guard = (message: any, instance: IInstance) => boolean;
-export interface Action {
-    (message: any, instance: IInstance, deepHistory?: boolean): any;
-}
+export declare type Action = (message: any, instance: IInstance, deepHistory?: boolean) => any;
 export declare enum PseudoStateKind {
     Choice = 0,
     DeepHistory = 1,

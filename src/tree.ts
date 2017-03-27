@@ -36,7 +36,7 @@ export function Ancestors<TParent extends INode>(node: TParent): Array<TParent> 
 export function LCA<TParent extends INode>(ancestry1: Array<TParent>, ancestry2: Array<TParent>): number {
 	let result = 0;
 
-	while (ancestry1[result] === ancestry2[result]) {
+	while (result < ancestry1.length && result < ancestry2.length && ancestry1[result] === ancestry2[result]) {
 		result++;
 	}
 
