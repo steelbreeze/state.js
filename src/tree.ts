@@ -33,7 +33,7 @@ export function Ancestors<TParent extends INode>(node: TParent): Array<TParent> 
 	return result;
 }
 
-export function LCA<TParent extends INode>(ancestry1: Array<TParent>, ancestry2: Array<TParent>): number {
+export function LowestCommonAncestorIndex<TParent extends INode>(ancestry1: Array<TParent>, ancestry2: Array<TParent>): number {
 	let result = 0;
 
 	while (result < ancestry1.length && result < ancestry2.length && ancestry1[result] === ancestry2[result]) {

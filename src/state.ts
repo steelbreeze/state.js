@@ -562,7 +562,7 @@ class InitialiseStateMachine extends Visitor<boolean> {
 	visitExternalTransition(transition: Transition): void {
 		const sourceAncestors = Tree.Ancestors(transition.source);
 		const targetAncestors = Tree.Ancestors(transition.target!);
-		let i = Tree.LCA(sourceAncestors, targetAncestors);
+		let i = Tree.LowestCommonAncestorIndex(sourceAncestors, targetAncestors);
 
 		if (sourceAncestors[i] instanceof Region) {
 			i += 1;

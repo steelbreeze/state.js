@@ -22,4 +22,4 @@ export interface Node<TParent extends INode, TChildren extends INode> extends IN
  * @param node The [[Node]] to return the ancestry for.
  */
 export declare function Ancestors<TParent extends INode>(node: TParent): Array<TParent>;
-export declare function LCA<TParent extends INode>(ancestry1: Array<TParent>, ancestry2: Array<TParent>): number;
+export declare function LowestCommonAncestorIndex<TParent extends INode>(ancestry1: Array<TParent>, ancestry2: Array<TParent>): number;
