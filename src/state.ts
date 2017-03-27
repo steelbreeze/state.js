@@ -5,7 +5,7 @@ export type Logger = {
 	error(message?: any, ...optionalParams: any[]): void;
 }
 
-export let logger: Logger = {
+export let logger = {
 	log(message?: any, ...optionalParams: any[]): void { },
 	error(message?: any, ...optionalParams: any[]): void { throw message; }
 };
@@ -20,7 +20,7 @@ export function setLogger(newLogger: Logger): Logger {
 
 export type Random = (max: number) => number;
 
-export let random: Random = (max: number) => Math.floor(Math.random() * max);
+export let random = (max: number) => Math.floor(Math.random() * max);
 
 export function setRandom(newRandom: Random): Random {
 	const result = random;
@@ -30,15 +30,19 @@ export function setRandom(newRandom: Random): Random {
 	return result;
 }
 
-export var internalTransitionsTriggerCompletion: boolean = false;
+export var internalTransitionsTriggerCompletion = false;
 
-export function setInternalTransitionsTriggerCompletion(value: boolean): void {
+export function setInternalTransitionsTriggerCompletion(value: boolean): boolean {
+	const result = internalTransitionsTriggerCompletion;
+
 	internalTransitionsTriggerCompletion = value;
+
+	return result;
 }
 
 export type Guard = (message: any, instance: IInstance) => boolean;
 
-export type Action = (message: any, instance: IInstance, deepHistory?: boolean) => void;
+export type Action = (message: any, instance: IInstance, deepHistory?: boolean) => any;
 
 function invoke(actions: Array<Action>, message: any, instance: IInstance, deepHistory: boolean): void {
 	for (const action of actions) {
@@ -556,7 +560,7 @@ class InitialiseStateMachine extends Visitor<boolean> {
 	}
 
 	visitExternalTransition(transition: Transition): void {
-		const sourceAncestors = Tree.Ancestors(transition.source)
+		const sourceAncestors = Tree.Ancestors(transition.source);
 		const targetAncestors = Tree.Ancestors(transition.target!);
 		let i = Math.min(sourceAncestors.length, targetAncestors.length) - 1;
 

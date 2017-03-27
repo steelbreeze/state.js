@@ -8,15 +8,20 @@ export declare type Logger = {
     log(message?: any, ...optionalParams: any[]): void;
     error(message?: any, ...optionalParams: any[]): void;
 };
-export declare let logger: Logger;
+export declare let logger: {
+    log(message?: any, ...optionalParams: any[]): void;
+    error(message?: any, ...optionalParams: any[]): void;
+};
 export declare function setLogger(newLogger: Logger): Logger;
 export declare type Random = (max: number) => number;
-export declare let random: Random;
+export declare let random: (max: number) => number;
 export declare function setRandom(newRandom: Random): Random;
 export declare var internalTransitionsTriggerCompletion: boolean;
-export declare function setInternalTransitionsTriggerCompletion(value: boolean): void;
+export declare function setInternalTransitionsTriggerCompletion(value: boolean): boolean;
 export declare type Guard = (message: any, instance: IInstance) => boolean;
-export declare type Action = (message: any, instance: IInstance, deepHistory?: boolean) => void;
+export interface Action {
+    (message: any, instance: IInstance, deepHistory?: boolean): any;
+}
 export declare enum PseudoStateKind {
     Choice = 0,
     DeepHistory = 1,
