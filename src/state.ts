@@ -89,8 +89,8 @@ export abstract class Element<TParent extends IElement, TChildren extends IEleme
 		return this.parent.isActive(instance);  // TODO: remove from here
 	}
 
-	public accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
-		visitor.visitElement(this, arg);
+	public accept(visitor: Visitor, ...args: Array<any>) {
+		visitor.visitElement(this, ...args);
 	}
 
 	public toString(): string {
@@ -114,8 +114,8 @@ export class Region extends Element<State | StateMachine, Vertex> {
 		return currentState !== undefined && currentState.isFinal();
 	}
 
-	public accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
-		visitor.visitRegion(this, arg);
+	public accept(visitor: Visitor, ...args: Array<any>) {
+		visitor.visitRegion(this, ...args);
 	}
 }
 
@@ -134,8 +134,8 @@ export class Vertex extends Element<Region, Region> {
 		return new Transition(this, target, kind);
 	}
 
-	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
-		visitor.visitVertex(this, arg);
+	accept(visitor: Visitor, ...args: Array<any>) {
+		visitor.visitVertex(this, ...args);
 	}
 }
 
@@ -152,8 +152,8 @@ export class PseudoState extends Vertex {
 		return this.kind === PseudoStateKind.Initial || this.isHistory();
 	}
 
-	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
-		visitor.visitPseudoState(this, arg);
+	accept(visitor: Visitor, ...args: Array<any>) {
+		visitor.visitPseudoState(this, ...args);
 	}
 }
 
@@ -211,8 +211,8 @@ export class State extends Vertex {
 		return this;
 	}
 
-	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
-		visitor.visitState(this, arg);
+	accept(visitor: Visitor, ...args: Array<any>) {
+		visitor.visitState(this, ...args);
 	}
 }
 
@@ -229,8 +229,8 @@ export class StateMachine implements IElement {
 		return this;
 	}
 
-	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
-		visitor.visitStateMachine(this, arg);
+	accept(visitor: Visitor, ...args: Array<any>) {
+		visitor.visitStateMachine(this, ...args);
 	}
 
 	isActive(instance: IInstance): boolean {
@@ -253,7 +253,7 @@ export class StateMachine implements IElement {
 		} else {
 			logger.log(`initialise ${this}`);
 
-			this.accept(new InitialiseStateMachine());
+			this.accept(new InitialiseStateMachine(), false);
 
 			this.clean = true;
 		}
@@ -313,8 +313,8 @@ export class Transition {
 		return this;
 	}
 
-	accept<TArg>(visitor: Visitor<TArg>, arg?: TArg) {
-		visitor.visitTransition(this, arg);
+	accept(visitor: Visitor, ...args: Array<any>) {
+		visitor.visitTransition(this, ...args);
 	}
 
 	toString(): string {
@@ -322,47 +322,47 @@ export class Transition {
 	}
 }
 
-export class Visitor<TArg> {
-	visitElement(element: IElement, arg?: TArg): void {
+export class Visitor {
+	visitElement(element: IElement, ...args: Array<any>): void {
 	}
 
-	visitRegion(region: Region, arg?: TArg): void {
+	visitRegion(region: Region, ...args: Array<any>): void {
 		for (const vertex of region.children) {
-			vertex.accept(this, arg);
+			vertex.accept(this, ...args);
 		}
 
-		this.visitElement(region, arg);
+		this.visitElement(region, ...args);
 	}
 
-	visitVertex(vertex: Vertex, arg?: TArg): void {
+	visitVertex(vertex: Vertex, ...args: Array<any>): void {
 		for (const transition of vertex.outgoing) {
-			transition.accept(this, arg);
+			transition.accept(this, ...args);
 		}
 
-		this.visitElement(vertex, arg);
+		this.visitElement(vertex, ...args);
 	}
 
-	visitPseudoState(pseudoState: PseudoState, arg?: TArg): void {
-		this.visitVertex(pseudoState, arg);
+	visitPseudoState(pseudoState: PseudoState, ...args: Array<any>): void {
+		this.visitVertex(pseudoState, ...args);
 	}
 
-	visitState(state: State, arg?: TArg): void {
+	visitState(state: State, ...args: Array<any>): void {
 		for (const region of state.children) {
-			region.accept(this, arg);
+			region.accept(this, ...args);
 		}
 
-		this.visitVertex(state, arg);
+		this.visitVertex(state, ...args);
 	}
 
-	visitStateMachine(stateMachine: StateMachine, arg?: TArg): void {
+	visitStateMachine(stateMachine: StateMachine, ...args: Array<any>): void {
 		for (const region of stateMachine.children) {
-			region.accept(this, arg);
+			region.accept(this, ...args);
 		}
 
-		this.visitElement(stateMachine, arg);
+		this.visitElement(stateMachine, ...args);
 	}
 
-	visitTransition(transition: Transition, arg?: TArg): void {
+	visitTransition(transition: Transition, ...args: Array<any>): void {
 	}
 }
 
@@ -407,7 +407,7 @@ class ElementActions {
 	endEnter = new Array<Action>();
 }
 
-class InitialiseStateMachine extends Visitor<boolean> {
+class InitialiseStateMachine extends Visitor {
 	readonly elementActions: { [id: string]: ElementActions } = {};
 	readonly transitions = new Array<Transition>();
 

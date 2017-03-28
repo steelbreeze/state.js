@@ -45,28 +45,28 @@ export declare abstract class Element<TParent extends IElement, TChildren extend
     protected constructor(name: string, parent: TParent);
     getRoot(): StateMachine;
     isActive(instance: IInstance): boolean;
-    accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
+    accept(visitor: Visitor, ...args: Array<any>): void;
     toString(): string;
 }
 export declare class Region extends Element<State | StateMachine, Vertex> {
     static defaultName: string;
     constructor(name: string, parent: State | StateMachine);
     isComplete(instance: IInstance): boolean;
-    accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
+    accept(visitor: Visitor, ...args: Array<any>): void;
 }
 export declare class Vertex extends Element<Region, Region> {
     readonly outgoing: Transition[];
     readonly incoming: Transition[];
     constructor(name: string, parent: Region | State | StateMachine);
     to(target?: Vertex, kind?: TransitionKind): Transition;
-    accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
+    accept(visitor: Visitor, ...args: Array<any>): void;
 }
 export declare class PseudoState extends Vertex {
     readonly kind: PseudoStateKind;
     constructor(name: string, parent: Region | State | StateMachine, kind?: PseudoStateKind);
     isHistory(): boolean;
     isInitial(): boolean;
-    accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
+    accept(visitor: Visitor, ...args: Array<any>): void;
 }
 export declare class State extends Vertex {
     static defaultRegion(state: State | StateMachine): Region;
@@ -80,7 +80,7 @@ export declare class State extends Vertex {
     isComplete(instance: IInstance): boolean;
     exit(action: Action): this;
     entry(action: Action): this;
-    accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
+    accept(visitor: Visitor, ...args: Array<any>): void;
 }
 export declare class StateMachine implements IElement {
     readonly name: string;
@@ -90,7 +90,7 @@ export declare class StateMachine implements IElement {
     readonly parent: undefined;
     constructor(name: string);
     getRoot(): StateMachine;
-    accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
+    accept(visitor: Visitor, ...args: Array<any>): void;
     isActive(instance: IInstance): boolean;
     isComplete(instance: IInstance): boolean;
     initialise(instance?: IInstance, autoInitialiseModel?: boolean): void;
@@ -109,17 +109,17 @@ export declare class Transition {
     else(): this;
     when(guard: Guard): this;
     effect(action: Action): this;
-    accept<TArg>(visitor: Visitor<TArg>, arg?: TArg): void;
+    accept(visitor: Visitor, ...args: Array<any>): void;
     toString(): string;
 }
-export declare class Visitor<TArg> {
-    visitElement(element: IElement, arg?: TArg): void;
-    visitRegion(region: Region, arg?: TArg): void;
-    visitVertex(vertex: Vertex, arg?: TArg): void;
-    visitPseudoState(pseudoState: PseudoState, arg?: TArg): void;
-    visitState(state: State, arg?: TArg): void;
-    visitStateMachine(stateMachine: StateMachine, arg?: TArg): void;
-    visitTransition(transition: Transition, arg?: TArg): void;
+export declare class Visitor {
+    visitElement(element: IElement, ...args: Array<any>): void;
+    visitRegion(region: Region, ...args: Array<any>): void;
+    visitVertex(vertex: Vertex, ...args: Array<any>): void;
+    visitPseudoState(pseudoState: PseudoState, ...args: Array<any>): void;
+    visitState(state: State, ...args: Array<any>): void;
+    visitStateMachine(stateMachine: StateMachine, ...args: Array<any>): void;
+    visitTransition(transition: Transition, ...args: Array<any>): void;
 }
 export interface IInstance {
     setCurrent(region: Region, vertex: Vertex): void;
