@@ -469,7 +469,7 @@ class InitialiseStateMachine extends Visitor {
 						invoke(this.getActions(currentState).endEnter, message, instance, deepHistory || pseudoState.kind === PseudoStateKind.DeepHistory);
 					}
 				} else {
-					traverse(pseudoState.outgoing[0], instance);
+					traverse(pseudoState.outgoing[0], instance, false);
 				}
 			});
 		}
@@ -634,7 +634,7 @@ function evaluate(state: StateMachine | State, instance: IInstance, message: any
 	return result;
 }
 
-function traverse(origin: Transition, instance: IInstance, message?: any) {
+function traverse(origin: Transition, instance: IInstance, message: any) {
 	let onTraverse = [...origin.onTraverse];
 	let transition: Transition = origin;
 
