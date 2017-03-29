@@ -42,7 +42,7 @@ export function setInternalTransitionsTriggerCompletion(value: boolean): boolean
 
 export type Guard = (message: any, instance: IInstance) => boolean;
 
-export type Action = (message: any, instance: IInstance, deepHistory?: boolean) => any;
+export type Action = (message: any, instance: IInstance, deepHistory: boolean) => any;
 
 function invoke(actions: Array<Action>, message: any, instance: IInstance, deepHistory: boolean): void {
 	for (const action of actions) {
@@ -275,13 +275,13 @@ export class StateMachine implements IElement {
 }
 
 export class Transition {
-	static Else = (message: any, instance: IInstance) => false;
+	static Else: Guard = (message: any, instance: IInstance) => false;
 	effectBehavior = new Array<Action>();
 	onTraverse = new Array<Action>();
 	guard: Guard;
 
 	constructor(public readonly source: Vertex, public readonly target?: Vertex, public readonly kind: TransitionKind = TransitionKind.External) {
-		this.guard = source instanceof PseudoState ? () => true : message => message === this.source;
+		this.guard = source instanceof PseudoState ? (message: any, instance: IInstance) => true : (message: any, instance: IInstance) => message === this.source;
 		this.source.outgoing.push(this);
 		this.source.getRoot().clean = false;
 
@@ -416,14 +416,14 @@ class InitialiseStateMachine extends Visitor {
 	}
 
 	visitElement(element: IElement, deepHistoryAbove: boolean): void {
-		this.getActions(element).leave.push((message, instance) => logger.log(`${instance} leave ${element}`));
-		this.getActions(element).beginEnter.push((message, instance) => logger.log(`${instance} enter ${element}`));
+		this.getActions(element).leave.push((message: any, instance: IInstance, deepHistory: boolean) => logger.log(`${instance} leave ${element}`));
+		this.getActions(element).beginEnter.push((message: any, instance: IInstance, deepHistory: boolean) => logger.log(`${instance} enter ${element}`));
 	}
 
 	visitRegion(region: Region, deepHistoryAbove: boolean): void {
 		const regionInitial = region.children.reduce<PseudoState | undefined>((result, vertex) => vertex instanceof PseudoState && vertex.isInitial() && (result === undefined || result.isHistory()) ? vertex : result, undefined);
 
-		this.getActions(region).leave.push((message, instance) => {
+		this.getActions(region).leave.push((message: any, instance: IInstance, deepHistory: boolean) => {
 			const currentState = instance.getCurrent(region);
 
 			if (currentState) {
@@ -434,7 +434,7 @@ class InitialiseStateMachine extends Visitor {
 		super.visitRegion(region, deepHistoryAbove || (regionInitial && regionInitial.kind === PseudoStateKind.DeepHistory)); // TODO: determine if we need to break this up or move it
 
 		if (deepHistoryAbove || !regionInitial || regionInitial.isHistory()) {
-			this.getActions(region).endEnter.push((message, instance, deepHistory) => {
+			this.getActions(region).endEnter.push((message: any, instance: IInstance, deepHistory: boolean) => {
 				const actions = this.getActions((deepHistory || regionInitial!.isHistory()) ? instance.getLastKnownState(region) || regionInitial! : regionInitial!);
 				const history = deepHistory || regionInitial!.kind === PseudoStateKind.DeepHistory;
 
@@ -449,7 +449,7 @@ class InitialiseStateMachine extends Visitor {
 	visitVertex(vertex: Vertex, deepHistoryAbove: boolean) {
 		super.visitVertex(vertex, deepHistoryAbove);
 
-		this.getActions(vertex).beginEnter.push((message, instance) => {
+		this.getActions(vertex).beginEnter.push((message: any, instance: IInstance, deepHistory: boolean) => {
 			instance.setCurrent(vertex.parent, vertex);
 		});
 	}
@@ -458,7 +458,7 @@ class InitialiseStateMachine extends Visitor {
 		super.visitPseudoState(pseudoState, deepHistoryAbove);
 
 		if (pseudoState.isInitial()) {
-			this.getActions(pseudoState).endEnter.push((message, instance, deepHistory) => {
+			this.getActions(pseudoState).endEnter.push((message: any, instance: IInstance, deepHistory: boolean) => {
 				if (instance.getLastKnownState(pseudoState.parent)) {
 					invoke(this.getActions(pseudoState).leave, message, instance, false);
 
@@ -523,7 +523,7 @@ class InitialiseStateMachine extends Visitor {
 		transition.onTraverse = [...transition.onTraverse, ...transition.effectBehavior];
 
 		if (internalTransitionsTriggerCompletion) {
-			transition.onTraverse.push((message, instance) => {
+			transition.onTraverse.push((message: any, instance: IInstance, deepHistory: boolean) => {
 				if (transition.source instanceof State && transition.source.isComplete(instance)) {
 					evaluate(transition.source, instance, transition.source);
 				}
@@ -532,7 +532,7 @@ class InitialiseStateMachine extends Visitor {
 	}
 
 	visitLocalTransition(transition: Transition): void {
-		transition.onTraverse.push((message, instance, deepHistory) => {
+		transition.onTraverse.push((message: any, instance: IInstance, deepHistory: boolean) => {
 			const targetAncestors = Tree.Ancestors(transition.target!);
 			let i = 0;
 
