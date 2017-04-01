@@ -19,6 +19,7 @@ export declare function setRandom(newRandom: Random): Random;
 export declare var internalTransitionsTriggerCompletion: boolean;
 export declare function setInternalTransitionsTriggerCompletion(value: boolean): boolean;
 export declare type Guard = (instance: IInstance, message: any) => boolean;
+export declare type Behavior = (instance: IInstance, message: any) => any;
 export declare type Action = (instance: IInstance, deepHistory: boolean, message: any) => any;
 export declare enum PseudoStateKind {
     Choice = 0,
@@ -78,8 +79,8 @@ export declare class State extends Vertex {
     isOrthogonal(): boolean;
     isActive(instance: IInstance): boolean;
     isComplete(instance: IInstance): boolean;
-    exit(action: (instance: IInstance, message: any) => any): this;
-    entry(action: (instance: IInstance, message: any) => any): this;
+    exit(action: Behavior): this;
+    entry(action: Behavior): this;
     accept(visitor: Visitor, ...args: Array<any>): void;
 }
 export declare class StateMachine implements IElement {
@@ -108,7 +109,7 @@ export declare class Transition {
     constructor(source: Vertex, target?: Vertex, kind?: TransitionKind);
     else(): this;
     when(guard: Guard): this;
-    effect(action: (instance: IInstance, message: any) => any): this;
+    effect(action: Behavior): this;
     accept(visitor: Visitor, ...args: Array<any>): void;
     toString(): string;
 }

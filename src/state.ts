@@ -42,7 +42,8 @@ export function setInternalTransitionsTriggerCompletion(value: boolean): boolean
 
 export type Guard = (instance: IInstance, message: any) => boolean;
 
-export type Action = (instance: IInstance, deepHistory: boolean, message: any) => any;
+export type Behavior = (instance: IInstance, message: any) => any; // signature of user callbacks
+export type Action = (instance: IInstance, deepHistory: boolean, message: any) => any; // internal use TODO: make package private
 
 function invoke(actions: Array<Action>, instance: IInstance, deepHistory: boolean, message: any): void {
 	for (const action of actions) {
@@ -195,7 +196,7 @@ export class State extends Vertex {
 		return this.children.every(region => region.isComplete(instance));
 	}
 
-	exit(action: (instance: IInstance, message: any) => any) {
+	exit(action: Behavior) {
 		this.exitBehavior.push((instance: IInstance, deepHistory: boolean, message: any) => {
 			action(instance, message);
 		});
@@ -205,7 +206,7 @@ export class State extends Vertex {
 		return this;
 	}
 
-	entry(action: (instance: IInstance, message: any) => any) {
+	entry(action: Behavior) {
 		this.entryBehavior.push((instance: IInstance, deepHistory: boolean, message: any) => {
 			action(instance, message);
 		});
@@ -309,7 +310,7 @@ export class Transition {
 		return this;
 	}
 
-	effect(action: (instance: IInstance, message: any) => any) {
+	effect(action: Behavior) {
 		this.effectBehavior.push((instance: IInstance, deepHistory: boolean, message: any) => {
 			action(instance, message);
 		});
