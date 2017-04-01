@@ -78,8 +78,8 @@ export declare class State extends Vertex {
     isOrthogonal(): boolean;
     isActive(instance: IInstance): boolean;
     isComplete(instance: IInstance): boolean;
-    exit(action: Action): this;
-    entry(action: Action): this;
+    exit(action: (instance: IInstance, message: any) => any): this;
+    entry(action: (instance: IInstance, message: any) => any): this;
     accept(visitor: Visitor, ...args: Array<any>): void;
 }
 export declare class StateMachine implements IElement {
@@ -108,7 +108,7 @@ export declare class Transition {
     constructor(source: Vertex, target?: Vertex, kind?: TransitionKind);
     else(): this;
     when(guard: Guard): this;
-    effect(action: Action): this;
+    effect(action: (instance: IInstance, message: any) => any): this;
     accept(visitor: Visitor, ...args: Array<any>): void;
     toString(): string;
 }

@@ -195,16 +195,20 @@ export class State extends Vertex {
 		return this.children.every(region => region.isComplete(instance));
 	}
 
-	exit(action: Action) {
-		this.exitBehavior.push(action);
+	exit(action: (instance: IInstance, message: any) => any) {
+		this.exitBehavior.push((instance: IInstance, deepHistory: boolean, message: any) => {
+			action(instance, message);
+		});
 
 		this.getRoot().clean = false;
 
 		return this;
 	}
 
-	entry(action: Action) {
-		this.entryBehavior.push(action);
+	entry(action: (instance: IInstance, message: any) => any) {
+		this.entryBehavior.push((instance: IInstance, deepHistory: boolean, message: any) => {
+			action(instance, message);
+		});
 
 		this.getRoot().clean = false;
 
@@ -305,8 +309,10 @@ export class Transition {
 		return this;
 	}
 
-	effect(action: Action) {
-		this.effectBehavior.push(action);
+	effect(action: (instance: IInstance, message: any) => any) {
+		this.effectBehavior.push((instance: IInstance, deepHistory: boolean, message: any) => {
+			action(instance, message);
+		});
 
 		this.source.getRoot().clean = false;
 
