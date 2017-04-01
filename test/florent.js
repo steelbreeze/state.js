@@ -18,15 +18,15 @@ var showMoveItemPattern = new state.State("showMoveItemPattern", onRegion);
 var hideMoveItemPattern = new state.State("hideMoveItemPattern", onRegion);
 
 initial.to(idle);
-on.to(off).when(function (s) { return s === "Disable" });
-off.to(history).when(function (s) { return s === "Enable" });
-on.to(clean).when(function (s) { return s === "DestroyInput" });
-off.to(clean).when(function (s) { return s === "DestroyInput" });
+on.to(off).when(function (i, s) { return s === "Disable" });
+off.to(history).when(function (i, s) { return s === "Enable" });
+on.to(clean).when(function (i, s) { return s === "DestroyInput" });
+off.to(clean).when(function (i, s) { return s === "DestroyInput" });
 clean.to(final);
-idle.to(moveItem).when(function (s) { return s === "TransformInput" });
-moveItem.to(idle).when(function (s) { return s === "ReleaseInput" });
-idle.to(showMoveItemPattern).when(function (s) { return s === "ReleaseInput" });
-showMoveItemPattern.to(hideMoveItemPattern).when(function (s) { return s === "ReleaseInput" });
+idle.to(moveItem).when(function (i, s) { return s === "TransformInput" });
+moveItem.to(idle).when(function (i, s) { return s === "ReleaseInput" });
+idle.to(showMoveItemPattern).when(function (i, s) { return s === "ReleaseInput" });
+showMoveItemPattern.to(hideMoveItemPattern).when(function (i, s) { return s === "ReleaseInput" });
 hideMoveItemPattern.to(idle);
 
 var instance = new state.DictionaryInstance("florent");

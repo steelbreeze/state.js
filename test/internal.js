@@ -7,12 +7,12 @@ var oldLogger = state.setLogger(console);
 var model = new state.StateMachine("model");
 var region  = new state.Region("region", model);
 var initial = new state.PseudoState("initial", region, state.PseudoStateKind.Initial);
-var target = new state.State("state", region).entry(function (message, instance) { instance.entryCount++; }).exit(function (message, instance) { instance.exitCount++; });
+var target = new state.State("state", region).entry(function (instance) { instance.entryCount++; }).exit(function (instance) { instance.exitCount++; });
 
 initial.to(target);
 
-target.to().when(function (message) { return message === "internal"; }).effect(function (message, instance) { instance.transitionCount++; });
-target.to(target).when(function (message) { return message === "external"; }).effect(function (message, instance) { instance.transitionCount++; });
+target.to().when(function (instance, message) { return message === "internal"; }).effect(function (instance) { instance.transitionCount++; });
+target.to(target).when(function (instance, message) { return message === "external"; }).effect(function (instance) { instance.transitionCount++; });
 
 var instance = new state.DictionaryInstance("instance");
 instance.entryCount = 0;

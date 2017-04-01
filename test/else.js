@@ -14,9 +14,9 @@ var junction = new state.PseudoState("junction", model, state.PseudoStateKind.Ju
 var finalState = new state.State("final", model);
 
 initial.to(choice);
-choice.to(junction).when(function (message, instance) { return !instance.hello }).effect(function (message, instance) { instance.hello = "hello"; });
+choice.to(junction).when(function (instance, message) { return !instance.hello }).effect(function (instance, message) { instance.hello = "hello"; });
 choice.to(finalState).else();
-junction.to(choice).when(function (message, instance) { return !instance.world }).effect(function (message, instance) { instance.world = "world"; });
+junction.to(choice).when(function (instance, message) { return !instance.world }).effect(function (instance, message) { instance.world = "world"; });
 
 var instance = new state.DictionaryInstance("instance");
 

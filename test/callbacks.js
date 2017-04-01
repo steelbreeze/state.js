@@ -10,11 +10,11 @@ var oldLogger = state.setLogger({ log: function (message) { console.log(message)
 
 var model = new state.StateMachine("callbacks_model");
 var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
-var stateA = new state.State("stateA", model).exit(function (message, instance) { instance.calls += 1; });
-var stateB = new state.State("stateB", model).entry(function (message, instance) { instance.calls += 2; });
+var stateA = new state.State("stateA", model).exit(function (instance, message) { instance.calls += 1; });
+var stateB = new state.State("stateB", model).entry(function (instance, message) { instance.calls += 2; });
 
 initial.to(stateA);
-stateA.to(stateB).when(function (message) { return message === "move"; }).effect(function (message, instance) { instance.calls += 4; });
+stateA.to(stateB).when(function (instance, message) { return message === "move"; }).effect(function (instance, message) { instance.calls += 4; });
 
 model.initialise(instance);
 

@@ -18,10 +18,10 @@ var S2 = new state.State("s2", region);
 initial.to(S1);
 
 // IT transition
-S1.to().when(function (message, instance) { return instance.i === 0 }).effect(function (message, instance) { instance.i++; });
+S1.to().when(function (instance, message) { return instance.i === 0 }).effect(function (instance, message) { instance.i++; });
 
 // T transition
-S1.to(S2).when(function (message, instance) { return instance.i > 0 });
+S1.to(S2).when(function (instance, message) { return instance.i > 0 });
 
 // create the state machine instance and initialise it
 var instance = new state.DictionaryInstance("brice2");

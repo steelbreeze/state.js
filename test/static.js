@@ -15,9 +15,9 @@ var fail = new state.State("error", region);
 
 initial.to(junction1);
 
-junction1.to(junction2).when(function (message, instance) { return instance.counter === 0; }).effect(function (message, instance) { return instance.counter++; });
+junction1.to(junction2).when(function (instance) { return instance.counter === 0; }).effect(function (instance) { return instance.counter++; });
 junction1.to(fail).else();
-junction2.to(pass).when(function (message, instance) { return instance.counter === 0; }).effect(function (message, instance) { return instance.counter++; });
+junction2.to(pass).when(function (instance) { return instance.counter === 0; }).effect(function (instance) { return instance.counter++; });
 junction2.to(fail).else();
 
 var instance = new state.DictionaryInstance();

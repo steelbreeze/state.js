@@ -6,7 +6,7 @@ var oldLogger = state.setLogger(console);
 
 var model = new state.StateMachine("model");
 var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
-var stateA = new state.State("stateA", model).exit(function (message, instance) { instance.calls += 1; });
+var stateA = new state.State("stateA", model).exit(function (instance, message) { instance.calls += 1; });
 
 initial.to(stateA);
 
@@ -23,9 +23,9 @@ describe("test/callbacks.js", function () {
 	});
 	//	});
 
-	var stateB = new state.State("stateB", model).entry(function (message, instance) { instance.calls += 2; });
+	var stateB = new state.State("stateB", model).entry(function (instance, message) { instance.calls += 2; });
 
-	stateA.to(stateB).when(function (message) { return message === "move"; }).effect(function (message, instance) { instance.calls += 4; });
+	stateA.to(stateB).when(function (instance, message) { return message === "move"; }).effect(function (instance, message) { instance.calls += 4; });
 
 	//	describe("With the full model defined:", function () {
 	//		it("Model will respond to events", function () {

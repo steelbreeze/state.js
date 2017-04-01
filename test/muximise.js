@@ -30,19 +30,19 @@ i2.to(s2);
 
 ortho.to(final); // This should happen once all regions in ortho are complete?
 
-s1.to(f1).when(function (c) {
+s1.to(f1).when(function (i, c) {
 	return c === "complete1";
 });
 
-s2.to(f2).when(function (c) {
+s2.to(f2).when(function (i, c) {
 	return c === "complete2";
 });
 
-ortho.to(simple).when(function (c) {
+ortho.to(simple).when(function (i, c) {
 	return c === "jump";
 });
 
-simple.to(ortho).when(function (c) {
+simple.to(ortho).when(function (i, c) {
 	return c === "back";
 });
 

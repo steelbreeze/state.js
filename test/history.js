@@ -16,10 +16,10 @@ var s2 = new state.State("s2", shallow);
 
 initial.to(shallow);
 new state.PseudoState("shallow", shallow, state.PseudoStateKind.ShallowHistory).to(s1);
-s1.to(s2).when(function (c) { return c === "move"; });
-shallow.to(deep).when(function (c) { return c === "go deep"; });
-deep.to(shallow).when(function (c) { return c === "go shallow"; });
-s2.to(end).when(function (c) { return c === "end"; });
+s1.to(s2).when(function (i, c) { return c === "move"; });
+shallow.to(deep).when(function (i, c) { return c === "go deep"; });
+deep.to(shallow).when(function (i, c) { return c === "go shallow"; });
+s2.to(end).when(function (i, c) { return c === "end"; });
 
 var instance = new state.DictionaryInstance("instance");
 

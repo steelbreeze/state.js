@@ -15,8 +15,8 @@ var state2 = new state.State("state2", region1);
 
 initial1.to(myComposite1);
 initial2.to(state1);
-myComposite1.to(state3).when(function (c) { return c === "a"; });
-state1.to(state2).when(function (c) { return c === "a"; });
+myComposite1.to(state3).when(function (i, c) { return c === "a"; });
+state1.to(state2).when(function (i, c) { return c === "a"; });
 
 var instance = new state.DictionaryInstance();
 model.initialise(instance);

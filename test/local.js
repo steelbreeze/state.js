@@ -20,7 +20,7 @@ var oldLogger = state.setLogger(console);
 var model = new state.StateMachine("model");
 var initial = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
 var stateA = new state.State("stateA", model);
-var stateB = new state.State("stateB", model).exit(function (message, instance) { instance.stateBExitCount++; });
+var stateB = new state.State("stateB", model).exit(function (instance) { instance.stateBExitCount++; });
 var regionB = new state.Region("regiobB", stateB);
 
 var bInitial = new state.PseudoState("bInitial", regionB);
@@ -29,12 +29,12 @@ var bStateII = new state.State("bStateII", regionB);
 
 // create the state machine model transitions
 initial.to(stateA);
-stateA.to(stateB).when(function (message) { return message === "move"; });
+stateA.to(stateB).when(function (instance, message) { return message === "move"; });
 
 bInitial.to(bStateI);
 
-var local = stateB.to(bStateII, state.TransitionKind.Local).when(function (message) { return message === "local"; });
-var exter = stateB.to(bStateII, state.TransitionKind.External).when(function (message) { return message === "external"; });
+var local = stateB.to(bStateII, state.TransitionKind.Local).when(function (instance, message) { return message === "local"; });
+var exter = stateB.to(bStateII, state.TransitionKind.External).when(function (instance, message) { return message === "external"; });
 
 // create a state machine instance
 var instance = new state.DictionaryInstance("instance");

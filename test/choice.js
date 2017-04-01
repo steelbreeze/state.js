@@ -24,11 +24,11 @@ var choice = new state.PseudoState("choice", model, state.PseudoStateKind.Choice
 
 initial.to(stateA);
 
-stateA.to(choice).when(function (message) { return message === "choose"; });
+stateA.to(choice).when(function (instance, message) { return message === "choose"; });
 
-choice.to(stateA).effect(function (message, instance) { instance.path1++; });
-choice.to(stateA).effect(function (message, instance) { instance.path2++; });
-choice.to(stateA).effect(function (message, instance) { instance.path3++; });
+choice.to(stateA).effect(function (instance, message) { instance.path1++; });
+choice.to(stateA).effect(function (instance, message) { instance.path2++; });
+choice.to(stateA).effect(function (instance, message) { instance.path3++; });
 
 describe("test/choice.js", function () {
 	describe("With an random distribution, we process all messages (and test the true random nature)", function () {
