@@ -20,7 +20,8 @@ export declare var internalTransitionsTriggerCompletion: boolean;
 export declare function setInternalTransitionsTriggerCompletion(value: boolean): boolean;
 export declare type Guard = (instance: IInstance, message: any) => boolean;
 export declare type Behavior = (instance: IInstance, message: any) => any;
-export declare type Action = (instance: IInstance, deepHistory: boolean, message: any) => any;
+export declare class Actions extends Array<(instance: IInstance, deepHistory: boolean, message: any) => any> {
+}
 export declare enum PseudoStateKind {
     Choice = 0,
     DeepHistory = 1,
@@ -71,8 +72,8 @@ export declare class PseudoState extends Vertex {
 }
 export declare class State extends Vertex {
     static defaultRegion(state: State | StateMachine): Region;
-    readonly entryBehavior: Action[];
-    readonly exitBehavior: Action[];
+    readonly entryBehavior: Actions;
+    readonly exitBehavior: Actions;
     isFinal(): boolean;
     isSimple(): boolean;
     isComposite(): boolean;
@@ -87,7 +88,7 @@ export declare class StateMachine implements IElement {
     readonly name: string;
     readonly children: Region[];
     clean: boolean;
-    onInitialise: Action[];
+    onInitialise: Actions;
     readonly parent: undefined;
     constructor(name: string);
     getRoot(): StateMachine;
@@ -103,8 +104,8 @@ export declare class Transition {
     readonly target: Vertex;
     readonly kind: TransitionKind;
     static Else: Guard;
-    effectBehavior: Action[];
-    onTraverse: Action[];
+    effectBehavior: Actions;
+    onTraverse: Actions;
     guard: Guard;
     constructor(source: Vertex, target?: Vertex, kind?: TransitionKind);
     else(): this;

@@ -43,9 +43,11 @@ export function setInternalTransitionsTriggerCompletion(value: boolean): boolean
 export type Guard = (instance: IInstance, message: any) => boolean;
 
 export type Behavior = (instance: IInstance, message: any) => any; // signature of user callbacks
-export type Action = (instance: IInstance, deepHistory: boolean, message: any) => any; // internal use TODO: make package private
 
-function invoke(actions: Array<Action>, instance: IInstance, deepHistory: boolean, message: any): void {
+export class Actions extends Array<(instance: IInstance, deepHistory: boolean, message: any) => any> {
+}
+
+function invoke(actions: Actions, instance: IInstance, deepHistory: boolean, message: any): void {
 	for (const action of actions) {
 		action(instance, deepHistory, message);
 	}
@@ -169,8 +171,8 @@ export class State extends Vertex {
 		return new Region(Region.defaultName, state);
 	}
 
-	readonly entryBehavior = new Array<Action>();
-	readonly exitBehavior = new Array<Action>();
+	readonly entryBehavior = new Actions();
+	readonly exitBehavior = new Actions();
 
 	isFinal(): boolean {
 		return this.outgoing.length === 0;
@@ -224,7 +226,7 @@ export class State extends Vertex {
 export class StateMachine implements IElement {
 	readonly children = new Array<Region>();
 	clean: boolean = false;
-	onInitialise = new Array<Action>();
+	onInitialise = new Actions();
 	readonly parent = undefined;
 
 	constructor(public readonly name: string) {
@@ -281,8 +283,8 @@ export class StateMachine implements IElement {
 
 export class Transition {
 	static Else: Guard = (instance: IInstance, message: any) => false;
-	effectBehavior = new Array<Action>();
-	onTraverse = new Array<Action>();
+	effectBehavior = new Actions();
+	onTraverse = new Actions();
 	guard: Guard;
 
 	constructor(public readonly source: Vertex, public readonly target?: Vertex, public readonly kind: TransitionKind = TransitionKind.External) {
@@ -409,9 +411,9 @@ export class DictionaryInstance implements IInstance {
 }
 
 class ElementActions {
-	leave = new Array<Action>();
-	beginEnter = new Array<Action>();
-	endEnter = new Array<Action>();
+	leave = new Actions();
+	beginEnter = new Actions();
+	endEnter = new Actions();
 }
 
 class InitialiseStateMachine extends Visitor {
