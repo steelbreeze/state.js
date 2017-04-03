@@ -67,7 +67,6 @@ export enum TransitionKind {
 }
 
 export interface IElement extends Tree.INode {
-	invalidate(): void;
 }
 
 export abstract class Element<TParent extends IElement, TChildren extends IElement> implements IElement, Tree.Node<TParent, TChildren> {
@@ -79,10 +78,6 @@ export abstract class Element<TParent extends IElement, TChildren extends IEleme
 
 	protected constructor(public readonly name: string, public readonly parent: TParent) {
 		this.qualifiedName = parent ? parent.toString() + Element.namespaceSeparator + name : name;
-	}
-
-	invalidate(): void {
-		return this.parent.invalidate();
 	}
 
 	public accept(visitor: Visitor, ...args: Array<any>) {
@@ -102,6 +97,10 @@ export class Region extends Element<State | StateMachine, Vertex> {
 
 		this.parent.children.push(this);
 		this.invalidate();
+	}
+
+	invalidate(): void {
+		this.parent.invalidate();
 	}
 
 	isActive(instance: IInstance): boolean {
@@ -128,6 +127,10 @@ export class Vertex extends Element<Region, Region> {
 
 		this.parent.children.push(this);
 		this.invalidate();
+	}
+
+	invalidate(): void {
+		this.parent.invalidate();
 	}
 
 	to(target?: Vertex, kind: TransitionKind = TransitionKind.External): Transition {
