@@ -34,7 +34,7 @@ export declare enum TransitionKind {
     Local = 2,
 }
 export interface IElement extends Tree.INode {
-    getRoot(): StateMachine;
+    invalidate(): void;
 }
 export declare abstract class Element<TParent extends IElement, TChildren extends IElement> implements IElement, Tree.Node<TParent, TChildren> {
     readonly name: string;
@@ -43,7 +43,7 @@ export declare abstract class Element<TParent extends IElement, TChildren extend
     readonly children: TChildren[];
     readonly qualifiedName: string;
     protected constructor(name: string, parent: TParent);
-    getRoot(): StateMachine;
+    invalidate(): void;
     accept(visitor: Visitor, ...args: Array<any>): void;
     toString(): string;
 }
@@ -84,12 +84,12 @@ export declare class State extends Vertex {
 }
 export declare class StateMachine implements IElement {
     readonly name: string;
-    readonly children: Region[];
-    clean: boolean;
-    onInitialise: Actions;
     readonly parent: undefined;
+    readonly children: Region[];
+    private clean;
+    onInitialise: Actions;
     constructor(name: string);
-    getRoot(): StateMachine;
+    invalidate(): void;
     accept(visitor: Visitor, ...args: Array<any>): void;
     isActive(instance: IInstance): boolean;
     isComplete(instance: IInstance): boolean;

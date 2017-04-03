@@ -67,7 +67,7 @@ export enum TransitionKind {
 }
 
 export interface IElement extends Tree.INode {
-	getRoot(): StateMachine;
+	invalidate(): void;
 }
 
 export abstract class Element<TParent extends IElement, TChildren extends IElement> implements IElement, Tree.Node<TParent, TChildren> {
@@ -81,8 +81,8 @@ export abstract class Element<TParent extends IElement, TChildren extends IEleme
 		this.qualifiedName = parent ? parent.toString() + Element.namespaceSeparator + name : name;
 	}
 
-	public getRoot(): StateMachine {
-		return this.parent.getRoot();
+	invalidate(): void {
+		return this.parent.invalidate();
 	}
 
 	public accept(visitor: Visitor, ...args: Array<any>) {
@@ -101,7 +101,7 @@ export class Region extends Element<State | StateMachine, Vertex> {
 		super(name, parent);
 
 		this.parent.children.push(this);
-		this.getRoot().clean = false;
+		this.invalidate();
 	}
 
 	isActive(instance: IInstance): boolean {
@@ -127,7 +127,7 @@ export class Vertex extends Element<Region, Region> {
 		super(name, parent instanceof Region ? parent : State.defaultRegion(parent));
 
 		this.parent.children.push(this);
-		this.getRoot().clean = false;
+		this.invalidate();
 	}
 
 	to(target?: Vertex, kind: TransitionKind = TransitionKind.External): Transition {
@@ -200,7 +200,7 @@ export class State extends Vertex {
 			action(instance, ...message);
 		});
 
-		this.getRoot().clean = false;
+		this.invalidate();
 
 		return this;
 	}
@@ -210,7 +210,7 @@ export class State extends Vertex {
 			action(instance, ...message);
 		});
 
-		this.getRoot().clean = false;
+		this.invalidate();
 
 		return this;
 	}
@@ -221,16 +221,16 @@ export class State extends Vertex {
 }
 
 export class StateMachine implements IElement {
-	readonly children = new Array<Region>();
-	clean: boolean = false;
-	onInitialise: Actions = [];
 	readonly parent = undefined;
+	readonly children = new Array<Region>();
+	private clean: boolean = false;
+	onInitialise: Actions = [];
 
 	constructor(public readonly name: string) {
 	}
 
-	getRoot(): StateMachine {
-		return this;
+	invalidate(): void {
+		this.clean = false;
 	}
 
 	accept(visitor: Visitor, ...args: Array<any>) {
@@ -287,7 +287,7 @@ export class Transition {
 	constructor(public readonly source: Vertex, public readonly target?: Vertex, public readonly kind: TransitionKind = TransitionKind.External) {
 		this.guard = source instanceof PseudoState ? (instance: IInstance, ...message: Array<any>) => true : (instance: IInstance, ...message: Array<any>) => message[0] === this.source;
 		this.source.outgoing.push(this);
-		this.source.getRoot().clean = false;
+		this.source.invalidate();
 
 		if (this.target) {
 			this.target.incoming.push(this);
@@ -314,7 +314,7 @@ export class Transition {
 			action(instance, ...message);
 		});
 
-		this.source.getRoot().clean = false;
+		this.source.invalidate();
 
 		return this;
 	}
