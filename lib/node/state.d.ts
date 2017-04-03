@@ -110,7 +110,7 @@ export declare class Transition {
     toString(): string;
 }
 export declare class Visitor {
-    visitElement(element: Vertex | Region | StateMachine, ...args: Array<any>): void;
+    visitElement(element: StateMachine | Region | Vertex, ...args: Array<any>): void;
     visitRegion(region: Region, ...args: Array<any>): void;
     visitVertex(vertex: Vertex, ...args: Array<any>): void;
     visitPseudoState(pseudoState: PseudoState, ...args: Array<any>): void;

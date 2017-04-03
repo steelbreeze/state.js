@@ -325,7 +325,7 @@ export class Transition {
 }
 
 export class Visitor {
-	visitElement(element: Vertex | Region | StateMachine, ...args: Array<any>): void {
+	visitElement(element: StateMachine | Region | Vertex, ...args: Array<any>): void {
 	}
 
 	visitRegion(region: Region, ...args: Array<any>): void {
@@ -413,11 +413,11 @@ class InitialiseStateMachine extends Visitor {
 	readonly elementActions: { [id: string]: ElementActions } = {};
 	readonly transitions = new Array<Transition>();
 
-	getActions(elemenet: Vertex | Region | StateMachine): ElementActions {
+	getActions(elemenet: StateMachine | Region | Vertex): ElementActions {
 		return this.elementActions[elemenet.toString()] || (this.elementActions[elemenet.toString()] = new ElementActions());
 	}
 
-	visitElement(element: Vertex | Region | StateMachine, deepHistoryAbove: boolean): void {
+	visitElement(element: StateMachine | Region | Vertex, deepHistoryAbove: boolean): void {
 		this.getActions(element).leave.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => logger.log(`${instance} leave ${element}`));
 		this.getActions(element).beginEnter.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => logger.log(`${instance} enter ${element}`));
 	}
