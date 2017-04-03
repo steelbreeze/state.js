@@ -68,8 +68,6 @@ export enum TransitionKind {
 
 export interface IElement extends Tree.INode {
 	getRoot(): StateMachine;
-
-	isActive(instance: IInstance): boolean; // TODO: remove from here
 }
 
 export abstract class Element<TParent extends IElement, TChildren extends IElement> implements IElement, Tree.Node<TParent, TChildren> {
@@ -85,10 +83,6 @@ export abstract class Element<TParent extends IElement, TChildren extends IEleme
 
 	public getRoot(): StateMachine {
 		return this.parent.getRoot();
-	}
-
-	public isActive(instance: IInstance): boolean {
-		return this.parent.isActive(instance);  // TODO: remove from here
 	}
 
 	public accept(visitor: Visitor, ...args: Array<any>) {
@@ -108,6 +102,10 @@ export class Region extends Element<State | StateMachine, Vertex> {
 
 		this.parent.children.push(this);
 		this.getRoot().clean = false;
+	}
+
+	isActive(instance: IInstance): boolean {
+		return this.parent.isActive(instance);
 	}
 
 	public isComplete(instance: IInstance): boolean {
@@ -190,7 +188,7 @@ export class State extends Vertex {
 	}
 
 	isActive(instance: IInstance): boolean {
-		return super.isActive(instance) && instance.getLastKnownState(this.parent) === this;
+		return this.parent.isActive(instance) && instance.getLastKnownState(this.parent) === this;
 	}
 
 	isComplete(instance: IInstance): boolean {
@@ -541,16 +539,9 @@ class InitialiseStateMachine extends Visitor {
 
 	visitLocalTransition(transition: Transition): void {
 		transition.onTraverse.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => {
+			const sourceAncestors = Tree.Ancestors(transition.source);
 			const targetAncestors = Tree.Ancestors(transition.target!);
-			let i = 0;
-
-			while (targetAncestors[i].isActive(instance)) {
-				i++;
-			}
-
-			if (targetAncestors[i] instanceof Region) {
-				throw "Need to implement Region logic";
-			}
+			let i = Tree.LowestCommonAncestorIndex(sourceAncestors, targetAncestors) + 2; // NOTE: we do not leave the source state, so entry/exit from the next state below
 
 			const firstToEnter = targetAncestors[i] as State;
 			const firstToExit = instance.getCurrent(firstToEnter.parent);

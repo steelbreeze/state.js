@@ -50,25 +50,8 @@ model.evaluate(instance, "external");
 
 describe("Local transition tests", function () {
 	it("External transition fired OK", function () {
-		assert.equal(true, instance.getCurrent(regionB) === bStateII);
+		assert.equal(bStateII, instance.getCurrent(regionB));
 	});
 });
-
-
-//	it("Local transition fired OK", function () {
-//		assert.equal(true, instance.getCurrent(stateB.defaultRegion) === bStateII);
-//	});
-
-// ensure that completion transitions for orthogonal states are triggered after completion of all child regions
-//	it("Completion transition fires once all regions of an orthogonal state are complete", function () {
-//		assert.equal(0, instance.stateBExitCount);
-//	});
-
-//	model.evaluate(instance, "external");
-
-//	it("External transitions do exit the source composite state", function () {
-//		assert.equal(1, instance.stateBExitCount);
-//	});
-//});
 
 state.setLogger(oldLogger);
