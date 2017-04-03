@@ -33,16 +33,13 @@ export declare enum TransitionKind {
     Internal = 1,
     Local = 2,
 }
-export interface IElement extends Tree.INode {
-}
-export declare abstract class Element<TParent extends IElement, TChildren extends IElement> implements IElement, Tree.Node<TParent, TChildren> {
+export declare abstract class Element<TParent extends Tree.INode, TChildren extends Tree.INode> implements Tree.Node<TParent, TChildren> {
     readonly name: string;
     readonly parent: TParent;
     static namespaceSeparator: string;
     readonly children: TChildren[];
     readonly qualifiedName: string;
     protected constructor(name: string, parent: TParent);
-    accept(visitor: Visitor, ...args: Array<any>): void;
     toString(): string;
 }
 export declare class Region extends Element<State | StateMachine, Vertex> {
@@ -82,7 +79,7 @@ export declare class State extends Vertex {
     entry(action: Behavior): this;
     accept(visitor: Visitor, ...args: Array<any>): void;
 }
-export declare class StateMachine implements IElement {
+export declare class StateMachine {
     readonly name: string;
     readonly parent: undefined;
     readonly children: Region[];
@@ -113,7 +110,7 @@ export declare class Transition {
     toString(): string;
 }
 export declare class Visitor {
-    visitElement(element: IElement, ...args: Array<any>): void;
+    visitElement(element: Vertex | Region | StateMachine, ...args: Array<any>): void;
     visitRegion(region: Region, ...args: Array<any>): void;
     visitVertex(vertex: Vertex, ...args: Array<any>): void;
     visitPseudoState(pseudoState: PseudoState, ...args: Array<any>): void;

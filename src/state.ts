@@ -66,10 +66,7 @@ export enum TransitionKind {
 	Local
 }
 
-export interface IElement extends Tree.INode {
-}
-
-export abstract class Element<TParent extends IElement, TChildren extends IElement> implements IElement, Tree.Node<TParent, TChildren> {
+export abstract class Element<TParent extends Tree.INode, TChildren extends Tree.INode> implements Tree.Node<TParent, TChildren> {
 	public static namespaceSeparator = ".";
 
 	public readonly children = new Array<TChildren>();
@@ -78,10 +75,6 @@ export abstract class Element<TParent extends IElement, TChildren extends IEleme
 
 	protected constructor(public readonly name: string, public readonly parent: TParent) {
 		this.qualifiedName = parent ? parent.toString() + Element.namespaceSeparator + name : name;
-	}
-
-	public accept(visitor: Visitor, ...args: Array<any>) {
-		visitor.visitElement(this, ...args);
 	}
 
 	public toString(): string {
@@ -223,7 +216,7 @@ export class State extends Vertex {
 	}
 }
 
-export class StateMachine implements IElement {
+export class StateMachine {
 	readonly parent = undefined;
 	readonly children = new Array<Region>();
 	private clean: boolean = false;
@@ -332,7 +325,7 @@ export class Transition {
 }
 
 export class Visitor {
-	visitElement(element: IElement, ...args: Array<any>): void {
+	visitElement(element: Vertex | Region | StateMachine, ...args: Array<any>): void {
 	}
 
 	visitRegion(region: Region, ...args: Array<any>): void {
@@ -420,11 +413,11 @@ class InitialiseStateMachine extends Visitor {
 	readonly elementActions: { [id: string]: ElementActions } = {};
 	readonly transitions = new Array<Transition>();
 
-	getActions(elemenet: IElement): ElementActions {
+	getActions(elemenet: Vertex | Region | StateMachine): ElementActions {
 		return this.elementActions[elemenet.toString()] || (this.elementActions[elemenet.toString()] = new ElementActions());
 	}
 
-	visitElement(element: IElement, deepHistoryAbove: boolean): void {
+	visitElement(element: Vertex | Region | StateMachine, deepHistoryAbove: boolean): void {
 		this.getActions(element).leave.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => logger.log(`${instance} leave ${element}`));
 		this.getActions(element).beginEnter.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => logger.log(`${instance} enter ${element}`));
 	}
