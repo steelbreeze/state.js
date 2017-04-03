@@ -18,10 +18,9 @@ export declare let random: (max: number) => number;
 export declare function setRandom(newRandom: Random): Random;
 export declare var internalTransitionsTriggerCompletion: boolean;
 export declare function setInternalTransitionsTriggerCompletion(value: boolean): boolean;
-export declare type Guard = (instance: IInstance, message: any) => boolean;
-export declare type Behavior = (instance: IInstance, message: any) => any;
-export declare class Actions extends Array<(instance: IInstance, deepHistory: boolean, message: any) => any> {
-}
+export declare type Guard = (instance: IInstance, ...message: Array<any>) => boolean;
+export declare type Behavior = (instance: IInstance, ...message: Array<any>) => any;
+export declare type Actions = Array<(instance: IInstance, deepHistory: boolean, ...message: Array<any>) => any>;
 export declare enum PseudoStateKind {
     Choice = 0,
     DeepHistory = 1,
@@ -96,7 +95,7 @@ export declare class StateMachine implements IElement {
     isActive(instance: IInstance): boolean;
     isComplete(instance: IInstance): boolean;
     initialise(instance?: IInstance): void;
-    evaluate(instance: IInstance, message: any): boolean;
+    evaluate(instance: IInstance, ...message: Array<any>): boolean;
     toString(): string;
 }
 export declare class Transition {

@@ -40,16 +40,15 @@ export function setInternalTransitionsTriggerCompletion(value: boolean): boolean
 	return result;
 }
 
-export type Guard = (instance: IInstance, message: any) => boolean;
+export type Guard = (instance: IInstance, ...message: Array<any>) => boolean;
 
-export type Behavior = (instance: IInstance, message: any) => any; // signature of user callbacks
+export type Behavior = (instance: IInstance, ...message: Array<any>) => any;
 
-export class Actions extends Array<(instance: IInstance, deepHistory: boolean, message: any) => any> {
-}
+export type Actions = Array<(instance: IInstance, deepHistory: boolean, ...message: Array<any>) => any>;
 
-function invoke(actions: Actions, instance: IInstance, deepHistory: boolean, message: any): void {
+function invoke(actions: Actions, instance: IInstance, deepHistory: boolean, ...message: Array<any>): void {
 	for (const action of actions) {
-		action(instance, deepHistory, message);
+		action(instance, deepHistory, ...message);
 	}
 }
 
@@ -171,8 +170,8 @@ export class State extends Vertex {
 		return new Region(Region.defaultName, state);
 	}
 
-	readonly entryBehavior = new Actions();
-	readonly exitBehavior = new Actions();
+	readonly entryBehavior: Actions = [];
+	readonly exitBehavior: Actions = [];
 
 	isFinal(): boolean {
 		return this.outgoing.length === 0;
@@ -199,8 +198,8 @@ export class State extends Vertex {
 	}
 
 	exit(action: Behavior) {
-		this.exitBehavior.push((instance: IInstance, deepHistory: boolean, message: any) => {
-			action(instance, message);
+		this.exitBehavior.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => {
+			action(instance, ...message);
 		});
 
 		this.getRoot().clean = false;
@@ -209,8 +208,8 @@ export class State extends Vertex {
 	}
 
 	entry(action: Behavior) {
-		this.entryBehavior.push((instance: IInstance, deepHistory: boolean, message: any) => {
-			action(instance, message);
+		this.entryBehavior.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => {
+			action(instance, ...message);
 		});
 
 		this.getRoot().clean = false;
@@ -226,7 +225,7 @@ export class State extends Vertex {
 export class StateMachine implements IElement {
 	readonly children = new Array<Region>();
 	clean: boolean = false;
-	onInitialise = new Actions();
+	onInitialise: Actions = [];
 	readonly parent = undefined;
 
 	constructor(public readonly name: string) {
@@ -266,14 +265,14 @@ export class StateMachine implements IElement {
 		}
 	}
 
-	evaluate(instance: IInstance, message: any): boolean {
+	evaluate(instance: IInstance, ...message: Array<any>): boolean {
 		if (this.clean === false) {
 			this.initialise();
 		}
 
 		logger.log(`${instance} evaluate message: ${message}`);
 
-		return evaluate(this, instance, message);
+		return evaluate(this, instance, ...message);
 	}
 
 	toString(): string {
@@ -282,13 +281,13 @@ export class StateMachine implements IElement {
 }
 
 export class Transition {
-	static Else: Guard = (instance: IInstance, message: any) => false;
-	effectBehavior = new Actions();
-	onTraverse = new Actions();
+	static Else: Guard = (instance: IInstance, ...message: Array<any>) => false;
+	effectBehavior: Actions = [];
+	onTraverse: Actions = [];
 	guard: Guard;
 
 	constructor(public readonly source: Vertex, public readonly target?: Vertex, public readonly kind: TransitionKind = TransitionKind.External) {
-		this.guard = source instanceof PseudoState ? (instance: IInstance, message: any) => true : (instance: IInstance, message: any) => message === this.source;
+		this.guard = source instanceof PseudoState ? (instance: IInstance, ...message: Array<any>) => true : (instance: IInstance, ...message: Array<any>) => message[0] === this.source;
 		this.source.outgoing.push(this);
 		this.source.getRoot().clean = false;
 
@@ -313,8 +312,8 @@ export class Transition {
 	}
 
 	effect(action: Behavior) {
-		this.effectBehavior.push((instance: IInstance, deepHistory: boolean, message: any) => {
-			action(instance, message);
+		this.effectBehavior.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => {
+			action(instance, ...message);
 		});
 
 		this.source.getRoot().clean = false;
@@ -411,9 +410,9 @@ export class DictionaryInstance implements IInstance {
 }
 
 class ElementActions {
-	leave = new Actions();
-	beginEnter = new Actions();
-	endEnter = new Actions();
+	leave: Actions = [];
+	beginEnter: Actions = [];
+	endEnter: Actions = [];
 }
 
 class InitialiseStateMachine extends Visitor {
@@ -425,30 +424,30 @@ class InitialiseStateMachine extends Visitor {
 	}
 
 	visitElement(element: IElement, deepHistoryAbove: boolean): void {
-		this.getActions(element).leave.push((instance: IInstance, deepHistory: boolean, message: any) => logger.log(`${instance} leave ${element}`));
-		this.getActions(element).beginEnter.push((instance: IInstance, deepHistory: boolean, message: any) => logger.log(`${instance} enter ${element}`));
+		this.getActions(element).leave.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => logger.log(`${instance} leave ${element}`));
+		this.getActions(element).beginEnter.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => logger.log(`${instance} enter ${element}`));
 	}
 
 	visitRegion(region: Region, deepHistoryAbove: boolean): void {
 		const regionInitial = region.children.reduce<PseudoState | undefined>((result, vertex) => vertex instanceof PseudoState && vertex.isInitial() && (result === undefined || result.isHistory()) ? vertex : result, undefined);
 
-		this.getActions(region).leave.push((instance: IInstance, deepHistory: boolean, message: any) => {
+		this.getActions(region).leave.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => {
 			const currentState = instance.getCurrent(region);
 
 			if (currentState) {
-				invoke(this.getActions(currentState).leave, instance, false, message);
+				invoke(this.getActions(currentState).leave, instance, false, ...message);
 			}
 		});
 
 		super.visitRegion(region, deepHistoryAbove || (regionInitial && regionInitial.kind === PseudoStateKind.DeepHistory)); // TODO: determine if we need to break this up or move it
 
 		if (deepHistoryAbove || !regionInitial || regionInitial.isHistory()) {
-			this.getActions(region).endEnter.push((instance: IInstance, deepHistory: boolean, message: any) => {
+			this.getActions(region).endEnter.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => {
 				const actions = this.getActions((deepHistory || regionInitial!.isHistory()) ? instance.getLastKnownState(region) || regionInitial! : regionInitial!);
 				const history = deepHistory || regionInitial!.kind === PseudoStateKind.DeepHistory;
 
-				invoke(actions.beginEnter, instance, history, message);
-				invoke(actions.endEnter, instance, history, message);
+				invoke(actions.beginEnter, instance, history, ...message);
+				invoke(actions.endEnter, instance, history, ...message);
 			});
 		} else {
 			this.getActions(region).endEnter = [...this.getActions(region).endEnter, ...this.getActions(regionInitial).beginEnter, ...this.getActions(regionInitial).endEnter];
@@ -458,7 +457,7 @@ class InitialiseStateMachine extends Visitor {
 	visitVertex(vertex: Vertex, deepHistoryAbove: boolean) {
 		super.visitVertex(vertex, deepHistoryAbove);
 
-		this.getActions(vertex).beginEnter.push((instance: IInstance, deepHistory: boolean, message: any) => {
+		this.getActions(vertex).beginEnter.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => {
 			instance.setCurrent(vertex.parent, vertex);
 		});
 	}
@@ -467,15 +466,15 @@ class InitialiseStateMachine extends Visitor {
 		super.visitPseudoState(pseudoState, deepHistoryAbove);
 
 		if (pseudoState.isInitial()) {
-			this.getActions(pseudoState).endEnter.push((instance: IInstance, deepHistory: boolean, message: any) => {
+			this.getActions(pseudoState).endEnter.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => {
 				if (instance.getLastKnownState(pseudoState.parent)) {
-					invoke(this.getActions(pseudoState).leave, instance, false, message);
+					invoke(this.getActions(pseudoState).leave, instance, false, ...message);
 
 					const currentState = instance.getLastKnownState(pseudoState.parent);
 
 					if (currentState) {
-						invoke(this.getActions(currentState).beginEnter, instance, deepHistory || pseudoState.kind === PseudoStateKind.DeepHistory, message);
-						invoke(this.getActions(currentState).endEnter, instance, deepHistory || pseudoState.kind === PseudoStateKind.DeepHistory, message);
+						invoke(this.getActions(currentState).beginEnter, instance, deepHistory || pseudoState.kind === PseudoStateKind.DeepHistory, ...message);
+						invoke(this.getActions(currentState).endEnter, instance, deepHistory || pseudoState.kind === PseudoStateKind.DeepHistory, ...message);
 					}
 				} else {
 					traverse(pseudoState.outgoing[0], instance, false);
@@ -532,7 +531,7 @@ class InitialiseStateMachine extends Visitor {
 		transition.onTraverse = [...transition.onTraverse, ...transition.effectBehavior];
 
 		if (internalTransitionsTriggerCompletion) {
-			transition.onTraverse.push((instance: IInstance, deepHistory: boolean, message: any) => {
+			transition.onTraverse.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => {
 				if (transition.source instanceof State && transition.source.isComplete(instance)) {
 					evaluate(transition.source, instance, transition.source);
 				}
@@ -541,7 +540,7 @@ class InitialiseStateMachine extends Visitor {
 	}
 
 	visitLocalTransition(transition: Transition): void {
-		transition.onTraverse.push((instance: IInstance, deepHistory: boolean, message: any) => {
+		transition.onTraverse.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => {
 			const targetAncestors = Tree.Ancestors(transition.target!);
 			let i = 0;
 
@@ -556,15 +555,15 @@ class InitialiseStateMachine extends Visitor {
 			const firstToEnter = targetAncestors[i] as State;
 			const firstToExit = instance.getCurrent(firstToEnter.parent);
 
-			invoke(this.getActions(firstToExit!).leave, instance, false, message);
+			invoke(this.getActions(firstToExit!).leave, instance, false, ...message);
 
-			invoke(transition.effectBehavior, instance, false, message);
+			invoke(transition.effectBehavior, instance, false, ...message);
 
 			while (i < targetAncestors.length) {
-				invoke(this.getActions(targetAncestors[i++]).beginEnter, instance, false, message);
+				invoke(this.getActions(targetAncestors[i++]).beginEnter, instance, false, ...message);
 			}
 
-			invoke(this.getActions(transition.target!).endEnter, instance, false, message);
+			invoke(this.getActions(transition.target!).endEnter, instance, false, ...message);
 		});
 	}
 
@@ -591,8 +590,8 @@ function findElse(pseudoState: PseudoState): Transition {
 	return pseudoState.outgoing.filter(transition => transition.guard === Transition.Else)[0];
 }
 
-function selectTransition(pseudoState: PseudoState, instance: IInstance, message: any): Transition {
-	const transitions = pseudoState.outgoing.filter(transition => transition.guard(instance, message));
+function selectTransition(pseudoState: PseudoState, instance: IInstance, ...message: Array<any>): Transition {
+	const transitions = pseudoState.outgoing.filter(transition => transition.guard(instance, ...message));
 
 	if (pseudoState.kind === PseudoStateKind.Choice) {
 		return transitions.length !== 0 ? transitions[random(transitions.length)] : findElse(pseudoState);
@@ -605,14 +604,14 @@ function selectTransition(pseudoState: PseudoState, instance: IInstance, message
 	return transitions[0] || findElse(pseudoState);
 }
 
-function evaluate(state: StateMachine | State, instance: IInstance, message: any): boolean {
+function evaluate(state: StateMachine | State, instance: IInstance, ...message: Array<any>): boolean {
 	let result = false;
 
-	if (message !== state) {
+	if (message[0] !== state) {
 		state.children.every(region => {
 			const currentState = instance.getLastKnownState(region);
 
-			if (currentState && evaluate(currentState, instance, message)) {
+			if (currentState && evaluate(currentState, instance, ...message)) {
 				result = true;
 
 				return state.isActive(instance);
@@ -624,14 +623,14 @@ function evaluate(state: StateMachine | State, instance: IInstance, message: any
 
 	if (state instanceof State) {
 		if (result) {
-			if ((message !== state) && state.isComplete(instance)) {
+			if ((message[0] !== state) && state.isComplete(instance)) {
 				evaluate(state, instance, state);
 			}
 		} else {
-			const transitions = state.outgoing.filter(transition => transition.guard(instance, message));
+			const transitions = state.outgoing.filter(transition => transition.guard(instance, ...message));
 
 			if (transitions.length === 1) {
-				traverse(transitions[0], instance, message);
+				traverse(transitions[0], instance, ...message);
 
 				result = true;
 			} else if (transitions.length > 1) {
@@ -643,21 +642,21 @@ function evaluate(state: StateMachine | State, instance: IInstance, message: any
 	return result;
 }
 
-function traverse(origin: Transition, instance: IInstance, message: any) {
+function traverse(origin: Transition, instance: IInstance, ...message: Array<any>) {
 	let onTraverse = [...origin.onTraverse];
 	let transition: Transition = origin;
 
 	while (transition.target && transition.target instanceof PseudoState && transition.target.kind === PseudoStateKind.Junction) {
-		transition = selectTransition(transition.target, instance, message);
+		transition = selectTransition(transition.target, instance, ...message);
 
 		onTraverse = [...onTraverse, ...transition.onTraverse];
 	}
 
-	invoke(onTraverse, instance, false, message);
+	invoke(onTraverse, instance, false, ...message);
 
 	if (transition.target) {
 		if (transition.target instanceof PseudoState && transition.target.kind === PseudoStateKind.Choice) {
-			traverse(selectTransition(transition.target, instance, message), instance, message);
+			traverse(selectTransition(transition.target, instance, ...message), instance, ...message);
 		}
 
 		else if (transition.target instanceof State && transition.target.isComplete(instance)) {
