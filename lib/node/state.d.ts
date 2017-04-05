@@ -3,7 +3,6 @@
 // Definitions by: David Mesquita-Morris <http://state.software>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
-import * as Tree from "./tree";
 export declare type Logger = {
     log(message?: any, ...optionalParams: any[]): void;
     error(message?: any, ...optionalParams: any[]): void;
@@ -33,28 +32,28 @@ export declare enum TransitionKind {
     Internal = 1,
     Local = 2,
 }
-export declare abstract class Element<TParent extends Tree.INode, TChildren extends Tree.INode> implements Tree.Node<TParent, TChildren> {
+export declare abstract class Element<TParent> {
     readonly name: string;
     readonly parent: TParent;
     static namespaceSeparator: string;
-    readonly children: TChildren[];
     readonly qualifiedName: string;
     protected constructor(name: string, parent: TParent);
     toString(): string;
 }
-export declare class Region extends Element<State | StateMachine, Vertex> {
+export declare class Region extends Element<State | StateMachine> {
     static defaultName: string;
+    readonly children: Vertex[];
     constructor(name: string, parent: State | StateMachine);
-    invalidate(): void;
+    /** @ignore */ invalidate(): void;
     isActive(instance: IInstance): boolean;
     isComplete(instance: IInstance): boolean;
     accept(visitor: Visitor, ...args: Array<any>): void;
 }
-export declare class Vertex extends Element<Region, Region> {
+export declare class Vertex extends Element<Region> {
     readonly outgoing: Transition[];
     readonly incoming: Transition[];
-    constructor(name: string, parent: Region | State | StateMachine);
-    invalidate(): void;
+    protected constructor(name: string, parent: Region | State | StateMachine);
+    /** @ignore */ invalidate(): void;
     to(target?: Vertex, kind?: TransitionKind): Transition;
     accept(visitor: Visitor, ...args: Array<any>): void;
 }
@@ -66,7 +65,7 @@ export declare class PseudoState extends Vertex {
     accept(visitor: Visitor, ...args: Array<any>): void;
 }
 export declare class State extends Vertex {
-    static defaultRegion(state: State | StateMachine): Region;
+    readonly children: Region[];
     readonly entryBehavior: Actions;
     readonly exitBehavior: Actions;
     isFinal(): boolean;
@@ -84,14 +83,14 @@ export declare class StateMachine {
     readonly parent: undefined;
     readonly children: Region[];
     private clean;
-    onInitialise: Actions;
+    /** @ignore */ onInitialise: Actions;
     constructor(name: string);
-    invalidate(): void;
-    accept(visitor: Visitor, ...args: Array<any>): void;
+    /** @ignore */ invalidate(): void;
     isActive(instance: IInstance): boolean;
     isComplete(instance: IInstance): boolean;
     initialise(instance?: IInstance): void;
     evaluate(instance: IInstance, ...message: Array<any>): boolean;
+    accept(visitor: Visitor, ...args: Array<any>): void;
     toString(): string;
 }
 export declare class Transition {

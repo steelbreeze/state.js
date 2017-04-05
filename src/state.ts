@@ -66,15 +66,12 @@ export enum TransitionKind {
 	Local
 }
 
-export abstract class Element<TParent extends Tree.INode, TChildren extends Tree.INode> implements Tree.Node<TParent, TChildren> {
+export abstract class Element<TParent> {
 	public static namespaceSeparator = ".";
-
-	public readonly children = new Array<TChildren>();
-
 	public readonly qualifiedName: string;
 
 	protected constructor(public readonly name: string, public readonly parent: TParent) {
-		this.qualifiedName = parent ? parent.toString() + Element.namespaceSeparator + name : name;
+		this.qualifiedName = parent ? parent.toString() + Element.namespaceSeparator + name : name; // TODO: could this be deferred to the model initialisation?
 	}
 
 	public toString(): string {
@@ -82,8 +79,9 @@ export abstract class Element<TParent extends Tree.INode, TChildren extends Tree
 	}
 }
 
-export class Region extends Element<State | StateMachine, Vertex> {
+export class Region extends Element<State | StateMachine> {
 	public static defaultName = "default";
+	public readonly children = new Array<Vertex>();
 
 	public constructor(name: string, parent: State | StateMachine) {
 		super(name, parent);
@@ -92,11 +90,11 @@ export class Region extends Element<State | StateMachine, Vertex> {
 		this.invalidate();
 	}
 
-	invalidate(): void {
+	/** @ignore */ invalidate(): void {
 		this.parent.invalidate();
 	}
 
-	isActive(instance: IInstance): boolean {
+	public isActive(instance: IInstance): boolean {
 		return this.parent.isActive(instance);
 	}
 
@@ -111,87 +109,78 @@ export class Region extends Element<State | StateMachine, Vertex> {
 	}
 }
 
-export class Vertex extends Element<Region, Region> {
-	readonly outgoing = new Array<Transition>();
-	readonly incoming = new Array<Transition>();
+export class Vertex extends Element<Region> {
+	public readonly outgoing = new Array<Transition>();
+	public readonly incoming = new Array<Transition>();
 
-	constructor(name: string, parent: Region | State | StateMachine) {
-		super(name, parent instanceof Region ? parent : State.defaultRegion(parent));
+	protected constructor(name: string, parent: Region | State | StateMachine) {
+		super(name, parent instanceof Region ? parent : defaultRegion(parent));
 
 		this.parent.children.push(this);
 		this.invalidate();
 	}
 
-	invalidate(): void {
+	/** @ignore */ invalidate(): void {
 		this.parent.invalidate();
 	}
 
-	to(target?: Vertex, kind: TransitionKind = TransitionKind.External): Transition {
+	public to(target?: Vertex, kind: TransitionKind = TransitionKind.External): Transition {
 		return new Transition(this, target, kind);
 	}
 
-	accept(visitor: Visitor, ...args: Array<any>) {
+	public accept(visitor: Visitor, ...args: Array<any>) {
 		visitor.visitVertex(this, ...args);
 	}
 }
 
 export class PseudoState extends Vertex {
-	constructor(name: string, parent: Region | State | StateMachine, public readonly kind: PseudoStateKind = PseudoStateKind.Initial) {
+	public constructor(name: string, parent: Region | State | StateMachine, public readonly kind: PseudoStateKind = PseudoStateKind.Initial) {
 		super(name, parent);
 	}
 
-	isHistory(): boolean {
+	public isHistory(): boolean {
 		return this.kind === PseudoStateKind.DeepHistory || this.kind === PseudoStateKind.ShallowHistory;
 	}
 
-	isInitial(): boolean {
+	public isInitial(): boolean {
 		return this.kind === PseudoStateKind.Initial || this.isHistory();
 	}
 
-	accept(visitor: Visitor, ...args: Array<any>) {
+	public accept(visitor: Visitor, ...args: Array<any>) {
 		visitor.visitPseudoState(this, ...args);
 	}
 }
 
 export class State extends Vertex {
-	static defaultRegion(state: State | StateMachine) {
-		for (const region of state.children) {
-			if (region.name === Region.defaultName) {
-				return region;
-			}
-		}
+	public readonly children = new Array<Region>();
+	public readonly entryBehavior: Actions = [];
+	public readonly exitBehavior: Actions = [];
 
-		return new Region(Region.defaultName, state);
-	}
-
-	readonly entryBehavior: Actions = [];
-	readonly exitBehavior: Actions = [];
-
-	isFinal(): boolean {
+	public isFinal(): boolean {
 		return this.outgoing.length === 0;
 	}
 
-	isSimple(): boolean {
+	public isSimple(): boolean {
 		return this.children.length === 0;
 	}
 
-	isComposite(): boolean {
+	public isComposite(): boolean {
 		return this.children.length > 0;
 	}
 
-	isOrthogonal(): boolean {
+	public isOrthogonal(): boolean {
 		return this.children.length > 1;
 	}
 
-	isActive(instance: IInstance): boolean {
+	public isActive(instance: IInstance): boolean {
 		return this.parent.isActive(instance) && instance.getLastKnownState(this.parent) === this;
 	}
 
-	isComplete(instance: IInstance): boolean {
+	public isComplete(instance: IInstance): boolean {
 		return this.children.every(region => region.isComplete(instance));
 	}
 
-	exit(action: Behavior) {
+	public exit(action: Behavior) {
 		this.exitBehavior.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => {
 			action(instance, ...message);
 		});
@@ -201,7 +190,7 @@ export class State extends Vertex {
 		return this;
 	}
 
-	entry(action: Behavior) {
+	public entry(action: Behavior) {
 		this.entryBehavior.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => {
 			action(instance, ...message);
 		});
@@ -211,37 +200,33 @@ export class State extends Vertex {
 		return this;
 	}
 
-	accept(visitor: Visitor, ...args: Array<any>) {
+	public accept(visitor: Visitor, ...args: Array<any>) {
 		visitor.visitState(this, ...args);
 	}
 }
 
 export class StateMachine {
-	readonly parent = undefined;
-	readonly children = new Array<Region>();
+	public readonly parent = undefined;
+	public readonly children = new Array<Region>();
 	private clean: boolean = false;
-	onInitialise: Actions = [];
+	/** @ignore */onInitialise: Actions = [];
 
-	constructor(public readonly name: string) {
+	public constructor(public readonly name: string) {
 	}
 
-	invalidate(): void {
+	/** @ignore */invalidate(): void {
 		this.clean = false;
 	}
 
-	accept(visitor: Visitor, ...args: Array<any>) {
-		visitor.visitStateMachine(this, ...args);
-	}
-
-	isActive(instance: IInstance): boolean {
+	public isActive(instance: IInstance): boolean {
 		return true;
 	}
 
-	isComplete(instance: IInstance): boolean {
+	public isComplete(instance: IInstance): boolean {
 		return this.children.every(region => region.isComplete(instance));
 	}
 
-	initialise(instance?: IInstance): void {
+	public initialise(instance?: IInstance): void {
 		if (instance) {
 			if (this.clean === false) {
 				this.initialise();
@@ -259,7 +244,7 @@ export class StateMachine {
 		}
 	}
 
-	evaluate(instance: IInstance, ...message: Array<any>): boolean {
+	public evaluate(instance: IInstance, ...message: Array<any>): boolean {
 		if (this.clean === false) {
 			this.initialise();
 		}
@@ -268,8 +253,12 @@ export class StateMachine {
 
 		return evaluate(this, instance, ...message);
 	}
+	
+	public accept(visitor: Visitor, ...args: Array<any>) {
+		visitor.visitStateMachine(this, ...args);
+	}
 
-	toString(): string {
+	public toString(): string {
 		return this.name;
 	}
 }
@@ -571,6 +560,16 @@ class InitialiseStateMachine extends Visitor {
 
 		transition.onTraverse = [...transition.onTraverse, ...this.getActions(transition.target!).endEnter];
 	}
+}
+
+function defaultRegion(state: State | StateMachine) {
+	for (const region of state.children) {
+		if (region.name === Region.defaultName) {
+			return region;
+		}
+	}
+
+	return new Region(Region.defaultName, state);
 }
 
 function findElse(pseudoState: PseudoState): Transition {
