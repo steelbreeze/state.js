@@ -66,8 +66,8 @@ export declare class PseudoState extends Vertex {
 }
 export declare class State extends Vertex {
     readonly children: Region[];
-    readonly entryBehavior: Actions;
-    readonly exitBehavior: Actions;
+    /** @ignore */ readonly entryBehavior: Actions;
+    /** @ignore */ readonly exitBehavior: Actions;
     isFinal(): boolean;
     isSimple(): boolean;
     isComposite(): boolean;
@@ -97,14 +97,16 @@ export declare class Transition {
     readonly source: Vertex;
     readonly target: Vertex;
     readonly kind: TransitionKind;
-    static Else: Guard;
-    effectBehavior: Actions;
-    onTraverse: Actions;
-    guard: Guard;
+    private static Else;
+    /** @ignore */ effectBehavior: Actions;
+    /** @ignore */ onTraverse: Actions;
+    private guard;
     constructor(source: Vertex, target?: Vertex, kind?: TransitionKind);
+    isElse(): boolean;
     else(): this;
     when(guard: Guard): this;
     effect(action: Behavior): this;
+    evaluate(instance: IInstance, ...message: Array<any>): boolean;
     accept(visitor: Visitor, ...args: Array<any>): void;
     toString(): string;
 }

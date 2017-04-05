@@ -153,8 +153,8 @@ export class PseudoState extends Vertex {
 
 export class State extends Vertex {
 	public readonly children = new Array<Region>();
-	public readonly entryBehavior: Actions = [];
-	public readonly exitBehavior: Actions = [];
+	/** @ignore */ readonly entryBehavior: Actions = []; // TODO: try to make private
+	/** @ignore */  readonly exitBehavior: Actions = []; // TODO: try to make private
 
 	public isFinal(): boolean {
 		return this.outgoing.length === 0;
@@ -209,7 +209,7 @@ export class StateMachine {
 	public readonly parent = undefined;
 	public readonly children = new Array<Region>();
 	private clean: boolean = false;
-	/** @ignore */onInitialise: Actions = [];
+	/** @ignore */onInitialise: Actions = []; // TODO: try to make private
 
 	public constructor(public readonly name: string) {
 	}
@@ -253,7 +253,7 @@ export class StateMachine {
 
 		return evaluate(this, instance, ...message);
 	}
-	
+
 	public accept(visitor: Visitor, ...args: Array<any>) {
 		visitor.visitStateMachine(this, ...args);
 	}
@@ -264,12 +264,12 @@ export class StateMachine {
 }
 
 export class Transition {
-	static Else: Guard = (instance: IInstance, ...message: Array<any>) => false;
-	effectBehavior: Actions = [];
-	onTraverse: Actions = [];
-	guard: Guard;
+	private static Else: Guard = (instance: IInstance, ...message: Array<any>) => false;
+	/** @ignore */ effectBehavior: Actions = []; // TODO: try to make private
+	/** @ignore */ onTraverse: Actions = []; // TODO: try to make private
+	private guard: Guard;
 
-	constructor(public readonly source: Vertex, public readonly target?: Vertex, public readonly kind: TransitionKind = TransitionKind.External) {
+	public constructor(public readonly source: Vertex, public readonly target?: Vertex, public readonly kind: TransitionKind = TransitionKind.External) {
 		this.guard = source instanceof PseudoState ? (instance: IInstance, ...message: Array<any>) => true : (instance: IInstance, ...message: Array<any>) => message[0] === this.source;
 		this.source.outgoing.push(this);
 		this.source.invalidate();
@@ -282,19 +282,23 @@ export class Transition {
 		}
 	}
 
-	else() { // NOTE: no need to invalidate the machine as the transition actions have not changed.
+	public isElse(): boolean {
+		return this.guard === Transition.Else;
+	}
+
+	public else() { // NOTE: no need to invalidate the machine as the transition actions have not changed.
 		this.guard = Transition.Else;
 
 		return this;
 	}
 
-	when(guard: Guard) { // NOTE: no need to invalidate the machine as the transition actions have not changed.
+	public when(guard: Guard) { // NOTE: no need to invalidate the machine as the transition actions have not changed.
 		this.guard = guard;
 
 		return this;
 	}
 
-	effect(action: Behavior) {
+	public effect(action: Behavior) {
 		this.effectBehavior.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => {
 			action(instance, ...message);
 		});
@@ -304,11 +308,15 @@ export class Transition {
 		return this;
 	}
 
-	accept(visitor: Visitor, ...args: Array<any>) {
+	public evaluate(instance: IInstance, ...message: Array<any>): boolean {
+		return this.guard(instance, ...message);
+	}
+
+	public accept(visitor: Visitor, ...args: Array<any>) {
 		visitor.visitTransition(this, ...args);
 	}
 
-	toString(): string {
+	public toString(): string {
 		return TransitionKind[this.kind] + "(" + (this.kind === TransitionKind.Internal ? this.source : (this.source + " -> " + this.target)) + ")";
 	}
 }
@@ -573,11 +581,11 @@ function defaultRegion(state: State | StateMachine) {
 }
 
 function findElse(pseudoState: PseudoState): Transition {
-	return pseudoState.outgoing.filter(transition => transition.guard === Transition.Else)[0];
+	return pseudoState.outgoing.filter(transition => transition.isElse())[0];
 }
 
 function selectTransition(pseudoState: PseudoState, instance: IInstance, ...message: Array<any>): Transition {
-	const transitions = pseudoState.outgoing.filter(transition => transition.guard(instance, ...message));
+	const transitions = pseudoState.outgoing.filter(transition => transition.evaluate(instance, ...message));
 
 	if (pseudoState.kind === PseudoStateKind.Choice) {
 		return transitions.length !== 0 ? transitions[random(transitions.length)] : findElse(pseudoState);
@@ -613,7 +621,7 @@ function evaluate(state: StateMachine | State, instance: IInstance, ...message: 
 				evaluate(state, instance, state);
 			}
 		} else {
-			const transitions = state.outgoing.filter(transition => transition.guard(instance, ...message));
+			const transitions = state.outgoing.filter(transition => transition.evaluate(instance, ...message));
 
 			if (transitions.length === 1) {
 				traverse(transitions[0], instance, ...message);

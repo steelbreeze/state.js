@@ -10,6 +10,13 @@ node_js:
   - "0.11"
   - "0.10"
   - "iojs"
+env:
+  - CXX=g++-4.8
 addons:
   code_climate:
     repo_token: 111df745fd4988fccdb084cd48dfb18cd152e6fb6476c473e911b1fbdfa3de76
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-4.8
