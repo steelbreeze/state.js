@@ -85,6 +85,7 @@ export abstract class Element<TParent> {
 	}
 }
 
+/** A container of [[Vertex]] instances. */
 export class Region extends Element<State | StateMachine> {
 	public static defaultName = "default";
 	public readonly children = new Array<Vertex>();
@@ -115,6 +116,7 @@ export class Region extends Element<State | StateMachine> {
 	}
 }
 
+/** The source or target of a [[Transition]] within a [[StateMachine]] model. A vertex can be either a [[State]] or a [[PseudoState]]. */
 export class Vertex extends Element<Region> {
 	public readonly outgoing = new Array<Transition>();
 	public readonly incoming = new Array<Transition>();
@@ -139,6 +141,7 @@ export class Vertex extends Element<Region> {
 	}
 }
 
+/** A [[Vertex]] in a [[StateMachine]] machine that has the form of a state but does not behave as a full state; it is always transient; it may be the source or target of transitions but has no entry or exit behavior */
 export class PseudoState extends Vertex {
 	public constructor(name: string, parent: Region | State | StateMachine, public readonly kind: PseudoStateKind = PseudoStateKind.Initial) {
 		super(name, parent);
