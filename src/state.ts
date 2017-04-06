@@ -1,3 +1,9 @@
+/**
+ * state: a finite state machine library
+ * Copyright (c) 2014-6 David Mesquita-Morris
+ * Licensed under the MIT and GPL v3 licences
+ * http://state.software
+ */
 import * as Tree from "./tree";
 
 export type Logger = {
