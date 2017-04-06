@@ -10,6 +10,7 @@ var first = new state.State("first", model).exit(function (i, ...p) { i.exitPara
 var second = new state.State("second", model).entry(function (i, ...p) { i.entryParams = p; });
 
 initial.to(first);
+/*
 first.to(second).when(function (i, ...p) { return p[1] === "closer"; }).effect(function (i, ...p) { i.transParams = p; });
 
 var instance = new state.DictionaryInstance("instance");
@@ -31,5 +32,5 @@ describe("test/params.js", function () {
 		assert.equal(2, instance.transParams.length);
 	});
 });
-
+*/
 state.setLogger(oldLogger);
