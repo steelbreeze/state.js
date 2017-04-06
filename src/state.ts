@@ -11,7 +11,7 @@ export type Logger = {
 	error(message?: any, ...optionalParams: any[]): void;
 }
 
-export let logger = {
+export let logger: Logger = {
 	log(message?: any, ...optionalParams: any[]): void { },
 	error(message?: any, ...optionalParams: any[]): void { throw message; }
 };
@@ -26,7 +26,7 @@ export function setLogger(newLogger: Logger): Logger {
 
 export type Random = (max: number) => number;
 
-export let random = (max: number) => Math.floor(Math.random() * max);
+export let random: Random = (max: number) => Math.floor(Math.random() * max);
 
 export function setRandom(newRandom: Random): Random {
 	const result = random;
@@ -36,7 +36,7 @@ export function setRandom(newRandom: Random): Random {
 	return result;
 }
 
-export var internalTransitionsTriggerCompletion = false;
+export var internalTransitionsTriggerCompletion: boolean = false;
 
 export function setInternalTransitionsTriggerCompletion(value: boolean): boolean {
 	const result = internalTransitionsTriggerCompletion;

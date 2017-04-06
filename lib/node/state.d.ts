@@ -7,13 +7,10 @@ export declare type Logger = {
     log(message?: any, ...optionalParams: any[]): void;
     error(message?: any, ...optionalParams: any[]): void;
 };
-export declare let logger: {
-    log(message?: any, ...optionalParams: any[]): void;
-    error(message?: any, ...optionalParams: any[]): void;
-};
+export declare let logger: Logger;
 export declare function setLogger(newLogger: Logger): Logger;
 export declare type Random = (max: number) => number;
-export declare let random: (max: number) => number;
+export declare let random: Random;
 export declare function setRandom(newRandom: Random): Random;
 export declare var internalTransitionsTriggerCompletion: boolean;
 export declare function setInternalTransitionsTriggerCompletion(value: boolean): boolean;
