@@ -29,7 +29,11 @@ export declare enum TransitionKind {
     Internal = 1,
     Local = 2,
 }
-export declare abstract class Element<TParent> {
+export interface IElement {
+    parent: IElement;
+    name: string;
+}
+export declare abstract class Element<TParent extends IElement> implements IElement {
     readonly name: string;
     readonly parent: TParent;
     static namespaceSeparator: string;
@@ -38,7 +42,7 @@ export declare abstract class Element<TParent> {
     toString(): string;
 }
 /** A region is an orthogonal part of either a [composite state]{@link State} or a [state machine]{@link StateMachine}. It is container of [vertices]{@link Vertex}. */
-export declare class Region extends Element<State | StateMachine> {
+export declare class Region extends Element<State | StateMachine> implements IElement {
     static defaultName: string;
     readonly children: Vertex[];
     constructor(name: string, parent: State | StateMachine);
@@ -78,9 +82,9 @@ export declare class State extends Vertex {
     entry(action: Behavior): this;
     accept(visitor: Visitor, ...args: Array<any>): void;
 }
-export declare class StateMachine {
+export declare class StateMachine implements IElement {
     readonly name: string;
-    readonly parent: undefined;
+    readonly parent: any;
     readonly children: Region[];
     private clean;
     /** @ignore */ onInitialise: Actions;
@@ -117,7 +121,7 @@ export declare class Transition {
     toString(): string;
 }
 export declare class Visitor {
-    visitElement(element: StateMachine | Region | Vertex, ...args: Array<any>): void;
+    visitElement(element: IElement, ...args: Array<any>): void;
     visitRegion(region: Region, ...args: Array<any>): void;
     visitVertex(vertex: Vertex, ...args: Array<any>): void;
     visitPseudoState(pseudoState: PseudoState, ...args: Array<any>): void;

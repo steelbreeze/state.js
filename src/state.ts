@@ -72,7 +72,12 @@ export enum TransitionKind {
 	Local
 }
 
-export abstract class Element<TParent> {
+export interface IElement {
+	parent: IElement;
+	name: string;
+}
+
+export abstract class Element<TParent extends IElement> implements IElement {
 	public static namespaceSeparator = ".";
 	public readonly qualifiedName: string;
 
@@ -86,7 +91,7 @@ export abstract class Element<TParent> {
 }
 
 /** A region is an orthogonal part of either a [composite state]{@link State} or a [state machine]{@link StateMachine}. It is container of [vertices]{@link Vertex}. */
-export class Region extends Element<State | StateMachine> {
+export class Region extends Element<State | StateMachine> implements IElement {
 	public static defaultName = "default";
 	public readonly children = new Array<Vertex>();
 
@@ -214,8 +219,8 @@ export class State extends Vertex {
 	}
 }
 
-export class StateMachine {
-	public readonly parent = undefined;
+export class StateMachine implements IElement {
+	public readonly parent: any = undefined;
 	public readonly children = new Array<Region>();
 	private clean: boolean = false;
 	/** @ignore */onInitialise: Actions = []; // TODO: try to make private
@@ -293,7 +298,7 @@ export class Transition {
 			this.target.incoming.push(this);
 
 			if (this.kind === TransitionKind.Local) {
-				if (!Tree.isChild(this.target, this.source)) {
+				if (!Tree.isChild<IElement>(this.target, this.source)) {
 					this.kind = TransitionKind.External;
 				}
 			}
@@ -345,7 +350,7 @@ export class Transition {
 }
 
 export class Visitor {
-	visitElement(element: StateMachine | Region | Vertex, ...args: Array<any>): void {
+	visitElement(element: IElement, ...args: Array<any>): void {
 	}
 
 	visitRegion(region: Region, ...args: Array<any>): void {
@@ -433,11 +438,11 @@ class InitialiseStateMachine extends Visitor {
 	readonly elementActions: { [id: string]: ElementActions } = {};
 	readonly transitions = new Array<Transition>();
 
-	getActions(elemenet: StateMachine | Region | Vertex): ElementActions {
+	getActions(elemenet: IElement): ElementActions {
 		return this.elementActions[elemenet.toString()] || (this.elementActions[elemenet.toString()] = new ElementActions());
 	}
 
-	visitElement(element: StateMachine | Region | Vertex, deepHistoryAbove: boolean): void {
+	visitElement(element: IElement, deepHistoryAbove: boolean): void {
 		this.getActions(element).leave.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => logger.log(`${instance} leave ${element}`));
 		this.getActions(element).beginEnter.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => logger.log(`${instance} enter ${element}`));
 	}
@@ -555,8 +560,8 @@ class InitialiseStateMachine extends Visitor {
 
 	visitLocalTransition(transition: Transition): void {
 		transition.onTraverse.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => { // TODO: now that this is not based on isActive are there options to make more like external transition?
-			const sourceAncestors = Tree.ancestors(transition.source);
-			const targetAncestors = Tree.ancestors(transition.target!);
+			const sourceAncestors = Tree.ancestors<IElement>(transition.source);
+			const targetAncestors = Tree.ancestors<IElement>(transition.target!);
 			let i = Tree.lowestCommonAncestorIndex(sourceAncestors, targetAncestors) + 2; // NOTE: we do not leave the source state, so entry/exit from the next state below
 
 			// TODO: investigate options now taht i is not based on isActive
@@ -575,8 +580,8 @@ class InitialiseStateMachine extends Visitor {
 	}
 
 	visitExternalTransition(transition: Transition): void {
-		const sourceAncestors = Tree.ancestors(transition.source);
-		const targetAncestors = Tree.ancestors(transition.target!);
+		const sourceAncestors = Tree.ancestors<IElement>(transition.source);
+		const targetAncestors = Tree.ancestors<IElement>(transition.target!);
 		let i = Tree.lowestCommonAncestorIndex(sourceAncestors, targetAncestors);
 
 		if (sourceAncestors[i] instanceof Region) {

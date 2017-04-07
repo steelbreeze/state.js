@@ -20,12 +20,12 @@ describe("test/tree.js", function () {
 	});
 
 	it("Common ancestor", function () {
-		assert.equal(0, tree.lowestCommonAncestorIndex(tree.ancestors(root), tree.ancestors(root)));
-		assert.equal(0, tree.lowestCommonAncestorIndex(tree.ancestors(root), tree.ancestors(left)));
-		assert.equal(0, tree.lowestCommonAncestorIndex(tree.ancestors(root), tree.ancestors(right)));
-		assert.equal(0, tree.lowestCommonAncestorIndex(tree.ancestors(root), tree.ancestors(rightLeft)));
-		assert.equal(0, tree.lowestCommonAncestorIndex(tree.ancestors(root), tree.ancestors(rightRight)));
-		assert.equal(-1, tree.lowestCommonAncestorIndex(tree.ancestors(root), tree.ancestors(other)));
+		assert.equal(root, tree.lowestCommonAncestor(root, root));
+		assert.equal(root, tree.lowestCommonAncestor(root, left));
+		assert.equal(root, tree.lowestCommonAncestor(root, right));
+		assert.equal(root, tree.lowestCommonAncestor(root, rightLeft));
+		assert.equal(root, tree.lowestCommonAncestor(root, rightRight));
+		assert.equal(undefined, tree.lowestCommonAncestor(root, other));
 
 		assert.equal(0, tree.lowestCommonAncestorIndex(tree.ancestors(left), tree.ancestors(root)));
 		assert.equal(1, tree.lowestCommonAncestorIndex(tree.ancestors(left), tree.ancestors(left)));
@@ -48,12 +48,12 @@ describe("test/tree.js", function () {
 		assert.equal(1, tree.lowestCommonAncestorIndex(tree.ancestors(rightLeft), tree.ancestors(rightRight)));
 		assert.equal(-1, tree.lowestCommonAncestorIndex(tree.ancestors(rightLeft), tree.ancestors(other)));
 
-		assert.equal(0, tree.lowestCommonAncestorIndex(tree.ancestors(rightRight), tree.ancestors(root)));
-		assert.equal(0, tree.lowestCommonAncestorIndex(tree.ancestors(rightRight), tree.ancestors(left)));
-		assert.equal(1, tree.lowestCommonAncestorIndex(tree.ancestors(rightRight), tree.ancestors(right)));
-		assert.equal(1, tree.lowestCommonAncestorIndex(tree.ancestors(rightRight), tree.ancestors(rightLeft)));
-		assert.equal(2, tree.lowestCommonAncestorIndex(tree.ancestors(rightRight), tree.ancestors(rightRight)));
-		assert.equal(-1, tree.lowestCommonAncestorIndex(tree.ancestors(rightRight), tree.ancestors(other)));
+		assert.equal(root, tree.lowestCommonAncestor(rightRight, root));
+		assert.equal(root, tree.lowestCommonAncestor(rightRight, left));
+		assert.equal(right, tree.lowestCommonAncestor(rightRight, right));
+		assert.equal(right, tree.lowestCommonAncestor(rightRight, rightLeft));
+		assert.equal(rightRight, tree.lowestCommonAncestor(rightRight, rightRight));
+		assert.equal(undefined, tree.lowestCommonAncestor(rightRight, other));
 
 		assert.equal(-1, tree.lowestCommonAncestorIndex(tree.ancestors(other), tree.ancestors(root)));
 		assert.equal(-1, tree.lowestCommonAncestorIndex(tree.ancestors(other), tree.ancestors(left)));
