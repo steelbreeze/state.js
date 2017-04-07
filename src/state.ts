@@ -85,7 +85,7 @@ export abstract class Element<TParent> {
 	}
 }
 
-/** A container of [[Vertex]] instances. */
+/** A region is an orthogonal part of either a [composite state]{@link State} or a [state machine]{@link StateMachine}. It is container of [vertices]{@link Vertex}. */
 export class Region extends Element<State | StateMachine> {
 	public static defaultName = "default";
 	public readonly children = new Array<Vertex>();
@@ -141,7 +141,7 @@ export class Vertex extends Element<Region> {
 	}
 }
 
-/** A [[Vertex]] in a [[StateMachine]] machine that has the form of a state but does not behave as a full state; it is always transient; it may be the source or target of transitions but has no entry or exit behavior */
+/** A [[Vertex]] in a [[StateMachine]] machine model that has the form of a state but does not behave as a full state; it is always transient; it may be the source or target of transitions but has no entry or exit behavior */
 export class PseudoState extends Vertex {
 	public constructor(name: string, parent: Region | State | StateMachine, public readonly kind: PseudoStateKind = PseudoStateKind.Initial) {
 		super(name, parent);
@@ -278,17 +278,31 @@ export class Transition {
 	/** @ignore */ onTraverse: Actions = []; // TODO: try to make private
 	private guard: Guard;
 
+	/**
+	 * 
+	 * @param source 
+	 * @param target 
+	 * @param kind The [kind]{@link TransitionKind} of the transition that defines its transition semantics. Note that the kind is validated and overriden if necessary.
+	 */
 	public constructor(public readonly source: Vertex, public readonly target?: Vertex, public readonly kind: TransitionKind = TransitionKind.External) {
 		this.guard = source instanceof PseudoState ? (instance: IInstance, ...message: Array<any>) => true : (instance: IInstance, ...message: Array<any>) => message[0] === this.source;
 		this.source.outgoing.push(this);
-		this.source.invalidate();
 
+		// validate and repair if necessary the user supplied transition kind
 		if (this.target) {
 			this.target.incoming.push(this);
+
+			if (this.kind === TransitionKind.Local) {
+				if (!Tree.isChild(this.target, this.source)) {
+					this.kind = TransitionKind.External;
+				}
+			}
 		}
 		else {
 			this.kind = TransitionKind.Internal;
 		}
+
+		this.source.invalidate();
 	}
 
 	public isElse(): boolean {
@@ -540,16 +554,16 @@ class InitialiseStateMachine extends Visitor {
 	}
 
 	visitLocalTransition(transition: Transition): void {
-		transition.onTraverse.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => {
-			const sourceAncestors = Tree.Ancestors(transition.source);
-			const targetAncestors = Tree.Ancestors(transition.target!);
-			let i = Tree.LowestCommonAncestorIndex(sourceAncestors, targetAncestors) + 2; // NOTE: we do not leave the source state, so entry/exit from the next state below
+		transition.onTraverse.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => { // TODO: now that this is not based on isActive are there options to make more like external transition?
+			const sourceAncestors = Tree.ancestors(transition.source);
+			const targetAncestors = Tree.ancestors(transition.target!);
+			let i = Tree.lowestCommonAncestorIndex(sourceAncestors, targetAncestors) + 2; // NOTE: we do not leave the source state, so entry/exit from the next state below
 
+			// TODO: investigate options now taht i is not based on isActive
 			const firstToEnter = targetAncestors[i] as State;
 			const firstToExit = instance.getCurrent(firstToEnter.parent);
 
 			invoke(this.getActions(firstToExit!).leave, instance, false, ...message);
-
 			invoke(transition.effectBehavior, instance, false, ...message);
 
 			while (i < targetAncestors.length) {
@@ -561,9 +575,9 @@ class InitialiseStateMachine extends Visitor {
 	}
 
 	visitExternalTransition(transition: Transition): void {
-		const sourceAncestors = Tree.Ancestors(transition.source);
-		const targetAncestors = Tree.Ancestors(transition.target!);
-		let i = Tree.LowestCommonAncestorIndex(sourceAncestors, targetAncestors);
+		const sourceAncestors = Tree.ancestors(transition.source);
+		const targetAncestors = Tree.ancestors(transition.target!);
+		let i = Tree.lowestCommonAncestorIndex(sourceAncestors, targetAncestors);
 
 		if (sourceAncestors[i] instanceof Region) {
 			i += 1;

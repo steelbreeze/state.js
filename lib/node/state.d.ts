@@ -37,6 +37,7 @@ export declare abstract class Element<TParent> {
     protected constructor(name: string, parent: TParent);
     toString(): string;
 }
+/** A region is an orthogonal part of either a [composite state]{@link State} or a [state machine]{@link StateMachine}. It is container of [vertices]{@link Vertex}. */
 export declare class Region extends Element<State | StateMachine> {
     static defaultName: string;
     readonly children: Vertex[];
@@ -46,6 +47,7 @@ export declare class Region extends Element<State | StateMachine> {
     isComplete(instance: IInstance): boolean;
     accept(visitor: Visitor, ...args: Array<any>): void;
 }
+/** The source or target of a [[Transition]] within a [[StateMachine]] model. A vertex can be either a [[State]] or a [[PseudoState]]. */
 export declare class Vertex extends Element<Region> {
     readonly outgoing: Transition[];
     readonly incoming: Transition[];
@@ -54,6 +56,7 @@ export declare class Vertex extends Element<Region> {
     to(target?: Vertex, kind?: TransitionKind): Transition;
     accept(visitor: Visitor, ...args: Array<any>): void;
 }
+/** A [[Vertex]] in a [[StateMachine]] machine model that has the form of a state but does not behave as a full state; it is always transient; it may be the source or target of transitions but has no entry or exit behavior */
 export declare class PseudoState extends Vertex {
     readonly kind: PseudoStateKind;
     constructor(name: string, parent: Region | State | StateMachine, kind?: PseudoStateKind);
@@ -98,6 +101,12 @@ export declare class Transition {
     /** @ignore */ effectBehavior: Actions;
     /** @ignore */ onTraverse: Actions;
     private guard;
+    /**
+     *
+     * @param source
+     * @param target
+     * @param kind The [kind]{@link TransitionKind} of the transition that defines its transition semantics. Note that the kind is validated and overriden if necessary.
+     */
     constructor(source: Vertex, target?: Vertex, kind?: TransitionKind);
     isElse(): boolean;
     else(): this;
