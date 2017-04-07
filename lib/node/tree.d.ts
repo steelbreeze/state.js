@@ -41,3 +41,12 @@ export declare function lowestCommonAncestor<TNode extends {
 export declare function isChild<TNode extends {
     parent: TNode;
 }>(child: TNode, parent: TNode): boolean;
+/**
+ * Returns the level of the .
+ * @param TNode A common type shared by all node instances within the tree.
+ * @param child The possible child node.
+ * @param parent The parent node.
+ */
+export declare function depth<TNode extends {
+    parent: TNode;
+}>(node: TNode): number;

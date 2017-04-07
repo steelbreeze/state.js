@@ -11,7 +11,7 @@
  * @param node The node to return the ancestry for.
  */
 export function ancestors<TNode extends { parent: TNode }>(node: TNode): Array<TNode> {
-	const result = node && node.parent ? ancestors(node.parent) : new Array<TNode>();
+	const result = node && node.parent ? ancestors(node.parent) : [];
 
 	if (node) {
 		result.push(node);
@@ -62,4 +62,14 @@ export function lowestCommonAncestor<TNode extends { parent: TNode }>(node1: TNo
  */
 export function isChild<TNode extends { parent: TNode }>(child: TNode, parent: TNode): boolean {
 	return child && child.parent ? child.parent === parent || isChild(child.parent, parent) : false;
+}
+
+/**
+ * Returns the level of the .
+ * @param TNode A common type shared by all node instances within the tree.
+ * @param child The possible child node.
+ * @param parent The parent node.
+ */
+export function depth<TNode extends { parent: TNode }>(node: TNode): number {
+	return node ? node.parent ? depth(node.parent)  + 1 : 0 : -1;
 }

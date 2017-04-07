@@ -559,14 +559,10 @@ class InitialiseStateMachine extends Visitor {
 	}
 
 	visitLocalTransition(transition: Transition): void {
-		transition.onTraverse.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => { // TODO: now that this is not based on isActive are there options to make more like external transition?
-			const sourceAncestors = Tree.ancestors<IElement>(transition.source);
+		transition.onTraverse.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => {
 			const targetAncestors = Tree.ancestors<IElement>(transition.target!);
-			let i = Tree.lowestCommonAncestorIndex(sourceAncestors, targetAncestors) + 2; // NOTE: we do not leave the source state, so entry/exit from the next state below
-
-			// TODO: investigate options now taht i is not based on isActive
-			const firstToEnter = targetAncestors[i] as State;
-			const firstToExit = instance.getCurrent(firstToEnter.parent);
+			let i = Tree.depth<IElement>(transition.source) + 2; // NOTE: the source is the LCA as the target is a child of it
+			const firstToExit = instance.getCurrent(targetAncestors[i].parent as Region); // TODO: try to avoid the cast
 
 			invoke(this.getActions(firstToExit!).leave, instance, false, ...message);
 			invoke(transition.effectBehavior, instance, false, ...message);

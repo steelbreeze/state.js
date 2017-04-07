@@ -10,7 +10,16 @@ var rightRight = { name: "rightRight", parent: right };
 var other = { name: "other" };
 
 describe("test/tree.js", function () {
-	it("ancestors count", function () {
+	it("depth", function () {
+		assert.equal(0, tree.depth(root));
+		assert.equal(1, tree.depth(left));
+		assert.equal(1, tree.depth(right));
+		assert.equal(2, tree.depth(rightLeft));
+		assert.equal(2, tree.depth(rightRight));
+		assert.equal(0, tree.depth(other));
+	});
+
+	it("ancestors", function () {
 		assert.equal(1, tree.ancestors(root).length);
 		assert.equal(2, tree.ancestors(left).length);
 		assert.equal(2, tree.ancestors(right).length);
