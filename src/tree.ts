@@ -76,7 +76,16 @@ export function isChild<TNode extends { parent: TNode }>(child: TNode, parent: T
  * Returns the depth (number of edges from a node to the root) of a node.
  * @param TNode A common type shared by all node instances within the tree.
  * @param child The node to get the depth of.
+ * @returns The number of edges between the node an the root node. Returns -1 an undefined node is passed.
  */
 export function depth<TNode extends { parent: TNode }>(node: TNode): number {
-	return node ? node.parent ? depth(node.parent) + 1 : 0 : -1;
+	let result = -1;
+
+	while (node) {
+		result++;
+
+		node = node.parent;
+	}
+
+	return result;
 }

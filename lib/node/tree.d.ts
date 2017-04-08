@@ -42,10 +42,10 @@ export declare function isChild<TNode extends {
     parent: TNode;
 }>(child: TNode, parent: TNode): boolean;
 /**
- * Returns the level of the .
+ * Returns the depth (number of edges from a node to the root) of a node.
  * @param TNode A common type shared by all node instances within the tree.
- * @param child The possible child node.
- * @param parent The parent node.
+ * @param child The node to get the depth of.
+ * @returns The number of edges between the node an the root node. Returns -1 an undefined node is passed.
  */
 export declare function depth<TNode extends {
     parent: TNode;
