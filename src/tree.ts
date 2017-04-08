@@ -61,15 +61,22 @@ export function lowestCommonAncestor<TNode extends { parent: TNode }>(node1: TNo
  * @param parent The parent node.
  */
 export function isChild<TNode extends { parent: TNode }>(child: TNode, parent: TNode): boolean {
-	return child && child.parent ? child.parent === parent || isChild(child.parent, parent) : false;
+	while (child) {
+		if (child.parent === parent) {
+			return true;
+		}
+
+		child = child.parent;
+	}
+
+	return false;
 }
 
 /**
- * Returns the level of the .
+ * Returns the depth (number of edges from a node to the root) of a node.
  * @param TNode A common type shared by all node instances within the tree.
- * @param child The possible child node.
- * @param parent The parent node.
+ * @param child The node to get the depth of.
  */
 export function depth<TNode extends { parent: TNode }>(node: TNode): number {
-	return node ? node.parent ? depth(node.parent)  + 1 : 0 : -1;
+	return node ? node.parent ? depth(node.parent) + 1 : 0 : -1;
 }
