@@ -469,7 +469,7 @@ class InitialiseStateMachine extends Visitor {
 				invoke(actions.endEnter, instance, history, ...message);
 			});
 		} else {
-			this.getActions(region).endEnter = [...this.getActions(region).endEnter, ...this.getActions(regionInitial).beginEnter, ...this.getActions(regionInitial).endEnter];
+			this.getActions(region).endEnter.push(...this.getActions(regionInitial).beginEnter, ...this.getActions(regionInitial).endEnter);
 		}
 	}
 
@@ -506,14 +506,14 @@ class InitialiseStateMachine extends Visitor {
 		for (const region of state.children) {
 			region.accept(this, deepHistoryAbove);
 
-			this.getActions(state).leave = [...this.getActions(state).leave, ...this.getActions(region).leave];
-			this.getActions(state).endEnter = [...this.getActions(state).endEnter, ...this.getActions(region).beginEnter, ...this.getActions(region).endEnter];
+			this.getActions(state).leave.push(...this.getActions(region).leave);
+			this.getActions(state).endEnter.push(...this.getActions(region).beginEnter, ...this.getActions(region).endEnter);
 		}
 
 		this.visitVertex(state, deepHistoryAbove);
 
-		this.getActions(state).leave = [...this.getActions(state).leave, ...state.exitBehavior];
-		this.getActions(state).beginEnter = [...this.getActions(state).beginEnter, ...state.entryBehavior];
+		this.getActions(state).leave.push(...state.exitBehavior);
+		this.getActions(state).beginEnter.push(...state.entryBehavior);
 	}
 
 	visitStateMachine(stateMachine: StateMachine, deepHistoryAbove: boolean): void {
@@ -536,7 +536,7 @@ class InitialiseStateMachine extends Visitor {
 		}
 
 		for (const region of stateMachine.children) {
-			stateMachine.onInitialise = [...stateMachine.onInitialise, ...this.getActions(region).beginEnter, ...this.getActions(region).endEnter];
+			stateMachine.onInitialise.push(...this.getActions(region).beginEnter, ...this.getActions(region).endEnter);
 		}
 	}
 
@@ -547,7 +547,7 @@ class InitialiseStateMachine extends Visitor {
 	}
 
 	visitInternalTransition(transition: Transition): void {
-		transition.onTraverse = [...transition.onTraverse, ...transition.effectBehavior];
+		transition.onTraverse.push(...transition.effectBehavior);
 
 		if (internalTransitionsTriggerCompletion) {
 			transition.onTraverse.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => {
@@ -564,6 +564,8 @@ class InitialiseStateMachine extends Visitor {
 			let i = Tree.depth<IElement>(transition.source) + 2; // NOTE: the source is the LCA as the target is a child of it
 			const firstToExit = instance.getCurrent(targetAncestors[i].parent as Region); // TODO: try to avoid the cast
 
+			// TODO: refactor to build an array of stated from source to target (look at using unshift)
+
 			invoke(this.getActions(firstToExit!).leave, instance, false, ...message);
 			invoke(transition.effectBehavior, instance, false, ...message);
 
@@ -572,6 +574,14 @@ class InitialiseStateMachine extends Visitor {
 			}
 
 			invoke(this.getActions(transition.target!).endEnter, instance, false, ...message);
+			/*
+						let vertex: Vertex = transition.target!;
+						const actions: Actions = [];
+			
+						while (vertex !== transition.source) {
+							actions.unshift(...)
+						}
+			*/
 		});
 	}
 
@@ -584,13 +594,13 @@ class InitialiseStateMachine extends Visitor {
 			i += 1;
 		}
 
-		transition.onTraverse = [...transition.onTraverse, ...this.getActions(sourceAncestors[i]).leave, ...transition.effectBehavior];
+		transition.onTraverse.push(...this.getActions(sourceAncestors[i]).leave, ...transition.effectBehavior);
 
 		while (i < targetAncestors.length) {
-			transition.onTraverse = [...transition.onTraverse, ...this.getActions(targetAncestors[i++]).beginEnter];
+			transition.onTraverse.push(...this.getActions(targetAncestors[i++]).beginEnter);
 		}
 
-		transition.onTraverse = [...transition.onTraverse, ...this.getActions(transition.target!).endEnter];
+		transition.onTraverse.push(...this.getActions(transition.target!).endEnter);
 	}
 }
 
@@ -667,7 +677,7 @@ function traverse(origin: Transition, instance: IInstance, ...message: Array<any
 	while (transition.target && transition.target instanceof PseudoState && transition.target.kind === PseudoStateKind.Junction) {
 		transition = selectTransition(transition.target, instance, ...message);
 
-		onTraverse = [...onTraverse, ...transition.onTraverse];
+		onTraverse.push(...transition.onTraverse);
 	}
 
 	invoke(onTraverse, instance, false, ...message);
