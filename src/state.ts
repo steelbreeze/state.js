@@ -560,28 +560,22 @@ class InitialiseStateMachine extends Visitor {
 
 	visitLocalTransition(transition: Transition): void {
 		transition.onTraverse.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => {
-			const targetAncestors = Tree.ancestors<IElement>(transition.target!);
-			let i = Tree.depth<IElement>(transition.source) + 2; // NOTE: the source is the LCA as the target is a child of it
-			const firstToExit = instance.getCurrent(targetAncestors[i].parent as Region); // TODO: try to avoid the cast
+			let vertex: Vertex | StateMachine = transition.target!;
+			const actions: Actions = [...this.getActions(transition.target!).endEnter];
 
-			// TODO: refactor to build an array of stated from source to target (look at using unshift)
+			while (vertex !== transition.source) {
+				actions.unshift(...this.getActions(vertex).beginEnter);
 
-			invoke(this.getActions(firstToExit!).leave, instance, false, ...message);
-			invoke(transition.effectBehavior, instance, false, ...message);
+				if (vertex.parent.parent === transition.source) {
+					actions.unshift(...transition.effectBehavior, ...this.getActions(instance.getCurrent(vertex.parent)!).leave);
+				} else {
+					actions.unshift(...this.getActions(vertex.parent).beginEnter, ); // TODO: validate this is the correct place for region entry
+				}
 
-			while (i < targetAncestors.length) {
-				invoke(this.getActions(targetAncestors[i++]).beginEnter, instance, false, ...message);
+				vertex = vertex.parent.parent;
 			}
 
-			invoke(this.getActions(transition.target!).endEnter, instance, false, ...message);
-			/*
-						let vertex: Vertex = transition.target!;
-						const actions: Actions = [];
-			
-						while (vertex !== transition.source) {
-							actions.unshift(...)
-						}
-			*/
+			invoke(actions, instance, deepHistory, ...message);
 		});
 	}
 
