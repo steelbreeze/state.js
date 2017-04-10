@@ -223,7 +223,7 @@ export class StateMachine implements IElement {
 	public readonly parent: any = undefined;
 	public readonly children = new Array<Region>();
 	private clean: boolean = false;
-	/** @ignore */onInitialise: Actions = []; // TODO: try to make private
+	private onInitialise: Actions = [];
 
 	public constructor(public readonly name: string) {
 	}
@@ -252,7 +252,7 @@ export class StateMachine implements IElement {
 		} else {
 			logger.log(`initialise ${this}`);
 
-			this.accept(new InitialiseStateMachine(), false);
+			this.accept(new InitialiseStateMachine(), false, this.onInitialise);
 
 			this.clean = true;
 		}
@@ -516,7 +516,7 @@ class InitialiseStateMachine extends Visitor {
 		this.getActions(state).beginEnter.push(...state.entryBehavior);
 	}
 
-	visitStateMachine(stateMachine: StateMachine, deepHistoryAbove: boolean): void {
+	visitStateMachine(stateMachine: StateMachine, deepHistoryAbove: boolean, onInitialise: Actions): void {
 		super.visitStateMachine(stateMachine, deepHistoryAbove);
 
 		for (const transition of this.transitions) {
@@ -536,7 +536,7 @@ class InitialiseStateMachine extends Visitor {
 		}
 
 		for (const region of stateMachine.children) {
-			stateMachine.onInitialise.push(...this.getActions(region).beginEnter, ...this.getActions(region).endEnter);
+			onInitialise.push(...this.getActions(region).beginEnter, ...this.getActions(region).endEnter);
 		}
 	}
 

@@ -87,7 +87,7 @@ export declare class StateMachine implements IElement {
     readonly parent: any;
     readonly children: Region[];
     private clean;
-    /** @ignore */ onInitialise: Actions;
+    private onInitialise;
     constructor(name: string);
     /** @ignore */ invalidate(): void;
     isActive(instance: IInstance): boolean;
