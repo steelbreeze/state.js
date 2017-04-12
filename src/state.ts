@@ -6,14 +6,14 @@
  */
 import * as Tree from "./tree";
 
-export type Logger = {
+export interface Logger {
 	log(message?: any, ...optionalParams: any[]): void;
 	error(message?: any, ...optionalParams: any[]): void;
 }
 
 export let logger: Logger = {
-	log(message?: any, ...optionalParams: any[]): void { },
-	error(message?: any, ...optionalParams: any[]): void { throw message; }
+	log(message?: any, ...optionalParams: any[]): void { }, // NOTE: does not log by default
+	error(message?: any, ...optionalParams: any[]): void { throw message; } // NOTE: throws exception by default for errors
 };
 
 export function setLogger(newLogger: Logger): Logger {
@@ -24,7 +24,9 @@ export function setLogger(newLogger: Logger): Logger {
 	return result;
 }
 
-export type Random = (max: number) => number;
+export interface Random {
+	(max: number): number;
+}
 
 export let random: Random = (max: number) => Math.floor(Math.random() * max);
 
@@ -46,13 +48,35 @@ export function setInternalTransitionsTriggerCompletion(value: boolean): boolean
 	return result;
 }
 
-export type Guard = (instance: IInstance, ...message: Array<any>) => boolean;
+/**
+ * The callback prototype for [state machine]{@link StateMachine} [transition]{@link Transition} guard conditions.
+ * @param instance The [state machine]{@link StateMachine} [instance]{@link IInstance} upon which to evaluate the message against.
+ * @param message Zero or more objects to evaulate as part of the guard condition logic.
+ * @return Return true if the transition should be traversed.
+ */
+export interface Guard { (instance: IInstance, ...message: Array<any>): boolean; }
 
-export type Behavior = (instance: IInstance, ...message: Array<any>) => any;
+/**
+ * The callback prototype for [state machine]{@link StateMachine} behavior during a state transition; used in [state]{@link State} entry, exit and [transition]{@link Transition} effect.
+ * @param instance The [state machine]{@link StateMachine} [instance]{@link IInstance} where the state transition is occuring.
+ * @param message Zero or more objects that triggered the state transition.
+ * @return The behavior callback may return any value; this is ignored by state.js.
+ */
+export interface Behavior {
+	(instance: IInstance, ...message: Array<any>): any;
+}
 
-export type Actions = Array<(instance: IInstance, deepHistory: boolean, ...message: Array<any>) => any>;
+/**
+ * Internal class used to build and cache [transition]{@link Transition} behavior.
+ * @internal
+ */
+export class Actions extends Array<(instance: IInstance, deepHistory: boolean, ...message: Array<any>) => any> {
+}
 
-function invoke(actions: Actions, instance: IInstance, deepHistory: boolean, ...message: Array<any>): void {
+/**
+ * Internal class used to execute [transition]{@link Transition} behavior.
+ * @internal
+ */ function invoke(actions: Actions, instance: IInstance, deepHistory: boolean, ...message: Array<any>): void {
 	for (const action of actions) {
 		action(instance, deepHistory, ...message);
 	}
@@ -102,7 +126,7 @@ export class Region extends Element<State | StateMachine> implements IElement {
 		this.invalidate();
 	}
 
-	/** @ignore */ invalidate(): void {
+	/** @internal */ invalidate(): void {
 		this.parent.invalidate();
 	}
 
@@ -133,7 +157,7 @@ export class Vertex extends Element<Region> {
 		this.invalidate();
 	}
 
-	/** @ignore */ invalidate(): void {
+	/** @internal */ invalidate(): void {
 		this.parent.invalidate();
 	}
 
@@ -167,8 +191,8 @@ export class PseudoState extends Vertex {
 
 export class State extends Vertex {
 	public readonly children = new Array<Region>();
-	/** @ignore */ readonly entryBehavior: Actions = []; // TODO: try to make private
-	/** @ignore */  readonly exitBehavior: Actions = []; // TODO: try to make private
+	/** @internal */ readonly entryBehavior: Actions = [];
+	/** @internal */ readonly exitBehavior: Actions = [];
 
 	public isFinal(): boolean {
 		return this.outgoing.length === 0;
@@ -228,7 +252,7 @@ export class StateMachine implements IElement {
 	public constructor(public readonly name: string) {
 	}
 
-	/** @ignore */invalidate(): void {
+	/** @internal */invalidate(): void {
 		this.clean = false;
 	}
 
@@ -279,8 +303,8 @@ export class StateMachine implements IElement {
 
 export class Transition {
 	private static Else: Guard = (instance: IInstance, ...message: Array<any>) => false;
-	/** @ignore */ effectBehavior: Actions = []; // TODO: try to make private
-	/** @ignore */ onTraverse: Actions = []; // TODO: try to make private
+	/** @internal */ effectBehavior: Actions = [];
+	/** @internal */ onTraverse: Actions = [];
 	private guard: Guard;
 
 	/**
@@ -402,8 +426,8 @@ export interface IInstance {
 }
 
 export class DictionaryInstance implements IInstance {
-	readonly current: { [id: string]: Vertex } = {};
-	readonly activeStateConfiguration: { [id: string]: State } = {};
+	/** @internal */ readonly current: { [id: string]: Vertex } = {};
+	/** @internal */ readonly activeStateConfiguration: { [id: string]: State } = {};
 
 	constructor(public readonly name: string) { }
 

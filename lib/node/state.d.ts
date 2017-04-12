@@ -3,20 +3,37 @@
 // Definitions by: David Mesquita-Morris <http://state.software>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
-export declare type Logger = {
+export interface Logger {
     log(message?: any, ...optionalParams: any[]): void;
     error(message?: any, ...optionalParams: any[]): void;
-};
+}
 export declare let logger: Logger;
 export declare function setLogger(newLogger: Logger): Logger;
-export declare type Random = (max: number) => number;
+export interface Random {
+    (max: number): number;
+}
 export declare let random: Random;
 export declare function setRandom(newRandom: Random): Random;
 export declare var internalTransitionsTriggerCompletion: boolean;
 export declare function setInternalTransitionsTriggerCompletion(value: boolean): boolean;
-export declare type Guard = (instance: IInstance, ...message: Array<any>) => boolean;
-export declare type Behavior = (instance: IInstance, ...message: Array<any>) => any;
-export declare type Actions = Array<(instance: IInstance, deepHistory: boolean, ...message: Array<any>) => any>;
+/**
+ * The callback prototype for [state machine]{@link StateMachine} [transition]{@link Transition} guard conditions.
+ * @param instance The [state machine]{@link StateMachine} [instance]{@link IInstance} upon which to evaluate the message against.
+ * @param message Zero or more objects to evaulate as part of the guard condition logic.
+ * @return Return true if the transition should be traversed.
+ */
+export interface Guard {
+    (instance: IInstance, ...message: Array<any>): boolean;
+}
+/**
+ * The callback prototype for [state machine]{@link StateMachine} behavior during a state transition; used in [state]{@link State} entry, exit and [transition]{@link Transition} effect.
+ * @param instance The [state machine]{@link StateMachine} [instance]{@link IInstance} where the state transition is occuring.
+ * @param message Zero or more objects that triggered the state transition.
+ * @return The behavior callback may return any value; this is ignored by state.js.
+ */
+export interface Behavior {
+    (instance: IInstance, ...message: Array<any>): any;
+}
 export declare enum PseudoStateKind {
     Choice = 0,
     DeepHistory = 1,
@@ -46,7 +63,6 @@ export declare class Region extends Element<State | StateMachine> implements IEl
     static defaultName: string;
     readonly children: Vertex[];
     constructor(name: string, parent: State | StateMachine);
-    /** @ignore */ invalidate(): void;
     isActive(instance: IInstance): boolean;
     isComplete(instance: IInstance): boolean;
     accept(visitor: Visitor, ...args: Array<any>): void;
@@ -56,7 +72,6 @@ export declare class Vertex extends Element<Region> {
     readonly outgoing: Transition[];
     readonly incoming: Transition[];
     protected constructor(name: string, parent: Region | State | StateMachine);
-    /** @ignore */ invalidate(): void;
     to(target?: Vertex, kind?: TransitionKind): Transition;
     accept(visitor: Visitor, ...args: Array<any>): void;
 }
@@ -70,8 +85,6 @@ export declare class PseudoState extends Vertex {
 }
 export declare class State extends Vertex {
     readonly children: Region[];
-    /** @ignore */ readonly entryBehavior: Actions;
-    /** @ignore */ readonly exitBehavior: Actions;
     isFinal(): boolean;
     isSimple(): boolean;
     isComposite(): boolean;
@@ -89,7 +102,6 @@ export declare class StateMachine implements IElement {
     private clean;
     private onInitialise;
     constructor(name: string);
-    /** @ignore */ invalidate(): void;
     isActive(instance: IInstance): boolean;
     isComplete(instance: IInstance): boolean;
     initialise(instance?: IInstance): void;
@@ -102,8 +114,6 @@ export declare class Transition {
     readonly target: Vertex;
     readonly kind: TransitionKind;
     private static Else;
-    /** @ignore */ effectBehavior: Actions;
-    /** @ignore */ onTraverse: Actions;
     private guard;
     /**
      *
@@ -136,12 +146,6 @@ export interface IInstance {
 }
 export declare class DictionaryInstance implements IInstance {
     readonly name: string;
-    readonly current: {
-        [id: string]: Vertex;
-    };
-    readonly activeStateConfiguration: {
-        [id: string]: State;
-    };
     constructor(name: string);
     setCurrent(region: Region, vertex: Vertex): void;
     getCurrent(region: Region): Vertex | undefined;
