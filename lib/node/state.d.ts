@@ -1,43 +1,60 @@
-// Type definitions for state.js
-// Project: state,js
-// Definitions by: David Mesquita-Morris <http://state.software>
-// Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
+/**
+ * Type definitions for state.js
+ * Project: state.js
+ * Definitions by: David Mesquita-Morris <http://state.software>
+ * Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
+ */
 
-export interface Logger {
+/** Interface used by state.js for managing log and error messages. */
+export interface ILogger {
+    /**
+     * Passes a log (informational) message.
+     * @param message Any number of objects constituting the log message.
+     */
     log(message?: any, ...optionalParams: any[]): void;
+    /**
+     * Passes an erorr message.
+     * @param message Any number of objects constituting the error message.
+     */
     error(message?: any, ...optionalParams: any[]): void;
 }
-export declare let logger: Logger;
-export declare function setLogger(newLogger: Logger): Logger;
-export interface Random {
-    (max: number): number;
-}
-export declare let random: Random;
-export declare function setRandom(newRandom: Random): Random;
-export declare var internalTransitionsTriggerCompletion: boolean;
+/**
+ * Overrides the current logging object.
+ * @param value An object to pass log and error messages to.
+ * @returns Returns the previous logging object in use.
+ */
+export declare function setLogger(value: ILogger): ILogger;
+/**
+ * Sets a custom random number generator for state.js. The default implementation uses Math.floor(Math.random() * max).
+ * @param value The new method to generate random numbers.
+ * @return Returns the previous random number generator in use.
+ */
+export declare function setRandom(value: (max: number) => number): (max: number) => number;
+/**
+ * Sets a flag controlling completion transition behavior for internal transitions.
+ * @param value True to have internal transitions trigger completion transitions.
+ * @return Returns the previous setting in use.
+ */
 export declare function setInternalTransitionsTriggerCompletion(value: boolean): boolean;
+/** The callback prototype for [state machine]{@link StateMachine} [transition]{@link Transition} guard conditions. */
+export declare type Guard = (instance: IInstance, ...message: Array<any>) => boolean;
+/** The callback prototype for [state machine]{@link StateMachine} behavior during a state transition; used in [state]{@link State} entry, exit and [transition]{@link Transition} effect. */
+export declare type Behavior = (instance: IInstance, ...message: Array<any>) => any;
 /**
- * The callback prototype for [state machine]{@link StateMachine} [transition]{@link Transition} guard conditions.
- * @param instance The [state machine]{@link StateMachine} [instance]{@link IInstance} upon which to evaluate the message against.
- * @param message Zero or more objects to evaulate as part of the guard condition logic.
- * @return Return true if the transition should be traversed.
+ * Internal class used to build and cache [transition]{@link Transition} behavior.
+ * @hidden
  */
-export interface Guard {
-    (instance: IInstance, ...message: Array<any>): boolean;
-}
+export declare type Actions = Array<(instance: IInstance, deepHistory: boolean, ...message: Array<any>) => any>;
 /**
- * The callback prototype for [state machine]{@link StateMachine} behavior during a state transition; used in [state]{@link State} entry, exit and [transition]{@link Transition} effect.
- * @param instance The [state machine]{@link StateMachine} [instance]{@link IInstance} where the state transition is occuring.
- * @param message Zero or more objects that triggered the state transition.
- * @return The behavior callback may return any value; this is ignored by state.js.
+ * Enumeration used to control the precise semantics of [pseudo states]{@link PseudoState}.
  */
-export interface Behavior {
-    (instance: IInstance, ...message: Array<any>): any;
-}
 export declare enum PseudoStateKind {
+    /*** Turns the [pseudo state]{@link PseudoState} into a dynamic conditional branch; the guard conditions of the outgoing [transitions]{@link Transition} will be evaluated dynamically once the [pseudo state]{@link PseudoState} is reached. */
     Choice = 0,
     DeepHistory = 1,
+    /*** Turns the [pseudo state]{@link PseudoState} into an initial [vertex]{@link Vertex}, meaning is is the default point when the parent [region]{@link Region} is entered. */
     Initial = 2,
+    /*** Turns the [pseudo state]{@link PseudoState} into a static conditional branch; the guard conditions of the outgoing [transitions]{@link Transition} will be evaluated prior to the [pseudo state]{@link PseudoState} being reached. */
     Junction = 3,
     ShallowHistory = 4,
 }
@@ -126,7 +143,6 @@ export declare class Transition {
     else(): this;
     when(guard: Guard): this;
     effect(action: Behavior): this;
-    evaluate(instance: IInstance, ...message: Array<any>): boolean;
     accept(visitor: Visitor, ...args: Array<any>): void;
     toString(): string;
 }

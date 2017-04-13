@@ -1,4 +1,5 @@
 /**
+ * @module state
  * state: a finite state machine library
  * Copyright (c) 2014-6 David Mesquita-Morris
  * Licensed under the MIT and GPL v3 licences
@@ -6,40 +7,73 @@
  */
 import * as Tree from "./tree";
 
-export interface Logger {
+/** Interface used by state.js for managing log and error messages. */
+export interface ILogger {
+	/**
+	 * Passes a log (informational) message.
+	 * @param message Any number of objects constituting the log message.
+	 */
 	log(message?: any, ...optionalParams: any[]): void;
+
+	/**
+	 * Passes an erorr message.
+	 * @param message Any number of objects constituting the error message.
+	 */
 	error(message?: any, ...optionalParams: any[]): void;
 }
 
-export let logger: Logger = {
-	log(message?: any, ...optionalParams: any[]): void { }, // NOTE: does not log by default
-	error(message?: any, ...optionalParams: any[]): void { throw message; } // NOTE: throws exception by default for errors
+/**
+ * Default logger implementation.
+ * @hidden
+ */
+let logger: ILogger = {
+	log(message?: any, ...optionalParams: any[]): void { },
+	error(message?: any, ...optionalParams: any[]): void { throw message; }
 };
 
-export function setLogger(newLogger: Logger): Logger {
+/**
+ * Overrides the current logging object.
+ * @param value An object to pass log and error messages to.
+ * @returns Returns the previous logging object in use.
+ */
+export function setLogger(value: ILogger): ILogger {
 	const result = logger;
 
-	logger = newLogger;
+	logger = value;
 
 	return result;
 }
 
-export interface Random {
-	(max: number): number;
-}
+/**
+ * Default random number implementation.
+ * @hidden
+ */
+let random = (max: number) => Math.floor(Math.random() * max);
 
-export let random: Random = (max: number) => Math.floor(Math.random() * max);
-
-export function setRandom(newRandom: Random): Random {
+/**
+ * Sets a custom random number generator for state.js. The default implementation uses Math.floor(Math.random() * max).
+ * @param value The new method to generate random numbers.
+ * @return Returns the previous random number generator in use.
+ */
+export function setRandom(value: (max: number) => number): (max: number) => number {
 	const result = random;
 
-	random = newRandom;
+	random = value;
 
 	return result;
 }
 
-export var internalTransitionsTriggerCompletion: boolean = false;
+/**
+ * Default setting for completion transition behavior.
+ * @hidden
+ */
+let internalTransitionsTriggerCompletion: boolean = false;
 
+/**
+ * Sets a flag controlling completion transition behavior for internal transitions.
+ * @param value True to have internal transitions trigger completion transitions.
+ * @return Returns the previous setting in use.
+ */
 export function setInternalTransitionsTriggerCompletion(value: boolean): boolean {
 	const result = internalTransitionsTriggerCompletion;
 
@@ -48,44 +82,40 @@ export function setInternalTransitionsTriggerCompletion(value: boolean): boolean
 	return result;
 }
 
-/**
- * The callback prototype for [state machine]{@link StateMachine} [transition]{@link Transition} guard conditions.
- * @param instance The [state machine]{@link StateMachine} [instance]{@link IInstance} upon which to evaluate the message against.
- * @param message Zero or more objects to evaulate as part of the guard condition logic.
- * @return Return true if the transition should be traversed.
- */
-export interface Guard { (instance: IInstance, ...message: Array<any>): boolean; }
+/** The callback prototype for [state machine]{@link StateMachine} [transition]{@link Transition} guard conditions. */
+export type Guard = (instance: IInstance, ...message: Array<any>) => boolean;
 
-/**
- * The callback prototype for [state machine]{@link StateMachine} behavior during a state transition; used in [state]{@link State} entry, exit and [transition]{@link Transition} effect.
- * @param instance The [state machine]{@link StateMachine} [instance]{@link IInstance} where the state transition is occuring.
- * @param message Zero or more objects that triggered the state transition.
- * @return The behavior callback may return any value; this is ignored by state.js.
- */
-export interface Behavior {
-	(instance: IInstance, ...message: Array<any>): any;
-}
+/** The callback prototype for [state machine]{@link StateMachine} behavior during a state transition; used in [state]{@link State} entry, exit and [transition]{@link Transition} effect. */
+export type Behavior = (instance: IInstance, ...message: Array<any>) => any;
 
 /**
  * Internal class used to build and cache [transition]{@link Transition} behavior.
- * @internal
+ * @hidden 
  */
-export class Actions extends Array<(instance: IInstance, deepHistory: boolean, ...message: Array<any>) => any> {
-}
+export type Actions = Array<(instance: IInstance, deepHistory: boolean, ...message: Array<any>) => any>;
 
 /**
  * Internal class used to execute [transition]{@link Transition} behavior.
- * @internal
+ * @hidden
  */ function invoke(actions: Actions, instance: IInstance, deepHistory: boolean, ...message: Array<any>): void {
 	for (const action of actions) {
 		action(instance, deepHistory, ...message);
 	}
 }
 
+/**
+ * Enumeration used to control the precise semantics of [pseudo states]{@link PseudoState}.
+ */
 export enum PseudoStateKind {
+	/*** Turns the [pseudo state]{@link PseudoState} into a dynamic conditional branch; the guard conditions of the outgoing [transitions]{@link Transition} will be evaluated dynamically once the [pseudo state]{@link PseudoState} is reached. */
 	Choice,
+
 	DeepHistory,
+
+	/*** Turns the [pseudo state]{@link PseudoState} into an initial [vertex]{@link Vertex}, meaning is is the default point when the parent [region]{@link Region} is entered. */
 	Initial,
+
+	/*** Turns the [pseudo state]{@link PseudoState} into a static conditional branch; the guard conditions of the outgoing [transitions]{@link Transition} will be evaluated prior to the [pseudo state]{@link PseudoState} being reached. */
 	Junction,
 	ShallowHistory
 }
@@ -360,7 +390,7 @@ export class Transition {
 		return this;
 	}
 
-	public evaluate(instance: IInstance, ...message: Array<any>): boolean {
+	/** @internal */ evaluate(instance: IInstance, ...message: Array<any>): boolean {
 		return this.guard(instance, ...message);
 	}
 
@@ -452,12 +482,14 @@ export class DictionaryInstance implements IInstance {
 	}
 }
 
+/** @hidden */
 class ElementActions {
 	leave: Actions = [];
 	beginEnter: Actions = [];
 	endEnter: Actions = [];
 }
 
+/** @hidden */
 class InitialiseStateMachine extends Visitor {
 	readonly elementActions: { [id: string]: ElementActions } = {};
 	readonly transitions = new Array<Transition>();
@@ -622,6 +654,7 @@ class InitialiseStateMachine extends Visitor {
 	}
 }
 
+/** @hidden */
 function defaultRegion(state: State | StateMachine) {
 	for (const region of state.children) {
 		if (region.name === Region.defaultName) {
@@ -632,10 +665,12 @@ function defaultRegion(state: State | StateMachine) {
 	return new Region(Region.defaultName, state);
 }
 
+/** @hidden */
 function findElse(pseudoState: PseudoState): Transition {
 	return pseudoState.outgoing.filter(transition => transition.isElse())[0];
 }
 
+/** @hidden */
 function selectTransition(pseudoState: PseudoState, instance: IInstance, ...message: Array<any>): Transition {
 	const transitions = pseudoState.outgoing.filter(transition => transition.evaluate(instance, ...message));
 
@@ -650,6 +685,7 @@ function selectTransition(pseudoState: PseudoState, instance: IInstance, ...mess
 	return transitions[0] || findElse(pseudoState);
 }
 
+/** @hidden */
 function evaluate(state: StateMachine | State, instance: IInstance, ...message: Array<any>): boolean {
 	let result = false;
 
@@ -688,6 +724,7 @@ function evaluate(state: StateMachine | State, instance: IInstance, ...message: 
 	return result;
 }
 
+/** @hidden */
 function traverse(origin: Transition, instance: IInstance, ...message: Array<any>) {
 	let onTraverse = [...origin.onTraverse];
 	let transition: Transition = origin;
