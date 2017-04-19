@@ -1,9 +1,11 @@
 /**
  * @module tree
+ *
  * A small library of tree algorithms
- * Copyright (c) 2014-6 David Mesquita-Morris
+ *
+ * @copyright (c) 2014-6 David Mesquita-Morris
+ *
  * Licensed under the MIT and GPL v3 licences
- * http://state.software
  */
 /**
  * Returns the ancestry of a node within a tree from the root as an array.
