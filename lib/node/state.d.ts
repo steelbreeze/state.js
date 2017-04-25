@@ -25,7 +25,9 @@ export interface ILogger {
  */
 export declare function setLogger(value: ILogger): ILogger;
 /**
- * Sets a custom random number generator for state.js. The default implementation uses Math.floor(Math.random() * max).
+ * Sets a custom random number generator for state.js.
+ *
+ * The default implementation uses [Math.floor(Math.random() * max)]{@linkcode https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random}.
  * @param value The new method to generate random numbers.
  * @return Returns the previous random number generator in use.
  */
@@ -44,13 +46,13 @@ export declare function setInternalTransitionsTriggerCompletion(value: boolean):
 export declare function setNamespaceSeparator(value: string): string;
 /**
  * The callback prototype for [state machine]{@link StateMachine} [transition]{@link Transition} guard conditions.
- * @param instance The [state machine]{@link StateMachine} [instance]{@link IInstance} to test the [transition]{@link Transition} guard condition against.
+ * @param instance The [state machine instance]{@link IInstance} to test the [transition]{@link Transition} guard condition against.
  * @param message The message to test the [transition]{@link Transition} guard condition against.
  */
 export declare type Guard = (instance: IInstance, ...message: Array<any>) => boolean;
 /**
  * The callback prototype for [state machine]{@link StateMachine} behavior during a state transition; used in [state]{@link State} entry, exit and [transition]{@link Transition} effect.
- * @param instance The [state machine]{@link StateMachine} [instance]{@link IInstance} that the [transition]{@link Transition} is causing a state transition in.
+ * @param instance The [state machine instance]{@link IInstance} that the [transition]{@link Transition} is causing a state transition in.
  * @param message The message that caused the state transition.
  */
 export declare type Behavior = (instance: IInstance, ...message: Array<any>) => any;
@@ -67,13 +69,13 @@ export interface Action {
 export declare enum PseudoStateKind {
     /*** Turns the [pseudo state]{@link PseudoState} into a dynamic conditional branch: the guard conditions of the outgoing [transitions]{@link Transition} will be evaluated after the transition into the [pseudo state]{@link PseudoState} is traversed. */
     Choice = 0,
-    /** Turns on deep history semantics for the parent [region]{@link Region}: second and subsiquent entry of the parent [region]{@link Region} will use the last known state from the active state configuration contained withn the [state machine]{@link StateMachine} [instance]{@link IInstance} as the initial state; this behavior will cascade through all child [regions]{@link Region}. */
+    /** Turns on deep history semantics for the parent [region]{@link Region}: second and subsiquent entry of the parent [region]{@link Region} will use the last known state from the active state configuration contained withn the [state machine instance]{@link IInstance} as the initial state; this behavior will cascade through all child [regions]{@link Region}. */
     DeepHistory = 1,
     /*** Turns the [pseudo state]{@link PseudoState} into an initial [vertex]{@link Vertex}, meaning is is the default point when the parent [region]{@link Region} is entered. */
     Initial = 2,
     /*** Turns the [pseudo state]{@link PseudoState} into a static conditional branch: the guard conditions of the outgoing [transitions]{@link Transition} will be evaluated before the transition into the [pseudo state]{@link PseudoState} is traversed. */
     Junction = 3,
-    /** Turns on shallow history semantics for the parent [region]{@link Region}: second and subsiquent entry of the parent [region]{@link Region} will use the last known state from the active state configuration contained withn the [state machine]{@link StateMachine} [instance]{@link IInstance} as the initial state; this behavior will only apply to the parent [region]{@link Region}. */
+    /** Turns on shallow history semantics for the parent [region]{@link Region}: second and subsiquent entry of the parent [region]{@link Region} will use the last known state from the active state configuration contained withn the [state machine instance]{@link IInstance} as the initial state; this behavior will only apply to the parent [region]{@link Region}. */
     ShallowHistory = 4,
 }
 /**
@@ -91,7 +93,7 @@ export declare enum TransitionKind {
     Local = 2,
 }
 /**
- * Common properties of all elements that make up a [state machine]{@link StateMachine} model.
+ * Common properties of all elements that make up a [state machine model]{@link StateMachine}.
  */
 export interface IElement {
     /** The parent [element]{@link Element} of this element. */
@@ -100,13 +102,13 @@ export interface IElement {
     name: string;
 }
 /**
- * Common base class for [regions]{@link Region} and [vertices]{@link Vertex} within a [state machine]{@link StateMachine} model.
+ * Common base class for [regions]{@link Region} and [vertices]{@link Vertex} within a [state machine model]{@link StateMachine}.
  * @param TParent The type of the element's parent.
  */
 export declare abstract class Element<TParent extends IElement> implements IElement {
     readonly name: string;
     readonly parent: TParent;
-    /** The fully qualified name of a [region]{@link Region} or [vertex]{@link Vertex} within a [state machine]{@link StateMachine} model. */
+    /** The fully qualified name of a [region]{@link Region} or [vertex]{@link Vertex} within a [state machine model]{@link StateMachine}. */
     readonly qualifiedName: string;
     /**
      * Creates a new instance of the [[Element]] class.
@@ -130,19 +132,19 @@ export declare class Region extends Element<State | StateMachine> implements IEl
      */
     constructor(name: string, parent: State | StateMachine);
     /**
-     * Invalidates a [state machine]{@link StateMachine} model causing it to require recompilation.
+     * Invalidates a [state machine model]{@link StateMachine} causing it to require recompilation.
      * @hidden
      */
     invalidate(): void;
     /**
-     * Tests a given [state machine]{@link StateMachine} [instance]{@link IInstance} to see if this [region]{@link Region} is active. A [region]{@link Region} is active when it has been entered but not exited.
-     * @param instance The [state machine]{@link StateMachine} [instance]{@link IInstance} to test if this [region]{@link Region} is active within.
+     * Tests a given [state machine instance]{@link IInstance} to see if this [region]{@link Region} is active. A [region]{@link Region} is active when it has been entered but not exited.
+     * @param instance The [state machine instance]{@link IInstance} to test if this [region]{@link Region} is active within.
      * @return Returns true if the [region]{@link Region} is active.
      */
     isActive(instance: IInstance): boolean;
     /**
-     * Tests a given [state machine]{@link StateMachine} [instance]{@link IInstance} to see if this [region]{@link Region} is complete. A [region]{@link Region} is complete when it's current active [state]{@link State} is a [final state]{@link State.isFinal} (one that has no outbound [transitions]{@link Transition}.
-     * @param instance The [state machine]{@link StateMachine} [instance]{@link IInstance} to test if this [region]{@link Region} is complete within.
+     * Tests a given [state machine instance]{@link IInstance} to see if this [region]{@link Region} is complete. A [region]{@link Region} is complete when it's current active [state]{@link State} is a [final state]{@link State.isFinal} (one that has no outbound [transitions]{@link Transition}.
+     * @param instance The [state machine instance]{@link IInstance} to test if this [region]{@link Region} is complete within.
      * @return Returns true if the [region]{@link Region} is complete.
      */
     isComplete(instance: IInstance): boolean;
@@ -153,7 +155,7 @@ export declare class Region extends Element<State | StateMachine> implements IEl
      */
     accept(visitor: Visitor, ...args: Array<any>): void;
 }
-/** The source or target of a [[Transition]] within a [[StateMachine]] model. A vertex can be either a [[State]] or a [[PseudoState]]. */
+/** The source or target of a [transition]{@link Transition} within a [state machine model]{@link StateMachine}. A vertex can be either a [[State]] or a [[PseudoState]]. */
 export declare abstract class Vertex extends Element<Region> {
     /** The set of possible [transitions]{@link Transition} that this [vertex]{@link Vertex} can be the source of. */
     readonly outgoing: Transition[];
@@ -166,7 +168,7 @@ export declare abstract class Vertex extends Element<Region> {
      */
     protected constructor(name: string, parent: Region | State | StateMachine);
     /**
-     * Invalidates a [state machine]{@link StateMachine} model causing it to require recompilation.
+     * Invalidates a [state machine model]{@link StateMachine} causing it to require recompilation.
      * @hidden
      */
     invalidate(): void;
@@ -183,7 +185,7 @@ export declare abstract class Vertex extends Element<Region> {
      */
     accept(visitor: Visitor, ...args: Array<any>): void;
 }
-/** A [vertex]{@link Vertex} in a [state machine]{@link StateMachine} model that has the form of a [state]{@link State} but does not behave as a full [state]{@link State}; it is always transient; it may be the source or target of [transitions]{@link Transition} but has no entry or exit behavior. */
+/** A [vertex]{@link Vertex} in a [state machine model]{@link StateMachine} that has the form of a [state]{@link State} but does not behave as a full [state]{@link State}; it is always transient; it may be the source or target of [transitions]{@link Transition} but has no entry or exit behavior. */
 export declare class PseudoState extends Vertex {
     readonly kind: PseudoStateKind;
     /**
@@ -210,7 +212,7 @@ export declare class PseudoState extends Vertex {
      */
     accept(visitor: Visitor, ...args: Array<any>): void;
 }
-/** A condition or situation during the life of an object, represented by a [state machine]{@link StateMachine} model, during which it satisfies some condition, performs some activity, or waits for some event. */
+/** A condition or situation during the life of an object, represented by a [state machine model]{@link StateMachine}, during which it satisfies some condition, performs some activity, or waits for some event. */
 export declare class State extends Vertex {
     /** The child [region(s)]{@link Region} if this [state]{@link State} is a [composite]{@link State.isComposite} or [orthogonal]{@link State.isOrthogonal} state. */
     readonly children: Region[];
@@ -230,7 +232,10 @@ export declare class State extends Vertex {
      * @param parent The parent [element]{@link Element} of this [state]{@link State}. If a [state]{@link State} or [state machine]{@link StateMachine} is specified, its [default region]{@link State.defaultRegion} used as the parent.
      */
     constructor(name: string, parent: Region | State | StateMachine);
-    /** The default [region]{@link Region} used by state.js when it implicitly creates them. [Regions]{@link Region} are implicitly created if a [vertex]{@link Vertex} specifies a [state]{@link State} or [state machine]{@link StateMachine} as its parent. */
+    /**
+     * The default [region]{@link Region} used by state.js when it implicitly creates them. [Regions]{@link Region} are implicitly created if a [vertex]{@link Vertex} specifies the [state]{@link State} as its parent.
+     * @return Returns the default [region]{@link Region} if present or undefined.
+     */
     defaultRegion(): Region | undefined;
     /**
      * Tests the [state]{@link State} to to see if it is a final state. Final states have no [outgoing]{@link State.outgoing} [transitions]{@link Transition} and cause their parent [region]{@link Region} to be considered [complete]{@link Region.isComplete}.
@@ -253,27 +258,27 @@ export declare class State extends Vertex {
      */
     isOrthogonal(): boolean;
     /**
-     * Tests a given [state machine]{@link StateMachine} [instance]{@link IInstance} to see if this [state]{@link State} is active. A [state]{@link State} is active when it has been entered but not exited.
-     * @param instance The [state machine]{@link StateMachine} [instance]{@link IInstance} to test if this [state]{@link State} is active within.
+     * Tests a given [state machine instance]{@link IInstance} to see if this [state]{@link State} is active. A [state]{@link State} is active when it has been entered but not exited.
+     * @param instance The [state machine instance]{@link IInstance} to test if this [state]{@link State} is active within.
      * @return Returns true if the [region]{@link Region} is active.
      */
     isActive(instance: IInstance): boolean;
     /**
-     * Tests a given [state machine]{@link StateMachine} [instance]{@link IInstance} to see if this [state]{@link State} is complete. A [state]{@link State} is complete when all its [child]{@link State.children} [regions]{@link Region} are [complete]{@link Region.isComplete}.
-     * @param instance The [state machine]{@link StateMachine} [instance]{@link IInstance} to test if this [state]{@link State} is complete within.
+     * Tests a given [state machine instance]{@link IInstance} to see if this [state]{@link State} is complete. A [state]{@link State} is complete when all its [child]{@link State.children} [regions]{@link Region} are [complete]{@link Region.isComplete}.
+     * @param instance The [state machine instance]{@link IInstance} to test if this [state]{@link State} is complete within.
      * @return Returns true if the [region]{@link Region} is complete.
      */
     isComplete(instance: IInstance): boolean;
     /**
      * Sets user-definable behavior to execute every time the [state]{@link State} is exited.
      * @param action The behavior to call upon [state]{@link State} exit. Mutiple calls to this method may be made to build complex behavior.
-     * @return Returns the [state]{@link State} to facilitate fluent-style [state machine]{@link StateMachine} model construction.
+     * @return Returns the [state]{@link State} to facilitate fluent-style [state machine model]{@link StateMachine} construction.
      */
     exit(action: Behavior): this;
     /**
      * Sets user-definable behavior to execute every time the [state]{@link State} is entered.
      * @param action The behavior to call upon [state]{@link State} entry. Mutiple calls to this method may be made to build complex behavior.
-     * @return Returns the [state]{@link State} to facilitate fluent-style [state machine]{@link StateMachine} model construction.
+     * @return Returns the [state]{@link State} to facilitate fluent-style [state machine model]{@link StateMachine} construction.
      */
     entry(action: Behavior): this;
     /**
@@ -305,19 +310,41 @@ export declare class StateMachine implements IElement {
     private onInitialise;
     /**
      * Creates a new instance of the [[StateMachine]] class.
-     * @param name The name of the state machine.
+     * @param name The name of the [state machine]{@link StateMachine}.
      */
     constructor(name: string);
     /**
-     * Invalidates a [state machine]{@link StateMachine} model causing it to require recompilation.
+     * Invalidates a [state machine model]{@link StateMachine} causing it to require recompilation.
      * @hidden
      */
     invalidate(): void;
-    /** The default [region]{@link Region} used by state.js when it implicitly creates them. [Regions]{@link Region} are implicitly created if a [vertex]{@link Vertes} specifies a [state]{@link State} or [state machine]{@link StateMachine} as its parent. */
+    /**
+     * The default [region]{@link Region} used by state.js when it implicitly creates them. [Regions]{@link Region} are implicitly created if a [vertex]{@link Vertex} specifies the [state machine]{@link StateMachine} as its parent.
+     * @return Returns the default [region]{@link Region} if present or undefined.
+     */
     defaultRegion(): Region | undefined;
+    /**
+     * Tests the [state machine instance]{@link IInstance} to see if it is active. As a [state machine]{@link StateMachine} is the root of the model, it will always be active.
+     * @param instance The [state machine instance]{@link IInstance} to test.
+     * @returns Always returns true.
+     */
     isActive(instance: IInstance): boolean;
+    /**
+     * Tests a given [state machine instance]{@link IInstance} to see if it is complete. A [state machine]{@link StateMachine} is complete when all its [child]{@link StateMachine.children} [regions]{@link Region} are [complete]{@link Region.isComplete}.
+     * @param instance The [state machine instance]{@link IInstance} to test.
+     * @return Returns true if the [state machine instance]{@link IInstance} is complete.
+     */
     isComplete(instance: IInstance): boolean;
+    /**
+     * Initialises a [state machine model]{@link StateMachine} or a [state machine instance]{@link IInstance}.
+     * @param instance The [state machine instance]{@link IInstance} to initialise; if omitted, the [state machine model]{@link StateMachine} is initialised.
+     */
     initialise(instance?: IInstance): void;
+    /**
+     * Passes a message to the [state machine model]{@link StateMachine} for evaluation within the context of a specific [state machine instance]{@link IInstance}.
+     * @param instance The [state machine instance]{@link IInstance} to evaluate the message against.
+     * @param message An arbitory number of objects that form the message. These will be passed to the [guard conditions]{@link Guard} of the appropriate [transitions]{@link Transition} and if a state transition occurs, to the behaviour specified on [states]{@link State} and [transitions]{@link Transition}.
+     */
     evaluate(instance: IInstance, ...message: Array<any>): boolean;
     /**
      * Accepts a [visitor]{@link Visitor} object.
@@ -325,52 +352,135 @@ export declare class StateMachine implements IElement {
      * @param args Any optional arguments to pass into the [visitor]{@link Visitor} object.
      */
     accept(visitor: Visitor, ...args: Array<any>): void;
+    /** Returns the fully name of the [state machine]{@link StateMachine}. */
     toString(): string;
 }
+/** A relationship within a [state machine model]{@link StateMachine} between two [vertices]{@link Vertex} that will effect a state transition in response to an event when its [guard condition]{@link Transition.when} is satisfied. */
 export declare class Transition {
     readonly source: Vertex;
     readonly target: Vertex;
     readonly kind: TransitionKind;
-    private static Else;
-    /** @hidden */ effectBehavior: Action[];
-    /** @hidden */ onTraverse: Action[];
-    private guard;
     /**
-     *
-     * @param source
-     * @param target
-     * @param kind The [kind]{@link TransitionKind} of the transition that defines its transition semantics. Note that the kind is validated and overriden if necessary.
+     * The transition's behavior as defined by the user.
+     * @hidden
+     */
+    effectBehavior: Action[];
+    /**
+     * The compiled behavior to effect the state transition.
+     * @hidden
+     */
+    onTraverse: Action[];
+    /**
+     * The transition's guard condition; initially a completion transition, but may be overriden by the user with calls to when and else.
+     * @hidden
+     */ private guard;
+    /**
+     * Creates an instance of the [[Transition]] class.
+     * @param source The [vertex]{@link Vertex} to [transition]{@link Transition} from.
+     * @param target The [vertex]{@link Vertex} to [transition]{@link Transition} to. Leave this as undefined to create an [internal transition]{@link TransitionKind.Internal}.
+     * @param kind The kind of the [transition]{@link Transition}; use this to explicitly set [local transition]{@link TransitionKind.Local} semantics as needed.
      */
     constructor(source: Vertex, target?: Vertex, kind?: TransitionKind);
+    /**
+     * Tests the [transition]{@link Transition} to see if it is an [else transition]{@link Transition.else}.
+     * @return Returns true if the [transition]{@link Transition} is an [else transition]{@link Transition.else}.
+     */
     isElse(): boolean;
+    /**
+     * Turns the [transition]{@link Transition} into an [else transition]{@link Transition.isElse}.
+     * @return Returns the [transition]{@link Transition} to facilitate fluent-style [state machine model]{@link StateMachine} construction.
+     */
     else(): this;
+    /**
+     * Create a user defined [guard condition]{@link Guard} for the [transition]{@link Transition}.
+     * @param guard The new [guard condition]{@link Guard}.
+     * @return Returns the [transition]{@link Transition} to facilitate fluent-style [state machine model]{@link StateMachine} construction.
+     */
     when(guard: Guard): this;
+    /**
+     * Sets user-definable behavior to execute every time the [transition]{@link Transition} is traversed.
+     * @param action The behavior to call upon [transition]{@link Transition} traversal. Mutiple calls to this method may be made to build complex behavior.
+     * @return Returns the [transition]{@link Transition} to facilitate fluent-style [state machine model]{@link StateMachine} construction.
+     */
     effect(action: Behavior): this;
-    /** @hidden */ evaluate(instance: IInstance, ...message: Array<any>): boolean;
+    /**
+     * Evaulates the [transitions]{@link Transition} guard condition.
+     * @param instance The [state machine instance]{@link IInstance} to evaluate the message against.
+     * @param message An arbitory number of objects that form the message.
+     * @hidden
+     */
+    evaluate(instance: IInstance, ...message: Array<any>): boolean;
     /**
      * Accepts a [visitor]{@link Visitor} object.
      * @param visitor The [visitor]{@link Visitor} object.
      * @param args Any optional arguments to pass into the [visitor]{@link Visitor} object.
      */
     accept(visitor: Visitor, ...args: Array<any>): void;
-    toString(): string;
 }
-export declare class Visitor {
+/** Base class for vistors that will walk the [state machine model]{@link StateMachine}; used in conjunction with the [accept]{@linkcode StateMachine.accept} methods on all [elements]{@link Element}. Visitor is an mplementation of the [visitor pattern]{@link https://en.wikipedia.org/wiki/Visitor_pattern}. */
+export declare abstract class Visitor {
+    /**
+     * Visits an [element]{@link Element} within a [state machine model]{@link StateMachine}; use this for logic applicable to all [elements]{@link Element}.
+     * @param element The [element]{@link Element} being visited.
+     * @param args The arguments passed to the initial accept call.
+     */
     visitElement(element: IElement, ...args: Array<any>): void;
+    /**
+     * Visits a [region]{@link Region} within a [state machine model]{@link StateMachine}.
+     * @param element The [reigon]{@link Region} being visited.
+     * @param args The arguments passed to the initial accept call.
+     */
     visitRegion(region: Region, ...args: Array<any>): void;
+    /**
+     * Visits a [vertex]{@link Vertex} within a [state machine model]{@link StateMachine}; use this for logic applicable to all [vertices]{@link Vertex}.
+     * @param element The [element]{@link Element} being visited.
+     * @param args The arguments passed to the initial accept call.
+     */
     visitVertex(vertex: Vertex, ...args: Array<any>): void;
+    /**
+     * Visits a [pseudo state]{@link PseudoState} within a [state machine model]{@link StateMachine}.
+     * @param element The [pseudo state]{@link PseudoState} being visited.
+     * @param args The arguments passed to the initial accept call.
+     */
     visitPseudoState(pseudoState: PseudoState, ...args: Array<any>): void;
+    /**
+     * Visits a [state]{@link State} within a [state machine model]{@link StateMachine}.
+     * @param element The [state]{@link State} being visited.
+     * @param args The arguments passed to the initial accept call.
+     */
     visitState(state: State, ...args: Array<any>): void;
+    /**
+     * Visits a [state machine]{@link StateMachine} within a [state machine model]{@link StateMachine}.
+     * @param element The [state machine]{@link StateMachine} being visited.
+     * @param args The arguments passed to the initial accept call.
+     */
     visitStateMachine(stateMachine: StateMachine, ...args: Array<any>): void;
+    /**
+     * Visits a [transition]{@link Transition} within a [state machine model]{@link StateMachine}.
+     * @param element The [transition]{@link Transition} being visited.
+     * @param args The arguments passed to the initial accept call.
+     */
     visitTransition(transition: Transition, ...args: Array<any>): void;
 }
-/** Interface to manage the active state configuration of a [state machine]{@link StateMachine} instance. Create implementations of this interface to provide control over considerations such as persistence and/or transactionallity. */
+/** Interface to manage the active state configuration of a [state machine instance]{@link IInstance}. Create implementations of this interface to provide control over considerations such as persistence and/or transactionallity. */
 export interface IInstance {
-    /** Called by state.js upon entry to any [vertex]{@link Vertex}; must store both the current [vertex]{@link Vertex} and last known [state]{@link State} for the [region]{@link Region}. */
+    /**
+     * Called by state.js upon entry to any [vertex]{@link Vertex}; must store both the current [vertex]{@link Vertex} and last known [state]{@link State} for the [region]{@link Region}.
+     * @param region The [region]{@link Region} to record the current state of.
+     * @param vertex The [vertex]{@link Vertex} to record against the [region]{@link Region}.
+     */
     setCurrent(region: Region, vertex: Vertex): void;
-    /** Called by state.js during [transition]{@link Transition} processing; must return the current [vertex]{@link Vertex} of the [region]{@link Region}. */
+    /**
+     * Called by state.js during [transition]{@link Transition} processing; must return the current [vertex]{@link Vertex} of the [region]{@link Region}.
+     * @param region The [region]{@link Region} to retrieve the current state ([vertex]{@link Vertex}) of.
+     * @return Returns the current active [vertex]{@link Vertex}.
+     */
     getCurrent(region: Region): Vertex | undefined;
-    /** Called by state.js during [region]{@link Region} entry; must return the last known [state]{@link State} of the [region]{@link Region}. */
+    /**
+     * Called by state.js during [region]{@link Region} entry; must return the last known [state]{@link State} of the [region]{@link Region}.
+     * @param region The [region]{@link Region} to retrieve the last know [state]{@link State} of.
+     * @return Returns the last know [state]{@link State}.
+     */
     getLastKnownState(region: Region): State | undefined;
 }
 /** Simple implementation of [[IInstance]]; manages the active state configuration in a dictionary. */
