@@ -1059,7 +1059,10 @@ function selectTransition(pseudoState: PseudoState, instance: IInstance, ...mess
 	return transitions[0] || findElse(pseudoState);
 }
 
-/** @hidden */
+/**
+ * Logic to 
+ * @hidden
+ */
 function evaluate(state: StateMachine | State, instance: IInstance, ...message: Array<any>): boolean {
 	let result = false;
 
@@ -1098,24 +1101,30 @@ function evaluate(state: StateMachine | State, instance: IInstance, ...message: 
 	return result;
 }
 
-/** @hidden */
-function traverse(origin: Transition, instance: IInstance, ...message: Array<any>) {
-	let onTraverse = [...origin.onTraverse];
-	let transition: Transition = origin;
+/**
+ * Logic to perform transition traversal; includes static (with its composite transition) and dynamic conditional branch processing for Junction and Choice pseudo states respectively.
+ * @hidden
+ */
+function traverse(transition: Transition, instance: IInstance, ...message: Array<any>) {
+	let onTraverse = [...transition.onTraverse];
 
+	// create the compound transition while the target is a junction pseudo state (static conditional branch)
 	while (transition.target && transition.target instanceof PseudoState && transition.target.kind === PseudoStateKind.Junction) {
 		transition = selectTransition(transition.target, instance, ...message);
 
 		onTraverse.push(...transition.onTraverse);
 	}
 
+	// invoke the transition behavior.
 	invoke(onTraverse, instance, false, ...message);
 
 	if (transition.target) {
+		// recurse to perform outbound transitions when the target is a choice pseudo state (dynamic conditional branch)
 		if (transition.target instanceof PseudoState && transition.target.kind === PseudoStateKind.Choice) {
 			traverse(selectTransition(transition.target, instance, ...message), instance, ...message);
 		}
 
+		// trigger compeltions transitions when the target is a state as required
 		else if (transition.target instanceof State && transition.target.isComplete(instance)) {
 			evaluate(transition.target, instance, transition.target);
 		}
