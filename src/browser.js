@@ -1,6 +1,6 @@
 /*
  * Finite state machine library
- * Copyright (c) 2014-6 David Mesquita-Morris
+ * Copyright (c) 2014-7 David Mesquita-Morris
  * Licensed under the MIT and GPL v3 licences
  * http://state.software
  */

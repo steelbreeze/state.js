@@ -5,6 +5,7 @@
  * Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
  */
 
+import { Delegate } from "./delegate";
 /** Interface used by state.js for managing log and error messages. */
 export interface ILogger {
     /**
@@ -49,19 +50,19 @@ export declare function setNamespaceSeparator(value: string): string;
  * @param instance The [state machine instance]{@link IInstance} to test the [transition]{@link Transition} guard condition against.
  * @param message The message to test the [transition]{@link Transition} guard condition against.
  */
-export declare type Guard = (instance: IInstance, ...message: Array<any>) => boolean;
+export declare type Guard = (instance: IInstance, ...message: any[]) => boolean;
 /**
  * The callback prototype for [state machine]{@link StateMachine} behavior during a state transition; used in [state]{@link State} entry, exit and [transition]{@link Transition} effect.
  * @param instance The [state machine instance]{@link IInstance} that the [transition]{@link Transition} is causing a state transition in.
  * @param message The message that caused the state transition.
  */
-export declare type Behavior = (instance: IInstance, ...message: Array<any>) => any;
+export declare type Behavior = (instance: IInstance, ...message: any[]) => any;
 /**
  * The callback prototype for internal actions used in state transition compilation.
  * @hidden
  */
 export interface Action {
-    (instance: IInstance, deepHistory: boolean, ...message: Array<any>): any;
+    (instance: IInstance, deepHistory: boolean, ...message: any[]): any;
 }
 /**
  * Enumeration used to define the semantics of [pseudo states]{@link PseudoState}.
@@ -153,7 +154,7 @@ export declare class Region extends Element<State | StateMachine> implements IEl
      * @param visitor The [visitor]{@link Visitor} object.
      * @param args Any optional arguments to pass into the [visitor]{@link Visitor} object.
      */
-    accept(visitor: Visitor, ...args: Array<any>): void;
+    accept(visitor: Visitor, ...args: any[]): any;
 }
 /** The source or target of a [transition]{@link Transition} within a [state machine model]{@link StateMachine}. A vertex can be either a [[State]] or a [[PseudoState]]. */
 export declare abstract class Vertex extends Element<Region> {
@@ -183,7 +184,7 @@ export declare abstract class Vertex extends Element<Region> {
      * @param visitor The [visitor]{@link Visitor} object.
      * @param args Any optional arguments to pass into the [visitor]{@link Visitor} object.
      */
-    accept(visitor: Visitor, ...args: Array<any>): void;
+    accept(visitor: Visitor, ...args: any[]): any;
 }
 /** A [vertex]{@link Vertex} in a [state machine model]{@link StateMachine} that has the form of a [state]{@link State} but does not behave as a full [state]{@link State}; it is always transient; it may be the source or target of [transitions]{@link Transition} but has no entry or exit behavior. */
 export declare class PseudoState extends Vertex {
@@ -210,7 +211,7 @@ export declare class PseudoState extends Vertex {
      * @param visitor The [visitor]{@link Visitor} object.
      * @param args Any optional arguments to pass into the [visitor]{@link Visitor} object.
      */
-    accept(visitor: Visitor, ...args: Array<any>): void;
+    accept(visitor: Visitor, ...args: any[]): any;
 }
 /** A condition or situation during the life of an object, represented by a [state machine model]{@link StateMachine}, during which it satisfies some condition, performs some activity, or waits for some event. */
 export declare class State extends Vertex {
@@ -220,12 +221,12 @@ export declare class State extends Vertex {
      * The state's entry behavior as defined by the user.
      * @hidden
      */
-    readonly entryBehavior: Action[];
+    entryBehavior: Delegate;
     /**
      * The state's exit behavior as defined by the user.
      * @hidden
      */
-    readonly exitBehavior: Action[];
+    exitBehavior: Delegate;
     /**
      * Creates a new instance of the [[State]] class.
      * @param name The name of this [state]{@link State}.
@@ -286,7 +287,7 @@ export declare class State extends Vertex {
      * @param visitor The [visitor]{@link Visitor} object.
      * @param args Any optional arguments to pass into the [visitor]{@link Visitor} object.
      */
-    accept(visitor: Visitor, ...args: Array<any>): void;
+    accept(visitor: Visitor, ...args: any[]): any;
 }
 /** A specification of the sequences of [states]{@link State} that an object goes through in response to events during its life, together with its responsive actions. */
 export declare class StateMachine implements IElement {
@@ -345,13 +346,13 @@ export declare class StateMachine implements IElement {
      * @param instance The [state machine instance]{@link IInstance} to evaluate the message against.
      * @param message An arbitory number of objects that form the message. These will be passed to the [guard conditions]{@link Guard} of the appropriate [transitions]{@link Transition} and if a state transition occurs, to the behaviour specified on [states]{@link State} and [transitions]{@link Transition}.
      */
-    evaluate(instance: IInstance, ...message: Array<any>): boolean;
+    evaluate(instance: IInstance, ...message: any[]): boolean;
     /**
      * Accepts a [visitor]{@link Visitor} object.
      * @param visitor The [visitor]{@link Visitor} object.
      * @param args Any optional arguments to pass into the [visitor]{@link Visitor} object.
      */
-    accept(visitor: Visitor, ...args: Array<any>): void;
+    accept(visitor: Visitor, ...args: any[]): any;
     /** Returns the fully name of the [state machine]{@link StateMachine}. */
     toString(): string;
 }
@@ -364,12 +365,12 @@ export declare class Transition {
      * The transition's behavior as defined by the user.
      * @hidden
      */
-    effectBehavior: Action[];
+    effectBehavior: Delegate;
     /**
      * The compiled behavior to effect the state transition.
      * @hidden
      */
-    onTraverse: Action[];
+    onTraverse: Delegate;
     /**
      * The transition's guard condition; initially a completion transition, but may be overriden by the user with calls to when and else.
      * @hidden
@@ -409,13 +410,13 @@ export declare class Transition {
      * @param message An arbitory number of objects that form the message.
      * @hidden
      */
-    evaluate(instance: IInstance, ...message: Array<any>): boolean;
+    evaluate(instance: IInstance, ...message: any[]): boolean;
     /**
      * Accepts a [visitor]{@link Visitor} object.
      * @param visitor The [visitor]{@link Visitor} object.
      * @param args Any optional arguments to pass into the [visitor]{@link Visitor} object.
      */
-    accept(visitor: Visitor, ...args: Array<any>): void;
+    accept(visitor: Visitor, ...args: any[]): any;
 }
 /** Base class for vistors that will walk the [state machine model]{@link StateMachine}; used in conjunction with the [accept]{@linkcode StateMachine.accept} methods on all [elements]{@link Element}. Visitor is an mplementation of the [visitor pattern]{@link https://en.wikipedia.org/wiki/Visitor_pattern}. */
 export declare abstract class Visitor {
@@ -424,43 +425,43 @@ export declare abstract class Visitor {
      * @param element The [element]{@link Element} being visited.
      * @param args The arguments passed to the initial accept call.
      */
-    visitElement(element: IElement, ...args: Array<any>): void;
+    visitElement(element: IElement, ...args: any[]): any;
     /**
      * Visits a [region]{@link Region} within a [state machine model]{@link StateMachine}.
      * @param element The [reigon]{@link Region} being visited.
      * @param args The arguments passed to the initial accept call.
      */
-    visitRegion(region: Region, ...args: Array<any>): void;
+    visitRegion(region: Region, ...args: any[]): any;
     /**
      * Visits a [vertex]{@link Vertex} within a [state machine model]{@link StateMachine}; use this for logic applicable to all [vertices]{@link Vertex}.
      * @param element The [element]{@link Element} being visited.
      * @param args The arguments passed to the initial accept call.
      */
-    visitVertex(vertex: Vertex, ...args: Array<any>): void;
+    visitVertex(vertex: Vertex, ...args: any[]): any;
     /**
      * Visits a [pseudo state]{@link PseudoState} within a [state machine model]{@link StateMachine}.
      * @param element The [pseudo state]{@link PseudoState} being visited.
      * @param args The arguments passed to the initial accept call.
      */
-    visitPseudoState(pseudoState: PseudoState, ...args: Array<any>): void;
+    visitPseudoState(pseudoState: PseudoState, ...args: any[]): any;
     /**
      * Visits a [state]{@link State} within a [state machine model]{@link StateMachine}.
      * @param element The [state]{@link State} being visited.
      * @param args The arguments passed to the initial accept call.
      */
-    visitState(state: State, ...args: Array<any>): void;
+    visitState(state: State, ...args: any[]): any;
     /**
      * Visits a [state machine]{@link StateMachine} within a [state machine model]{@link StateMachine}.
      * @param element The [state machine]{@link StateMachine} being visited.
      * @param args The arguments passed to the initial accept call.
      */
-    visitStateMachine(stateMachine: StateMachine, ...args: Array<any>): void;
+    visitStateMachine(stateMachine: StateMachine, ...args: any[]): any;
     /**
      * Visits a [transition]{@link Transition} within a [state machine model]{@link StateMachine}.
      * @param element The [transition]{@link Transition} being visited.
      * @param args The arguments passed to the initial accept call.
      */
-    visitTransition(transition: Transition, ...args: Array<any>): void;
+    visitTransition(transition: Transition, ...args: any[]): any;
 }
 /** Interface to manage the active state configuration of a [state machine instance]{@link IInstance}. Create implementations of this interface to provide control over considerations such as persistence and/or transactionallity. */
 export interface IInstance {

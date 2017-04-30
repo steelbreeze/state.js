@@ -3,13 +3,14 @@
  * 
  * a finite state machine library
  * 
- * @copyright (c) 2014-6 David Mesquita-Morris
+ * @copyright (c) 2014-7 David Mesquita-Morris
  * 
  * Licensed under the MIT and GPL v3 licences
  */
 
-/** Import generic tree functions */
+/** Import other packages */
 import * as Tree from "./tree";
+import { Delegate, delegate } from "./delegate";
 
 /** Interface used by state.js for managing log and error messages. */
 export interface ILogger {
@@ -112,34 +113,34 @@ export function setNamespaceSeparator(value: string): string {
  * @param instance The [state machine instance]{@link IInstance} to test the [transition]{@link Transition} guard condition against.
  * @param message The message to test the [transition]{@link Transition} guard condition against.
  */
-export type Guard = (instance: IInstance, ...message: Array<any>) => boolean;
+export type Guard = (instance: IInstance, ...message: any[]) => boolean;
 
 /**
  * The default guard condition use use for else transitions.
  * @hidden
  */
-const Else: Guard = (instance: IInstance, ...message: Array<any>) => false;
+const Else: Guard = (instance: IInstance, ...message: any[]) => false;
 
 /**
  * The callback prototype for [state machine]{@link StateMachine} behavior during a state transition; used in [state]{@link State} entry, exit and [transition]{@link Transition} effect.
  * @param instance The [state machine instance]{@link IInstance} that the [transition]{@link Transition} is causing a state transition in.
  * @param message The message that caused the state transition.
  */
-export type Behavior = (instance: IInstance, ...message: Array<any>) => any;
+export type Behavior = (instance: IInstance, ...message: any[]) => any;
 
 /**
  * The callback prototype for internal actions used in state transition compilation.
  * @hidden
  */
 export interface Action {
-	(instance: IInstance, deepHistory: boolean, ...message: Array<any>): any;
+	(instance: IInstance, deepHistory: boolean, ...message: any[]): any;
 }
 
 /**
  * Calls a set of internal actions during a state transition
  * @hidden
  */
-function invoke(actions: Array<Action>, instance: IInstance, deepHistory: boolean, ...message: Array<any>): void {
+function invoke(actions: Array<Action>, instance: IInstance, deepHistory: boolean, ...message: any[]): void {
 	for (const action of actions) {
 		action(instance, deepHistory, ...message);
 	}
@@ -269,8 +270,8 @@ export class Region extends Element<State | StateMachine> implements IElement {
 	 * @param visitor The [visitor]{@link Visitor} object.
 	 * @param args Any optional arguments to pass into the [visitor]{@link Visitor} object.
 	 */
-	public accept(visitor: Visitor, ...args: Array<any>) {
-		visitor.visitRegion(this, ...args);
+	public accept(visitor: Visitor, ...args: any[]): any {
+		return visitor.visitRegion(this, ...args);
 	}
 }
 
@@ -316,8 +317,8 @@ export abstract class Vertex extends Element<Region> {
 	 * @param visitor The [visitor]{@link Visitor} object.
 	 * @param args Any optional arguments to pass into the [visitor]{@link Visitor} object.
 	 */
-	public accept(visitor: Visitor, ...args: Array<any>) {
-		visitor.visitVertex(this, ...args);
+	public accept(visitor: Visitor, ...args: any[]): any {
+		return visitor.visitVertex(this, ...args);
 	}
 }
 
@@ -354,8 +355,8 @@ export class PseudoState extends Vertex {
 	 * @param visitor The [visitor]{@link Visitor} object.
 	 * @param args Any optional arguments to pass into the [visitor]{@link Visitor} object.
 	 */
-	public accept(visitor: Visitor, ...args: Array<any>) {
-		visitor.visitPseudoState(this, ...args);
+	public accept(visitor: Visitor, ...args: any[]): any {
+		return visitor.visitPseudoState(this, ...args);
 	}
 }
 /** A condition or situation during the life of an object, represented by a [state machine model]{@link StateMachine}, during which it satisfies some condition, performs some activity, or waits for some event. */
@@ -367,13 +368,13 @@ export class State extends Vertex {
 	 * The state's entry behavior as defined by the user.
 	 * @hidden
 	 */
-	readonly entryBehavior = new Array<Action>();
+	entryBehavior = delegate();
 
 	/**
 	 * The state's exit behavior as defined by the user.
 	 * @hidden
 	 */
-	readonly exitBehavior = new Array<Action>();
+	exitBehavior = delegate();
 
 	/**
 	 * Creates a new instance of the [[State]] class.
@@ -448,7 +449,7 @@ export class State extends Vertex {
 	 * @return Returns the [state]{@link State} to facilitate fluent-style [state machine model]{@link StateMachine} construction.
 	 */
 	public exit(action: Behavior) {
-		this.exitBehavior.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => {
+		this.exitBehavior = delegate(this.exitBehavior, (instance: IInstance, deepHistory: boolean, ...message: any[]) => {
 			action(instance, ...message);
 		});
 
@@ -463,7 +464,7 @@ export class State extends Vertex {
 	 * @return Returns the [state]{@link State} to facilitate fluent-style [state machine model]{@link StateMachine} construction.
 	 */
 	public entry(action: Behavior) {
-		this.entryBehavior.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => {
+		this.entryBehavior = delegate(this.entryBehavior, (instance: IInstance, deepHistory: boolean, ...message: any[]) => {
 			action(instance, ...message);
 		});
 
@@ -477,8 +478,8 @@ export class State extends Vertex {
 	 * @param visitor The [visitor]{@link Visitor} object.
 	 * @param args Any optional arguments to pass into the [visitor]{@link Visitor} object.
 	 */
-	public accept(visitor: Visitor, ...args: Array<any>) {
-		visitor.visitState(this, ...args);
+	public accept(visitor: Visitor, ...args: any[]): any {
+		return visitor.visitState(this, ...args);
 	}
 }
 
@@ -573,7 +574,7 @@ export class StateMachine implements IElement {
 	 * @param instance The [state machine instance]{@link IInstance} to evaluate the message against.
 	 * @param message An arbitory number of objects that form the message. These will be passed to the [guard conditions]{@link Guard} of the appropriate [transitions]{@link Transition} and if a state transition occurs, to the behaviour specified on [states]{@link State} and [transitions]{@link Transition}.
 	 */
-	public evaluate(instance: IInstance, ...message: Array<any>): boolean {
+	public evaluate(instance: IInstance, ...message: any[]): boolean {
 		if (this.clean === false) {
 			this.initialise();
 		}
@@ -588,8 +589,8 @@ export class StateMachine implements IElement {
 	 * @param visitor The [visitor]{@link Visitor} object.
 	 * @param args Any optional arguments to pass into the [visitor]{@link Visitor} object.
 	 */
-	public accept(visitor: Visitor, ...args: Array<any>) {
-		visitor.visitStateMachine(this, ...args);
+	public accept(visitor: Visitor, ...args: any[]): any {
+		return visitor.visitStateMachine(this, ...args);
 	}
 
 	/** Returns the fully name of the [state machine]{@link StateMachine}. */
@@ -604,15 +605,14 @@ export class Transition {
 	 * The transition's behavior as defined by the user.
 	 * @hidden
 	 */
-	effectBehavior = new Array<Action>();
+	effectBehavior = delegate();
 
 
 	/**
 	 * The compiled behavior to effect the state transition.
 	 * @hidden
 	 */
-	onTraverse = new Array<Action>();
-
+	onTraverse: Delegate;
 	/**
 	 * The transition's guard condition; initially a completion transition, but may be overriden by the user with calls to when and else.
 	 * @hidden
@@ -625,7 +625,7 @@ export class Transition {
 	 * @param kind The kind of the [transition]{@link Transition}; use this to explicitly set [local transition]{@link TransitionKind.Local} semantics as needed.
 	 */
 	public constructor(public readonly source: Vertex, public readonly target?: Vertex, public readonly kind: TransitionKind = TransitionKind.External) {
-		this.guard = source instanceof PseudoState ? (instance: IInstance, ...message: Array<any>) => true : (instance: IInstance, ...message: Array<any>) => message[0] === this.source;
+		this.guard = source instanceof PseudoState ? (instance: IInstance, ...message: any[]) => true : (instance: IInstance, ...message: any[]) => message[0] === this.source;
 		this.source.outgoing.push(this);
 
 		// validate and repair if necessary the user supplied transition kind
@@ -682,7 +682,7 @@ export class Transition {
 	 * @return Returns the [transition]{@link Transition} to facilitate fluent-style [state machine model]{@link StateMachine} construction.
 	 */
 	public effect(action: Behavior) {
-		this.effectBehavior.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => {
+		this.effectBehavior = delegate(this.effectBehavior, (instance: IInstance, deepHistory: boolean, ...message: any[]) => {
 			action(instance, ...message);
 		});
 
@@ -697,7 +697,7 @@ export class Transition {
 	 * @param message An arbitory number of objects that form the message.
 	 * @hidden
 	 */
-	evaluate(instance: IInstance, ...message: Array<any>): boolean {
+	evaluate(instance: IInstance, ...message: any[]): boolean {
 		return this.guard(instance, ...message);
 	}
 
@@ -706,8 +706,8 @@ export class Transition {
 	 * @param visitor The [visitor]{@link Visitor} object.
 	 * @param args Any optional arguments to pass into the [visitor]{@link Visitor} object.
 	 */
-	public accept(visitor: Visitor, ...args: Array<any>) {
-		visitor.visitTransition(this, ...args);
+	public accept(visitor: Visitor, ...args: any[]): any {
+		return visitor.visitTransition(this, ...args);
 	}
 }
 
@@ -718,7 +718,7 @@ export abstract class Visitor {
 	 * @param element The [element]{@link Element} being visited.
 	 * @param args The arguments passed to the initial accept call.
 	 */
-	visitElement(element: IElement, ...args: Array<any>): void {
+	visitElement(element: IElement, ...args: any[]): any {
 	}
 
 	/**
@@ -726,7 +726,7 @@ export abstract class Visitor {
 	 * @param element The [reigon]{@link Region} being visited.
 	 * @param args The arguments passed to the initial accept call.
 	 */
-	visitRegion(region: Region, ...args: Array<any>): void {
+	visitRegion(region: Region, ...args: any[]): any {
 		for (const vertex of region.children) {
 			vertex.accept(this, ...args);
 		}
@@ -739,7 +739,7 @@ export abstract class Visitor {
 	 * @param element The [element]{@link Element} being visited.
 	 * @param args The arguments passed to the initial accept call.
 	 */
-	visitVertex(vertex: Vertex, ...args: Array<any>): void {
+	visitVertex(vertex: Vertex, ...args: any[]): any {
 		for (const transition of vertex.outgoing) {
 			transition.accept(this, ...args);
 		}
@@ -752,7 +752,7 @@ export abstract class Visitor {
 	 * @param element The [pseudo state]{@link PseudoState} being visited.
 	 * @param args The arguments passed to the initial accept call.
 	 */
-	visitPseudoState(pseudoState: PseudoState, ...args: Array<any>): void {
+	visitPseudoState(pseudoState: PseudoState, ...args: any[]): any {
 		this.visitVertex(pseudoState, ...args);
 	}
 
@@ -761,7 +761,7 @@ export abstract class Visitor {
 	 * @param element The [state]{@link State} being visited.
 	 * @param args The arguments passed to the initial accept call.
 	 */
-	visitState(state: State, ...args: Array<any>): void {
+	visitState(state: State, ...args: any[]): any {
 		for (const region of state.children) {
 			region.accept(this, ...args);
 		}
@@ -774,7 +774,7 @@ export abstract class Visitor {
 	 * @param element The [state machine]{@link StateMachine} being visited.
 	 * @param args The arguments passed to the initial accept call.
 	 */
-	visitStateMachine(stateMachine: StateMachine, ...args: Array<any>): void {
+	visitStateMachine(stateMachine: StateMachine, ...args: any[]): any {
 		for (const region of stateMachine.children) {
 			region.accept(this, ...args);
 		}
@@ -787,7 +787,7 @@ export abstract class Visitor {
 	 * @param element The [transition]{@link Transition} being visited.
 	 * @param args The arguments passed to the initial accept call.
 	 */
-	visitTransition(transition: Transition, ...args: Array<any>): void {
+	visitTransition(transition: Transition, ...args: any[]): any {
 	}
 }
 
@@ -869,9 +869,9 @@ export class DictionaryInstance implements IInstance {
 
 /** @hidden */
 class ElementActions {
-	leave = new Array<Action>();
-	beginEnter = new Array<Action>();
-	endEnter = new Array<Action>();
+	leave = delegate();
+	beginEnter = delegate();
+	endEnter = delegate();
 }
 
 /** @hidden */
@@ -884,40 +884,40 @@ class InitialiseStateMachine extends Visitor {
 	}
 
 	visitElement(element: IElement, deepHistoryAbove: boolean): void {
-		this.getActions(element).leave.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => logger.log(`${instance} leave ${element}`));
-		this.getActions(element).beginEnter.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => logger.log(`${instance} enter ${element}`));
+		this.getActions(element).leave = delegate(this.getActions(element).leave, (instance: IInstance, deepHistory: boolean, ...message: any[]) => logger.log(`${instance} leave ${element}`));
+		this.getActions(element).beginEnter = delegate(this.getActions(element).beginEnter, (instance: IInstance, deepHistory: boolean, ...message: any[]) => logger.log(`${instance} enter ${element}`));
 	}
 
 	visitRegion(region: Region, deepHistoryAbove: boolean): void {
 		const regionInitial = region.children.reduce<PseudoState | undefined>((result, vertex) => vertex instanceof PseudoState && vertex.isInitial() && (result === undefined || result.isHistory()) ? vertex : result, undefined);
 
-		this.getActions(region).leave.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => {
+		this.getActions(region).leave = delegate(this.getActions(region).leave, (instance: IInstance, deepHistory: boolean, ...message: any[]) => {
 			const currentState = instance.getCurrent(region);
 
 			if (currentState) {
-				invoke(this.getActions(currentState).leave, instance, false, ...message);
+				this.getActions(currentState).leave(instance, false, ...message);
 			}
 		});
 
 		super.visitRegion(region, deepHistoryAbove || (regionInitial && regionInitial.kind === PseudoStateKind.DeepHistory)); // TODO: determine if we need to break this up or move it
 
 		if (deepHistoryAbove || !regionInitial || regionInitial.isHistory()) {
-			this.getActions(region).endEnter.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => {
+			this.getActions(region).endEnter = delegate(this.getActions(region).endEnter, (instance: IInstance, deepHistory: boolean, ...message: any[]) => {
 				const actions = this.getActions((deepHistory || regionInitial!.isHistory()) ? instance.getLastKnownState(region) || regionInitial! : regionInitial!);
 				const history = deepHistory || regionInitial!.kind === PseudoStateKind.DeepHistory;
 
-				invoke(actions.beginEnter, instance, history, ...message);
-				invoke(actions.endEnter, instance, history, ...message);
+				actions.beginEnter(instance, history, ...message);
+				actions.endEnter(instance, history, ...message);
 			});
 		} else {
-			this.getActions(region).endEnter.push(...this.getActions(regionInitial).beginEnter, ...this.getActions(regionInitial).endEnter);
+			this.getActions(region).endEnter = delegate(this.getActions(region).endEnter, this.getActions(regionInitial).beginEnter, this.getActions(regionInitial).endEnter);
 		}
 	}
 
 	visitVertex(vertex: Vertex, deepHistoryAbove: boolean) {
 		super.visitVertex(vertex, deepHistoryAbove);
 
-		this.getActions(vertex).beginEnter.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => {
+		this.getActions(vertex).beginEnter = delegate(this.getActions(vertex).beginEnter, (instance: IInstance, deepHistory: boolean, ...message: any[]) => {
 			instance.setCurrent(vertex.parent, vertex);
 		});
 	}
@@ -926,15 +926,15 @@ class InitialiseStateMachine extends Visitor {
 		super.visitPseudoState(pseudoState, deepHistoryAbove);
 
 		if (pseudoState.isInitial()) {
-			this.getActions(pseudoState).endEnter.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => {
+			this.getActions(pseudoState).endEnter = delegate(this.getActions(pseudoState).endEnter, (instance: IInstance, deepHistory: boolean, ...message: any[]) => {
 				if (instance.getLastKnownState(pseudoState.parent)) {
-					invoke(this.getActions(pseudoState).leave, instance, false, ...message);
+					this.getActions(pseudoState).leave(instance, false, ...message);
 
 					const currentState = instance.getLastKnownState(pseudoState.parent);
 
 					if (currentState) {
-						invoke(this.getActions(currentState).beginEnter, instance, deepHistory || pseudoState.kind === PseudoStateKind.DeepHistory, ...message);
-						invoke(this.getActions(currentState).endEnter, instance, deepHistory || pseudoState.kind === PseudoStateKind.DeepHistory, ...message);
+						this.getActions(currentState).beginEnter(instance, deepHistory || pseudoState.kind === PseudoStateKind.DeepHistory, ...message);
+						this.getActions(currentState).endEnter(instance, deepHistory || pseudoState.kind === PseudoStateKind.DeepHistory, ...message);
 					}
 				} else {
 					traverse(pseudoState.outgoing[0], instance, false);
@@ -947,14 +947,14 @@ class InitialiseStateMachine extends Visitor {
 		for (const region of state.children) {
 			region.accept(this, deepHistoryAbove);
 
-			this.getActions(state).leave.push(...this.getActions(region).leave);
-			this.getActions(state).endEnter.push(...this.getActions(region).beginEnter, ...this.getActions(region).endEnter);
+			this.getActions(state).leave = delegate(this.getActions(state).leave, this.getActions(region).leave);
+			this.getActions(state).endEnter = delegate(this.getActions(state).endEnter, this.getActions(region).beginEnter, this.getActions(region).endEnter);
 		}
 
 		this.visitVertex(state, deepHistoryAbove);
 
-		this.getActions(state).leave.push(...state.exitBehavior);
-		this.getActions(state).beginEnter.push(...state.entryBehavior);
+		this.getActions(state).leave = delegate(this.getActions(state).leave, state.exitBehavior);
+		this.getActions(state).beginEnter = delegate(this.getActions(state).beginEnter, state.entryBehavior);
 	}
 
 	visitStateMachine(stateMachine: StateMachine, deepHistoryAbove: boolean, onInitialise: Array<Action>): void {
@@ -977,7 +977,7 @@ class InitialiseStateMachine extends Visitor {
 		}
 
 		for (const region of stateMachine.children) {
-			onInitialise.push(...this.getActions(region).beginEnter, ...this.getActions(region).endEnter);
+			onInitialise.push(this.getActions(region).beginEnter, this.getActions(region).endEnter);
 		}
 	}
 
@@ -988,10 +988,10 @@ class InitialiseStateMachine extends Visitor {
 	}
 
 	visitInternalTransition(transition: Transition): void {
-		transition.onTraverse.push(...transition.effectBehavior);
+		transition.onTraverse = delegate(transition.effectBehavior);
 
 		if (internalTransitionsTriggerCompletion) {
-			transition.onTraverse.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => {
+			transition.onTraverse = delegate(transition.onTraverse, (instance: IInstance, deepHistory: boolean, ...message: any[]) => {
 				if (transition.source instanceof State && transition.source.isComplete(instance)) {
 					evaluate(transition.source, instance, transition.source);
 				}
@@ -1000,23 +1000,23 @@ class InitialiseStateMachine extends Visitor {
 	}
 
 	visitLocalTransition(transition: Transition): void {
-		transition.onTraverse.push((instance: IInstance, deepHistory: boolean, ...message: Array<any>) => {
+		transition.onTraverse = delegate((instance: IInstance, deepHistory: boolean, ...message: any[]) => {
 			let vertex: Vertex | StateMachine = transition.target!;
-			const actions = [...this.getActions(transition.target!).endEnter];
+			let actions = delegate(this.getActions(transition.target!).endEnter);
 
 			while (vertex !== transition.source) {
-				actions.unshift(...this.getActions(vertex).beginEnter);
+				actions = delegate(this.getActions(vertex).beginEnter, actions);
 
 				if (vertex.parent.parent === transition.source) {
-					actions.unshift(...transition.effectBehavior, ...this.getActions(instance.getCurrent(vertex.parent)!).leave);
+					actions = delegate(transition.effectBehavior, this.getActions(instance.getCurrent(vertex.parent)!).leave, actions);
 				} else {
-					actions.unshift(...this.getActions(vertex.parent).beginEnter); // TODO: validate this is the correct place for region entry
+					actions = delegate(this.getActions(vertex.parent).beginEnter, actions); // TODO: validate this is the correct place for region entry
 				}
 
 				vertex = vertex.parent.parent;
 			}
 
-			invoke(actions, instance, deepHistory, ...message);
+			actions(instance, deepHistory, ...message);
 		});
 	}
 
@@ -1029,13 +1029,13 @@ class InitialiseStateMachine extends Visitor {
 			i += 1;
 		}
 
-		transition.onTraverse.push(...this.getActions(sourceAncestors[i]).leave, ...transition.effectBehavior);
+		transition.onTraverse = delegate(this.getActions(sourceAncestors[i]).leave, transition.effectBehavior);
 
 		while (i < targetAncestors.length) {
-			transition.onTraverse.push(...this.getActions(targetAncestors[i++]).beginEnter);
+			transition.onTraverse = delegate(transition.onTraverse, this.getActions(targetAncestors[i++]).beginEnter);
 		}
 
-		transition.onTraverse.push(...this.getActions(transition.target!).endEnter);
+		transition.onTraverse = delegate(transition.onTraverse, this.getActions(transition.target!).endEnter);
 	}
 }
 
@@ -1045,7 +1045,7 @@ function findElse(pseudoState: PseudoState): Transition {
 }
 
 /** @hidden */
-function selectTransition(pseudoState: PseudoState, instance: IInstance, ...message: Array<any>): Transition {
+function selectTransition(pseudoState: PseudoState, instance: IInstance, ...message: any[]): Transition {
 	const transitions = pseudoState.outgoing.filter(transition => transition.evaluate(instance, ...message));
 
 	if (pseudoState.kind === PseudoStateKind.Choice) {
@@ -1063,7 +1063,7 @@ function selectTransition(pseudoState: PseudoState, instance: IInstance, ...mess
  * Logic to 
  * @hidden
  */
-function evaluate(state: StateMachine | State, instance: IInstance, ...message: Array<any>): boolean {
+function evaluate(state: StateMachine | State, instance: IInstance, ...message: any[]): boolean {
 	let result = false;
 
 	if (message[0] !== state) {
@@ -1105,18 +1105,18 @@ function evaluate(state: StateMachine | State, instance: IInstance, ...message: 
  * Logic to perform transition traversal; includes static (with its composite transition) and dynamic conditional branch processing for Junction and Choice pseudo states respectively.
  * @hidden
  */
-function traverse(transition: Transition, instance: IInstance, ...message: Array<any>) {
-	let onTraverse = [...transition.onTraverse];
+function traverse(transition: Transition, instance: IInstance, ...message: any[]) {
+	let onTraverse = delegate(transition.onTraverse);
 
 	// create the compound transition while the target is a junction pseudo state (static conditional branch)
 	while (transition.target && transition.target instanceof PseudoState && transition.target.kind === PseudoStateKind.Junction) {
 		transition = selectTransition(transition.target, instance, ...message);
 
-		onTraverse.push(...transition.onTraverse);
+		onTraverse = delegate(onTraverse, transition.onTraverse);
 	}
 
-	// invoke the transition behavior.
-	invoke(onTraverse, instance, false, ...message);
+	// call the transition behavior.
+	onTraverse(instance, false, ...message);
 
 	if (transition.target) {
 		// recurse to perform outbound transitions when the target is a choice pseudo state (dynamic conditional branch)
