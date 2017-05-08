@@ -46,24 +46,11 @@ export declare function setInternalTransitionsTriggerCompletion(value: boolean):
  */
 export declare function setNamespaceSeparator(value: string): string;
 /**
- * The callback prototype for [state machine]{@link StateMachine} [transition]{@link Transition} guard conditions.
- * @param instance The [state machine instance]{@link IInstance} to test the [transition]{@link Transition} guard condition against.
- * @param message The message to test the [transition]{@link Transition} guard condition against.
- */
-export declare type Guard = (instance: IInstance, ...message: any[]) => boolean;
-/**
  * The callback prototype for [state machine]{@link StateMachine} behavior during a state transition; used in [state]{@link State} entry, exit and [transition]{@link Transition} effect.
  * @param instance The [state machine instance]{@link IInstance} that the [transition]{@link Transition} is causing a state transition in.
  * @param message The message that caused the state transition.
  */
-export declare type Behavior = (instance: IInstance, ...message: any[]) => any;
-/**
- * The callback prototype for internal actions used in state transition compilation.
- * @hidden
- */
-export interface Action {
-    (instance: IInstance, deepHistory: boolean, ...message: any[]): any;
-}
+export declare type Behavior<TReturn = any> = (instance: IInstance, ...message: any[]) => TReturn;
 /**
  * Enumeration used to define the semantics of [pseudo states]{@link PseudoState}.
  */
@@ -374,7 +361,8 @@ export declare class Transition {
     /**
      * The transition's guard condition; initially a completion transition, but may be overriden by the user with calls to when and else.
      * @hidden
-     */ private guard;
+     */
+    private guard;
     /**
      * Creates an instance of the [[Transition]] class.
      * @param source The [vertex]{@link Vertex} to [transition]{@link Transition} from.
@@ -397,7 +385,7 @@ export declare class Transition {
      * @param guard The new [guard condition]{@link Guard}.
      * @return Returns the [transition]{@link Transition} to facilitate fluent-style [state machine model]{@link StateMachine} construction.
      */
-    when(guard: Guard): this;
+    when(guard: Behavior<boolean>): this;
     /**
      * Sets user-definable behavior to execute every time the [transition]{@link Transition} is traversed.
      * @param action The behavior to call upon [transition]{@link Transition} traversal. Mutiple calls to this method may be made to build complex behavior.
@@ -467,10 +455,9 @@ export declare abstract class Visitor {
 export interface IInstance {
     /**
      * Called by state.js upon entry to any [vertex]{@link Vertex}; must store both the current [vertex]{@link Vertex} and last known [state]{@link State} for the [region]{@link Region}.
-     * @param region The [region]{@link Region} to record the current state of.
      * @param vertex The [vertex]{@link Vertex} to record against the [region]{@link Region}.
      */
-    setCurrent(region: Region, vertex: Vertex): void;
+    setCurrent(vertex: Vertex): void;
     /**
      * Called by state.js during [transition]{@link Transition} processing; must return the current [vertex]{@link Vertex} of the [region]{@link Region}.
      * @param region The [region]{@link Region} to retrieve the current state ([vertex]{@link Vertex}) of.
@@ -490,7 +477,7 @@ export declare class DictionaryInstance implements IInstance {
     private readonly asc;
     constructor(name: string);
     private find(region);
-    setCurrent(region: Region, vertex: Vertex): void;
+    setCurrent(vertex: Vertex): void;
     getCurrent(region: Region): Vertex | undefined;
     getLastKnownState(region: Region): State | undefined;
     toString(): string;

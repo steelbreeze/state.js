@@ -18,9 +18,9 @@ export interface Delegate {
 }
 
 /**
- * Creates a delegate for one or more finctions that can be called as one.
- * @param delegates The set of functions to roll into a single delegate.
- * @return Returns a delegate function that calls all the other functions.
+ * Creates a delegate for one or more functions that can be called as one.
+ * @param delegates The set of functions to aggregate into a single delegate.
+ * @return Returns a delegate that when called calls the other functions provided.
  */
 export function delegate(...delegates: Delegate[]): Delegate {
 	return (...args: any[]) => delegates.map(f => f(...args));

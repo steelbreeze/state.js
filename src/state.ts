@@ -109,42 +109,17 @@ export function setNamespaceSeparator(value: string): string {
 }
 
 /**
- * The callback prototype for [state machine]{@link StateMachine} [transition]{@link Transition} guard conditions.
- * @param instance The [state machine instance]{@link IInstance} to test the [transition]{@link Transition} guard condition against.
- * @param message The message to test the [transition]{@link Transition} guard condition against.
+ * The callback prototype for [state machine]{@link StateMachine} behavior during a state transition; used in [state]{@link State} entry, exit and [transition]{@link Transition} effect.
+ * @param instance The [state machine instance]{@link IInstance} that the [transition]{@link Transition} is causing a state transition in.
+ * @param message The message that caused the state transition.
  */
-export type Guard = (instance: IInstance, ...message: any[]) => boolean;
+export type Behavior<TReturn = any> = (instance: IInstance, ...message: any[]) => TReturn;
 
 /**
  * The default guard condition use use for else transitions.
  * @hidden
  */
-const Else: Guard = (instance: IInstance, ...message: any[]) => false;
-
-/**
- * The callback prototype for [state machine]{@link StateMachine} behavior during a state transition; used in [state]{@link State} entry, exit and [transition]{@link Transition} effect.
- * @param instance The [state machine instance]{@link IInstance} that the [transition]{@link Transition} is causing a state transition in.
- * @param message The message that caused the state transition.
- */
-export type Behavior = (instance: IInstance, ...message: any[]) => any;
-
-/**
- * The callback prototype for internal actions used in state transition compilation.
- * @hidden
- */
-export interface Action {
-	(instance: IInstance, deepHistory: boolean, ...message: any[]): any;
-}
-
-/**
- * Calls a set of internal actions during a state transition
- * @hidden
- */
-function invoke(actions: Array<Action>, instance: IInstance, deepHistory: boolean, ...message: any[]): void {
-	for (const action of actions) {
-		action(instance, deepHistory, ...message);
-	}
-}
+const Else: Behavior<boolean> = (instance: IInstance, ...message: any[]) => false;
 
 /**
  * Enumeration used to define the semantics of [pseudo states]{@link PseudoState}.
@@ -504,7 +479,7 @@ export class StateMachine implements IElement {
 	 * The set of actions to perform when initialising a state machine instance; enters all the child regions.
 	 * @hidden
 	 */
-	private onInitialise = new Array<Action>();
+	private onInitialise: Delegate;
 
 	/**
 	 * Creates a new instance of the [[StateMachine]] class.
@@ -559,11 +534,11 @@ export class StateMachine implements IElement {
 
 			logger.log(`initialise ${instance}`);
 
-			invoke(this.onInitialise, instance, false, undefined);
+			this.onInitialise(instance, false, undefined);
 		} else {
 			logger.log(`initialise ${this}`);
 
-			this.accept(new InitialiseStateMachine(), false, this.onInitialise);
+			this.onInitialise = this.accept(new InitialiseStateMachine(), false, this.onInitialise);
 
 			this.clean = true;
 		}
@@ -607,16 +582,17 @@ export class Transition {
 	 */
 	effectBehavior = delegate();
 
-
 	/**
 	 * The compiled behavior to effect the state transition.
 	 * @hidden
 	 */
 	onTraverse: Delegate;
+
 	/**
 	 * The transition's guard condition; initially a completion transition, but may be overriden by the user with calls to when and else.
 	 * @hidden
-	 */ private guard: Guard;
+	 */
+	private guard: Behavior<boolean>;
 
 	/**
 	 * Creates an instance of the [[Transition]] class.
@@ -670,7 +646,7 @@ export class Transition {
 	 * @param guard The new [guard condition]{@link Guard}.
 	 * @return Returns the [transition]{@link Transition} to facilitate fluent-style [state machine model]{@link StateMachine} construction.
 	 */
-	public when(guard: Guard) { // NOTE: no need to invalidate the machine as the transition actions have not changed.
+	public when(guard: Behavior<boolean>) { // NOTE: no need to invalidate the machine as the transition actions have not changed.
 		this.guard = guard;
 
 		return this;
@@ -795,10 +771,9 @@ export abstract class Visitor {
 export interface IInstance {
 	/**
 	 * Called by state.js upon entry to any [vertex]{@link Vertex}; must store both the current [vertex]{@link Vertex} and last known [state]{@link State} for the [region]{@link Region}.
-	 * @param region The [region]{@link Region} to record the current state of.
 	 * @param vertex The [vertex]{@link Vertex} to record against the [region]{@link Region}.
 	 */
-	setCurrent(region: Region, vertex: Vertex): void;
+	setCurrent(vertex: Vertex): void;
 
 	/**
 	 * Called by state.js during [transition]{@link Transition} processing; must return the current [vertex]{@link Vertex} of the [region]{@link Region}.
@@ -844,8 +819,8 @@ export class DictionaryInstance implements IInstance {
 		return asc;
 	}
 
-	setCurrent(region: Region, vertex: Vertex): void {
-		let asc = this.find(region);
+	setCurrent(vertex: Vertex): void {
+		let asc = this.find(vertex.parent);
 
 		asc.currentVertex = vertex;
 
@@ -918,7 +893,7 @@ class InitialiseStateMachine extends Visitor {
 		super.visitVertex(vertex, deepHistoryAbove);
 
 		this.getActions(vertex).beginEnter = delegate(this.getActions(vertex).beginEnter, (instance: IInstance, deepHistory: boolean, ...message: any[]) => {
-			instance.setCurrent(vertex.parent, vertex);
+			instance.setCurrent(vertex);
 		});
 	}
 
@@ -957,7 +932,7 @@ class InitialiseStateMachine extends Visitor {
 		this.getActions(state).beginEnter = delegate(this.getActions(state).beginEnter, state.entryBehavior);
 	}
 
-	visitStateMachine(stateMachine: StateMachine, deepHistoryAbove: boolean, onInitialise: Array<Action>): void {
+	visitStateMachine(stateMachine: StateMachine, deepHistoryAbove: boolean): Delegate {
 		super.visitStateMachine(stateMachine, deepHistoryAbove);
 
 		for (const transition of this.transitions) {
@@ -976,9 +951,14 @@ class InitialiseStateMachine extends Visitor {
 			}
 		}
 
+		let result = delegate();
+
 		for (const region of stateMachine.children) {
-			onInitialise.push(this.getActions(region).beginEnter, this.getActions(region).endEnter);
+			result = delegate(result, this.getActions(region).beginEnter, this.getActions(region).endEnter);
 		}
+
+		return result;
+
 	}
 
 	visitTransition(transition: Transition, deepHistoryAbove: boolean) {
