@@ -46,12 +46,6 @@ export declare function setInternalTransitionsTriggerCompletion(value: boolean):
  */
 export declare function setNamespaceSeparator(value: string): string;
 /**
- * The callback prototype for [state machine]{@link StateMachine} behavior during a state transition; used in [state]{@link State} entry, exit and [transition]{@link Transition} effect.
- * @param instance The [state machine instance]{@link IInstance} that the [transition]{@link Transition} is causing a state transition in.
- * @param message The message that caused the state transition.
- */
-export declare type Behavior<TReturn = any> = (instance: IInstance, ...message: any[]) => TReturn;
-/**
  * Enumeration used to define the semantics of [pseudo states]{@link PseudoState}.
  */
 export declare enum PseudoStateKind {
@@ -262,13 +256,13 @@ export declare class State extends Vertex {
      * @param action The behavior to call upon [state]{@link State} exit. Mutiple calls to this method may be made to build complex behavior.
      * @return Returns the [state]{@link State} to facilitate fluent-style [state machine model]{@link StateMachine} construction.
      */
-    exit(action: Behavior): this;
+    exit(action: (instance: IInstance, ...args: any[]) => any): this;
     /**
      * Sets user-definable behavior to execute every time the [state]{@link State} is entered.
      * @param action The behavior to call upon [state]{@link State} entry. Mutiple calls to this method may be made to build complex behavior.
      * @return Returns the [state]{@link State} to facilitate fluent-style [state machine model]{@link StateMachine} construction.
      */
-    entry(action: Behavior): this;
+    entry(action: (instance: IInstance, ...args: any[]) => any): this;
     /**
      * Accepts a [visitor]{@link Visitor} object.
      * @param visitor The [visitor]{@link Visitor} object.
@@ -348,6 +342,7 @@ export declare class Transition {
     readonly source: Vertex;
     readonly target: Vertex;
     readonly kind: TransitionKind;
+    private static Else;
     /**
      * The transition's behavior as defined by the user.
      * @hidden
@@ -385,13 +380,13 @@ export declare class Transition {
      * @param guard The new [guard condition]{@link Guard}.
      * @return Returns the [transition]{@link Transition} to facilitate fluent-style [state machine model]{@link StateMachine} construction.
      */
-    when(guard: Behavior<boolean>): this;
+    when(guard: (instance: IInstance, ...args: any[]) => boolean): this;
     /**
      * Sets user-definable behavior to execute every time the [transition]{@link Transition} is traversed.
      * @param action The behavior to call upon [transition]{@link Transition} traversal. Mutiple calls to this method may be made to build complex behavior.
      * @return Returns the [transition]{@link Transition} to facilitate fluent-style [state machine model]{@link StateMachine} construction.
      */
-    effect(action: Behavior): this;
+    effect(action: (instance: IInstance, ...args: any[]) => any): this;
     /**
      * Evaulates the [transitions]{@link Transition} guard condition.
      * @param instance The [state machine instance]{@link IInstance} to evaluate the message against.

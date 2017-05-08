@@ -109,19 +109,6 @@ export function setNamespaceSeparator(value: string): string {
 }
 
 /**
- * The callback prototype for [state machine]{@link StateMachine} behavior during a state transition; used in [state]{@link State} entry, exit and [transition]{@link Transition} effect.
- * @param instance The [state machine instance]{@link IInstance} that the [transition]{@link Transition} is causing a state transition in.
- * @param message The message that caused the state transition.
- */
-export type Behavior<TReturn = any> = (instance: IInstance, ...message: any[]) => TReturn;
-
-/**
- * The default guard condition use use for else transitions.
- * @hidden
- */
-const Else: Behavior<boolean> = (instance: IInstance, ...message: any[]) => false;
-
-/**
  * Enumeration used to define the semantics of [pseudo states]{@link PseudoState}.
  */
 export enum PseudoStateKind {
@@ -423,7 +410,7 @@ export class State extends Vertex {
 	 * @param action The behavior to call upon [state]{@link State} exit. Mutiple calls to this method may be made to build complex behavior.
 	 * @return Returns the [state]{@link State} to facilitate fluent-style [state machine model]{@link StateMachine} construction.
 	 */
-	public exit(action: Behavior) {
+	public exit(action: (instance: IInstance, ...args: any[]) => any) {
 		this.exitBehavior = delegate(this.exitBehavior, (instance: IInstance, deepHistory: boolean, ...message: any[]) => {
 			action(instance, ...message);
 		});
@@ -438,7 +425,7 @@ export class State extends Vertex {
 	 * @param action The behavior to call upon [state]{@link State} entry. Mutiple calls to this method may be made to build complex behavior.
 	 * @return Returns the [state]{@link State} to facilitate fluent-style [state machine model]{@link StateMachine} construction.
 	 */
-	public entry(action: Behavior) {
+	public entry(action: (instance: IInstance, ...args: any[]) => any) {
 		this.entryBehavior = delegate(this.entryBehavior, (instance: IInstance, deepHistory: boolean, ...message: any[]) => {
 			action(instance, ...message);
 		});
@@ -576,6 +563,8 @@ export class StateMachine implements IElement {
 
 /** A relationship within a [state machine model]{@link StateMachine} between two [vertices]{@link Vertex} that will effect a state transition in response to an event when its [guard condition]{@link Transition.when} is satisfied. */
 export class Transition {
+	private static Else = () => false;
+
 	/**
 	 * The transition's behavior as defined by the user.
 	 * @hidden
@@ -592,7 +581,7 @@ export class Transition {
 	 * The transition's guard condition; initially a completion transition, but may be overriden by the user with calls to when and else.
 	 * @hidden
 	 */
-	private guard: Behavior<boolean>;
+	private guard: (instance: IInstance, ...args: any[]) => boolean;
 
 	/**
 	 * Creates an instance of the [[Transition]] class.
@@ -626,7 +615,7 @@ export class Transition {
 	 * @return Returns true if the [transition]{@link Transition} is an [else transition]{@link Transition.else}.
 	 */
 	public isElse(): boolean {
-		return this.guard === Else;
+		return this.guard === Transition.Else;
 	}
 
 	/**
@@ -636,7 +625,7 @@ export class Transition {
 	public else() { // NOTE: no need to invalidate the machine as the transition actions have not changed.
 		// TODO: validate that the source is a choice or junction.
 
-		this.guard = Else;
+		this.guard = Transition.Else;
 
 		return this;
 	}
@@ -646,7 +635,7 @@ export class Transition {
 	 * @param guard The new [guard condition]{@link Guard}.
 	 * @return Returns the [transition]{@link Transition} to facilitate fluent-style [state machine model]{@link StateMachine} construction.
 	 */
-	public when(guard: Behavior<boolean>) { // NOTE: no need to invalidate the machine as the transition actions have not changed.
+	public when(guard: (instance: IInstance, ...args: any[]) => boolean) { // NOTE: no need to invalidate the machine as the transition actions have not changed.
 		this.guard = guard;
 
 		return this;
@@ -657,7 +646,7 @@ export class Transition {
 	 * @param action The behavior to call upon [transition]{@link Transition} traversal. Mutiple calls to this method may be made to build complex behavior.
 	 * @return Returns the [transition]{@link Transition} to facilitate fluent-style [state machine model]{@link StateMachine} construction.
 	 */
-	public effect(action: Behavior) {
+	public effect(action: (instance: IInstance, ...args: any[]) => any) {
 		this.effectBehavior = delegate(this.effectBehavior, (instance: IInstance, deepHistory: boolean, ...message: any[]) => {
 			action(instance, ...message);
 		});
@@ -951,14 +940,7 @@ class InitialiseStateMachine extends Visitor {
 			}
 		}
 
-		let result = delegate();
-
-		for (const region of stateMachine.children) {
-			result = delegate(result, this.getActions(region).beginEnter, this.getActions(region).endEnter);
-		}
-
-		return result;
-
+		return delegate(...stateMachine.children.map(region => delegate(this.getActions(region).beginEnter, this.getActions(region).endEnter)));
 	}
 
 	visitTransition(transition: Transition, deepHistoryAbove: boolean) {
