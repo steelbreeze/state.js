@@ -860,15 +860,15 @@ class InitialiseStateMachine extends Visitor {
 	}
 
 	visitElement<TElement extends IElement>(element: TElement, deepHistoryAbove: boolean): void {
-		this.getActions(element).leave = delegate(this.getActions(element).leave, (instance: IInstance, deepHistory: boolean) => logger.log(`${instance} leave ${element}`));
-		this.getActions(element).beginEnter = delegate(this.getActions(element).beginEnter, (instance: IInstance, deepHistory: boolean) => logger.log(`${instance} enter ${element}`));
+		this.getActions(element).leave = delegate(this.getActions(element).leave, (instance: IInstance) => logger.log(`${instance} leave ${element}`));
+		this.getActions(element).beginEnter = delegate(this.getActions(element).beginEnter, (instance: IInstance) => logger.log(`${instance} enter ${element}`));
 	}
 
 	visitRegion(region: Region, deepHistoryAbove: boolean): void {
 		const regionInitial = region.children.reduce<PseudoState | undefined>((result, vertex) => vertex instanceof PseudoState && vertex.isInitial() && (result === undefined || result.isHistory()) ? vertex : result, undefined);
 
 		this.getActions(region).leave = delegate(this.getActions(region).leave, (instance: IInstance, deepHistory: boolean, ...message: any[]) => {
-			this.getActions(instance.getCurrent(region)!).leave(instance, false, ...message);
+			this.getActions(instance.getCurrent(region)!).leave(instance, deepHistory, ...message);
 		});
 
 		super.visitRegion(region, deepHistoryAbove || (regionInitial && regionInitial.kind === PseudoStateKind.DeepHistory)); // TODO: determine if we need to break this up or move it
