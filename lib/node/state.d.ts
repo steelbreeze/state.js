@@ -46,6 +46,12 @@ export declare function setInternalTransitionsTriggerCompletion(value: boolean):
  */
 export declare function setNamespaceSeparator(value: string): string;
 /**
+ * Sets the symbol used as the delimiter in fully qualified element names.
+ * @param value The symbol used as the delimiter in fully qualified element names.
+ * @return Returns the previous symbol used as the delimiter in fully qualified element names.
+ */
+export declare function setDefaultRegionName(value: string): string;
+/**
  * Enumeration used to define the semantics of [pseudo states]{@link PseudoState}.
  */
 export declare enum PseudoStateKind {
@@ -82,6 +88,8 @@ export interface IElement {
     parent: IElement;
     /** The name of this element. */
     name: string;
+    /** Invalidates a [state machine model]{@link StateMachine} causing it to require recompilation. */
+    invalidate(): void;
 }
 /**
  * Common base class for [regions]{@link Region} and [vertices]{@link Vertex} within a [state machine model]{@link StateMachine}.
@@ -90,7 +98,7 @@ export interface IElement {
 export declare abstract class Element<TParent extends IElement> implements IElement {
     readonly name: string;
     readonly parent: TParent;
-    /** The fully qualified name of a [region]{@link Region} or [vertex]{@link Vertex} within a [state machine model]{@link StateMachine}. */
+    /** The fully qualified name of an [element]{@link Element} within a [state machine model]{@link StateMachine}. */
     readonly qualifiedName: string;
     /**
      * Creates a new instance of the [[Element]] class.
@@ -98,13 +106,16 @@ export declare abstract class Element<TParent extends IElement> implements IElem
      * @param parent The parent [element]{@link Element} of this [element]{@link Element}.
      */
     protected constructor(name: string, parent: TParent);
+    /**
+     * Invalidates a [state machine model]{@link StateMachine} causing it to require recompilation.
+     * @hidden
+     */
+    invalidate(): void;
     /** Returns the fully qualified name of the [element]{@link Element}. */
     toString(): string;
 }
 /** A region is an orthogonal part of either a [composite state]{@link State} or a [state machine]{@link StateMachine}. It is container of [vertices]{@link Vertex} and has no behavior associated with it. */
 export declare class Region extends Element<State | StateMachine> implements IElement {
-    /** The default for [regions]{@link Region} when they are implicitly created; this may be overriden. */
-    static defaultName: string;
     /** The child [vertices]{@link Vertex} of this [region]{@link Region}. */
     readonly children: Vertex[];
     /**
@@ -113,11 +124,6 @@ export declare class Region extends Element<State | StateMachine> implements IEl
      * @param parent The parent [element]{@link Element} of this [element]{@link Element}.
      */
     constructor(name: string, parent: State | StateMachine);
-    /**
-     * Invalidates a [state machine model]{@link StateMachine} causing it to require recompilation.
-     * @hidden
-     */
-    invalidate(): void;
     /**
      * Tests a given [state machine instance]{@link IInstance} to see if this [region]{@link Region} is active. A [region]{@link Region} is active when it has been entered but not exited.
      * @param instance The [state machine instance]{@link IInstance} to test if this [region]{@link Region} is active within.
@@ -149,11 +155,6 @@ export declare abstract class Vertex extends Element<Region> {
      * @param parent The parent [element]{@link Element} of this [vertex]{@link Vertex}. If a [state]{@link State} or [state machine]{@link StateMachine} is specified, its [default region]{@link State.defaultRegion} used as the parent.
      */
     protected constructor(name: string, parent: Region | State | StateMachine);
-    /**
-     * Invalidates a [state machine model]{@link StateMachine} causing it to require recompilation.
-     * @hidden
-     */
-    invalidate(): void;
     /**
      * Creates a new [transition]{@link Transition} from this [vertex]{@link Vertex}.
      * @param target The [vertex]{@link Vertex} to [transition]{@link Transition} to. Leave this as undefined to create an [internal transition]{@link TransitionKind.Internal}.

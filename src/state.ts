@@ -109,6 +109,25 @@ export function setNamespaceSeparator(value: string): string {
 }
 
 /**
+ * The seperator used when generating fully qualified names.
+ * @hidden
+ */
+let defaultRegionName: string = "default";
+
+/**
+ * Sets the default name to use when implicitly creating regions.
+ * @param value The new default region name.
+ * @return Returns the previous default region name.
+ */
+export function setDefaultRegionName(value: string): string {
+	const result = defaultRegionName;
+
+	defaultRegionName = value;
+
+	return result;
+}
+
+/**
  * Enumeration used to define the semantics of [pseudo states]{@link PseudoState}.
  */
 export enum PseudoStateKind {
@@ -154,6 +173,9 @@ export interface IElement {
 
 	/** The name of this element. */
 	name: string;
+
+	/** Invalidates a [state machine model]{@link StateMachine} causing it to require recompilation. */
+	invalidate(): void;
 }
 
 /**
@@ -161,7 +183,7 @@ export interface IElement {
  * @param TParent The type of the element's parent.
  */
 export abstract class Element<TParent extends IElement> implements IElement {
-	/** The fully qualified name of a [region]{@link Region} or [vertex]{@link Vertex} within a [state machine model]{@link StateMachine}. */
+	/** The fully qualified name of an [element]{@link Element} within a [state machine model]{@link StateMachine}. */
 	public readonly qualifiedName: string;
 
 	/**
@@ -171,6 +193,16 @@ export abstract class Element<TParent extends IElement> implements IElement {
 	 */
 	protected constructor(public readonly name: string, public readonly parent: TParent) {
 		this.qualifiedName = parent ? parent.toString() + namespaceSeparator + name : name;
+
+		this.invalidate();
+	}
+
+	/**
+	 * Invalidates a [state machine model]{@link StateMachine} causing it to require recompilation.
+	 * @hidden
+	 */
+	invalidate(): void {
+		this.parent.invalidate();
 	}
 
 	/** Returns the fully qualified name of the [element]{@link Element}. */
@@ -181,9 +213,6 @@ export abstract class Element<TParent extends IElement> implements IElement {
 
 /** A region is an orthogonal part of either a [composite state]{@link State} or a [state machine]{@link StateMachine}. It is container of [vertices]{@link Vertex} and has no behavior associated with it. */
 export class Region extends Element<State | StateMachine> implements IElement {
-	/** The default for [regions]{@link Region} when they are implicitly created; this may be overriden. */
-	public static defaultName = "default";
-
 	/** The child [vertices]{@link Vertex} of this [region]{@link Region}. */
 	public readonly children = new Array<Vertex>();
 
@@ -196,15 +225,6 @@ export class Region extends Element<State | StateMachine> implements IElement {
 		super(name, parent);
 
 		this.parent.children.push(this);
-		this.invalidate();
-	}
-
-	/**
-	 * Invalidates a [state machine model]{@link StateMachine} causing it to require recompilation.
-	 * @hidden
-	 */
-	invalidate(): void {
-		this.parent.invalidate();
 	}
 
 	/**
@@ -251,18 +271,9 @@ export abstract class Vertex extends Element<Region> {
 	 * @param parent The parent [element]{@link Element} of this [vertex]{@link Vertex}. If a [state]{@link State} or [state machine]{@link StateMachine} is specified, its [default region]{@link State.defaultRegion} used as the parent.
 	 */
 	protected constructor(name: string, parent: Region | State | StateMachine) {
-		super(name, parent instanceof Region ? parent : parent.defaultRegion() || new Region(Region.defaultName, parent));
+		super(name, parent instanceof Region ? parent : parent.defaultRegion() || new Region(defaultRegionName, parent));
 
 		this.parent.children.push(this);
-		this.invalidate();
-	}
-
-	/**
-	 * Invalidates a [state machine model]{@link StateMachine} causing it to require recompilation.
-	 * @hidden
-	 */
-	invalidate(): void {
-		this.parent.invalidate();
 	}
 
 	/**
@@ -321,6 +332,7 @@ export class PseudoState extends Vertex {
 		return visitor.visitPseudoState(this, ...args);
 	}
 }
+
 /** A condition or situation during the life of an object, represented by a [state machine model]{@link StateMachine}, during which it satisfies some condition, performs some activity, or waits for some event. */
 export class State extends Vertex {
 	/** The child [region(s)]{@link Region} if this [state]{@link State} is a [composite]{@link State.isComposite} or [orthogonal]{@link State.isOrthogonal} state. */
@@ -352,7 +364,7 @@ export class State extends Vertex {
 	 * @return Returns the default [region]{@link Region} if present or undefined.
 	 */
 	defaultRegion(): Region | undefined {
-		return this.children.filter(region => region.name === Region.defaultName)[0];
+		return this.children.filter(region => region.name === defaultRegionName)[0];
 	}
 
 	/**
@@ -488,7 +500,7 @@ export class StateMachine implements IElement {
 	 * @return Returns the default [region]{@link Region} if present or undefined.
 	 */
 	defaultRegion(): Region | undefined {
-		return this.children.filter(region => region.name === Region.defaultName)[0];
+		return this.children.filter(region => region.name === defaultRegionName)[0];
 	}
 
 	/**
@@ -881,7 +893,7 @@ class InitialiseStateMachine extends Visitor {
 	visitVertex(vertex: Vertex, deepHistoryAbove: boolean) {
 		super.visitVertex(vertex, deepHistoryAbove);
 
-		this.getActions(vertex).beginEnter = delegate(this.getActions(vertex).beginEnter, (instance: IInstance, deepHistory: boolean, ...message: any[]) => {
+		this.getActions(vertex).beginEnter = delegate(this.getActions(vertex).beginEnter, (instance: IInstance) => {
 			instance.setCurrent(vertex);
 		});
 	}
