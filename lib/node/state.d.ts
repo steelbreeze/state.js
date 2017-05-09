@@ -257,13 +257,13 @@ export declare class State extends Vertex {
      * @param action The behavior to call upon [state]{@link State} exit. Mutiple calls to this method may be made to build complex behavior.
      * @return Returns the [state]{@link State} to facilitate fluent-style [state machine model]{@link StateMachine} construction.
      */
-    exit(action: (instance: IInstance, ...args: any[]) => any): this;
+    exit(action: (instance: IInstance, ...message: any[]) => any): this;
     /**
      * Sets user-definable behavior to execute every time the [state]{@link State} is entered.
      * @param action The behavior to call upon [state]{@link State} entry. Mutiple calls to this method may be made to build complex behavior.
      * @return Returns the [state]{@link State} to facilitate fluent-style [state machine model]{@link StateMachine} construction.
      */
-    entry(action: (instance: IInstance, ...args: any[]) => any): this;
+    entry(action: (instance: IInstance, ...message: any[]) => any): this;
     /**
      * Accepts a [visitor]{@link Visitor} object.
      * @param visitor The [visitor]{@link Visitor} object.
@@ -381,13 +381,13 @@ export declare class Transition {
      * @param guard The new [guard condition]{@link Guard}.
      * @return Returns the [transition]{@link Transition} to facilitate fluent-style [state machine model]{@link StateMachine} construction.
      */
-    when(guard: (instance: IInstance, ...args: any[]) => boolean): this;
+    when(guard: (instance: IInstance, ...message: any[]) => boolean): this;
     /**
      * Sets user-definable behavior to execute every time the [transition]{@link Transition} is traversed.
      * @param action The behavior to call upon [transition]{@link Transition} traversal. Mutiple calls to this method may be made to build complex behavior.
      * @return Returns the [transition]{@link Transition} to facilitate fluent-style [state machine model]{@link StateMachine} construction.
      */
-    effect(action: (instance: IInstance, ...args: any[]) => any): this;
+    effect(action: (instance: IInstance, ...message: any[]) => any): this;
     /**
      * Evaulates the [transitions]{@link Transition} guard condition.
      * @param instance The [state machine instance]{@link IInstance} to evaluate the message against.

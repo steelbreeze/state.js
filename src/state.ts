@@ -422,7 +422,7 @@ export class State extends Vertex {
 	 * @param action The behavior to call upon [state]{@link State} exit. Mutiple calls to this method may be made to build complex behavior.
 	 * @return Returns the [state]{@link State} to facilitate fluent-style [state machine model]{@link StateMachine} construction.
 	 */
-	public exit(action: (instance: IInstance, ...args: any[]) => any) {
+	public exit(action: (instance: IInstance, ...message: any[]) => any) {
 		this.exitBehavior = delegate(this.exitBehavior, (instance: IInstance, deepHistory: boolean, ...message: any[]) => {
 			action(instance, ...message);
 		});
@@ -437,7 +437,7 @@ export class State extends Vertex {
 	 * @param action The behavior to call upon [state]{@link State} entry. Mutiple calls to this method may be made to build complex behavior.
 	 * @return Returns the [state]{@link State} to facilitate fluent-style [state machine model]{@link StateMachine} construction.
 	 */
-	public entry(action: (instance: IInstance, ...args: any[]) => any) {
+	public entry(action: (instance: IInstance, ...message: any[]) => any) {
 		this.entryBehavior = delegate(this.entryBehavior, (instance: IInstance, deepHistory: boolean, ...message: any[]) => {
 			action(instance, ...message);
 		});
@@ -593,7 +593,7 @@ export class Transition {
 	 * The transition's guard condition; initially a completion transition, but may be overriden by the user with calls to when and else.
 	 * @hidden
 	 */
-	private guard: (instance: IInstance, ...args: any[]) => boolean;
+	private guard: (instance: IInstance, ...message: any[]) => boolean;
 
 	/**
 	 * Creates an instance of the [[Transition]] class.
@@ -602,7 +602,7 @@ export class Transition {
 	 * @param kind The kind of the [transition]{@link Transition}; use this to explicitly set [local transition]{@link TransitionKind.Local} semantics as needed.
 	 */
 	public constructor(public readonly source: Vertex, public readonly target?: Vertex, public readonly kind: TransitionKind = TransitionKind.External) {
-		this.guard = source instanceof PseudoState ? (instance: IInstance, ...message: any[]) => true : (instance: IInstance, ...message: any[]) => message[0] === this.source;
+		this.guard = source instanceof PseudoState ? () => true : (instance: IInstance, ...message: any[]) => message[0] === this.source;
 		this.source.outgoing.push(this);
 
 		// validate and repair if necessary the user supplied transition kind
@@ -647,7 +647,7 @@ export class Transition {
 	 * @param guard The new [guard condition]{@link Guard}.
 	 * @return Returns the [transition]{@link Transition} to facilitate fluent-style [state machine model]{@link StateMachine} construction.
 	 */
-	public when(guard: (instance: IInstance, ...args: any[]) => boolean) { // NOTE: no need to invalidate the machine as the transition actions have not changed.
+	public when(guard: (instance: IInstance, ...message: any[]) => boolean) { // NOTE: no need to invalidate the machine as the transition actions have not changed.
 		this.guard = guard;
 
 		return this;
@@ -658,7 +658,7 @@ export class Transition {
 	 * @param action The behavior to call upon [transition]{@link Transition} traversal. Mutiple calls to this method may be made to build complex behavior.
 	 * @return Returns the [transition]{@link Transition} to facilitate fluent-style [state machine model]{@link StateMachine} construction.
 	 */
-	public effect(action: (instance: IInstance, ...args: any[]) => any) {
+	public effect(action: (instance: IInstance, ...message: any[]) => any) {
 		this.effectBehavior = delegate(this.effectBehavior, (instance: IInstance, deepHistory: boolean, ...message: any[]) => {
 			action(instance, ...message);
 		});
@@ -860,19 +860,15 @@ class InitialiseStateMachine extends Visitor {
 	}
 
 	visitElement<TElement extends IElement>(element: TElement, deepHistoryAbove: boolean): void {
-		this.getActions(element).leave = delegate(this.getActions(element).leave, (instance: IInstance, deepHistory: boolean, ...message: any[]) => logger.log(`${instance} leave ${element}`));
-		this.getActions(element).beginEnter = delegate(this.getActions(element).beginEnter, (instance: IInstance, deepHistory: boolean, ...message: any[]) => logger.log(`${instance} enter ${element}`));
+		this.getActions(element).leave = delegate(this.getActions(element).leave, (instance: IInstance, deepHistory: boolean) => logger.log(`${instance} leave ${element}`));
+		this.getActions(element).beginEnter = delegate(this.getActions(element).beginEnter, (instance: IInstance, deepHistory: boolean) => logger.log(`${instance} enter ${element}`));
 	}
 
 	visitRegion(region: Region, deepHistoryAbove: boolean): void {
 		const regionInitial = region.children.reduce<PseudoState | undefined>((result, vertex) => vertex instanceof PseudoState && vertex.isInitial() && (result === undefined || result.isHistory()) ? vertex : result, undefined);
 
 		this.getActions(region).leave = delegate(this.getActions(region).leave, (instance: IInstance, deepHistory: boolean, ...message: any[]) => {
-			const currentState = instance.getCurrent(region);
-
-			if (currentState) {
-				this.getActions(currentState).leave(instance, false, ...message);
-			}
+			this.getActions(instance.getCurrent(region)!).leave(instance, false, ...message);
 		});
 
 		super.visitRegion(region, deepHistoryAbove || (regionInitial && regionInitial.kind === PseudoStateKind.DeepHistory)); // TODO: determine if we need to break this up or move it
