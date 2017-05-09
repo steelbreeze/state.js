@@ -46,9 +46,9 @@ export declare function setInternalTransitionsTriggerCompletion(value: boolean):
  */
 export declare function setNamespaceSeparator(value: string): string;
 /**
- * Sets the symbol used as the delimiter in fully qualified element names.
- * @param value The symbol used as the delimiter in fully qualified element names.
- * @return Returns the previous symbol used as the delimiter in fully qualified element names.
+ * Sets the default name to use when implicitly creating regions.
+ * @param value The new default region name.
+ * @return Returns the previous default region name.
  */
 export declare function setDefaultRegionName(value: string): string;
 /**
@@ -409,7 +409,7 @@ export declare abstract class Visitor {
      * @param element The [element]{@link Element} being visited.
      * @param args The arguments passed to the initial accept call.
      */
-    visitElement(element: IElement, ...args: any[]): any;
+    visitElement<TElement extends IElement>(element: TElement, ...args: any[]): any;
     /**
      * Visits a [region]{@link Region} within a [state machine model]{@link StateMachine}.
      * @param element The [reigon]{@link Region} being visited.

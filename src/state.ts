@@ -695,7 +695,7 @@ export abstract class Visitor {
 	 * @param element The [element]{@link Element} being visited.
 	 * @param args The arguments passed to the initial accept call.
 	 */
-	visitElement(element: IElement, ...args: any[]): any {
+	visitElement<TElement extends IElement>(element: TElement, ...args: any[]): any {
 	}
 
 	/**
@@ -859,7 +859,7 @@ class InitialiseStateMachine extends Visitor {
 		return this.elementActions[elemenet.toString()] || (this.elementActions[elemenet.toString()] = new ElementActions());
 	}
 
-	visitElement(element: IElement, deepHistoryAbove: boolean): void {
+	visitElement<TElement extends IElement>(element: TElement, deepHistoryAbove: boolean): void {
 		this.getActions(element).leave = delegate(this.getActions(element).leave, (instance: IInstance, deepHistory: boolean, ...message: any[]) => logger.log(`${instance} leave ${element}`));
 		this.getActions(element).beginEnter = delegate(this.getActions(element).beginEnter, (instance: IInstance, deepHistory: boolean, ...message: any[]) => logger.log(`${instance} enter ${element}`));
 	}
