@@ -147,6 +147,26 @@ export enum PseudoStateKind {
 	ShallowHistory
 }
 
+export namespace PseudoStateKind {
+	/**
+	 * Tests a [pseudo state kind]{@link PseudoStateKind} to see if it is one of the history kinds.
+	 * @param kind The [pseudo state kind]{@link PseudoStateKind} to test.
+	 * @return Returns true if the [pseudo state kind]{@link PseudoStateKind} is [DeepHistory]{@link PseudoStateKind.DeepHistory} or [ShallowHistory]{@link PseudoStateKind.ShallowHistory}
+	 */
+	export function isHistory(kind: PseudoStateKind): boolean {
+		return kind === PseudoStateKind.DeepHistory || kind === PseudoStateKind.ShallowHistory;
+	}
+
+	/**
+	 * Tests a [pseudo state kind]{@link PseudoStateKind} to see if it is one of the initial kinds.
+	 * @param kind The [pseudo state kind]{@link PseudoStateKind} to test.
+	 * @return Returns true if the [pseudo state kind]{@link PseudoStateKind} is [Initial]{@link PseudoStateKind.Initial}, [DeepHistory]{@link PseudoStateKind.DeepHistory} or [ShallowHistory]{@link PseudoStateKind.ShallowHistory}
+	 */
+	export function isInitial(kind: PseudoStateKind): boolean {
+		return kind === PseudoStateKind.DeepHistory || kind === PseudoStateKind.Initial || kind === PseudoStateKind.ShallowHistory;
+	}
+}
+
 /**
  * Enumeration used to define the semantics of [transitions]{@link Transition}.
  */
@@ -196,6 +216,8 @@ export abstract class Element<TParent extends IElement> implements IElement {
 
 		this.invalidate();
 	}
+
+	// TODO: base implementation of is active and is complete?
 
 	/**
 	 * Invalidates a [state machine model]{@link StateMachine} causing it to require recompilation.
@@ -305,22 +327,6 @@ export class PseudoState extends Vertex {
 	 */
 	public constructor(name: string, parent: Region | State | StateMachine, public readonly kind: PseudoStateKind = PseudoStateKind.Initial) {
 		super(name, parent);
-	}
-
-	/**
-	 * Tests the [pseudo state]{@link PseudoState} to see if it is a history [pseudo state]{@link PseudoState}, one who's [kind]{@link PseudoStateKind} is [DeepHistory]{@link PseudoStateKind.DeepHistory} or [ShallowHistory]{@link PseudoStateKind.ShallowHistory}.
-	 * @returns Returns true if the [pseudo state]{@link PseudoState} to see if it is a history state.
-	 */
-	public isHistory(): boolean {
-		return this.kind === PseudoStateKind.DeepHistory || this.kind === PseudoStateKind.ShallowHistory;
-	}
-
-	/**
-	 * Tests the [pseudo state]{@link PseudoState} to see if it is an initial [pseudo state]{@link PseudoState}, one who's [kind]{@link PseudoStateKind} is [Initial]{@link PseudoStateKind.Initial}, [DeepHistory]{@link PseudoStateKind.DeepHistory} or [ShallowHistory]{@link PseudoStateKind.ShallowHistory}.
-	 * @returns Returns true if the [pseudo state]{@link PseudoState} to see if it is an initial state.
-	 */
-	public isInitial(): boolean {
-		return this.kind === PseudoStateKind.Initial || this.isHistory();
 	}
 
 	/**
@@ -865,7 +871,7 @@ class InitialiseStateMachine extends Visitor {
 	}
 
 	visitRegion(region: Region, deepHistoryAbove: boolean): void {
-		const regionInitial = region.children.reduce<PseudoState | undefined>((result, vertex) => vertex instanceof PseudoState && vertex.isInitial() && (result === undefined || result.isHistory()) ? vertex : result, undefined);
+		const regionInitial = region.children.reduce<PseudoState | undefined>((result, vertex) => vertex instanceof PseudoState && PseudoStateKind.isInitial(vertex.kind) && (result === undefined || PseudoStateKind.isHistory(result.kind)) ? vertex : result, undefined);
 
 		this.getActions(region).leave = delegate(this.getActions(region).leave, (instance: IInstance, deepHistory: boolean, ...message: any[]) => {
 			this.getActions(instance.getCurrent(region)!).leave(instance, deepHistory, ...message);
@@ -873,9 +879,9 @@ class InitialiseStateMachine extends Visitor {
 
 		super.visitRegion(region, deepHistoryAbove || (regionInitial && regionInitial.kind === PseudoStateKind.DeepHistory)); // TODO: determine if we need to break this up or move it
 
-		if (deepHistoryAbove || !regionInitial || regionInitial.isHistory()) {
+		if (deepHistoryAbove || !regionInitial || PseudoStateKind.isHistory(regionInitial.kind)) {
 			this.getActions(region).endEnter = delegate(this.getActions(region).endEnter, (instance: IInstance, deepHistory: boolean, ...message: any[]) => {
-				const actions = this.getActions((deepHistory || regionInitial!.isHistory()) ? instance.getLastKnownState(region) || regionInitial! : regionInitial!);
+				const actions = this.getActions((deepHistory || PseudoStateKind.isHistory(regionInitial!.kind)) ? instance.getLastKnownState(region) || regionInitial! : regionInitial!);
 				const history = deepHistory || regionInitial!.kind === PseudoStateKind.DeepHistory;
 
 				actions.beginEnter(instance, history, ...message);
@@ -897,7 +903,7 @@ class InitialiseStateMachine extends Visitor {
 	visitPseudoState(pseudoState: PseudoState, deepHistoryAbove: boolean) {
 		super.visitPseudoState(pseudoState, deepHistoryAbove);
 
-		if (pseudoState.isInitial()) {
+		if (PseudoStateKind.isInitial(pseudoState.kind)) {
 			this.getActions(pseudoState).endEnter = delegate(this.getActions(pseudoState).endEnter, (instance: IInstance, deepHistory: boolean, ...message: any[]) => {
 				if (instance.getLastKnownState(pseudoState.parent)) {
 					this.getActions(pseudoState).leave(instance, false, ...message);

@@ -66,6 +66,20 @@ export declare enum PseudoStateKind {
     /** Turns on shallow history semantics for the parent [region]{@link Region}: second and subsiquent entry of the parent [region]{@link Region} will use the last known state from the active state configuration contained withn the [state machine instance]{@link IInstance} as the initial state; this behavior will only apply to the parent [region]{@link Region}. */
     ShallowHistory = 4,
 }
+export declare namespace PseudoStateKind {
+    /**
+     * Tests a [pseudo state kind]{@link PseudoStateKind} to see if it is one of the history kinds.
+     * @param kind The [pseudo state kind]{@link PseudoStateKind} to test.
+     * @return Returns true if the [pseudo state kind]{@link PseudoStateKind} is [DeepHistory]{@link PseudoStateKind.DeepHistory} or [ShallowHistory]{@link PseudoStateKind.ShallowHistory}
+     */
+    function isHistory(kind: PseudoStateKind): boolean;
+    /**
+     * Tests a [pseudo state kind]{@link PseudoStateKind} to see if it is one of the initial kinds.
+     * @param kind The [pseudo state kind]{@link PseudoStateKind} to test.
+     * @return Returns true if the [pseudo state kind]{@link PseudoStateKind} is [Initial]{@link PseudoStateKind.Initial}, [DeepHistory]{@link PseudoStateKind.DeepHistory} or [ShallowHistory]{@link PseudoStateKind.ShallowHistory}
+     */
+    function isInitial(kind: PseudoStateKind): boolean;
+}
 /**
  * Enumeration used to define the semantics of [transitions]{@link Transition}.
  */
@@ -178,16 +192,6 @@ export declare class PseudoState extends Vertex {
      * @param kind The semantics of this [pseudo state]{@link PseudoState}; see the members of the [pseudo state kind enumeration]{@link PseudoStateKind} for details.
      */
     constructor(name: string, parent: Region | State | StateMachine, kind?: PseudoStateKind);
-    /**
-     * Tests the [pseudo state]{@link PseudoState} to see if it is a history [pseudo state]{@link PseudoState}, one who's [kind]{@link PseudoStateKind} is [DeepHistory]{@link PseudoStateKind.DeepHistory} or [ShallowHistory]{@link PseudoStateKind.ShallowHistory}.
-     * @returns Returns true if the [pseudo state]{@link PseudoState} to see if it is a history state.
-     */
-    isHistory(): boolean;
-    /**
-     * Tests the [pseudo state]{@link PseudoState} to see if it is an initial [pseudo state]{@link PseudoState}, one who's [kind]{@link PseudoStateKind} is [Initial]{@link PseudoStateKind.Initial}, [DeepHistory]{@link PseudoStateKind.DeepHistory} or [ShallowHistory]{@link PseudoStateKind.ShallowHistory}.
-     * @returns Returns true if the [pseudo state]{@link PseudoState} to see if it is an initial state.
-     */
-    isInitial(): boolean;
     /**
      * Accepts a [visitor]{@link Visitor} object.
      * @param visitor The [visitor]{@link Visitor} object.
