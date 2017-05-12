@@ -478,7 +478,7 @@ export class StateMachine implements IElement {
 	 * The set of actions to perform when initialising a state machine instance; enters all the child regions.
 	 * @hidden
 	 */
-	private onInitialise: Delegate = delegate();
+	private onInitialise = delegate();
 
 	/**
 	 * Creates a new instance of the [[StateMachine]] class.
