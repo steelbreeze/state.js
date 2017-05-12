@@ -10,7 +10,7 @@
 
 /** Import other packages */
 import * as Tree from "./tree";
-import { Delegate, delegate } from "./delegate";
+import { create as delegate, Delegate } from "./delegate";
 
 /** Interface used by state.js for managing log and error messages. */
 export interface ILogger {

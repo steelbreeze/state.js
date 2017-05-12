@@ -9,7 +9,7 @@
  */
 
 /**
- * Prototype for any function
+ * The delegate type is a prototype for any function.
  * @param args An arbitory number of parameters to pass to the function.
  * @return An optional return from the function.
  */
@@ -17,17 +17,16 @@ export interface Delegate {
 	(...args: any[]): any;
 }
 
+/***
+ * A delegate that does nothing; this is always returned from create if no delegates are passed in. This can be used for comparison purposes.
+ */
+export const noop: Delegate = () => { };
+
 /**
  * Creates a delegate for one or more functions that can be called as one.
  * @param delegates The set of functions to aggregate into a single delegate.
  * @return Returns a delegate that when called calls the other functions provided.
  */
-export function delegate(...delegates: Delegate[]): Delegate {
-	return delegates.length === 0 ? empty : (...args: any[]) => delegates.map(f => f(...args));
+export function create(...delegates: Delegate[]): Delegate {
+	return delegates.length === 0 ? noop : (...args: any[]) => delegates.map(f => f(...args));
 }
-
-/***
- * Null delegate (for comparison purposes)
- * @hidden
- */
-const empty = () => [];
