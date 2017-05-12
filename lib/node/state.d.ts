@@ -286,11 +286,6 @@ export declare class StateMachine implements IElement {
     /** The child [region(s)]{@link Region} if this [state machine]{@link StateMachine}. */
     readonly children: Region[];
     /**
-     * A flag to denote that the state machine model required recompilation.
-     * @hidden
-     */
-    private clean;
-    /**
      * The set of actions to perform when initialising a state machine instance; enters all the child regions.
      * @hidden
      */

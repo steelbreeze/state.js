@@ -23,5 +23,11 @@ export interface Delegate {
  * @return Returns a delegate that when called calls the other functions provided.
  */
 export function delegate(...delegates: Delegate[]): Delegate {
-	return (...args: any[]) => delegates.map(f => f(...args));
+	return delegates.length === 0 ? empty : (...args: any[]) => delegates.map(f => f(...args));
 }
+
+/***
+ * Null delegate (for comparison purposes)
+ * @hidden
+ */
+const empty = () => [];

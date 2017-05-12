@@ -474,17 +474,11 @@ export class StateMachine implements IElement {
 	/** The child [region(s)]{@link Region} if this [state machine]{@link StateMachine}. */
 	public readonly children = new Array<Region>();
 
-	/** 
-	 * A flag to denote that the state machine model required recompilation.
-	 * @hidden
-	 */
-	private clean: boolean = false;
-
 	/**
 	 * The set of actions to perform when initialising a state machine instance; enters all the child regions.
 	 * @hidden
 	 */
-	private onInitialise: Delegate;
+	private onInitialise: Delegate = delegate();
 
 	/**
 	 * Creates a new instance of the [[StateMachine]] class.
@@ -498,7 +492,7 @@ export class StateMachine implements IElement {
 	 * @hidden
 	 */
 	invalidate(): void {
-		this.clean = false;
+		this.onInitialise = delegate();
 	}
 
 	/**
@@ -533,7 +527,7 @@ export class StateMachine implements IElement {
 	 */
 	public initialise(instance?: IInstance): void {
 		if (instance) {
-			if (this.clean === false) {
+			if (this.onInitialise === delegate()) {
 				this.initialise();
 			}
 
@@ -544,8 +538,6 @@ export class StateMachine implements IElement {
 			logger.log(`initialise ${this}`);
 
 			this.onInitialise = this.accept(new InitialiseStateMachine(), false, this.onInitialise);
-
-			this.clean = true;
 		}
 	}
 
@@ -555,7 +547,7 @@ export class StateMachine implements IElement {
 	 * @param message An arbitory number of objects that form the message. These will be passed to the [guard conditions]{@link Guard} of the appropriate [transitions]{@link Transition} and if a state transition occurs, to the behaviour specified on [states]{@link State} and [transitions]{@link Transition}.
 	 */
 	public evaluate(instance: IInstance, ...message: any[]): boolean {
-		if (this.clean === false) {
+		if (this.onInitialise === delegate()) {
 			this.initialise();
 		}
 
