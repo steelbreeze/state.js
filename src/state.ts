@@ -203,6 +203,7 @@ export interface IElement {
  * @param TParent The type of the element's parent.
  */
 export abstract class Element<TParent extends IElement> implements IElement {
+
 	/** The fully qualified name of an [element]{@link Element} within a [state machine model]{@link StateMachine}. */
 	public readonly qualifiedName: string;
 
@@ -235,6 +236,7 @@ export abstract class Element<TParent extends IElement> implements IElement {
 
 /** A region is an orthogonal part of either a [composite state]{@link State} or a [state machine]{@link StateMachine}. It is container of [vertices]{@link Vertex} and has no behavior associated with it. */
 export class Region extends Element<State | StateMachine> implements IElement {
+
 	/** The child [vertices]{@link Vertex} of this [region]{@link Region}. */
 	public readonly children = new Array<Vertex>();
 
@@ -281,6 +283,7 @@ export class Region extends Element<State | StateMachine> implements IElement {
 
 /** The source or target of a [transition]{@link Transition} within a [state machine model]{@link StateMachine}. A vertex can be either a [[State]] or a [[PseudoState]]. */
 export abstract class Vertex extends Element<Region> {
+
 	/** The set of possible [transitions]{@link Transition} that this [vertex]{@link Vertex} can be the source of. */
 	public readonly outgoing = new Array<Transition>();
 
@@ -319,6 +322,7 @@ export abstract class Vertex extends Element<Region> {
 
 /** A [vertex]{@link Vertex} in a [state machine model]{@link StateMachine} that has the form of a [state]{@link State} but does not behave as a full [state]{@link State}; it is always transient; it may be the source or target of [transitions]{@link Transition} but has no entry or exit behavior. */
 export class PseudoState extends Vertex {
+
 	/**
 	 * Creates a new instance of the [[PseudoState]] class.
 	 * @param name The name of this [pseudo state]{@link PseudoState}.
@@ -341,6 +345,7 @@ export class PseudoState extends Vertex {
 
 /** A condition or situation during the life of an object, represented by a [state machine model]{@link StateMachine}, during which it satisfies some condition, performs some activity, or waits for some event. */
 export class State extends Vertex {
+
 	/** The child [region(s)]{@link Region} if this [state]{@link State} is a [composite]{@link State.isComposite} or [orthogonal]{@link State.isOrthogonal} state. */
 	public readonly children = new Array<Region>(); // TODO: pull out some commonality from state and state machine
 
@@ -465,6 +470,7 @@ export class State extends Vertex {
 
 /** A specification of the sequences of [states]{@link State} that an object goes through in response to events during its life, together with its responsive actions. */
 export class StateMachine implements IElement {
+
 	/**
 	 * The parent element of the state machine; always undefined.
 	 * @hidden
@@ -573,6 +579,11 @@ export class StateMachine implements IElement {
 
 /** A relationship within a [state machine model]{@link StateMachine} between two [vertices]{@link Vertex} that will effect a state transition in response to an event when its [guard condition]{@link Transition.when} is satisfied. */
 export class Transition {
+
+	/**
+	 * A guard to represent else transitions.
+	 * @hidden
+	 */
 	private static Else = () => false;
 
 	/**
@@ -688,6 +699,7 @@ export class Transition {
 
 /** Base class for vistors that will walk the [state machine model]{@link StateMachine}; used in conjunction with the [accept]{@linkcode StateMachine.accept} methods on all [elements]{@link Element}. Visitor is an mplementation of the [visitor pattern]{@link https://en.wikipedia.org/wiki/Visitor_pattern}. */
 export abstract class Visitor {
+
 	/**
 	 * Visits an [element]{@link Element} within a [state machine model]{@link StateMachine}; use this for logic applicable to all [elements]{@link Element}.
 	 * @param element The [element]{@link Element} being visited.
@@ -706,7 +718,7 @@ export abstract class Visitor {
 			vertex.accept(this, ...args);
 		}
 
-		this.visitElement(region, ...args);
+		return this.visitElement(region, ...args);
 	}
 
 	/**
@@ -719,7 +731,7 @@ export abstract class Visitor {
 			transition.accept(this, ...args);
 		}
 
-		this.visitElement(vertex, ...args);
+		return this.visitElement(vertex, ...args);
 	}
 
 	/**
@@ -728,7 +740,7 @@ export abstract class Visitor {
 	 * @param args The arguments passed to the initial accept call.
 	 */
 	visitPseudoState(pseudoState: PseudoState, ...args: any[]): any {
-		this.visitVertex(pseudoState, ...args);
+		return this.visitVertex(pseudoState, ...args);
 	}
 
 	/**
@@ -741,7 +753,7 @@ export abstract class Visitor {
 			region.accept(this, ...args);
 		}
 
-		this.visitVertex(state, ...args);
+		return this.visitVertex(state, ...args);
 	}
 
 	/**
@@ -754,7 +766,7 @@ export abstract class Visitor {
 			region.accept(this, ...args);
 		}
 
-		this.visitElement(stateMachine, ...args);
+		return this.visitElement(stateMachine, ...args);
 	}
 
 	/**

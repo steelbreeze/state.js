@@ -342,6 +342,10 @@ export declare class Transition {
     readonly source: Vertex;
     readonly target: Vertex;
     readonly kind: TransitionKind;
+    /**
+     * A guard to represent else transitions.
+     * @hidden
+     */
     private static Else;
     /**
      * The transition's behavior as defined by the user.
