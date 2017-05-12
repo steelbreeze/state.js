@@ -189,7 +189,7 @@ export enum TransitionKind {
  */
 export interface IElement {
 	/** The parent [element]{@link Element} of this element. */
-	parent: IElement;
+	parent: any;
 
 	/** The name of this element. */
 	name: string;
@@ -469,7 +469,7 @@ export class StateMachine implements IElement {
 	 * The parent element of the state machine; always undefined.
 	 * @hidden
 	 */
-	readonly parent: any = undefined;
+	readonly parent = undefined;
 
 	/** The child [region(s)]{@link Region} if this [state machine]{@link StateMachine}. */
 	public readonly children = new Array<Region>();

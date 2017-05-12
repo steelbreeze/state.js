@@ -99,7 +99,7 @@ export declare enum TransitionKind {
  */
 export interface IElement {
     /** The parent [element]{@link Element} of this element. */
-    parent: IElement;
+    parent: any;
     /** The name of this element. */
     name: string;
     /** Invalidates a [state machine model]{@link StateMachine} causing it to require recompilation. */
@@ -282,7 +282,7 @@ export declare class StateMachine implements IElement {
      * The parent element of the state machine; always undefined.
      * @hidden
      */
-    readonly parent: any;
+    readonly parent: undefined;
     /** The child [region(s)]{@link Region} if this [state machine]{@link StateMachine}. */
     readonly children: Region[];
     /**
