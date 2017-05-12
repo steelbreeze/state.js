@@ -454,7 +454,7 @@ export declare abstract class Visitor {
 export interface IInstance {
     /**
      * Called by state.js upon entry to any [vertex]{@link Vertex}; must store both the current [vertex]{@link Vertex} and last known [state]{@link State} for the [region]{@link Region}.
-     * @param vertex The [vertex]{@link Vertex} to record against the [region]{@link Region}.
+     * @param vertex The [vertex]{@link Vertex} to record against its parent [region]{@link Region}.
      */
     setCurrent(vertex: Vertex): void;
     /**

@@ -543,7 +543,7 @@ export class StateMachine implements IElement {
 		} else {
 			logger.log(`initialise ${this}`);
 
-			this.onInitialise = this.accept(new InitialiseStateMachine(), false, this.onInitialise);
+			this.onInitialise = this.accept(new Runtime(), false, this.onInitialise);
 		}
 	}
 
@@ -559,7 +559,7 @@ export class StateMachine implements IElement {
 
 		logger.log(`${instance} evaluate message: ${message}`);
 
-		return evaluate(this, instance, ...message);
+		return Runtime.evaluate(this, instance, ...message);
 	}
 
 	/**
@@ -782,7 +782,7 @@ export abstract class Visitor {
 export interface IInstance {
 	/**
 	 * Called by state.js upon entry to any [vertex]{@link Vertex}; must store both the current [vertex]{@link Vertex} and last known [state]{@link State} for the [region]{@link Region}.
-	 * @param vertex The [vertex]{@link Vertex} to record against the [region]{@link Region}.
+	 * @param vertex The [vertex]{@link Vertex} to record against its parent [region]{@link Region}.
 	 */
 	setCurrent(vertex: Vertex): void;
 
@@ -854,19 +854,19 @@ export class DictionaryInstance implements IInstance {
 }
 
 /** @hidden */
-class ElementActions {
+class RuntimeActions {
 	leave = delegate();
 	beginEnter = delegate();
 	endEnter = delegate();
 }
 
 /** @hidden */
-class InitialiseStateMachine extends Visitor {
-	readonly elementActions: { [id: string]: ElementActions } = {};
+class Runtime extends Visitor {
+	readonly actions: { [id: string]: RuntimeActions } = {};
 	readonly transitions = new Array<Transition>();
 
-	getActions(elemenet: IElement): ElementActions {
-		return this.elementActions[elemenet.toString()] || (this.elementActions[elemenet.toString()] = new ElementActions());
+	getActions(elemenet: IElement): RuntimeActions {
+		return this.actions[elemenet.toString()] || (this.actions[elemenet.toString()] = new RuntimeActions());
 	}
 
 	visitElement<TElement extends IElement>(element: TElement, deepHistoryAbove: boolean): void {
@@ -919,7 +919,7 @@ class InitialiseStateMachine extends Visitor {
 						this.getActions(currentState).endEnter(instance, deepHistory || pseudoState.kind === PseudoStateKind.DeepHistory, ...message);
 					}
 				} else {
-					traverse(pseudoState.outgoing[0], instance, false);
+					Runtime.traverse(pseudoState.outgoing[0], instance, false);
 				}
 			});
 		}
@@ -973,7 +973,7 @@ class InitialiseStateMachine extends Visitor {
 		if (internalTransitionsTriggerCompletion) {
 			transition.onTraverse = delegate(transition.onTraverse, (instance: IInstance, deepHistory: boolean, ...message: any[]) => {
 				if (transition.source instanceof State && transition.source.isComplete(instance)) {
-					evaluate(transition.source, instance, transition.source);
+					Runtime.evaluate(transition.source, instance, transition.source);
 				}
 			});
 		}
@@ -1017,96 +1017,86 @@ class InitialiseStateMachine extends Visitor {
 
 		transition.onTraverse = delegate(transition.onTraverse, this.getActions(transition.target!).endEnter);
 	}
-}
 
-/** @hidden */
-function findElse(pseudoState: PseudoState): Transition {
-	return pseudoState.outgoing.filter(transition => transition.isElse())[0];
-}
-
-/** @hidden */
-function selectTransition(pseudoState: PseudoState, instance: IInstance, ...message: any[]): Transition {
-	const transitions = pseudoState.outgoing.filter(transition => transition.evaluate(instance, ...message));
-
-	if (pseudoState.kind === PseudoStateKind.Choice) {
-		return transitions.length !== 0 ? transitions[random(transitions.length)] : findElse(pseudoState);
+	static findElse(pseudoState: PseudoState): Transition {
+		return pseudoState.outgoing.filter(transition => transition.isElse())[0];
 	}
 
-	if (transitions.length > 1) {
-		logger.error(`Multiple outbound transition guards returned true at ${pseudoState} for ${message}`);
-	}
+	static selectTransition(pseudoState: PseudoState, instance: IInstance, ...message: any[]): Transition {
+		const transitions = pseudoState.outgoing.filter(transition => transition.evaluate(instance, ...message));
 
-	return transitions[0] || findElse(pseudoState);
-}
-
-/**
- * Logic to 
- * @hidden
- */
-function evaluate(state: StateMachine | State, instance: IInstance, ...message: any[]): boolean {
-	let result = false;
-
-	if (message[0] !== state) {
-		state.children.every(region => {
-			const currentState = instance.getLastKnownState(region);
-
-			if (currentState && evaluate(currentState, instance, ...message)) {
-				result = true;
-
-				return state.isActive(instance);
-			}
-
-			return true;
-		});
-	}
-
-	if (state instanceof State) {
-		if (result) {
-			if ((message[0] !== state) && state.isComplete(instance)) {
-				evaluate(state, instance, state);
-			}
-		} else {
-			const transitions = state.outgoing.filter(transition => transition.evaluate(instance, ...message));
-
-			if (transitions.length === 1) {
-				traverse(transitions[0], instance, ...message);
-
-				result = true;
-			} else if (transitions.length > 1) {
-				logger.error(`${state}: multiple outbound transitions evaluated true for message ${message}`);
-			}
-		}
-	}
-
-	return result;
-}
-
-/**
- * Logic to perform transition traversal; includes static (with its composite transition) and dynamic conditional branch processing for Junction and Choice pseudo states respectively.
- * @hidden
- */
-function traverse(transition: Transition, instance: IInstance, ...message: any[]) {
-	let onTraverse = delegate(transition.onTraverse);
-
-	// create the compound transition while the target is a junction pseudo state (static conditional branch)
-	while (transition.target && transition.target instanceof PseudoState && transition.target.kind === PseudoStateKind.Junction) {
-		transition = selectTransition(transition.target, instance, ...message);
-
-		onTraverse = delegate(onTraverse, transition.onTraverse);
-	}
-
-	// call the transition behavior.
-	onTraverse(instance, false, ...message);
-
-	if (transition.target) {
-		// recurse to perform outbound transitions when the target is a choice pseudo state (dynamic conditional branch)
-		if (transition.target instanceof PseudoState && transition.target.kind === PseudoStateKind.Choice) {
-			traverse(selectTransition(transition.target, instance, ...message), instance, ...message);
+		if (pseudoState.kind === PseudoStateKind.Choice) {
+			return transitions.length !== 0 ? transitions[random(transitions.length)] : this.findElse(pseudoState);
 		}
 
-		// trigger compeltions transitions when the target is a state as required
-		else if (transition.target instanceof State && transition.target.isComplete(instance)) {
-			evaluate(transition.target, instance, transition.target);
+		if (transitions.length > 1) {
+			logger.error(`Multiple outbound transition guards returned true at ${pseudoState} for ${message}`);
+		}
+
+		return transitions[0] || this.findElse(pseudoState);
+	}
+
+	static evaluate(state: StateMachine | State, instance: IInstance, ...message: any[]): boolean {
+		let result = false;
+
+		if (message[0] !== state) {
+			state.children.every(region => {
+				const currentState = instance.getLastKnownState(region);
+
+				if (currentState && Runtime.evaluate(currentState, instance, ...message)) {
+					result = true;
+
+					return state.isActive(instance);
+				}
+
+				return true;
+			});
+		}
+
+		if (state instanceof State) {
+			if (result) {
+				if ((message[0] !== state) && state.isComplete(instance)) {
+					Runtime.evaluate(state, instance, state);
+				}
+			} else {
+				const transitions = state.outgoing.filter(transition => transition.evaluate(instance, ...message));
+
+				if (transitions.length === 1) {
+					Runtime.traverse(transitions[0], instance, ...message);
+
+					result = true;
+				} else if (transitions.length > 1) {
+					logger.error(`${state}: multiple outbound transitions evaluated true for message ${message}`);
+				}
+			}
+		}
+
+		return result;
+	}
+
+	static traverse(transition: Transition, instance: IInstance, ...message: any[]) {
+		let onTraverse = delegate(transition.onTraverse);
+
+		// create the compound transition while the target is a junction pseudo state (static conditional branch)
+		while (transition.target && transition.target instanceof PseudoState && transition.target.kind === PseudoStateKind.Junction) {
+			transition = Runtime.selectTransition(transition.target, instance, ...message);
+
+			onTraverse = delegate(onTraverse, transition.onTraverse);
+		}
+
+		// call the transition behavior.
+		onTraverse(instance, false, ...message);
+
+		if (transition.target) {
+			// recurse to perform outbound transitions when the target is a choice pseudo state (dynamic conditional branch)
+			if (transition.target instanceof PseudoState && transition.target.kind === PseudoStateKind.Choice) {
+				Runtime.traverse(Runtime.selectTransition(transition.target, instance, ...message), instance, ...message);
+			}
+
+			// trigger compeltions transitions when the target is a state as required
+			else if (transition.target instanceof State && transition.target.isComplete(instance)) {
+				Runtime.evaluate(transition.target, instance, transition.target);
+			}
 		}
 	}
 }
