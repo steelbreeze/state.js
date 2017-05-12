@@ -52,14 +52,14 @@
 			/* create the state machine model transitions */
 			initial.to(operational);
 			deepHistory.to(stopped);
-			stopped.to(running).when(function (s) { return s === "play"; });
-			active.to(stopped).when(function (s) { return s === "stop"; });
-			running.to(paused).when(function (s) { return s === "pause"; });
-			paused.to(running).when(function (s) { return s === "play"; });
-			paused.to(running).when(function (s) { return s === "pause"; });
-			operational.to(flipped).when(function (s) { return s === "flip"; });
-			flipped.to(operational).when(function (s) { return s === "flip"; });
-			operational.to(finalState).when(function (s) { return s === "off"; });
+			stopped.to(running).when(function (i, s) { return s === "play"; });
+			active.to(stopped).when(function (i, s) { return s === "stop"; });
+			running.to(paused).when(function (i, s) { return s === "pause"; });
+			paused.to(running).when(function (i, s) { return s === "play"; });
+			paused.to(running).when(function (i, s) { return s === "pause"; });
+			operational.to(flipped).when(function (i, s) { return s === "flip"; });
+			flipped.to(operational).when(function (i, s) { return s === "flip"; });
+			operational.to(finalState).when(function (i, s) { return s === "off"; });
 
 			/* add core behavior to appropriate states and transitions in the player machine*/
 			active.entry(function () { $("#head").text("Head: engaged"); }).exit(function () { $("#head").text("Head: disengaged"); });

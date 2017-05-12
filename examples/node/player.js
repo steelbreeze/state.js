@@ -1,4 +1,5 @@
 "use strict";
+exports.__esModule = true;
 var state = require("../../lib/node/state");
 // send log messages, warnings and errors to the console
 state.setLogger(console);
@@ -16,13 +17,13 @@ var paused = new state.State("paused", active);
 // create the state machine model transitions
 initial.to(operational);
 deepHistory.to(stopped);
-stopped.to(running).when(function (s) { return s === "play"; });
-active.to(stopped).when(function (s) { return s === "stop"; });
-running.to(paused).when(function (s) { return s === "pause"; });
-paused.to(running).when(function (s) { return s === "play"; });
-operational.to(flipped).when(function (s) { return s === "flip"; });
-flipped.to(operational).when(function (s) { return s === "flip"; });
-operational.to(finalState).when(function (s) { return s === "off"; });
+stopped.to(running).when(function (i, s) { return s === "play"; });
+active.to(stopped).when(function (i, s) { return s === "stop"; });
+running.to(paused).when(function (i, s) { return s === "pause"; });
+paused.to(running).when(function (i, s) { return s === "play"; });
+operational.to(flipped).when(function (i, s) { return s === "flip"; });
+flipped.to(operational).when(function (i, s) { return s === "flip"; });
+operational.to(finalState).when(function (i, s) { return s === "off"; });
 // create a new state machine instance (this stores the active state configuration, allowing many instances to work with a single model)
 var instance = new state.DictionaryInstance("player");
 // initialse the state machine instance (also initialises the model if not already initialised explicitly or via another instance)

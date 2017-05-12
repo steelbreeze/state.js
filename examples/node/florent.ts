@@ -1,4 +1,4 @@
-import state from "../../lib/node/state";
+import * as state from "../../lib/node/state";
 
 const model = new state.StateMachine("model");
 
@@ -14,15 +14,15 @@ const showMoveItemPattern = new state.State("showMoveItemPattern", on);
 const hideMoveItemPattern = new state.State("hideMoveItemPattern", on);
 
 initial.to(idle);
-on.to(off).when(s => s === "Disable");
-off.to(history).when(s => s === "Enable");
-on.to(clean).when(s => s === "DestroyInput");
-off.to(clean).when(s => s === "DestroyInput");
+on.to(off).when((i, s) => s === "Disable");
+off.to(history).when((i, s) => s === "Enable");
+on.to(clean).when((i, s) => s === "DestroyInput");
+off.to(clean).when((i, s) => s === "DestroyInput");
 clean.to(final);
-idle.to(moveItem).when(s => s === "TransformInput");
-moveItem.to(idle).when(s => s === "ReleaseInput");
-idle.to(showMoveItemPattern).when(s => s === "ReleaseInput");
-showMoveItemPattern.to(hideMoveItemPattern).when(s => s === "ReleaseInput");
+idle.to(moveItem).when((i, s) => s === "TransformInput");
+moveItem.to(idle).when((i, s) => s === "ReleaseInput");
+idle.to(showMoveItemPattern).when((i, s) => s === "ReleaseInput");
+showMoveItemPattern.to(hideMoveItemPattern).when((i, s) => s === "ReleaseInput");
 hideMoveItemPattern.to(idle);
 
 let instance = new state.DictionaryInstance("florent");

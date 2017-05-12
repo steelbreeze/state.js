@@ -11,7 +11,7 @@ const stateB = new state.State("stateB", model);
 
 // create the state machine model transitions
 initial.to(stateA);
-stateA.to(stateB).when(message => message === "move");
+stateA.to(stateB).when((instance, message) => message === "move");
 
 // create a state machine instance
 let instance = new state.DictionaryInstance("instance");

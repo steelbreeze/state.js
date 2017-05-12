@@ -1,4 +1,5 @@
 "use strict";
+exports.__esModule = true;
 var state = require("../../lib/node/state");
 // send log messages, warnings and errors to the console
 state.setLogger(console);
@@ -9,7 +10,7 @@ var stateA = new state.State("stateA", model);
 var stateB = new state.State("stateB", model);
 // create the state machine model transitions
 initial.to(stateA);
-stateA.to(stateB).when(function (message) { return message === "move"; });
+stateA.to(stateB).when(function (instance, message) { return message === "move"; });
 // create a state machine instance
 var instance = new state.DictionaryInstance("instance");
 // initialise the model and instance
