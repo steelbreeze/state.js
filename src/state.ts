@@ -188,11 +188,8 @@ export enum TransitionKind {
  * Common properties of all elements that make up a [state machine model]{@link StateMachine}.
  */
 export interface IElement {
-	/** The parent [element]{@link Element} of this element. */
+	/** The parent [element]{@link IElement} of this element. */
 	parent: any;
-
-	/** The name of this element. */
-	name: string;
 
 	/** Invalidates a [state machine model]{@link StateMachine} causing it to require recompilation. */
 	invalidate(): void;
@@ -202,23 +199,15 @@ export interface IElement {
  * Common base class for [regions]{@link Region} and [vertices]{@link Vertex} within a [state machine model]{@link StateMachine}.
  * @param TParent The type of the element's parent.
  */
-export abstract class Element<TParent extends IElement> implements IElement {
-
-	/** The fully qualified name of an [element]{@link Element} within a [state machine model]{@link StateMachine}. */
-	public readonly qualifiedName: string;
-
+export abstract class NamedElement<TParent extends IElement> implements IElement {
 	/**
-	 * Creates a new instance of the [[Element]] class.
-	 * @param name The name of this [element]{@link Element}.
-	 * @param parent The parent [element]{@link Element} of this [element]{@link Element}.
+	 * Creates a new instance of the [[NamedElement]] class.
+	 * @param name The name of this [element]{@link NamedElement}.
+	 * @param parent The parent [element]{@link IElement} of this [element]{@link NamedElement}.
 	 */
 	protected constructor(public readonly name: string, public readonly parent: TParent) {
-		this.qualifiedName = parent ? parent.toString() + namespaceSeparator + name : name;
-
 		this.invalidate();
 	}
-
-	// TODO: base implementation of is active and is complete?
 
 	/**
 	 * Invalidates a [state machine model]{@link StateMachine} causing it to require recompilation.
@@ -228,22 +217,21 @@ export abstract class Element<TParent extends IElement> implements IElement {
 		this.parent.invalidate();
 	}
 
-	/** Returns the fully qualified name of the [element]{@link Element}. */
+	/** Returns the fully qualified name of the [element]{@link NamedElement}. */
 	public toString(): string {
-		return this.qualifiedName;
+		return this.parent + namespaceSeparator + this.name;
 	}
 }
 
 /** A region is an orthogonal part of either a [composite state]{@link State} or a [state machine]{@link StateMachine}. It is container of [vertices]{@link Vertex} and has no behavior associated with it. */
-export class Region extends Element<State | StateMachine> implements IElement {
-
+export class Region extends NamedElement<State | StateMachine> implements IElement {
 	/** The child [vertices]{@link Vertex} of this [region]{@link Region}. */
 	public readonly children = new Array<Vertex>();
 
 	/**
 	 * Creates a new instance of the [[Region]] class.
-	 * @param name The name of this [element]{@link Element}.
-	 * @param parent The parent [element]{@link Element} of this [element]{@link Element}.
+	 * @param name The name of this [element]{@link NamedElement}.
+	 * @param parent The parent [element]{@link IElement} of this [element]{@link NamedElement}.
 	 */
 	public constructor(name: string, parent: State | StateMachine) {
 		super(name, parent);
@@ -282,8 +270,7 @@ export class Region extends Element<State | StateMachine> implements IElement {
 }
 
 /** The source or target of a [transition]{@link Transition} within a [state machine model]{@link StateMachine}. A vertex can be either a [[State]] or a [[PseudoState]]. */
-export abstract class Vertex extends Element<Region> {
-
+export abstract class Vertex extends NamedElement<Region> {
 	/** The set of possible [transitions]{@link Transition} that this [vertex]{@link Vertex} can be the source of. */
 	public readonly outgoing = new Array<Transition>();
 
@@ -293,7 +280,7 @@ export abstract class Vertex extends Element<Region> {
 	/**
 	 * Creates a new instance of the [[Vertex]] class.
 	 * @param name The name of this [vertex]{@link Vertex}.
-	 * @param parent The parent [element]{@link Element} of this [vertex]{@link Vertex}. If a [state]{@link State} or [state machine]{@link StateMachine} is specified, its [default region]{@link State.defaultRegion} used as the parent.
+	 * @param parent The parent [element]{@link IElement} of this [vertex]{@link Vertex}. If a [state]{@link State} or [state machine]{@link StateMachine} is specified, its [default region]{@link State.defaultRegion} used as the parent.
 	 */
 	protected constructor(name: string, parent: Region | State | StateMachine) {
 		super(name, parent instanceof Region ? parent : parent.defaultRegion() || new Region(defaultRegionName, parent));
@@ -322,11 +309,10 @@ export abstract class Vertex extends Element<Region> {
 
 /** A [vertex]{@link Vertex} in a [state machine model]{@link StateMachine} that has the form of a [state]{@link State} but does not behave as a full [state]{@link State}; it is always transient; it may be the source or target of [transitions]{@link Transition} but has no entry or exit behavior. */
 export class PseudoState extends Vertex {
-
 	/**
 	 * Creates a new instance of the [[PseudoState]] class.
 	 * @param name The name of this [pseudo state]{@link PseudoState}.
-	 * @param parent The parent [element]{@link Element} of this [pseudo state]{@link PseudoState}. If a [state]{@link State} or [state machine]{@link StateMachine} is specified, its [default region]{@link State.defaultRegion} used as the parent.
+	 * @param parent The parent [element]{@link IElement} of this [pseudo state]{@link PseudoState}. If a [state]{@link State} or [state machine]{@link StateMachine} is specified, its [default region]{@link State.defaultRegion} used as the parent.
 	 * @param kind The semantics of this [pseudo state]{@link PseudoState}; see the members of the [pseudo state kind enumeration]{@link PseudoStateKind} for details.
 	 */
 	public constructor(name: string, parent: Region | State | StateMachine, public readonly kind: PseudoStateKind = PseudoStateKind.Initial) {
@@ -345,7 +331,6 @@ export class PseudoState extends Vertex {
 
 /** A condition or situation during the life of an object, represented by a [state machine model]{@link StateMachine}, during which it satisfies some condition, performs some activity, or waits for some event. */
 export class State extends Vertex {
-
 	/** The child [region(s)]{@link Region} if this [state]{@link State} is a [composite]{@link State.isComposite} or [orthogonal]{@link State.isOrthogonal} state. */
 	public readonly children = new Array<Region>(); // TODO: pull out some commonality from state and state machine
 
@@ -364,7 +349,7 @@ export class State extends Vertex {
 	/**
 	 * Creates a new instance of the [[State]] class.
 	 * @param name The name of this [state]{@link State}.
-	 * @param parent The parent [element]{@link Element} of this [state]{@link State}. If a [state]{@link State} or [state machine]{@link StateMachine} is specified, its [default region]{@link State.defaultRegion} used as the parent.
+	 * @param parent The parent [element]{@link IElement} of this [state]{@link State}. If a [state]{@link State} or [state machine]{@link StateMachine} is specified, its [default region]{@link State.defaultRegion} used as the parent.
 	 */
 	public constructor(name: string, parent: Region | State | StateMachine) {
 		super(name, parent);
@@ -434,8 +419,8 @@ export class State extends Vertex {
 	 * @return Returns the [state]{@link State} to facilitate fluent-style [state machine model]{@link StateMachine} construction.
 	 */
 	public exit(action: (instance: IInstance, ...message: any[]) => any) {
-		this.exitBehavior = delegate(this.exitBehavior, (instance: IInstance, deepHistory: boolean, ...message: any[]) => {
-			action(instance, ...message);
+		this.exitBehavior = delegate(this.exitBehavior, (instance: IInstance, deepHistory: boolean, ...message: any[]) => { // TODO: test origional is not noOp
+			return action(instance, ...message);
 		});
 
 		this.invalidate();
@@ -449,8 +434,8 @@ export class State extends Vertex {
 	 * @return Returns the [state]{@link State} to facilitate fluent-style [state machine model]{@link StateMachine} construction.
 	 */
 	public entry(action: (instance: IInstance, ...message: any[]) => any) {
-		this.entryBehavior = delegate(this.entryBehavior, (instance: IInstance, deepHistory: boolean, ...message: any[]) => {
-			action(instance, ...message);
+		this.entryBehavior = delegate(this.entryBehavior, (instance: IInstance, deepHistory: boolean, ...message: any[]) => { // TODO: test origional is not noOp
+			return action(instance, ...message);
 		});
 
 		this.invalidate();
@@ -584,7 +569,7 @@ export class Transition {
 	 * A guard to represent else transitions.
 	 * @hidden
 	 */
-	private static Else = () => false;
+	private static Else = (): boolean => false;
 
 	/**
 	 * The transition's behavior as defined by the user.
@@ -611,7 +596,7 @@ export class Transition {
 	 * @param kind The kind of the [transition]{@link Transition}; use this to explicitly set [local transition]{@link TransitionKind.Local} semantics as needed.
 	 */
 	public constructor(public readonly source: Vertex, public readonly target?: Vertex, public readonly kind: TransitionKind = TransitionKind.External) {
-		this.guard = source instanceof PseudoState ? () => true : (instance: IInstance, ...message: any[]) => message[0] === this.source;
+		this.guard = source instanceof PseudoState ? ():boolean => true : (instance: IInstance, ...message: any[]): boolean => message[0] === this.source;
 		this.source.outgoing.push(this);
 
 		// validate and repair if necessary the user supplied transition kind
@@ -669,7 +654,7 @@ export class Transition {
 	 */
 	public effect(action: (instance: IInstance, ...message: any[]) => any) {
 		this.effectBehavior = delegate(this.effectBehavior, (instance: IInstance, deepHistory: boolean, ...message: any[]) => {
-			action(instance, ...message);
+			return action(instance, ...message);
 		});
 
 		this.source.invalidate();
@@ -697,12 +682,12 @@ export class Transition {
 	}
 }
 
-/** Base class for vistors that will walk the [state machine model]{@link StateMachine}; used in conjunction with the [accept]{@linkcode StateMachine.accept} methods on all [elements]{@link Element}. Visitor is an mplementation of the [visitor pattern]{@link https://en.wikipedia.org/wiki/Visitor_pattern}. */
+/** Base class for vistors that will walk the [state machine model]{@link StateMachine}; used in conjunction with the [accept]{@linkcode StateMachine.accept} methods on all [elements]{@link IElement}. Visitor is an mplementation of the [visitor pattern]{@link https://en.wikipedia.org/wiki/Visitor_pattern}. */
 export abstract class Visitor {
 
 	/**
-	 * Visits an [element]{@link Element} within a [state machine model]{@link StateMachine}; use this for logic applicable to all [elements]{@link Element}.
-	 * @param element The [element]{@link Element} being visited.
+	 * Visits an [element]{@link IElement} within a [state machine model]{@link StateMachine}; use this for logic applicable to all [elements]{@link IElement}.
+	 * @param element The [element]{@link IElement} being visited.
 	 * @param args The arguments passed to the initial accept call.
 	 */
 	visitElement<TElement extends IElement>(element: TElement, ...args: any[]): any {
@@ -723,7 +708,7 @@ export abstract class Visitor {
 
 	/**
 	 * Visits a [vertex]{@link Vertex} within a [state machine model]{@link StateMachine}; use this for logic applicable to all [vertices]{@link Vertex}.
-	 * @param element The [element]{@link Element} being visited.
+	 * @param vertex The [vertex]{@link Vertex} being visited.
 	 * @param args The arguments passed to the initial accept call.
 	 */
 	visitVertex(vertex: Vertex, ...args: any[]): any {
@@ -806,10 +791,10 @@ export interface IInstance {
  * @hidden
  */
 type RegionActiveStateConfiguration = {
-	/** The current active vertex. */
+	/** The current active [vertex]{@link Vertex} within a given [region]{@link Region} */
 	currentVertex: Vertex | undefined;
 
-	/** The last known state; used for history. */
+	/** The last known [state]{@link State} of a . */
 	lastKnownState: State | undefined;
 }
 
@@ -820,11 +805,11 @@ export class DictionaryInstance implements IInstance {
 	constructor(public readonly name: string) { }
 
 	private find(region: Region): RegionActiveStateConfiguration {
-		let asc = this.asc[region.qualifiedName];
+		let asc = this.asc[region.toString()];
 
 		if (!asc) {
 			asc = { currentVertex: undefined, lastKnownState: undefined };
-			this.asc[region.qualifiedName] = asc;
+			this.asc[region.toString()] = asc;
 		}
 
 		return asc;

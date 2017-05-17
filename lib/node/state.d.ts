@@ -98,10 +98,8 @@ export declare enum TransitionKind {
  * Common properties of all elements that make up a [state machine model]{@link StateMachine}.
  */
 export interface IElement {
-    /** The parent [element]{@link Element} of this element. */
+    /** The parent [element]{@link IElement} of this element. */
     parent: any;
-    /** The name of this element. */
-    name: string;
     /** Invalidates a [state machine model]{@link StateMachine} causing it to require recompilation. */
     invalidate(): void;
 }
@@ -109,15 +107,13 @@ export interface IElement {
  * Common base class for [regions]{@link Region} and [vertices]{@link Vertex} within a [state machine model]{@link StateMachine}.
  * @param TParent The type of the element's parent.
  */
-export declare abstract class Element<TParent extends IElement> implements IElement {
+export declare abstract class NamedElement<TParent extends IElement> implements IElement {
     readonly name: string;
     readonly parent: TParent;
-    /** The fully qualified name of an [element]{@link Element} within a [state machine model]{@link StateMachine}. */
-    readonly qualifiedName: string;
     /**
-     * Creates a new instance of the [[Element]] class.
-     * @param name The name of this [element]{@link Element}.
-     * @param parent The parent [element]{@link Element} of this [element]{@link Element}.
+     * Creates a new instance of the [[NamedElement]] class.
+     * @param name The name of this [element]{@link NamedElement}.
+     * @param parent The parent [element]{@link IElement} of this [element]{@link NamedElement}.
      */
     protected constructor(name: string, parent: TParent);
     /**
@@ -125,17 +121,17 @@ export declare abstract class Element<TParent extends IElement> implements IElem
      * @hidden
      */
     invalidate(): void;
-    /** Returns the fully qualified name of the [element]{@link Element}. */
+    /** Returns the fully qualified name of the [element]{@link NamedElement}. */
     toString(): string;
 }
 /** A region is an orthogonal part of either a [composite state]{@link State} or a [state machine]{@link StateMachine}. It is container of [vertices]{@link Vertex} and has no behavior associated with it. */
-export declare class Region extends Element<State | StateMachine> implements IElement {
+export declare class Region extends NamedElement<State | StateMachine> implements IElement {
     /** The child [vertices]{@link Vertex} of this [region]{@link Region}. */
     readonly children: Vertex[];
     /**
      * Creates a new instance of the [[Region]] class.
-     * @param name The name of this [element]{@link Element}.
-     * @param parent The parent [element]{@link Element} of this [element]{@link Element}.
+     * @param name The name of this [element]{@link NamedElement}.
+     * @param parent The parent [element]{@link IElement} of this [element]{@link NamedElement}.
      */
     constructor(name: string, parent: State | StateMachine);
     /**
@@ -158,7 +154,7 @@ export declare class Region extends Element<State | StateMachine> implements IEl
     accept(visitor: Visitor, ...args: any[]): any;
 }
 /** The source or target of a [transition]{@link Transition} within a [state machine model]{@link StateMachine}. A vertex can be either a [[State]] or a [[PseudoState]]. */
-export declare abstract class Vertex extends Element<Region> {
+export declare abstract class Vertex extends NamedElement<Region> {
     /** The set of possible [transitions]{@link Transition} that this [vertex]{@link Vertex} can be the source of. */
     readonly outgoing: Transition[];
     /** The set of possible [transitions]{@link Transition} that this [vertex]{@link Vertex} can be the target of. */
@@ -166,7 +162,7 @@ export declare abstract class Vertex extends Element<Region> {
     /**
      * Creates a new instance of the [[Vertex]] class.
      * @param name The name of this [vertex]{@link Vertex}.
-     * @param parent The parent [element]{@link Element} of this [vertex]{@link Vertex}. If a [state]{@link State} or [state machine]{@link StateMachine} is specified, its [default region]{@link State.defaultRegion} used as the parent.
+     * @param parent The parent [element]{@link IElement} of this [vertex]{@link Vertex}. If a [state]{@link State} or [state machine]{@link StateMachine} is specified, its [default region]{@link State.defaultRegion} used as the parent.
      */
     protected constructor(name: string, parent: Region | State | StateMachine);
     /**
@@ -188,7 +184,7 @@ export declare class PseudoState extends Vertex {
     /**
      * Creates a new instance of the [[PseudoState]] class.
      * @param name The name of this [pseudo state]{@link PseudoState}.
-     * @param parent The parent [element]{@link Element} of this [pseudo state]{@link PseudoState}. If a [state]{@link State} or [state machine]{@link StateMachine} is specified, its [default region]{@link State.defaultRegion} used as the parent.
+     * @param parent The parent [element]{@link IElement} of this [pseudo state]{@link PseudoState}. If a [state]{@link State} or [state machine]{@link StateMachine} is specified, its [default region]{@link State.defaultRegion} used as the parent.
      * @param kind The semantics of this [pseudo state]{@link PseudoState}; see the members of the [pseudo state kind enumeration]{@link PseudoStateKind} for details.
      */
     constructor(name: string, parent: Region | State | StateMachine, kind?: PseudoStateKind);
@@ -216,7 +212,7 @@ export declare class State extends Vertex {
     /**
      * Creates a new instance of the [[State]] class.
      * @param name The name of this [state]{@link State}.
-     * @param parent The parent [element]{@link Element} of this [state]{@link State}. If a [state]{@link State} or [state machine]{@link StateMachine} is specified, its [default region]{@link State.defaultRegion} used as the parent.
+     * @param parent The parent [element]{@link IElement} of this [state]{@link State}. If a [state]{@link State} or [state machine]{@link StateMachine} is specified, its [default region]{@link State.defaultRegion} used as the parent.
      */
     constructor(name: string, parent: Region | State | StateMachine);
     /**
@@ -405,11 +401,11 @@ export declare class Transition {
      */
     accept(visitor: Visitor, ...args: any[]): any;
 }
-/** Base class for vistors that will walk the [state machine model]{@link StateMachine}; used in conjunction with the [accept]{@linkcode StateMachine.accept} methods on all [elements]{@link Element}. Visitor is an mplementation of the [visitor pattern]{@link https://en.wikipedia.org/wiki/Visitor_pattern}. */
+/** Base class for vistors that will walk the [state machine model]{@link StateMachine}; used in conjunction with the [accept]{@linkcode StateMachine.accept} methods on all [elements]{@link IElement}. Visitor is an mplementation of the [visitor pattern]{@link https://en.wikipedia.org/wiki/Visitor_pattern}. */
 export declare abstract class Visitor {
     /**
-     * Visits an [element]{@link Element} within a [state machine model]{@link StateMachine}; use this for logic applicable to all [elements]{@link Element}.
-     * @param element The [element]{@link Element} being visited.
+     * Visits an [element]{@link IElement} within a [state machine model]{@link StateMachine}; use this for logic applicable to all [elements]{@link IElement}.
+     * @param element The [element]{@link IElement} being visited.
      * @param args The arguments passed to the initial accept call.
      */
     visitElement<TElement extends IElement>(element: TElement, ...args: any[]): any;
@@ -421,7 +417,7 @@ export declare abstract class Visitor {
     visitRegion(region: Region, ...args: any[]): any;
     /**
      * Visits a [vertex]{@link Vertex} within a [state machine model]{@link StateMachine}; use this for logic applicable to all [vertices]{@link Vertex}.
-     * @param element The [element]{@link Element} being visited.
+     * @param vertex The [vertex]{@link Vertex} being visited.
      * @param args The arguments passed to the initial accept call.
      */
     visitVertex(vertex: Vertex, ...args: any[]): any;

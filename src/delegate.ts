@@ -19,8 +19,9 @@ export interface Delegate {
 
 /***
  * A delegate that does nothing; this is always returned from create if no delegates are passed in. This can be used for comparison purposes.
+ * @hidden
  */
-export const noOp: Delegate = () => { };
+const noop: Delegate = () => { };
 
 /**
  * Creates a delegate for one or more functions that can be called as one.
@@ -28,5 +29,7 @@ export const noOp: Delegate = () => { };
  * @return Returns a delegate that when called calls the other functions provided.
  */
 export function create(...delegates: Delegate[]): Delegate {
-	return delegates.length === 0 ? noOp : (...args: any[]) => delegates.map(f => f(...args));
+	const callable = delegates.filter(f => f !== noop);
+
+	return callable.length === 0 ? noop : (...args: any[]) => callable.map(f => f(...args));
 }

@@ -10,4 +10,4 @@ const two = delegate((s: string) => console.log(s + " Hello"), world);
 one("A");
 two("B");
 
-delegate(one, two)("C");
+console.log(delegate(one, two, delegate())("C"));

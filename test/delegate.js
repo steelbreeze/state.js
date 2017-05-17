@@ -8,4 +8,4 @@ var one = delegate_1.create(function (s) { return console.log(s + " Hello world"
 var two = delegate_1.create(function (s) { return console.log(s + " Hello"); }, world);
 one("A");
 two("B");
-delegate_1.create(one, two)("C");
+console.log(delegate_1.create(one, two, delegate_1.create())("C"));

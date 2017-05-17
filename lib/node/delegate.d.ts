@@ -15,10 +15,6 @@
 export interface Delegate {
     (...args: any[]): any;
 }
-/***
- * A delegate that does nothing; this is always returned from create if no delegates are passed in. This can be used for comparison purposes.
- */
-export declare const noOp: Delegate;
 /**
  * Creates a delegate for one or more functions that can be called as one.
  * @param delegates The set of functions to aggregate into a single delegate.
