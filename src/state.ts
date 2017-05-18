@@ -524,7 +524,7 @@ export class StateMachine implements IElement {
 
 			logger.log(`initialise ${instance}`);
 
-			this.onInitialise(instance, false, undefined);
+			this.onInitialise(instance, false);
 		} else {
 			logger.log(`initialise ${this}`);
 

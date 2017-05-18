@@ -19,17 +19,20 @@ export interface Delegate {
 
 /***
  * A delegate that does nothing; this is always returned from create if no delegates are passed in. This can be used for comparison purposes.
- * @hidden
  */
-const noop: Delegate = () => { };
+export const noop: Delegate = () => { };
 
 /**
  * Creates a delegate for one or more functions that can be called as one.
  * @param delegates The set of functions to aggregate into a single delegate.
  * @return Returns a delegate that when called calls the other functions provided.
  */
-export function create(...delegates: Delegate[]): Delegate {
+export function create<T>(...delegates: Delegate[]): Delegate {
 	const callable = delegates.filter(f => f !== noop);
 
-	return callable.length === 0 ? noop : (...args: any[]) => callable.map(f => f(...args));
+	if (callable.length === 0) {
+		return noop;
+	}
+
+	return (...args: any[]) => callable.map(f => f(...args));
 }
