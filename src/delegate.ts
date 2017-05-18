@@ -27,7 +27,7 @@ export const noop: Delegate = () => { };
  * @param delegates The set of functions to aggregate into a single delegate.
  * @return Returns a delegate that when called calls the other functions provided.
  */
-export function create<T>(...delegates: Delegate[]): Delegate {
+export function create(...delegates: Delegate[]): Delegate {
 	const callable = delegates.filter(f => f !== noop);
 
 	if (callable.length === 0) {
