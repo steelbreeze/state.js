@@ -786,51 +786,27 @@ export interface IInstance {
 	getLastKnownState(region: Region): State | undefined;
 }
 
-/**
- * Active state configuration of an individual [region]{@link Region}.
- * @hidden
- */
-type RegionActiveStateConfiguration = {
-	/** The current active [vertex]{@link Vertex} within a given [region]{@link Region} */
-	currentVertex: Vertex | undefined;
-
-	/** The last known [state]{@link State} of a . */
-	lastKnownState: State | undefined;
-}
-
 /** Simple implementation of [[IInstance]]; manages the active state configuration in a dictionary. */
 export class DictionaryInstance implements IInstance {
-	private readonly asc: { [id: string]: RegionActiveStateConfiguration } = {};
+	private readonly lastState: { [id: string]: State} = {};
+	private readonly currentVertex: { [id: string]: Vertex} = {};
 
 	constructor(public readonly name: string) { }
 
-	private find(region: Region): RegionActiveStateConfiguration {
-		let asc = this.asc[region.toString()];
-
-		if (!asc) {
-			asc = { currentVertex: undefined, lastKnownState: undefined };
-			this.asc[region.toString()] = asc;
-		}
-
-		return asc;
-	}
-
 	setCurrent(vertex: Vertex): void {
-		let asc = this.find(vertex.parent);
-
-		asc.currentVertex = vertex;
+		this.currentVertex[vertex.parent.toString()] = vertex;
 
 		if (vertex instanceof State) {
-			asc.lastKnownState = vertex;
+			this.lastState[vertex.parent.toString()] = vertex;
 		}
 	}
 
 	getCurrent(region: Region): Vertex | undefined {
-		return this.find(region).currentVertex;
+		return this.currentVertex[region.toString()];
 	}
 
 	getLastKnownState(region: Region): State | undefined {
-		return this.find(region).lastKnownState;
+		return this.lastState[region.toString()];
 	}
 
 	toString(): string {

@@ -469,9 +469,9 @@ export interface IInstance {
 /** Simple implementation of [[IInstance]]; manages the active state configuration in a dictionary. */
 export declare class DictionaryInstance implements IInstance {
     readonly name: string;
-    private readonly asc;
+    private readonly lastState;
+    private readonly currentVertex;
     constructor(name: string);
-    private find(region);
     setCurrent(vertex: Vertex): void;
     getCurrent(region: Region): Vertex | undefined;
     getLastKnownState(region: Region): State | undefined;
