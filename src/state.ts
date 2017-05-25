@@ -217,6 +217,13 @@ export abstract class NamedElement<TParent extends IElement> implements IElement
 		this.parent.invalidate();
 	}
 
+	/**
+	 * Accepts a [visitor]{@link Visitor} object.
+	 * @param visitor The [visitor]{@link Visitor} object.
+	 * @param args Any optional arguments to pass into the [visitor]{@link Visitor} object.
+	 */
+	public abstract accept(visitor: Visitor, ...args: any[]): any;
+
 	/** Returns the fully qualified name of the [element]{@link NamedElement}. */
 	public toString(): string {
 		return this.parent + namespaceSeparator + this.name;
@@ -295,15 +302,6 @@ export abstract class Vertex extends NamedElement<Region> {
 	 */
 	public to(target?: Vertex, kind: TransitionKind = TransitionKind.External): Transition {
 		return new Transition(this, target, kind);
-	}
-
-	/**
-	 * Accepts a [visitor]{@link Visitor} object.
-	 * @param visitor The [visitor]{@link Visitor} object.
-	 * @param args Any optional arguments to pass into the [visitor]{@link Visitor} object.
-	 */
-	public accept(visitor: Visitor, ...args: any[]): any {
-		return visitor.visitVertex(this, ...args);
 	}
 }
 
@@ -564,7 +562,6 @@ export class StateMachine implements IElement {
 
 /** A relationship within a [state machine model]{@link StateMachine} between two [vertices]{@link Vertex} that will effect a state transition in response to an event when its [guard condition]{@link Transition.when} is satisfied. */
 export class Transition {
-
 	/**
 	 * A guard to represent else transitions.
 	 * @hidden
@@ -684,7 +681,6 @@ export class Transition {
 
 /** Base class for vistors that will walk the [state machine model]{@link StateMachine}; used in conjunction with the [accept]{@linkcode StateMachine.accept} methods on all [elements]{@link IElement}. Visitor is an mplementation of the [visitor pattern]{@link https://en.wikipedia.org/wiki/Visitor_pattern}. */
 export abstract class Visitor {
-
 	/**
 	 * Visits an [element]{@link IElement} within a [state machine model]{@link StateMachine}; use this for logic applicable to all [elements]{@link IElement}.
 	 * @param element The [element]{@link IElement} being visited.
@@ -788,8 +784,8 @@ export interface IInstance {
 
 /** Simple implementation of [[IInstance]]; manages the active state configuration in a dictionary. */
 export class DictionaryInstance implements IInstance {
-	private readonly lastState: { [id: string]: State} = {};
-	private readonly currentVertex: { [id: string]: Vertex} = {};
+	private readonly lastState: { [id: string]: State } = {};
+	private readonly currentVertex: { [id: string]: Vertex } = {};
 
 	constructor(public readonly name: string) { }
 

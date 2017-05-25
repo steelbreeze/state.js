@@ -121,6 +121,12 @@ export declare abstract class NamedElement<TParent extends IElement> implements 
      * @hidden
      */
     invalidate(): void;
+    /**
+     * Accepts a [visitor]{@link Visitor} object.
+     * @param visitor The [visitor]{@link Visitor} object.
+     * @param args Any optional arguments to pass into the [visitor]{@link Visitor} object.
+     */
+    abstract accept(visitor: Visitor, ...args: any[]): any;
     /** Returns the fully qualified name of the [element]{@link NamedElement}. */
     toString(): string;
 }
@@ -171,12 +177,6 @@ export declare abstract class Vertex extends NamedElement<Region> {
      * @param kind The kind of the [transition]{@link Transition}; use this to explicitly set [local transition]{@link TransitionKind.Local} semantics as needed.
      */
     to(target?: Vertex, kind?: TransitionKind): Transition;
-    /**
-     * Accepts a [visitor]{@link Visitor} object.
-     * @param visitor The [visitor]{@link Visitor} object.
-     * @param args Any optional arguments to pass into the [visitor]{@link Visitor} object.
-     */
-    accept(visitor: Visitor, ...args: any[]): any;
 }
 /** A [vertex]{@link Vertex} in a [state machine model]{@link StateMachine} that has the form of a [state]{@link State} but does not behave as a full [state]{@link State}; it is always transient; it may be the source or target of [transitions]{@link Transition} but has no entry or exit behavior. */
 export declare class PseudoState extends Vertex {
