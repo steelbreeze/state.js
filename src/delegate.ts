@@ -26,7 +26,7 @@ export const noop: Delegate = () => { };
  * @return Returns a delegate that when called calls the other functions provided.
  */
 export function create(...delegates: Delegate[]): Delegate {
-	const callable = delegates.filter(f => f !== noop);
+	const callable = delegates.filter(f => f !== undefined && f !== null && f !== noop);
 
 	if (callable.length === 0) {
 		return noop;
