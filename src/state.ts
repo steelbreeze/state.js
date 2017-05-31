@@ -226,7 +226,7 @@ export abstract class NamedElement<TParent extends IElement> implements IElement
 
 	/** Returns the fully qualified name of the [element]{@link NamedElement}. */
 	public toString(): string {
-		return this.parent + namespaceSeparator + this.name;
+		return this.parent.toString() + namespaceSeparator + this.name;
 	}
 }
 
@@ -780,6 +780,98 @@ export interface IInstance {
 	 * @return Returns the last know [state]{@link State}.
 	 */
 	getLastKnownState(region: Region): State | undefined;
+}
+
+class StateConfiguration {
+	constructor(public readonly name: String) { }
+	children = new Array<RegionConfiguration>();
+}
+
+class RegionConfiguration {
+	constructor(public readonly name: String) { }
+	current: String;
+	lastKnownState: String;
+	children = new Array<StateConfiguration>();
+}
+
+export class JSONInstance implements IInstance {
+	private readonly root: StateConfiguration;
+
+	constructor(name: String) {
+		this.root = new StateConfiguration(name);
+	}
+
+	private getStateConfiguration(state: State | StateMachine): StateConfiguration {
+		let stateConfiguration = this.root;
+
+		if (state.parent !== undefined) {
+			const regionConfiguration = this.getRegionConfiguration(state.parent);
+
+			stateConfiguration = regionConfiguration.children.filter(s => s.name === state.name)[0];
+
+			if (stateConfiguration === undefined) {
+				stateConfiguration = new StateConfiguration(state.name);
+
+				regionConfiguration.children.push(stateConfiguration);
+			}
+		}
+
+		return stateConfiguration;
+	}
+
+	private getRegionConfiguration(region: Region): RegionConfiguration {
+		const stateConfiguration = this.getStateConfiguration(region.parent);
+
+		let regionConfiguration = stateConfiguration.children.filter(r => r.name === region.name)[0];
+
+		if (regionConfiguration === undefined) {
+			regionConfiguration = new RegionConfiguration(region.name);
+
+			stateConfiguration.children.push(regionConfiguration);
+		}
+
+		return regionConfiguration;
+	}
+
+	setCurrent(vertex: Vertex): void {
+		const regionConfiguration = this.getRegionConfiguration(vertex.parent);
+
+		regionConfiguration.current = vertex.name;
+
+		if (vertex instanceof State) {
+			regionConfiguration.lastKnownState = vertex.name;
+		}
+	}
+
+	getCurrent(region: Region): Vertex | undefined {
+		const regionConfiguration = this.getRegionConfiguration(region);
+
+		return region.children.filter(vertex => vertex.name === regionConfiguration.current)[0];
+	}
+
+	getLastKnownState(region: Region): State | undefined {
+		const regionConfiguration = this.getRegionConfiguration(region);
+
+		let lastKnownState: State | undefined = undefined;
+
+		for (const vertex of region.children) {
+			if (vertex instanceof State) {
+				if (vertex.name === regionConfiguration.lastKnownState) {
+					lastKnownState = vertex;
+				}
+			}
+		}
+
+		return lastKnownState;
+	}
+
+	toJSON() {
+		return JSON.stringify(this.root);
+	}
+
+	toString() {
+		return this.root.name;
+	}
 }
 
 /** Simple implementation of [[IInstance]]; manages the active state configuration in a dictionary. */

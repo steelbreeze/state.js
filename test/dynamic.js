@@ -10,7 +10,7 @@ var stateA = new state.State("stateA", model).exit(function (instance, message) 
 
 initial.to(stateA);
 
-var instance = new state.DictionaryInstance("instance");
+var instance = new state.JSONInstance("instance");
 
 
 model.initialise(instance);

@@ -29,7 +29,7 @@ idle.to(showMoveItemPattern).when(function (i, s) { return s === "ReleaseInput" 
 showMoveItemPattern.to(hideMoveItemPattern).when(function (i, s) { return s === "ReleaseInput" });
 hideMoveItemPattern.to(idle);
 
-var instance = new state.DictionaryInstance("florent");
+var instance = new state.JSONInstance("florent");
 
 model.initialise(instance);
 

@@ -20,7 +20,7 @@ junction1.to(fail).else();
 junction2.to(pass).when(function (instance) { return instance.counter === 0; }).effect(function (instance) { return instance.counter++; });
 junction2.to(fail).else();
 
-var instance = new state.DictionaryInstance();
+var instance = new state.JSONInstance();
 instance.counter = 0;
 
 describe("test/static.js", function () {

@@ -37,7 +37,7 @@ var local = stateB.to(bStateII, state.TransitionKind.Local).when(function (insta
 var exter = stateB.to(bStateII, state.TransitionKind.External).when(function (instance, message) { return message === "external"; });
 
 // create a state machine instance
-var instance = new state.DictionaryInstance("instance");
+var instance = new state.JSONInstance("instance");
 instance.stateBExitCount = 0;
 
 // initialise the model and instance

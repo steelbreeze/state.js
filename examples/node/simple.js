@@ -12,8 +12,9 @@ var stateB = new state.State("stateB", model);
 initial.to(stateA);
 stateA.to(stateB).when(function (instance, message) { return message === "move"; });
 // create a state machine instance
-var instance = new state.DictionaryInstance("instance");
+var instance = new state.JSONInstance("instance");
 // initialise the model and instance
 model.initialise(instance);
 // send the machine instance a message for evaluation, this will trigger the transition from stateA to stateB
 model.evaluate(instance, "move");
+console.log(instance.toJSON());

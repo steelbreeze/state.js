@@ -14,7 +14,7 @@ initial.to(target);
 target.to().when(function (instance, message) { return message === "internal"; }).effect(function (instance) { instance.transitionCount++; });
 target.to(target).when(function (instance, message) { return message === "external"; }).effect(function (instance) { instance.transitionCount++; });
 
-var instance = new state.DictionaryInstance("instance");
+var instance = new state.JSONInstance("instance");
 instance.entryCount = 0;
 instance.exitCount = 0;
 instance.transitionCount = 0;

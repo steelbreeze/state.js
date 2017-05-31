@@ -39,7 +39,7 @@ state3.to(state8).when(function (i, c) { return c === "event1"; });
 state7.to(state5).when(function (i, c) { return c === "event2"; });
 state7.to(state5).when(function (i, c) { return c === "event1"; });
 
-var instance = new state.DictionaryInstance("p3pp3r");
+var instance = new state.JSONInstance("p3pp3r");
 model.initialise(instance);
 
 describe("test/p3pp3r.js", function () {

@@ -18,7 +18,7 @@ initial2.to(state1);
 myComposite1.to(state3).when(function (i, c) { return c === "a"; });
 state1.to(state2).when(function (i, c) { return c === "a"; });
 
-var instance = new state.DictionaryInstance();
+var instance = new state.JSONInstance();
 model.initialise(instance);
 
 describe("test/brice.js", function () {

@@ -2,7 +2,7 @@
 var assert = require("assert"),
 	state = require("../lib/node/state");
 
-var instance = new state.DictionaryInstance("callbacks_instance");
+var instance = new state.JSONInstance("callbacks_instance");
 instance.calls = 0;
 instance.logs = 0;
 

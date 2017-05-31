@@ -466,6 +466,17 @@ export interface IInstance {
      */
     getLastKnownState(region: Region): State | undefined;
 }
+export declare class JSONInstance implements IInstance {
+    private readonly root;
+    constructor(name: String);
+    private getStateConfiguration(state);
+    private getRegionConfiguration(region);
+    setCurrent(vertex: Vertex): void;
+    getCurrent(region: Region): Vertex | undefined;
+    getLastKnownState(region: Region): State | undefined;
+    toJSON(): string;
+    toString(): String;
+}
 /** Simple implementation of [[IInstance]]; manages the active state configuration in a dictionary. */
 export declare class DictionaryInstance implements IInstance {
     readonly name: string;
