@@ -17,8 +17,9 @@ export type Delegate = (...args: any[]) => any;
 
 /***
  * A delegate that does nothing; this is always returned from create if no delegates are passed in. This can be used for comparison purposes.
+ * @param args An arbitory number of parameters to pass to the function.
  */
-export const noop: Delegate = () => { };
+export const noop: Delegate = (...args: any[]): any => { };
 
 /**
  * Creates a delegate for one or more functions that can be called as one.
