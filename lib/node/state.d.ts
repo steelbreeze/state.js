@@ -1,10 +1,3 @@
-/**
- * Type definitions for state.js
- * Project: state.js
- * Definitions by: David Mesquita-Morris <http://state.software>
- * Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
- */
-
 import { Delegate } from "./delegate";
 /** Interface used by state.js for managing log and error messages. */
 export interface ILogger {
