@@ -9,11 +9,16 @@
  */
 
 /**
- * The delegate type is a prototype for any function.
- * @param args An arbitory number of parameters to pass to the function.
- * @return An optional return from the function.
+ * Implementation of a multicast delegate to be used in conjunction with the [[create]] function.
  */
-export type Delegate = (...args: any[]) => any;
+export interface Delegate {
+	/**
+	 * The a prototype for any callable function.
+	 * @param args An arbitory number of parameters to pass to the function.
+	 * @return An optional return from the function.
+	 */
+	(...args: any[]): any;
+}
 
 /***
  * A delegate that does nothing; this is always returned from create if no delegates are passed in. This can be used for comparison purposes.
@@ -29,5 +34,11 @@ export const noop: Delegate = (...args: any[]): any => { };
 export function create(...delegates: Delegate[]): Delegate {
 	const callable = delegates.filter(f => f !== noop && f !== undefined && f !== null);
 
-	return callable.length !== 0 ? (...args: any[]) => callable.map(f => f(...args)) : noop;
+	if (callable.length !== 0) {
+		const delegate = (...args: any[]) => callable.map(f => f(...args));
+
+		return delegate;
+	} else {
+		return noop;
+	}
 }
