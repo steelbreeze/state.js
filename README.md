@@ -11,7 +11,7 @@
 
 If you like state.js, please star it.
 
-> **Update:** state.js v6 is nearing completion - see the release notes in the v6 branch for information.
+> **Update:** state.js v6 is nearing completion - it will be moving to the new [state](https://github.com/steelbreeze/state.js) repo and will use npm organistaions.
 
 ## Getting started
 
