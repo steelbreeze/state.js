@@ -329,7 +329,7 @@ export declare class StateMachine implements IElement {
 /** A relationship within a [state machine model]{@link StateMachine} between two [vertices]{@link Vertex} that will effect a state transition in response to an event when its [guard condition]{@link Transition.when} is satisfied. */
 export declare class Transition {
     readonly source: Vertex;
-    readonly target: Vertex;
+    readonly target: Vertex | undefined;
     readonly kind: TransitionKind;
     /**
      * A guard to represent else transitions.
@@ -357,7 +357,7 @@ export declare class Transition {
      * @param target The [vertex]{@link Vertex} to [transition]{@link Transition} to. Leave this as undefined to create an [internal transition]{@link TransitionKind.Internal}.
      * @param kind The kind of the [transition]{@link Transition}; use this to explicitly set [local transition]{@link TransitionKind.Local} semantics as needed.
      */
-    constructor(source: Vertex, target?: Vertex, kind?: TransitionKind);
+    constructor(source: Vertex, target?: Vertex | undefined, kind?: TransitionKind);
     /**
      * Tests the [transition]{@link Transition} to see if it is an [else transition]{@link Transition.else}.
      * @return Returns true if the [transition]{@link Transition} is an [else transition]{@link Transition.else}.
