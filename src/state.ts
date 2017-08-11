@@ -1221,14 +1221,11 @@ export function evaluate(model: StateMachine, instance: IInstance, message: any,
 		// evaluate comppletion transitions once vertex entry is complete
 		if (pseudoState.isInitial()) {
 			this.behavior(pseudoState).endEnter.push((message, instance, deepHistory) => {
-				if (instance.getLastKnownState(pseudoState.parent)) {
+				let currentState: State | undefined;
+
+				if ((deepHistory || pseudoState.isHistory()) && (currentState = instance.getLastKnownState(pseudoState.parent))) {
 					invoke(this.behavior(pseudoState).leave, message, instance);
-
-					const currentState = instance.getLastKnownState(pseudoState.parent);
-
-					if (currentState) {
-						invoke(this.behavior(currentState).enter(), message, instance, deepHistory || pseudoState.kind === PseudoStateKind.DeepHistory);
-					}
+					invoke(this.behavior(currentState).enter(), message, instance, deepHistory || pseudoState.kind === PseudoStateKind.DeepHistory);
 				} else {
 					traverse(pseudoState.outgoing[0], instance);
 				}

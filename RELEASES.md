@@ -1,3 +1,6 @@
+## Version 5.11.1
+Fix a bug that caused history semantics to be followed when reentering a region that did not have history defined.
+
 ## Version 5.11.0
 Fix bug in transtions originating from pseudo states that cross composite state boundaries; this necessitates the following breaking changes:
 * Make IInstance.setCurrent and IInstance.getCurrent set and get the last known Vertex for a given Region (was State previously);

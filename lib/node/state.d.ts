@@ -1,8 +1,3 @@
-// Type definitions for state.js
-// Project: state,js
-// Definitions by: David Mesquita-Morris <http://state.software>
-// Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
-
 /**
  * Finite state machine library
  * Copyright (c) 2014-6 David Mesquita-Morris
@@ -270,7 +265,7 @@ export declare class StateMachine extends State {
  */
 export declare class Transition {
     readonly source: Vertex;
-    readonly target: Vertex;
+    readonly target: Vertex | undefined;
     readonly kind: TransitionKind;
     /**
      * Creates a new instance of the [[Transition]] class.
@@ -278,7 +273,7 @@ export declare class Transition {
      * @param source The target [[Vertex]] of the [[Transition]]; this is an optional parameter, omitting it will create an [[Internal]] [[Transition]].
      * @param kind The kind the [[Transition]]; use this to set [[Local]] or [[External]] (the default if omitted) transition semantics.
      */
-    constructor(source: Vertex, target?: Vertex, kind?: TransitionKind);
+    constructor(source: Vertex, target?: Vertex | undefined, kind?: TransitionKind);
     /**
      * Turns a [[Transition]] into an else transition.
      * Else [[Transitions]]s can be used at [[Junction]] or [[Choice]] [[PseudoState]] if no other [[Transition]] guards evaluate true, an else [[Transition]] if present will be traversed.
