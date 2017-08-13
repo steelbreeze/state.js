@@ -1,15 +1,15 @@
-language: node_js
+language:
+  - node_js
+
 node_js:
-  - "5"
-  - "5.1"
-  - "4"
-  - "4.2"
-  - "4.1"
-  - "4.0"
-  - "0.12"
-  - "0.11"
-  - "0.10"
-  - "iojs"
-addons:
-    code_climate:
-        repo_token: 111df745fd4988fccdb084cd48dfb18cd152e6fb6476c473e911b1fbdfa3de76
+  - "node"
+
+install:
+  - npm install
+
+script:
+  - npm run build
+  - npm run test
+
+after_success:
+  - npm run coverage
