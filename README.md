@@ -1,6 +1,4 @@
-  [![state.js Logo](http://state.software/images/logos/state_55.png)](https://state.software/)
-
-  Executable state machine for [Node](http://nodejs.org) and [Web](https://cdn.rawgit.com/steelbreeze/state.js/master/examples/browser/test.html) development.
+Executable state machine for [Node](http://nodejs.org) and [Web](https://cdn.rawgit.com/steelbreeze/state.js/master/examples/browser/test.html) development.
 
   [![NPM Version][npm-image]][npm-url]
   [![NPM Downloads][downloads-image]][downloads-url]
