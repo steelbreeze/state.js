@@ -1,3 +1,4 @@
+# state.js
 Executable state machine for [Node](http://nodejs.org) and [Web](https://cdn.rawgit.com/steelbreeze/state.js/master/examples/browser/test.html) development.
 
   [![NPM Version][npm-image]][npm-url]
