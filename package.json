@@ -1,16 +1,16 @@
 {
-	"name": "state.js",
+	"name": "stateasync.js",
 	"version": "5.11.1",
 	"author": "David Mesquita-Morris",
 	"contributors": [
 		"David Mesquita-Morris"
 	],
 	"description": "Async fork of state.js. Hierarchical finite state machine",
-	"main": "./lib/node/",
+	"main": "./lib/node/stateAsync.js",
 	"typings": "./lib/node/stateAsync.d.ts",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/Rumbleship/state.js"
+		"url": "https://github.com/Rumbleship/stateAsync.js"
 	},
 	"scripts": {
 		"build": "tsc -p .",
