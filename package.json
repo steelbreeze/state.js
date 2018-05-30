@@ -5,12 +5,12 @@
 	"contributors": [
 		"David Mesquita-Morris"
 	],
-	"description": "Hierarchical finite state machine",
-	"main": "./lib/node/state",
-	"typings": "./lib/node/state.d.ts",
+	"description": "Async fork of state.js. Hierarchical finite state machine",
+	"main": "./lib/node/",
+	"typings": "./lib/node/stateAsync.d.ts",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/steelbreeze/state.js"
+		"url": "https://github.com/Rumbleship/state.js"
 	},
 	"scripts": {
 		"build": "tsc -p .",
