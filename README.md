@@ -1,4 +1,13 @@
-# state.js
+# state_async.js
+## Forked version 
+Add's async/await semantics allowing actions to call functions that return promises and internally 'await' on the call before proceeding. This enables the synchronous semantics of this library to be maintained.
+ 
+ Both state.initialise and state.evaluate() return promises. As such, either a promise chain or await should be used to sequence these calls.
+ 
+ Each action defined (ie in entry(), exit() and effect()) should be declared async and 'await' used on any code returning a promise in the action before returning.
+ 
+ 
+
 Executable state machine for [Node](http://nodejs.org) and [Web](https://cdn.rawgit.com/steelbreeze/state.js/master/examples/browser/test.html) development.
 
   [![NPM Version][npm-image]][npm-url]
