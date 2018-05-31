@@ -6,11 +6,11 @@
 		"David Mesquita-Morris"
 	],
 	"description": "Async fork of state.js. Hierarchical finite state machine",
-	"main": "./lib/node/stateAsync.js",
-	"typings": "./lib/node/stateAsync.d.ts",
+	"main": "./lib/node/state_async.js",
+	"typings": "./lib/node/state_async.d.ts",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/Rumbleship/stateAsync.js"
+		"url": "https://github.com/Rumbleship/state_async.js"
 	},
 	"scripts": {
 		"build": "tsc -p .",

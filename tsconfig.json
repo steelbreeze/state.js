@@ -11,6 +11,6 @@
 		"outDir": "lib/node"
 	},
 	"files": [
-		"src/stateAsync.ts"
+		"src/state_async.ts"
 	]
 }
