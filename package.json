@@ -1,9 +1,10 @@
 {
 	"name": "stateasync.js",
-	"version": "5.11.1",
-	"author": "David Mesquita-Morris",
+	"version": "1.0.0",
+	"author": "Original:David Mesquita-Morris",
 	"contributors": [
-		"David Mesquita-Morris"
+		"David Mesquita-Morris",
+		"Rumbleship"
 	],
 	"description": "Async fork of state.js. Hierarchical finite state machine",
 	"main": "./lib/node/state_async.js",
