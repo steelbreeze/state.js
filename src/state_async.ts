@@ -584,6 +584,8 @@ export class StateMachineInstance implements IInstance {
 	public toString(): string {
 		return this.name;
 	}
+	trace(msg: String): void {
+	}
 }
 
 /** Definition of a node within a JSON representation of the active state configuration of a state machine model. */
@@ -604,10 +606,14 @@ export class JSONInstance implements IInstance {
 	/** @internal */ readonly current: { [id: string]: Vertex } = {};
 
 	/** The active state configuration represented as a JSON object */
-	private activeStateConfiguration: IJSONNode;
+	private storable: {
+		activeStateConfiguration: IJSONNode,
+        transitionTrace: String[];
+    };
 
 	/** Indicates that the state machine instance has reached a [[PseudoStateKind.Terminate]] [[PseudoState]] and therfore will no longer respond to messages. */
 	public isTerminated: boolean = false;
+
 
 	/**
 	 * Creates a new instance of the [[JSONInstance]] class.
@@ -662,7 +668,7 @@ export class JSONInstance implements IInstance {
 
 			return node;
 		} else {
-			return this.activeStateConfiguration || (this.activeStateConfiguration = { "name": stateOrRegion.name, "children": [] });
+			return this.storable.activeStateConfiguration || (this.storable.activeStateConfiguration = { "name": stateOrRegion.name, "children": [] });
 		}
 	}
 
@@ -671,7 +677,7 @@ export class JSONInstance implements IInstance {
 	 * @returns A JSON string representation of the active state configuration.
 	 */
 	public toJSON(): string {
-		return JSON.stringify(this.activeStateConfiguration);
+		return JSON.stringify(this.storable);
 	}
 
 	/**
@@ -679,7 +685,7 @@ export class JSONInstance implements IInstance {
 	 * @param json A JSON string representation of the active state configuration.
 	 */
 	public fromJSON(json: string) {
-		return this.activeStateConfiguration = JSON.parse(json);
+		return this.storable = JSON.parse(json);
 	}
 
 	/**
@@ -689,6 +695,10 @@ export class JSONInstance implements IInstance {
 	public toString(): string {
 		return this.name;
 	}
+    trace(msg: String): void {
+		this.storable.transitionTrace.push(msg);
+    }
+
 }
 
 /**
@@ -818,6 +828,8 @@ export interface IInstance {
 	 * @param region The [[Region]] to get the last known [[State]] for.
 	 */
 	getLastKnownState(region?: Region): State | undefined;
+
+	trace(event: String) : void;
 }
 
 /**
@@ -922,6 +934,7 @@ export async function evaluate(model: StateMachine, instance: IInstance, message
 	}
 
 	console.log(`${instance} evaluate ${message}`);
+	instance.trace(`evaluate ${message}`)
 
 	// terminated state machine instances will not evaluate messages
 	if (instance.isTerminated) {
@@ -1173,8 +1186,8 @@ export async function evaluate(model: StateMachine, instance: IInstance, message
 	}
 
 	visitNamedElement(namedElement: Vertex | Region, deepHistoryAbove: boolean) {
-		this.behavior(namedElement).leave.push(async (message, instance) => console.log(`${instance} leave ${namedElement.qualifiedName}`));
-		this.behavior(namedElement).beginEnter.push(async (message, instance) => console.log(`${instance} enter ${namedElement.qualifiedName}`));
+		this.behavior(namedElement).leave.push(async (message, instance) => {console.log(`${instance} leave ${namedElement.qualifiedName}`); instance.trace(`leave ${namedElement.qualifiedName}`)});
+		this.behavior(namedElement).beginEnter.push(async (message, instance) => {console.log(`${instance} enter ${namedElement.qualifiedName}`); instance.trace(`enter ${namedElement.qualifiedName}`)});
 	}
 
 	visitRegion(region: Region, deepHistoryAbove: boolean) {

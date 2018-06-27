@@ -339,12 +339,13 @@ export declare class StateMachineInstance implements IInstance {
      * @returns The name of this [[StateMachineInstance]].
      */
     toString(): string;
+    trace(msg: String): void;
 }
 /** Manages the active state configuration of a state machine instance using a serializable JSON structure. */
 export declare class JSONInstance implements IInstance {
     name: string;
     /** The active state configuration represented as a JSON object */
-    private activeStateConfiguration;
+    private storable;
     /** Indicates that the state machine instance has reached a [[PseudoStateKind.Terminate]] [[PseudoState]] and therfore will no longer respond to messages. */
     isTerminated: boolean;
     /**
@@ -387,6 +388,7 @@ export declare class JSONInstance implements IInstance {
      * @returns The name of this [[StateMachineInstance]].
      */
     toString(): string;
+    trace(msg: String): void;
 }
 /**
  * Implementation of a visitor pattern.
@@ -475,6 +477,7 @@ export interface IInstance {
      * @param region The [[Region]] to get the last known [[State]] for.
      */
     getLastKnownState(region?: Region): State | undefined;
+    trace(event: String): void;
 }
 /**
  * Tests a [[State]] or [[Region]] within a state machine instance to see if its lifecycle is complete.
