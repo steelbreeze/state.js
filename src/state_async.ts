@@ -606,10 +606,9 @@ export class JSONInstance implements IInstance {
 	/** @internal */ readonly current: { [id: string]: Vertex } = {};
 
 	/** The active state configuration represented as a JSON object */
-	private storable: {
-		activeStateConfiguration: IJSONNode,
-        transitionTrace: String[];
-    };
+	private activeStateConfiguration: IJSONNode;
+	private transitionTrace: String[];
+
 
 	/** Indicates that the state machine instance has reached a [[PseudoStateKind.Terminate]] [[PseudoState]] and therfore will no longer respond to messages. */
 	public isTerminated: boolean = false;
@@ -619,7 +618,9 @@ export class JSONInstance implements IInstance {
 	 * Creates a new instance of the [[JSONInstance]] class.
 	 * @param name The optional name of the [[JSONInstance]].
 	 */
-	public constructor(public name: string = "unnamed") { }
+	public constructor(public name: string = "unnamed") {
+		this.transitionTrace = new Array();
+	}
 
 	/**
 	 * Updates the last known [[State]] for a given [[Region]].
@@ -668,7 +669,7 @@ export class JSONInstance implements IInstance {
 
 			return node;
 		} else {
-			return this.storable.activeStateConfiguration || (this.storable.activeStateConfiguration = { "name": stateOrRegion.name, "children": [] });
+			return this.activeStateConfiguration || (this.activeStateConfiguration = { "name": stateOrRegion.name, "children": [] });
 		}
 	}
 
@@ -677,7 +678,11 @@ export class JSONInstance implements IInstance {
 	 * @returns A JSON string representation of the active state configuration.
 	 */
 	public toJSON(): string {
-		return JSON.stringify(this.storable);
+		let obj = {
+			activeState: this.activeStateConfiguration,
+			eventHistory: this.transitionTrace
+		}
+		return JSON.stringify(obj);
 	}
 
 	/**
@@ -685,7 +690,10 @@ export class JSONInstance implements IInstance {
 	 * @param json A JSON string representation of the active state configuration.
 	 */
 	public fromJSON(json: string) {
-		return this.storable = JSON.parse(json);
+		let obj = JSON.parse(json);
+		this.activeStateConfiguration = obj.activeState;
+		this.transitionTrace = obj.eventHistory;
+		return obj.activeState;
 	}
 
 	/**
@@ -696,7 +704,7 @@ export class JSONInstance implements IInstance {
 		return this.name;
 	}
     trace(msg: String): void {
-		this.storable.transitionTrace.push(msg);
+		this.transitionTrace.push(msg);
     }
 
 }

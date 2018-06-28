@@ -345,7 +345,8 @@ export declare class StateMachineInstance implements IInstance {
 export declare class JSONInstance implements IInstance {
     name: string;
     /** The active state configuration represented as a JSON object */
-    private storable;
+    private activeStateConfiguration;
+    private transitionTrace;
     /** Indicates that the state machine instance has reached a [[PseudoStateKind.Terminate]] [[PseudoState]] and therfore will no longer respond to messages. */
     isTerminated: boolean;
     /**
