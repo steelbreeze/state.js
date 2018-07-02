@@ -1,6 +1,6 @@
 /* global describe, it */
 var assert = require("assert"),
-    state = require("../lib/node/state"); // use this form if local
+    state = require("../lib/node/state_async"); // use this form if local
 
 // create the state machine model elements
 var model = new state.StateMachine("model");

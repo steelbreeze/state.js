@@ -607,7 +607,7 @@ export class JSONInstance implements IInstance {
 
 	/** The active state configuration represented as a JSON object */
 	private activeStateConfiguration: IJSONNode;
-	private transitionTrace: String[];
+	public transitionTrace: String[];
 
 
 	/** Indicates that the state machine instance has reached a [[PseudoStateKind.Terminate]] [[PseudoState]] and therfore will no longer respond to messages. */
@@ -619,7 +619,7 @@ export class JSONInstance implements IInstance {
 	 * @param name The optional name of the [[JSONInstance]].
 	 */
 	public constructor(public name: string = "unnamed") {
-		this.transitionTrace = new Array();
+		this.transitionTrace = [];
 	}
 
 	/**
@@ -704,7 +704,7 @@ export class JSONInstance implements IInstance {
 		return this.name;
 	}
     trace(msg: String): void {
-		this.transitionTrace.push(msg);
+		this.transitionTrace.unshift(msg);
     }
 
 }

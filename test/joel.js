@@ -1,4 +1,4 @@
-var state = require('../lib/node/state.js');
+var state = require('../lib/node/state_async.js');
 
 var oldConsole = state.console;
 state.setConsole(console);

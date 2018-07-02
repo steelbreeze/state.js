@@ -1,6 +1,6 @@
 /* global describe, it */
 var assert = require("assert"),
-	state = require("../lib/node/state");
+	state = require("../lib/node/state_async");
 
 // enable completion events to be raised after internal transtions
 state.setInternalTransitionsTriggerCompletion(true);
@@ -15,7 +15,7 @@ var S2 = new state.State("s2", model);
 initial.to(S1);
 
 // IT transition
-S1.to().when(function (message, instance) { return instance.i === 0 }).effect(function (message, instance) { instance.i++; });
+S1.to().when(function (message, instance) { return instance.i === 0 }).effect(async function (message, instance) { instance.i++; });
 
 // T transition
 S1.to(S2).when(function(message, instance) { return instance.i > 0 });
@@ -25,10 +25,11 @@ var instance = new state.StateMachineInstance("brice2");
 instance.i = 0;
 
 // initialise the state machine triggering the initial, IT and T transitions
-state.initialise(model, instance);
+async function doit() { await state.initialise(model, instance);}
+doit();
 
 // assertions
-describe("test/brice2.js", function () {
+describe("test/brice2.js", async function () {
 	it("Internal transitions are evaluated on completion events", function(){
 		assert.equal(1, instance.i);
 	});

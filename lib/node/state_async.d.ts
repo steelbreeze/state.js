@@ -32,7 +32,7 @@ export declare enum PseudoStateKind {
      * Entering a terminate [[PseudoState]] implies that the execution of [[StateMachine]] is terminated and will not respond to any more messages.
      * @depricated since v5.10.2 (use a transition to a top-leval state with no outbound transitions).
      */
-    Terminate = 5,
+    Terminate = 5
 }
 /**
  * An enumeration of that dictates the precise behavior of a [[Transition]] instance.
@@ -46,7 +46,7 @@ export declare enum TransitionKind {
     /** The [[Transition]], if triggered, occurs without exiting or entering the source [[State]]; it does not cause a state therefore no [[State]] exit or entry [[Action]]s will be invoked, only [[Transition]] [[Action]]s. */
     Internal = 1,
     /** The [[Transition]], if triggered, will not exit the source [[State]] as the target [[Vertex]] is a child of the source [[State]]. No exit [[Action]]s are invoked from the source [[State]], but [[Transition]] and entry [[Action]]s will be invoked as required. */
-    Local = 2,
+    Local = 2
 }
 /**
  * An element within a model.
@@ -265,7 +265,7 @@ export declare class StateMachine extends State {
  */
 export declare class Transition {
     readonly source: Vertex;
-    readonly target: Vertex | undefined;
+    readonly target?: Vertex | undefined;
     readonly kind: TransitionKind;
     /**
      * Creates a new instance of the [[Transition]] class.
@@ -346,7 +346,7 @@ export declare class JSONInstance implements IInstance {
     name: string;
     /** The active state configuration represented as a JSON object */
     private activeStateConfiguration;
-    private transitionTrace;
+    transitionTrace: String[];
     /** Indicates that the state machine instance has reached a [[PseudoStateKind.Terminate]] [[PseudoState]] and therfore will no longer respond to messages. */
     isTerminated: boolean;
     /**
@@ -373,7 +373,7 @@ export declare class JSONInstance implements IInstance {
      */
     getLastKnownState(region: Region): State | undefined;
     /** Finds a node within the active state configuration for a given Region. */
-    private getNode(stateOrRegion);
+    private getNode;
     /**
      * Returns the active state configuration as a JSON string.
      * @returns A JSON string representation of the active state configuration.

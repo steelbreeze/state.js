@@ -1,6 +1,6 @@
 /* global describe, it */
 var assert = require("assert"),
-	state = require("../lib/node/state");
+	state = require("../lib/node/state_async");
 
 var model = new state.StateMachine("model");
 var initial1 = new state.PseudoState("initial", model, state.PseudoStateKind.Initial);
@@ -18,11 +18,13 @@ state1.to(state2).when(function(c) { return c === "a";});
 state.validate(model);
 
 var instance = new state.StateMachineInstance();
-state.initialise(model, instance);
+async function doit () { await state.initialise(model, instance);}
 
-describe("test/brice.js", function () {
-	it("Transitions should be selected depth-first", function(){
-		state.evaluate(model, instance, "a");
+doit();
+
+describe("test/brice.js", async function () {
+	it("Transitions should be selected depth-first", async function(){
+		await state.evaluate(model, instance, "a");
 
 		assert.equal(state2, instance.getCurrent(myComposite1.getDefaultRegion()));
 	});
