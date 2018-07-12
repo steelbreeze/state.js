@@ -10,7 +10,7 @@ Executable state machine for [Node](http://nodejs.org) and [Web](https://cdn.raw
 
 If you like state.js, please star it.
 
-> **Update:** state.js v6 is nearing completion - it will be moving to the new [state](https://github.com/steelbreeze/state) repo and will use npm organistaions.
+> **Update:** v6 is now complete and can be found at [@steelbreeze/state](https://github.com/steelbreeze/state). This repo is now deprecated.
 
 ## Getting started
 
