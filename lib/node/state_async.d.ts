@@ -209,7 +209,7 @@ export declare class State extends Vertex {
      * Adds and [[Action]] that is executed each time the [[State]] instance is entered due to a [[Transition]].
      * @param entryAction The [[Action]] to add to the [[State]] instance entry behavior.
      */
-    entry(entryAction: Action): this;
+    entry<T extends Action>(entryAction: T): this;
     /**
      * Accepts an instance of a [[Visitor]] and calls the [[visitState]] method on it.
      * @param TArg1 The type of the first optional parameter.
