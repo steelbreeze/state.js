@@ -110,7 +110,7 @@ The versions are in the form {major}.{minor}.{build}
 * Build changes can introduce features, though usually are fixes and performance enhancements; these will never break the public API.
 
 ## Documentation
-Documentation for the public API can be found [here](https://steelbreeze.net/state/docs/).
+Documentation for the public API can be found [here](https://steelbreeze.net/state/api/v5).
 
 ## Licence
 state.js is dual-licenecd under the MIT and GPL v3 licences.
