@@ -572,8 +572,12 @@ export class StateMachineInstance implements IInstance {
    * Creates a new instance of the [[StateMachineInstance]] class.
    * @param name The optional name of the [[StateMachineInstance]].
    */
-  public constructor(public name: string = 'unnamed') {
+  public constructor(public name: string = 'unnamed', private logger: SMConsole = console) {
     this.name = name;
+  }
+
+  public getLogger(): SMConsole {
+    return this.logger;
   }
 
   /**
@@ -644,9 +648,14 @@ export class JSONInstance implements IInstance {
   /**
    * Creates a new instance of the [[JSONInstance]] class.
    * @param name The optional name of the [[JSONInstance]].
+   * @param logger The optional logger to use of the [[JSONInstance]].
    */
-  public constructor(public name: string = 'unnamed') {
+  public constructor(public name: string = 'unnamed', private logger: SMConsole = console) {
     this.transitionTrace = [];
+  }
+
+  public getLogger(): any {
+    return this.logger;
   }
 
   /**
@@ -875,6 +884,8 @@ export interface IInstance {
   getLastKnownState(region?: Region): State | undefined;
 
   trace(event: String): void;
+
+  getLogger(): SMConsole;
 }
 
 /**
@@ -973,7 +984,7 @@ export async function initialise(
       await initialise(model);
     }
 
-    console.log(`initialise ${instance}`);
+    instance.getLogger().log(`initialise ${instance}`);
 
     // enter the state machine instance for the first time
     await invoke(model.onInitialise, undefined, instance);
@@ -1005,7 +1016,7 @@ export async function evaluate(
     await initialise(model);
   }
 
-  console.log(`${instance} evaluate ${message}`);
+  instance.getLogger().log(`${instance} evaluate ${message}`);
   instance.trace(`evaluate ${message}`);
 
   // terminated state machine instances will not evaluate messages
@@ -1066,7 +1077,7 @@ export async function evaluate(
       result = await traverse(transitions[0], instance, message);
     } else if (transitions.length > 1) {
       // error if multiple transitions evaluated true
-      console.error(
+      instance.getLogger().error(
         `${state}: multiple outbound transitions evaluated true for message ${message}`
       );
     }
@@ -1154,7 +1165,7 @@ export async function evaluate(
   }
 
   if (transitions.length > 1) {
-    console.error(
+    instance.getLogger().error(
       `Multiple outbound transition guards returned true at ${pseudoState} for ${message}`
     );
   }
@@ -1348,11 +1359,11 @@ export async function evaluate(
 
   visitNamedElement(namedElement: Vertex | Region, deepHistoryAbove: boolean) {
     this.behavior(namedElement).leave.push(async (message, instance) => {
-      console.log(`${instance} leave ${namedElement.qualifiedName}`);
+      instance.getLogger().log(`${instance} leave ${namedElement.qualifiedName}`);
       instance.trace(`leave ${namedElement.qualifiedName}`);
     });
     this.behavior(namedElement).beginEnter.push(async (message, instance) => {
-      console.log(`${instance} enter ${namedElement.qualifiedName}`);
+      instance.getLogger().log(`${instance} enter ${namedElement.qualifiedName}`);
       instance.trace(`enter ${namedElement.qualifiedName}`);
     });
   }
@@ -1494,15 +1505,16 @@ export let console = {
   }
 };
 
+export interface SMConsole {
+  log(message?: any, ...optionalParams: any[]): void;
+  warn(message?: any, ...optionalParams: any[]): void;
+  error(message?: any, ...optionalParams: any[]): void;
+};
 /**
  * Replace the default console object to implement custom logging.
  * @param newConsole An object to send log, warning and error messages to.
  */
-export function setConsole(newConsole: {
-  log(message?: any, ...optionalParams: any[]): void;
-  warn(message?: any, ...optionalParams: any[]): void;
-  error(message?: any, ...optionalParams: any[]): void;
-}): void {
+export function setConsole(newConsole: SMConsole): void {
   console = newConsole;
 }
 
