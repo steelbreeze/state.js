@@ -45,7 +45,7 @@ $ npm install state.js
 ```js
 var state = require("state.js");
 
-// send log messages, warnings and errors to the console
+// send log messages, warnings and errors to the console, globally
 state.setConsole(console);
 
 // create the state machine model elements
@@ -58,8 +58,8 @@ var stateB = new state.State("stateB", model);
 initial.to(stateA);
 stateA.to(stateB).when(function (message) { return message === "move"; });
 
-// create a state machine instance
-var instance = new state.StateMachineInstance("instance");
+// create a state machine instance, with optional injected logger
+var instance = new state.StateMachineInstance("instance", new MyConsoleLogger());
 
 // initialise the model and instance
 state.initialise(model, instance);

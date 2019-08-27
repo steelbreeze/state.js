@@ -309,13 +309,15 @@ export declare class Transition {
  */
 export declare class StateMachineInstance implements IInstance {
     name: string;
+    private logger;
     /** Indicates that the [[StateMachine]] instance reached was terminated by reaching a [[Terminate]] [[PseudoState]]. */
     isTerminated: boolean;
     /**
      * Creates a new instance of the [[StateMachineInstance]] class.
      * @param name The optional name of the [[StateMachineInstance]].
      */
-    constructor(name?: string);
+    constructor(name?: string, logger?: SMConsole);
+    getLogger(): SMConsole;
     /**
      * Updates the last known [[State]] for a given [[Region]].
      * @param region The [[Region]] to set the last known [[State]] of.
@@ -344,6 +346,7 @@ export declare class StateMachineInstance implements IInstance {
 /** Manages the active state configuration of a state machine instance using a serializable JSON structure. */
 export declare class JSONInstance implements IInstance {
     name: string;
+    private logger;
     /** The active state configuration represented as a JSON object */
     private activeStateConfiguration;
     transitionTrace: String[];
@@ -352,8 +355,10 @@ export declare class JSONInstance implements IInstance {
     /**
      * Creates a new instance of the [[JSONInstance]] class.
      * @param name The optional name of the [[JSONInstance]].
+     * @param logger The optional logger to use of the [[JSONInstance]].
      */
-    constructor(name?: string);
+    constructor(name?: string, logger?: SMConsole);
+    getLogger(): any;
     /**
      * Updates the last known [[State]] for a given [[Region]].
      * @param region The [[Region]] to set the last known [[State]] of.
@@ -479,6 +484,7 @@ export interface IInstance {
      */
     getLastKnownState(region?: Region): State | undefined;
     trace(event: String): void;
+    getLogger(): SMConsole;
 }
 /**
  * Tests a [[State]] or [[Region]] within a state machine instance to see if its lifecycle is complete.
@@ -519,15 +525,16 @@ export declare let console: {
     warn(message?: any, ...optionalParams: any[]): void;
     error(message?: any, ...optionalParams: any[]): void;
 };
+export interface SMConsole {
+    log(message?: any, ...optionalParams: any[]): void;
+    warn(message?: any, ...optionalParams: any[]): void;
+    error(message?: any, ...optionalParams: any[]): void;
+}
 /**
  * Replace the default console object to implement custom logging.
  * @param newConsole An object to send log, warning and error messages to.
  */
-export declare function setConsole(newConsole: {
-    log(message?: any, ...optionalParams: any[]): void;
-    warn(message?: any, ...optionalParams: any[]): void;
-    error(message?: any, ...optionalParams: any[]): void;
-}): void;
+export declare function setConsole(newConsole: SMConsole): void;
 /** Flag to make internal [[Transition]]s trigger completion events for [[State]] they are in. */
 export declare var internalTransitionsTriggerCompletion: boolean;
 /**
