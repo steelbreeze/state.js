@@ -583,7 +583,7 @@ export class StateMachineInstance implements IInstance {
     return this.context.logger;
   }
 
-  public getId(): string {
+  public getContextId(): string {
     return this.context.id;
   }
 
@@ -665,7 +665,7 @@ export class JSONInstance implements IInstance {
     return this.context.logger;
   }
 
-  public getId(): string {
+  public getContextId(): string {
     return this.context.id;
   }
 
@@ -898,7 +898,7 @@ export interface IInstance {
 
   getLogger(): SMConsole;
   
-  getId(): string;
+  getContextId(): string;
 }
 
 /**

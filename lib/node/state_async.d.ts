@@ -319,7 +319,7 @@ export declare class StateMachineInstance implements IInstance {
      */
     constructor(name?: string, context?: SMContext);
     getLogger(): SMConsole;
-    getId(): string;
+    getContextId(): string;
     /**
      * Updates the last known [[State]] for a given [[Region]].
      * @param region The [[Region]] to set the last known [[State]] of.
@@ -361,7 +361,7 @@ export declare class JSONInstance implements IInstance {
      */
     constructor(name?: string, context?: SMContext);
     getLogger(): SMConsole;
-    getId(): string;
+    getContextId(): string;
     /**
      * Updates the last known [[State]] for a given [[Region]].
      * @param region The [[Region]] to set the last known [[State]] of.
@@ -488,7 +488,7 @@ export interface IInstance {
     getLastKnownState(region?: Region): State | undefined;
     trace(event: String): void;
     getLogger(): SMConsole;
-    getId(): string;
+    getContextId(): string;
 }
 /**
  * Tests a [[State]] or [[Region]] within a state machine instance to see if its lifecycle is complete.
