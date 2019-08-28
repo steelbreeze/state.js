@@ -309,15 +309,17 @@ export declare class Transition {
  */
 export declare class StateMachineInstance implements IInstance {
     name: string;
-    private logger;
+    private context;
     /** Indicates that the [[StateMachine]] instance reached was terminated by reaching a [[Terminate]] [[PseudoState]]. */
     isTerminated: boolean;
     /**
      * Creates a new instance of the [[StateMachineInstance]] class.
      * @param name The optional name of the [[StateMachineInstance]].
+     * @param context The optional injectable [[SMContext ]] of the [[StateMachineInstance]]
      */
-    constructor(name?: string, logger?: SMConsole);
+    constructor(name?: string, context?: SMContext);
     getLogger(): SMConsole;
+    getId(): string;
     /**
      * Updates the last known [[State]] for a given [[Region]].
      * @param region The [[Region]] to set the last known [[State]] of.
@@ -346,7 +348,7 @@ export declare class StateMachineInstance implements IInstance {
 /** Manages the active state configuration of a state machine instance using a serializable JSON structure. */
 export declare class JSONInstance implements IInstance {
     name: string;
-    private logger;
+    private context;
     /** The active state configuration represented as a JSON object */
     private activeStateConfiguration;
     transitionTrace: String[];
@@ -355,10 +357,11 @@ export declare class JSONInstance implements IInstance {
     /**
      * Creates a new instance of the [[JSONInstance]] class.
      * @param name The optional name of the [[JSONInstance]].
-     * @param logger The optional logger to use of the [[JSONInstance]].
+     * @param context The optional inejctable execution [[SMContext]] to use with the [[JSONInstance]].
      */
-    constructor(name?: string, logger?: SMConsole);
-    getLogger(): any;
+    constructor(name?: string, context?: SMContext);
+    getLogger(): SMConsole;
+    getId(): string;
     /**
      * Updates the last known [[State]] for a given [[Region]].
      * @param region The [[Region]] to set the last known [[State]] of.
@@ -485,6 +488,7 @@ export interface IInstance {
     getLastKnownState(region?: Region): State | undefined;
     trace(event: String): void;
     getLogger(): SMConsole;
+    getId(): string;
 }
 /**
  * Tests a [[State]] or [[Region]] within a state machine instance to see if its lifecycle is complete.
@@ -525,6 +529,10 @@ export declare let console: {
     warn(message?: any, ...optionalParams: any[]): void;
     error(message?: any, ...optionalParams: any[]): void;
 };
+export interface SMContext {
+    logger: SMConsole;
+    id: string;
+}
 export interface SMConsole {
     log(message?: any, ...optionalParams: any[]): void;
     warn(message?: any, ...optionalParams: any[]): void;

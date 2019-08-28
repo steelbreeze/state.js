@@ -1,3 +1,5 @@
+import uuid = require("uuid");
+
 /**
  * Finite state machine library
  * Copyright (c) 2014-6 David Mesquita-Morris
@@ -571,13 +573,18 @@ export class StateMachineInstance implements IInstance {
   /**
    * Creates a new instance of the [[StateMachineInstance]] class.
    * @param name The optional name of the [[StateMachineInstance]].
+   * @param context The optional injectable [[SMContext ]] of the [[StateMachineInstance]]
    */
-  public constructor(public name: string = 'unnamed', private logger: SMConsole = console) {
+  public constructor(public name: string = 'unnamed', private context: SMContext = {logger: console, id: uuid.v4() }) {
     this.name = name;
   }
 
   public getLogger(): SMConsole {
-    return this.logger;
+    return this.context.logger;
+  }
+
+  public getId(): string {
+    return this.context.id;
   }
 
   /**
@@ -648,14 +655,18 @@ export class JSONInstance implements IInstance {
   /**
    * Creates a new instance of the [[JSONInstance]] class.
    * @param name The optional name of the [[JSONInstance]].
-   * @param logger The optional logger to use of the [[JSONInstance]].
+   * @param context The optional inejctable execution [[SMContext]] to use with the [[JSONInstance]].
    */
-  public constructor(public name: string = 'unnamed', private logger: SMConsole = console) {
+  public constructor(public name: string = 'unnamed', private context: SMContext = { logger: console, id: uuid.v4()}) {
     this.transitionTrace = [];
   }
 
-  public getLogger(): any {
-    return this.logger;
+  public getLogger(): SMConsole {
+    return this.context.logger;
+  }
+
+  public getId(): string {
+    return this.context.id;
   }
 
   /**
@@ -886,6 +897,8 @@ export interface IInstance {
   trace(event: String): void;
 
   getLogger(): SMConsole;
+  
+  getId(): string;
 }
 
 /**
@@ -1505,6 +1518,10 @@ export let console = {
   }
 };
 
+export interface SMContext {
+  logger: SMConsole;
+  id: string;
+}
 export interface SMConsole {
   log(message?: any, ...optionalParams: any[]): void;
   warn(message?: any, ...optionalParams: any[]): void;

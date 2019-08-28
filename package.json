@@ -1,6 +1,6 @@
 {
 	"name": "stateasync.js",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"author": "Original:David Mesquita-Morris",
 	"contributors": [
 		"David Mesquita-Morris",
@@ -19,10 +19,10 @@
 		"coverage": "CODECLIMATE_REPO_TOKEN=111df745fd4988fccdb084cd48dfb18cd152e6fb6476c473e911b1fbdfa3de76 codeclimate-test-reporter < ./coverage/lcov.info"
 	},
 	"devDependencies": {
-		"typescript": "latest",
-		"nyc": "latest",
+		"codeclimate-test-reporter": "latest",
 		"mocha": "latest",
-		"codeclimate-test-reporter": "latest"
+		"nyc": "latest",
+		"typescript": "latest"
 	},
 	"keywords": [
 		"state machine",
@@ -49,7 +49,10 @@
 	"bugs": {
 		"url": "https://github.com/steelbreeze/state.js/issues"
 	},
-	"dependencies": {},
+	"dependencies": {
+		"@types/uuid": "^3.4.5",
+		"uuid": "^3.3.3"
+	},
 	"licenses": [
 		{
 			"type": "MIT",
